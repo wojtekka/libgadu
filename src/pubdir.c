@@ -49,9 +49,9 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 	struct gg_http *h;
 	char *__pwd, *__email, *__tokenid, *__tokenval, *form, *query;
 
-	if (!email | !password | !tokenid | !tokenval) {
+	if (!email || !password || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> register, NULL parameter\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
 
@@ -66,7 +66,6 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 		free(__email);
 		free(__tokenid);
 		free(__tokenval);
-		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -81,7 +80,6 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 
 	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> register, not enough memory for form query\n");
-		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -98,6 +96,11 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 		(int) strlen(form), form);
 
 	free(form);
+
+	if (!query) {
+		gg_debug(GG_DEBUG_MISC, "=> register, not enough memory for query\n");
+		return NULL;
+	}
 
 	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> register, gg_http_connect() failed mysteriously\n");
@@ -139,7 +142,7 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 
 	if (!password || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, NULL parameter\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
     
@@ -154,7 +157,6 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 		free(__fmpwd);
 		free(__tokenid);
 		free(__tokenval);
-		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -167,7 +169,6 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 
 	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for form query\n");
-		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -184,6 +185,11 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 		(int) strlen(form), form);
 
 	free(form);
+
+	if (!query) {
+		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for query\n");
+		return NULL;
+	}
 
 	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, gg_http_connect() failed mysteriously\n");
@@ -228,7 +234,7 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 
 	if (!uin || !email || !passwd || !newpasswd || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> change, NULL parameter\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
 	
@@ -245,7 +251,6 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 		free(__email);
 		free(__tokenid);
 		free(__tokenval);
-		errno = ENOMEM;
 		return NULL;
 	}
 	
@@ -257,7 +262,6 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 		free(__tokenid);
 		free(__tokenval);
 
-		errno = ENOMEM;
 		return NULL;
 	}
 	
@@ -280,6 +284,11 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 		(int) strlen(form), form);
 
 	free(form);
+
+	if (!query) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for query\n");
+		return NULL;
+	}
 
 	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, gg_http_connect() failed mysteriously\n");
@@ -321,7 +330,7 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
 
 	if (!tokenid || !tokenval || !email) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, NULL parameter\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
 	
@@ -334,13 +343,11 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
 		free(__tokenid);
 		free(__tokenval);
 		free(__email);
-		errno = ENOMEM;
 		return NULL;
 	}
 
 	if (!(form = gg_saprintf("userid=%d&code=%u&tokenid=%s&tokenval=%s&email=%s", uin, gg_http_hash("u", uin), __tokenid, __tokenval, __email))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
-		errno = ENOMEM;
 		free(__tokenid);
 		free(__tokenval);
 		free(__email);
@@ -364,6 +371,11 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
 		(int) strlen(form), form);
 
 	free(form);
+
+	if (!query) {
+		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for query\n");
+		return NULL;
+	}
 
 	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmsendpwd3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, gg_http_connect() failed mysteriously\n");
@@ -402,7 +414,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 	char *tmp;
 
 	if (!h) {
-		errno = EINVAL;
+		errno = EFAULT;
 		return -1;
 	}
 
@@ -429,6 +441,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 		gg_debug(GG_DEBUG_MISC, "=> pubdir, not enough memory for results\n");
 		return -1;
 	}
+
 	p->success = 0;
 	p->uin = 0;
 	
@@ -513,7 +526,7 @@ struct gg_http *gg_token(int async)
 int gg_token_watch_fd(struct gg_http *h)
 {
 	if (!h) {
-		errno = EINVAL;
+		errno = EFAULT;
 		return -1;
 	}
 
@@ -556,6 +569,7 @@ int gg_token_watch_fd(struct gg_http *h)
 			gg_debug(GG_DEBUG_MISC, "=> token, parsing failed\n");
 			free(url);
 			free(tokenid);
+			errno = EINVAL;
 			return -1;
 		}
 		
@@ -576,6 +590,7 @@ int gg_token_watch_fd(struct gg_http *h)
 				gg_debug(GG_DEBUG_MISC, "=> token, url parsing failed\n");
 				free(url);
 				free(tokenid);
+				errno = EINVAL;
 				return -1;
 			}
 		}

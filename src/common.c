@@ -227,7 +227,7 @@ char *gg_get_line(char **ptr)
  */
 int gg_connect(void *addr, int port, int async)
 {
-	int sock, one = 1;
+	int sock, one = 1, errno2;
 	struct sockaddr_in sin;
 	struct in_addr *a = addr;
 	struct sockaddr_in myaddr;
@@ -243,7 +243,7 @@ int gg_connect(void *addr, int port, int async)
 	myaddr.sin_family = AF_INET;
 
 	myaddr.sin_addr.s_addr = gg_local_ip;
-        
+
 	if (bind(sock, (struct sockaddr *) &myaddr, sizeof(myaddr)) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_connect() bind() failed (errno=%d, %s)\n", errno, strerror(errno));
 		return -1;
@@ -260,7 +260,9 @@ int gg_connect(void *addr, int port, int async)
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
 #endif
 			gg_debug(GG_DEBUG_MISC, "// gg_connect() ioctl() failed (errno=%d, %s)\n", errno, strerror(errno));
+			errno2 = errno;
 			close(sock);
+			errno = errno2;
 			return -1;
 		}
 	}
@@ -272,7 +274,9 @@ int gg_connect(void *addr, int port, int async)
 	if (connect(sock, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
 		if (errno && (!async || errno != EINPROGRESS)) {
 			gg_debug(GG_DEBUG_MISC, "// gg_connect() connect() failed (errno=%d, %s)\n", errno, strerror(errno));
+			errno2 = errno;
 			close(sock);
+			errno = errno2;
 			return -1;
 		}
 		gg_debug(GG_DEBUG_MISC, "// gg_connect() connect() in progress\n");
@@ -501,7 +505,6 @@ cleanup:
 	struct hostent *hp;
 
 	if (!(addr = malloc(sizeof(struct in_addr)))) {
-		errno = ENOMEM;
 		goto cleanup;
 	}
 
@@ -574,11 +577,10 @@ int gg_win32_thread_socket(int thread_id, int socket)
 				return socket;
 			}
 		}
-		
 		p_wsk = &(wsk->next);
 		wsk = wsk->next;
 	}
-	
+
 	if (close && socket != -1)
 		closesocket(socket);
 	if (close || !socket)

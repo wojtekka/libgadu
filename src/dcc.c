@@ -389,7 +389,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 {
 	struct gg_dcc *c;
 	struct sockaddr_in sin;
-	int sock, bound = 0;
+	int sock, bound = 0, errno2;
 	
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%d, %d);\n", uin, port);
 	
@@ -426,7 +426,9 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 
 	if (listen(sock, 10)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() unable to listen (%s)\n", strerror(errno));
+		errno2 = errno;
 		close(sock);
+		errno = errno2;
 		return NULL;
 	}
 	
@@ -474,6 +476,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	gg_debug(GG_DEBUG_FUNCTION, "++ gg_dcc_voice_send(%p, %p, %d);\n", d, buf, length);
 	if (!d || !buf || length < 0 || d->type != GG_SESSION_DCC_VOICE) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() invalid argument\n");
+		errno = EINVAL;
 		return -1;
 	}
 
@@ -905,7 +908,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					e->event.dcc_voice_data.length = h->chunk_size;
 					h->state = GG_STATE_READING_VOICE_HEADER;
 					h->voice_buf = NULL;
-				
 				}
 
 				h->check = GG_CHECK_READ;
@@ -1109,7 +1111,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 					return e;
 				}
-				
+
 				lseek(h->file_fd, h->offset, SEEK_SET);
 
 				size = read(h->file_fd, buf, utmp);

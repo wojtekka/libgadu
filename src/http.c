@@ -62,12 +62,12 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 
 	if (!hostname || !port || !method || !path || !header) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_connect() invalid arguments\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
 	
 	if (!(h = malloc(sizeof(*h))))
-		return NULL;        
+		return NULL;
 	memset(h, 0, sizeof(*h));
 
 	h->async = async;
@@ -181,7 +181,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 	if (!h) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_watch_fd() invalid arguments\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return -1;
 	}
 

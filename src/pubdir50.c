@@ -266,7 +266,7 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 
 	if (!e || !packet) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_handle_reply() invalid arguments\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return -1;
 	}
 
@@ -385,7 +385,7 @@ const char *gg_pubdir50_get(gg_pubdir50_t res, int num, const char *field)
 
 	if (!res || num < 0 || !field) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_get() invalid arguments\n");
-		errno = EINVAL;
+		errno = EFAULT;
 		return NULL;
 	}
 
