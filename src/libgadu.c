@@ -490,7 +490,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			goto fail;
 		}
 
-		sess->state = GG_STATE_CONNECTING;
+		sess->state = GG_STATE_CONNECTING_HUB;
 
 		while (sess->state != GG_STATE_CONNECTED) {
 			struct gg_event *e;
