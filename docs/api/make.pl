@@ -4,9 +4,9 @@
 #
 # $Id$
 
-open(H, ">ref.functions.html");
+open(H, ">functions.html");
 
-print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"style.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
 
 for $i (glob("../../lib/*.c")) {
 	open(F, $i);
@@ -125,7 +125,7 @@ for $i (glob("../../lib/*.c")) {
 
 		print H "\n\n";
 		print H "<a name=\"$name\"></a>\n";
-		print H "<div class=\"func\">$name</div>\n";
+		print H "<div class=\"function\">$name</div>\n";
 		print H "<div class=\"header\">Działanie:</div>\n";
 		print H "<div class=\"desc\">$descr</div>\n";
 
@@ -162,10 +162,83 @@ for $i (glob("../../lib/*.c")) {
 print H "</td></tr></table>\n</body>\n</html>\n";
 close(H);
 
+open(F, "../../lib/libgadu.h");
+open(H, ">types.html");
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"style.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
+
+while(<F>) {
+	chomp;
+
+	if (/^#define gg_common_head/) {
+		$common = "";
+
+		while (<F>) {
+			chomp;
+			if (/^(\t|        )([a-z].*)\/\* (.*) \*\//) {
+				$field = colorize($2);
+				$common .= "<tr><td class=\"paramname\">$2</td><td class=\"paramdescr\">$3</td></tr>\n";
+			}
+			last if (/^$/);
+		}
+	}
+
+	if (/^ \* (enum|struct|typedef) (.*)/) {
+		$name = $2;
+		$type = $1;
+
+		print H "\n\n<a name=\"$1_$2\"></a>\n";
+		print H "<div class=\"$1\">$2</div>\n";
+		<F>;
+		$body = "";
+		while (<F>) {
+			chomp;
+			last if (/^ \*\//);
+			s/^ \* //;
+			$body .= "$_\n";
+		}
+
+		$body = uc_my($body);
+		print H "<div class=\"header\">\nZnaczenie:\n</div>\n";
+		print H "<div class=\"desc\">\n$body\n</div>\n";
+
+		if ($type eq "enum") {
+			print H "<div class=\"header\">Wartości:</div>\n";
+			print H "<div class=\"params\">\n<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
+			while (<F>) {
+				chomp;
+				if (/(GG_[A-Z0-9_]+).*\/\* (.*) \*\//) {
+					print H "<tr><td class=\"paramname\">$1</td><td class=\"paramdescr\">$2</td></tr>\n";
+				}
+				last if (/^}/);
+			}
+			print H "</table>\n</div>\n";
+		}
+
+		if ($type eq "struct") {
+			print H "<div class=\"header\">Pola struktury:</div>\n";
+			print H "<div class=\"params\">\n<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
+			while (<F>) {
+				chomp;
+				if (/^(\t|        )gg_common_head/) {
+					print H $common;
+				}
+				if (/^(\t|        )([a-z].*)\/\* (.*) \*\// && $1 !~ /gg_session_common/) {
+					print H "<tr><td class=\"paramname\">$2</td><td class=\"paramdescr\">$3</td></tr>\n";
+				}
+				last if (/^}/);
+			}
+			print H "</table>\n</div>\n";
+		}
+	}
+}
+
+close(F);
+close(H);
+
 open(F, "functions.txt");
 
-open(H, ">ref.html");
-print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
+open(H, ">index.html");
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"style.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
 
 $first = 1;
 
@@ -192,7 +265,6 @@ print H "</body>\n</html>\n";
 
 close(F);
 close(H);
-
 
 sub uc_char($)
 {
@@ -247,7 +319,7 @@ sub colorize($)
 	foreach $i (@known) {
 		$type = $i;
 		$type =~ s/ /_/g;
-		s/(const )*($i)/sprintf("<a class=\"typelink\" href=\"ref.types.html#%s\">%s%s<\/a>", space_to_dash($2), $1, $2)/eg;
+		s/(const )*($i)/sprintf("<a class=\"typelink\" href=\"types.html#%s\">%s%s<\/a>", space_to_dash($2), $1, $2)/eg;
 	}
 
 	return $_;
@@ -296,7 +368,7 @@ sub declarize2()
 	$str =~ s/<a [^>]*>/<span class=\"ggtype\">/g;
 	$str =~ s/<\/a>/<\/span>/g;
 
-	$str =~ s/<b>([^<]*)<\/b>/<b><a class=\"funclink\" href=\"ref.functions.html#$1\">$1<\/a><\/b>/g;
+	$str =~ s/<b>([^<]*)<\/b>/<b><a class=\"funclink\" href=\"functions.html#$1\">$1<\/a><\/b>/g;
 
 	return $str;
 }

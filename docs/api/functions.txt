@@ -18,15 +18,13 @@ Funkcje dotycz±ce po³±czenia z serwerem
 	gg_free_session
 
 Funkcje obs³ugi katalogu publicznego
-	gg_register
-	gg_change_passwd2
+	gg_register2
+	gg_unregister2
+	gg_change_passwd3
 	gg_remind_passwd
-	gg_change_info
 
 	gg_pubdir_watch_fd
 	gg_pubdir_free
-	gg_change_info_request_new
-	gg_change_info_request_free
 
 Funkcje obs³ugi katalogu publicznego GG 5.0
 	gg_pubdir50_new

@@ -639,6 +639,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (p->has_audio)
 		sess->protocol_version |= GG_HAS_AUDIO_MASK;
 	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
+	sess->last_sysmsg = p->last_sysmsg;
 	
 	if (gg_proxy_enabled) {
 		hostname = gg_proxy_host;
