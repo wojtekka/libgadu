@@ -20,6 +20,7 @@ Funkcje dotycz±ce po³±czenia z serwerem Gadu-Gadu
 Funkcje obs³ugi katalogu publicznego
 	gg_register
 	gg_change_passwd
+	gg_change_passwd2
 	gg_remind_passwd
 	gg_change_info
 

@@ -201,7 +201,8 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
 /*
  * gg_change_passwd()
  *
- * wysy³a ¿±danie zmiany has³a.
+ * wysy³a ¿±danie zmiany has³a. funkcja nie dzia³a, ze wzglêdu na zmiany
+ * w protokole. zosta³a tylko po to, by zachowaæ ABI biblioteki.
  *
  *  - uin - numer
  *  - passwd - stare has³o
@@ -248,6 +249,96 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
 	
 	free(__fmpwd);
 	free(__pwd);
+	free(__email);
+	
+	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
+
+        query = gg_saprintf(
+		"Host: " GG_REGISTER_HOST "\r\n"
+                "Content-Type: application/x-www-form-urlencoded\r\n"
+                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
+                "Content-Length: %d\r\n"
+                "Pragma: no-cache\r\n"
+                "\r\n"
+                "%s",
+                strlen(form), form);
+
+	free(form);
+
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister.asp", query))) {
+		gg_debug(GG_DEBUG_MISC, "=> change, gg_http_connect() failed mysteriously\n");
+                free(query);
+		return NULL;
+	}
+
+	h->type = GG_SESSION_PASSWD;
+
+	free(query);
+
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
+
+	if (!async)
+		gg_pubdir_watch_fd(h);
+
+	return h;
+}
+
+/*
+ * gg_change_passwd2()
+ *
+ * wysy³a ¿±danie zmiany has³a, uwzglêdniaj±c zmiany w protokole.
+ *
+ *  - uin - numer
+ *  - passwd - stare has³o
+ *  - newpasswd - nowe has³o
+ *  - email - stary adres e-mail
+ *  - newemail - nowy adres e-mail
+ *  - async - po³±czenie asynchroniczne
+ *
+ * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
+ * funkcj± gg_change_passwd_free(), albo NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *newpasswd, const char *email, const char *newemail, int async)
+{
+	struct gg_http *h;
+	char *form, *query, *__fmpwd, *__pwd, *__fmemail, *__email;
+
+	if (!passwd || !newpasswd || !email || !newemail) {
+		gg_debug(GG_DEBUG_MISC, "=> change, NULL parameter\n");
+		errno = EINVAL;
+		return NULL;
+	}
+	
+	__fmpwd = gg_urlencode(passwd);
+	__pwd = gg_urlencode(newpasswd);
+	__fmemail = gg_urlencode(email);
+	__email = gg_urlencode(newemail);
+
+	if (!__fmpwd || !__pwd || !__email) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+		free(__fmpwd);
+		free(__pwd);
+		free(__fmemail);
+		free(__email);
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	if (!(form = gg_saprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&fmemail=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __fmemail, __email, gg_http_hash("ss", newemail, newpasswd)))) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+		free(__fmpwd);
+		free(__pwd);
+		free(__fmemail);
+		free(__email);
+
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	free(__fmpwd);
+	free(__pwd);
+	free(__fmemail);
 	free(__email);
 	
 	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
