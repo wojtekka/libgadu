@@ -124,6 +124,7 @@ serwer.
 </pre></p>
 zrozumia³e, racja? liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 <p><p><pre>
+	0x15 - 4.8.9 b1, 4.8.9 b2, 4.8.9 b3
 	0x14 - 4.8.3, 4.8.1
 	0x11 - 4.6.10, 4.6.1
 	0x10 - 4.5.22, 4.5.21, 4.5.19, 4.5.17, 4.5.15
@@ -154,17 +155,20 @@ g*du-g*du przewiduje trzy stany klienta, które zmieniamy pakietem
 	#define GG_STATUS_NOT_AVAIL 0x0001	/* roz³±czony */
 	#define GG_STATUS_AVAIL 0x0002		/* dostêpny */
 	#define GG_STATUS_BUSY 0x0003		/* zajêty */
+	#define GG_STATUS_BUSY_DESCR 0x0004	/* zajêty z opisem */
 	#define GG_STATUS_INVISIBLE 0x0014	/* niewidoczny */
 
 	#define GG_STATUS_FRIENDS_MASK 0x8000	/* tylko dla przyjació³ */
 	
 	struct gg_new_status {
 		int status;			/* na jaki zmieniæ? */
+		char description[];		/* opis, nie musi wyst±piæ */
 	}
 </pre></p>
 nale¿y pamiêtaæ, ¿eby przed roz³±czeniem siê z serwerem nale¿y zmieniæ
 stan na GG_STATUS_NOT_AVAIL. je¶li ma byæ widoczny tylko dla przyjació³,
-nale¿y dodaæ GG_STATUS_FRIENDS do normalnej warto¶ci stanu.
+nale¿y dodaæ GG_STATUS_FRIENDS do normalnej warto¶ci stanu. je¶li wybieramy
+stan z opisem, nale¿y dokleiæ do struktury ci±g znaków niezakoñczony zerem.
 
 <hr>
 <h3>1.5. Ludzie przychodz±, ludzie odchodz±</h3>
@@ -172,7 +176,7 @@ nale¿y dodaæ GG_STATUS_FRIENDS do normalnej warto¶ci stanu.
 zaraz po zalogowaniu mo¿emy wys³aæ serwerowi listê ludzików w naszej li¶cie
 kontaktów, ¿eby dowiedzieæ siê, czy s± w tej chwili dostêpni. pakiet zawiera
 dowoln± ilo¶æ struktur gg_notify:
-<p><p><pre>
+<p><pre>
 	#define GG_NOTIFY 0x0010
 	
 	struct gg_notify {
@@ -192,17 +196,22 @@ struktur gg_notify_reply:
 		short remote_port;	/* port, na którym s³ucha klient */
 		int version;		/* wersja klienta */
 		short dunno1;		/* znowu port? */
+		char description[];	/* opis, nie musi wyst±piæ */
 	};
 </pre></p>
 wiêkszo¶æ pól powinna byæ zrozumia³a. remote_port poza zwyk³ym portem
 mo¿e przyjmowaæ równie¿ poni¿sze warto¶ci:
-<p><p><pre>
+<p><pre>
         0 - klient nie obs³uguje bezpo¶rednich po³±czeñ,
 	1 - klient jest za NAT,
 	2 - klient nie ma nas w swojej li¶cie kontaktów.
 </pre></p>
 zdarzaj± siê te¿ inne ,,nietypowe'' warto¶ci, ale ich znaczenie nie jest
 jeszcze do koñca znane.
+<p>
+je¶li dany klient jest w stanie z podanym opisem, najpierw dostaniemy
+informacjê osobnym pakietem o nim, pó¼niej paczkê struktur gg_notify_reply
+z lud¼mi, którzy nie maj± ustawionych opisów.
 <p>
 ¿eby dodaæ kogo¶ do listy w trakcie pracy, trzeba wys³aæ ni¿ej opisany
 pakiet. jego format jest identyczny jak przy GG_NOTIFY.
@@ -358,7 +367,7 @@ Autorami powy¿szego opisu s±:
 <li>Wojtek Kaniewski (wojtekka/irc.pl): pierwsza wersja opisu, poprawki.
 <li>Robert J. Wo¼ny (speedy/atman.pl): opis nowo¶ci w protokole GG 4.6, poprawki.
 <li>Tomasz Jarzynka (tomee/cpi.pl): badanie timeoutów.
-<li>Adam Ludwikowski (adam.ludwikowski/wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomo¶ci.
+<li>Adam Ludwikowski (adam.ludwikowski/wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomo¶ci, powody nieobecno¶ci.
 <li>Marek Kozina (klith/hybrid.art.pl): czas otrzymania wiadomo¶ci.
 <li>Rafa³ Florek (raf/regionet.regionet.pl): opis po³±czeñ konferencyjnych.
 <li>Igor Popik (igipop/wsfiz.edu.pl): klasy wiadomo¶ci przy odbieraniu zakolejkowanej.
