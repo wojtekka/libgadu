@@ -93,9 +93,18 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 	gg_debug(GG_DEBUG_MISC, "-- received a message\n");
 
+	if (!r->seq && !r->msgclass) {
+		gg_debug(GG_DEBUG_MISC, "-- oops, silently ignoring the bait\n");
+		e->type = GG_EVENT_NONE;
+		return 0;
+	}
 	//printf("packet=%p\n", h);
 
 	for (p = (void*) r + sizeof(*r); *p; p++) {
+		if (*p == 0x02 && p == packet_end - 1) {
+			gg_debug(GG_DEBUG_MISC, "-- received ctcp packet\n");
+			break;
+		}
 		if (p >= packet_end) {
 			gg_debug(GG_DEBUG_MISC, "-- malformed packet, message out of bounds.\n");
 			errno = EINVAL;

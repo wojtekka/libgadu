@@ -229,10 +229,12 @@ void *gg_recv_packet(struct gg_session *sess)
 			ret = read(sess->fd, &h, sizeof(h));
 			gg_debug(GG_DEBUG_MISC, "-- header recv(..., %d) = %d\n", sizeof(h), ret);
 			if (ret < sizeof(h)) {
-				if (errno != EINTR || !--tries) {
+				if (ret == -1)
 					gg_debug(GG_DEBUG_MISC, "-- errno = %d (%s)\n", errno, strerror(errno));
+				if (ret == 0)
+					gg_debug(GG_DEBUG_MISC, "-- connection broken\n");
+				if (errno != EINTR || !--tries)
 					return NULL;
-				}
 			}
 		}
 
