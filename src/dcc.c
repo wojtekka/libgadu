@@ -589,8 +589,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connected, sending uins\n");
 				
-				uins[1] = fix32(h->uin);
-				uins[0] = fix32(h->peer_uin);
+				uins[0] = fix32(h->uin);
+				uins[1] = fix32(h->peer_uin);
 
 				if ((tmp = write(h->fd, uins, sizeof(uins))) != sizeof(uins)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() uin write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
@@ -822,7 +822,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->timeout = GG_DCC_TIMEOUT_SEND;
 				}
 				
-				h->check = GG_CHECK_READ;
+				h->check = GG_CHECK_WRITE;
 
 				return e;
 				
