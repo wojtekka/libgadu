@@ -78,6 +78,8 @@ void gg_event_free(struct gg_event *e)
 				free(e->event.notify60[i].descr);
 		
 			free(e->event.notify60);
+
+			break;
 		}
 
 		case GG_EVENT_STATUS60:
