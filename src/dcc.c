@@ -506,6 +506,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		c->type = GG_SESSION_DCC;
 		c->timeout = GG_DEFAULT_TIMEOUT;
 		c->file_fd = -1;
+		c->remote_addr = sin.sin_addr.s_addr;
+		c->remote_port = ntohs(sin.sin_port);
 		
 		e->type = GG_EVENT_DCC_NEW;
 		e->event.dcc_new = c;
