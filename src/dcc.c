@@ -531,6 +531,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 
 			case GG_STATE_CONNECTING:
+			{
+				uin_t uins[2];
+
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_CONNECTING\n");
 				
 				res = 0;
@@ -541,9 +544,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connected\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connected, sending uins\n");
 				
-				if ((tmp = write(h->fd, &h->uin, sizeof(h->uin))) != sizeof(h->uin) || (tmp = write(h->fd, &h->peer_uin, sizeof(h->peer_uin))) != sizeof(h->peer_uin)) {
+				uins[1] = fix32(h->uin);
+				uins[0] = fix32(h->peer_uin);
+
+				if ((tmp = write(h->fd, uins, sizeof(uins))) != sizeof(uins)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() uin write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
 
 					e->type = GG_EVENT_DCC_ERROR;
@@ -556,6 +562,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->timeout = GG_DEFAULT_TIMEOUT;
 				
 				return e;
+			}
 
 			case GG_STATE_READING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_ACK\n");

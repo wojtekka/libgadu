@@ -52,8 +52,11 @@ void gg_free_event(struct gg_event *e)
 	if (!e)
 		return;
 	
-	if (e->type == GG_EVENT_MSG)
+	if (e->type == GG_EVENT_MSG) {
 		free(e->event.msg.message);
+		free(e->event.msg.formats);
+		free(e->event.msg.recipients);
+	}
 	
 	if (e->type == GG_EVENT_NOTIFY)
 		free(e->event.notify);
@@ -135,7 +138,8 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 				goto fail;
 			}
 
-			len = (unsigned short*) p + 1;
+			len = (unsigned short*) (p + 1);
+			gg_debug(GG_DEBUG_MISC, "-- p = %p, packetend = %p, len = %d\n", p, packet_end, len);
 
 			if (!(tmp = malloc(*len))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
