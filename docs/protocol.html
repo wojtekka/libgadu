@@ -243,6 +243,8 @@ struct gg_login60 {
         short external_port;  <i>/* zewnêtrzny port */</i>
 	char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
         char unknown2;        <i>/* 0xbe */</i>
+	char description[];   <i>/* opis, nie musi wyst±piæ */</i>
+	int time;             <i>/* czas, nie musi wyst±piæ */</i>
 };</pre>
 </div>
 
