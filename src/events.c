@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2003 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Wo¼ny <speedy@ziew.org>
  *                          Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
  *
@@ -826,7 +826,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				int err = SSL_get_error(sess->ssl, res);
 
 				if (res == 0) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION disconnected during TLS negotiation\n");
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() disconnected during TLS negotiation\n");
 
 					e->type = GG_EVENT_CONN_FAILED;
 					e->event.failure = GG_FAILURE_TLS;
@@ -837,7 +837,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 				
 				if (err == SSL_ERROR_WANT_READ) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() wants to read\n");
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() SSL_connect() wants to read\n");
 
 					sess->state = GG_STATE_TLS_NEGOTIATION;
 					sess->check = GG_CHECK_READ;
@@ -845,7 +845,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 					break;
 				} else if (err == SSL_ERROR_WANT_WRITE) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() wants to write\n");
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() SSL_connect() wants to write\n");
 
 					sess->state = GG_STATE_TLS_NEGOTIATION;
 					sess->check = GG_CHECK_WRITE;
@@ -857,7 +857,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 					ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
 
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() bailed out: %s\n", buf);	
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() SSL_connect() bailed out: %s\n", buf);
  
 					e->type = GG_EVENT_CONN_FAILED;
 					e->event.failure = GG_FAILURE_TLS;
@@ -868,18 +868,20 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 			}
 
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeded:\n//   cipher: %s\n", SSL_get_cipher_name(sess->ssl));
+
 			peer = SSL_get_peer_certificate(sess->ssl);
 
 			if (!peer)
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION unable to get peer certificate!\n");
+				gg_debug(GG_DEBUG_MISC, "//   WARNING! unable to get peer certificate!\n");
 			else {
 				char buf[1024];
 
 				X509_NAME_oneline(X509_get_subject_name(peer), buf, sizeof(buf));
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION certificate subject = \"%s\"\n", buf);
+				gg_debug(GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
 
 				X509_NAME_oneline(X509_get_issuer_name(peer), buf, sizeof(buf));
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION certificate issuer = \"%s\"\n", buf);
+				gg_debug(GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
 			}
 
 			sess->state = GG_STATE_READING_KEY;

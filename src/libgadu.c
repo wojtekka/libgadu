@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2003 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Wo¼ny <speedy@ziew.org>
  *                          Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
  *                          Tomasz Chiliñski <chilek@chilan.com>
@@ -718,7 +718,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
 	sess->last_sysmsg = p->last_sysmsg;
 
-	if (p->tls) {
+	if (p->tls == 1) {
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
 		char buf[1024];
 
