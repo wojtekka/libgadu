@@ -304,6 +304,8 @@ int gg_http_hash(unsigned char *email, unsigned char *password)
 	int b, i;
 	b = (-1);
 
+	if (!email)
+		email = "";
 	if (!password)
 		password = "";
 
