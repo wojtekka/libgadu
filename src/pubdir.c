@@ -534,7 +534,8 @@ int gg_token_watch_fd(struct gg_http *h)
 	 * na pobieraniu tokenu. */
 	if (!h->data) {
 		int width, height, length;
-		char *url = NULL, *tokenid = NULL, *path;
+		char *url = NULL, *tokenid = NULL, *path, *headers;
+		const char *host;
 		struct gg_http *h2;
 		struct gg_token *t;
 
@@ -556,23 +557,51 @@ int gg_token_watch_fd(struct gg_http *h)
 		/* dostali¶my tokenid i wszystkie niezbêdne informacje,
 		 * wiêc pobierzmy obrazek z tokenem */
 
-		if (!(path = gg_saprintf("%s?tokenid=%s", url, tokenid))) {
+		if (strncmp(url, "http://", 7)) {
+			path = gg_saprintf("%s?tokenid=%s", url, tokenid);
+			host = GG_REGISTER_HOST;
+		} else {
+			char *slash = strchr(url + 7, '/');
+
+			if (slash) {
+				path = gg_saprintf("%s?tokenid=%s", slash, tokenid);
+				*slash = 0;
+				host = url + 7;
+			} else {
+				gg_debug(GG_DEBUG_MISC, "=> token, url parsing failed\n");
+				free(url);
+				free(tokenid);
+				return -1;
+			}
+		}
+
+		if (!path) {
 			gg_debug(GG_DEBUG_MISC, "=> token, not enough memory for token url\n");
 			free(url);
 			free(tokenid);
 			return -1;
 		}
 
-		free(url);
-	
-		if (!(h2 = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, h->async, "GET", path, "Host: " GG_REGISTER_HOST "\r\nUser-Agent: " GG_HTTP_USERAGENT "\r\n\r\n"))) {
+		if (!(headers = gg_saprintf("Host: %s\r\nUser-Agent: " GG_HTTP_USERAGENT "\r\n\r\n", host))) {
+			gg_debug(GG_DEBUG_MISC, "=> token, not enough memory for token url\n");
+			free(path);
+			free(url);
+			free(tokenid);
+			return -1;
+		}			
+
+		if (!(h2 = gg_http_connect(host, GG_REGISTER_PORT, h->async, "GET", path, headers))) {
 			gg_debug(GG_DEBUG_MISC, "=> token, gg_http_connect() failed mysteriously\n");
+			free(headers);
+			free(url);
 			free(path);
 			free(tokenid);
 			return -1;
 		}
 
+		free(headers);
 		free(path);
+		free(url);
 
 		memcpy(h, h2, sizeof(struct gg_http));
 		free(h2);
