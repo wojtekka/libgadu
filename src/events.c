@@ -159,6 +159,8 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			e->event.msg.formats = tmp;
 			e->event.msg.formats_length = *len;
 
+			p += *len;
+
 		} else {				/* nieznana opcja */
 			gg_debug(GG_DEBUG_MISC, "-- unknown option 0x%.2x\n", *p);
 			p = packet_end;
