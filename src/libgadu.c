@@ -744,6 +744,68 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 }
 
 /*
+ * gg_send_message_conf()
+ *
+ * wysy³a wiadomo¶æ do kilku u¿ytkownikow (konferencja). zwraca losowy numer
+ * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ *
+ *  - sess - opis sesji,
+ *  - msgclass - rodzaj wiadomo¶ci,
+ *  - recipients_count - ilosc adresatow
+ *  - recipients - numerki adresatow,
+ *  - message - tre¶æ wiadomo¶ci.
+ *
+ * w przypadku b³êdu zwraca -1, inaczej numer sekwencyjny.
+ */
+int gg_send_message_conf(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
+{
+	struct gg_send_msg s;
+	struct gg_msg_recipients r;
+	int i, j, k;
+	uin_t recps[32];
+		
+	if (!sess) {
+		errno = EFAULT;
+		return -1;
+	}
+	
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_to_users(..., %d, %u, \"...\");\n", msgclass, recipients_count);
+
+	r.flag = 0x01;
+	r.count = fix32(recipients_count - 1);
+	
+	if (!sess->seq)
+		sess->seq = 0x01740000 | (rand() & 0xffff);
+	s.seq = fix32(sess->seq);
+	s.msgclass = fix32(msgclass);
+
+	for (i = 0; i < recipients_count; i++) {
+	 
+		s.recipient = fix32(recipients[i]);
+		
+		for (j = 0, k = 0; j < recipients_count; j++)
+			if (recipients[j] != s.recipient) {
+				recps[k] = fix32(recipients[j]);
+				k++;
+				}
+				
+		if (!i)
+			sess->seq += (rand() % 0x300) + 0x300;
+		
+		if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1,
+			&r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), NULL) == -1)
+			return -1;
+		}
+		
+	return fix32(s.seq);
+}
+
+/*
  * gg_ping()
  *
  * wysy³a do serwera pakiet typu yeah-i'm-still-alive.
