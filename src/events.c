@@ -139,6 +139,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			}
 
 			len = (unsigned short*) (p + 1);
+			*len = fix16(*len);
 			gg_debug(GG_DEBUG_MISC, "-- p = %p, packetend = %p, len = %d\n", p, packet_end, *len);
 
 			if (!(tmp = malloc(*len))) {
