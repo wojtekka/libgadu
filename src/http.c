@@ -239,7 +239,16 @@ int gg_http_watch_fd(struct gg_http *h)
 			gg_http_error(GG_ERROR_READING);
 		}
 
-		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes\n", res);
+		if (!res) {
+			gg_debug(GG_DEBUG_MISC, "=> http, connection reset by peer\n");
+			if (h->header) {
+				free(h->header);
+				h->header = NULL;
+			}
+			gg_http_error(GG_ERROR_READING);
+		}
+
+		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes of header\n", res);
 
 		if (!(h->header = realloc(h->header, h->header_size + res + 1))) {
 			gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for header\n");
