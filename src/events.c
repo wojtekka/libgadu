@@ -156,7 +156,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 		} else if (*p == 2) {		/* richtext */
 
-			unsigned short *len;
+			unsigned short len;
 			void *tmp;
 			
 			if (p + 3 > packet_end) {
@@ -165,29 +165,28 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 				goto fail;
 			}
 
-			len = (unsigned short*) (p + 1);
-			*len = gg_fix16(*len);
-			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() p = %p, packetend = %p, len = %d\n", p, packet_end, *len);
+			len = gg_fix16(*((unsigned short*) (p + 1)));
+			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() p = %p, packetend = %p, len = %d\n", p, packet_end, len);
 
-			if (!(tmp = malloc(*len))) {
+			if (!(tmp = malloc(len))) {
 				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for richtext data\n");
 				goto fail;
 			}
 
 			p += 3;
 
-			if (p + *len > packet_end) {
+			if (p + len > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
 				errno = EINVAL;
 				goto fail;
 			}
 				
-			memcpy(tmp, p, *len);
+			memcpy(tmp, p, len);
 
 			e->event.msg.formats = tmp;
-			e->event.msg.formats_length = *len;
+			e->event.msg.formats_length = len;
 
-			p += *len;
+			p += len;
 
 		} else {				/* nieznana opcja */
 			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
