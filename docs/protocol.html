@@ -215,6 +215,7 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 	struct gg_new_status {
 		int status;		<i>/* na jaki zmieniæ? */</i>
 		char description[];	<i>/* opis, nie musi wyst±piæ */</i>
+		int time;		<i>/* czas, nie musi wyst±piæ */</i>
 	}
 </pre></p>
 Mo¿liwe stany to:
@@ -237,7 +238,8 @@ Nale¿y pamiêtaæ, ¿eby przed roz³±czeniem siê z serwerem nale¿y zmieniæ
 stan na <tt>GG_STATUS_NOT_AVAIL</tt> lub <tt>GG_STATUS_NOT_AVAIL_DESCR</tt>.
 Je¶li ma byæ widoczny tylko dla przyjació³, nale¿y dodaæ
 <tt>GG_STATUS_FRIENDS_MASK</tt> do normalnej warto¶ci stanu. Je¶li wybieramy
-stan z opisem, nale¿y do³±czyæ do struktury ci±g znaków niezakoñczony zerem.
+stan z opisem, nale¿y do³±czyæ do struktury ci±g znaków niezakoñczony zerem
+oraz ewentualn± godzinê do opisu ,,Bêdê o...''
 
 <hr>
 <h3>1.5. Ludzie przychodz±, ludzie odchodz±</h3>
@@ -284,6 +286,7 @@ struktur <tt>gg_notify_reply</tt>:
 		int version;		/* wersja klienta */
 		short unknown1;		/* znowu port? */
 		char description[];	/* opis, nie musi wyst±piæ */
+		int time;		/* czas, nie musi wyst±piæ */
 	};
 </pre></p>
 Wiêkszo¶æ pól powinna byæ zrozumia³a. <tt>remote_port</tt> poza zwyk³ym
@@ -537,6 +540,7 @@ Autorami powy¿szego opisu s±:
 <li>Rafa³ Cyran (ajron%wp.pl): informacje o remote_port, rodzaje potwierdzeñ przy ctcp, GG_LOGIN_EXT.
 <li>Piotr Mach (pm%gadu-gadu.com): ilo¶æ kontaktow, pe³na skrzynka, pusta lista, maska audio, us³ugi HTTP, GG_LOGIN_EXT.
 <li>Adam Czy¶ciak (acc%interia.pl): potwierdzenie wiadomo¶ci GG_CLASS_ACK.
+<li>Kamil Dêbski (kdebski%kki.net.pl): czas w stanach opisowych.
 </ul>
 
 <hr>
