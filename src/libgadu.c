@@ -41,6 +41,7 @@
 #  include <sys/filio.h>
 #endif
 #include "config.h"
+#include "compat.h"
 #include "libgadu.h"
 
 int gg_debug_level = 0;

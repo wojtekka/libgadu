@@ -36,6 +36,7 @@
 #endif
 #include <time.h>
 #include "config.h"
+#include "compat.h"
 #include "libgadu.h"
 
 /*

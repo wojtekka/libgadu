@@ -39,6 +39,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "config.h"
+#include "compat.h"
 #include "libgadu.h"
 
 /*
@@ -379,12 +380,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	struct packet_s {
 		uint8_t type;
 		uint32_t length;
-#ifdef __GNUC__
-	}
-	__attribute__ ((packed)); 
-#else
-	};
-#endif
+	} GG_PACKED;
 	struct packet_s packet;
 
 	gg_debug(GG_DEBUG_FUNCTION, "++ gg_dcc_voice_send(..., %p, %d);\n", buf, length);
@@ -523,12 +519,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct gg_dcc_file_info_packet {
 			struct gg_dcc_big_packet big;
 			struct gg_file_info file_info;
-#ifdef __GNUC__
-		}
-		__attribute__ ((packed)); 
-#else
-		};
-#endif
+		} GG_PACKED;
 		struct gg_dcc_file_info_packet file_info_packet;
 
 		switch (h->state) {
