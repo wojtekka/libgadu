@@ -6,6 +6,7 @@ includedir=@includedir@
 Name: libgadu
 Version: CVS
 Description: libgadu
+Requires: @PC_REQUIRES@
 Libs: -L${libdir} -lgadu @LIBS_LIBGADU@
 Cflags: -I${includedir} @CFLAGS_LIBGADU@
 
