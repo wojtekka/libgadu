@@ -762,6 +762,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;
 				sess->timeout = -1;
+				sess->status = (sess->initial_status) ? sess->initial_status : GG_STATUS_AVAIL;
 				free(h);
 				break;
 			}

@@ -556,6 +556,8 @@ int gg_change_status(struct gg_session *sess, int status)
 
 	p.status = fix32(status);
 
+	sess->status = status;
+
 	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), NULL);
 }
 
@@ -588,6 +590,8 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 
 	p.status = fix32(status);
 
+	sess->status = status;
+
 	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), descr, strlen(descr), NULL);
 }
 
@@ -607,7 +611,7 @@ void gg_logoff(struct gg_session *sess)
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_logoff(...);\n");
 
-	if (sess->state == GG_STATE_CONNECTED)
+	if (sess->status != GG_STATUS_NOT_AVAIL && sess->status != GG_STATUS_NOT_AVAIL_DESCR)
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 	
 	if (sess->fd != -1) {
