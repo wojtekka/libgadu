@@ -19,7 +19,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
 
     for i in $with_arg \
     		/usr/include: \
-		/usr/local/include:"-L/usr/local/lib -L/usr/local/lib/ncurses" \
+		/usr/local/include:"-L/usr/local/lib" \
 		/usr/pkg/include:"-L/usr/pkg/lib" \
 		/usr/contrib/include:"-L/usr/contrib/lib" \
 		/usr/freeware/include:"-L/usr/freeware/lib32" \
@@ -30,24 +30,18 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
       lib=`echo "$i" | sed 's/.*://'`
 
       if test -f $incl/openssl/ssl.h; then
-	include=$incl
-      fi
-      
-      if test "x$include" != "x"; then
-        AC_MSG_RESULT($include/openssl/ssl.h)
-	OPENSSL_LIBS="$lib"
-	OPENSSL_INCLUDES="-I$include"
-	have_openssl=true
+        AC_MSG_RESULT($incl/openssl/ssl.h)
 	ldflags_old="$LDFLAGS"
-	cflags_old="$CFLAGS"
-	LDFLAGS="$OPENSSL_LIBS -lcrypto"
-	CFLAGS="$OPENSSL_INCLUDES"
+	LDFLAGS="$lib -lcrypto"
 	AC_CHECK_LIB(ssl, RSA_new, [
-	    AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-	    LDFLAGS="$OPENSSL_LIBS -lssl -lcrypto $ldflags_old"
-	    CFLAGS="$cflags_old $OPENSSL_INCLUDES"
-	    OBJS="$OBJS sim.o"
+	  AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+	  have_openssl=true
+	  OPENSSL_LIBS="$lib -lcrypto"
+	  if test "x$incl" != "x/usr/include"; then
+    	    OPENSSL_INCLUDES="-I$incl"
+	  fi
 	])
+	LDFLAGS="$ldflags_old"
 	break
       fi
     done
