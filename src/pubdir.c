@@ -215,7 +215,7 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
 		return NULL;
 	}
     
-	__pwd = gg_saprintf("%ld", random());
+	__pwd = gg_saprintf("%ld", (long) random());
 	__fmpwd = gg_urlencode(password);
 	__fmemail = gg_urlencode(email);
 	__email = gg_urlencode(email0);
