@@ -873,9 +873,6 @@ void gg_free_session(struct gg_session *sess)
 	if (sess->client_version)
 		free(sess->client_version);
 
-	if (sess->resolver)
-		free(sess->resolver);
-
 	if (sess->header_buf)
 		free(sess->header_buf);
 
@@ -1027,6 +1024,14 @@ void gg_logoff(struct gg_session *sess)
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
 	if (sess->ssl)
 		SSL_shutdown(sess->ssl);
+#endif
+
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
+	if (sess->resolver) {
+		pthread_cancel(*((pthread_t*) sess->resolver));
+		free(sess->resolver);
+		sess->resolver = NULL;
+	}
 #endif
 	
 	if (sess->fd != -1) {
