@@ -39,15 +39,13 @@
 #include "libgadu.h"
 
 /*
- * gg_free_event()
+ * gg_event_free()
  *
  * zwalnia pamiêæ zajmowan± przez informacjê o zdarzeniu.
  *
- *  - event - wska¼nik do informacji o zdarzeniu
- *
- * brak.
+ *  - e - wska¼nik do informacji o zdarzeniu
  */
-void gg_free_event(struct gg_event *e)
+void gg_event_free(struct gg_event *e)
 {
 	if (!e)
 		return;
@@ -81,10 +79,10 @@ void gg_free_event(struct gg_event *e)
  * obs³uguje pakiet z przychodz±c± wiadomo¶ci±, rozbijaj±c go na dodatkowe
  * struktury (konferencje, kolorki) w razie potrzeby.
  *
- *  - h - nag³ówek pakietu,
- *  - e - opis zdarzenia.
+ *  - h - nag³ówek pakietu
+ *  - e - opis zdarzenia
  *
- * 0 dla sukcesu, -1 dla pora¿ki.
+ * 0, -1.
  */
 static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 {
@@ -205,12 +203,12 @@ fail:
 /*
  * gg_watch_fd_connected() // funkcja wewnêtrzna
  *
- * patrzy na socketa, odbiera pakiet i wype³nia strukturê zdarzenia.
+ * patrzy na gniazdo, odbiera pakiet i wype³nia strukturê zdarzenia.
  *
- *  - sess - struktura opisuj±ca sesjê,
- *  - e - opis zdarzenia.
+ *  - sess - struktura opisuj±ca sesjê
+ *  - e - opis zdarzenia
  *
- * je¶li b³±d -1, je¶li dobrze 0.
+ * 0, -1.
  */
 static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 {
@@ -373,15 +371,15 @@ fail:
 /*
  * gg_watch_fd()
  *
- * funkcja wywo³ywana, gdy co¶ siê stanie na obserwowanym deskryptorze.
- * zwraca klientowi informacjê o tym, co siê dzieje.
+ * funkcja, któr± nale¿y wywo³aæ, gdy co¶ siê stanie z obserwowanym
+ * deskryptorem. zwraca klientowi informacjê o tym, co siê dzieje.
  *
- *  - sess - identyfikator sesji.
+ *  - sess - identyfikator sesji
  *
  * wska¼nik do struktury gg_event, któr± trzeba zwolniæ pó¼niej
  * za pomoc± gg_free_event(). jesli rodzaj zdarzenia jest równy
  * GG_EVENT_NONE, nale¿y je zignorowaæ. je¶li zwróci³o NULL,
- * sta³o siê co¶ niedobrego -- albo brak³o pamiêci albo zerwa³o
+ * sta³o siê co¶ niedobrego -- albo zabrak³o pamiêci albo zerwa³o
  * po³±czenie.
  */
 struct gg_event *gg_watch_fd(struct gg_session *sess)

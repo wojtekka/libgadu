@@ -51,8 +51,8 @@ FILE *gg_debug_file = NULL;
  *
  * wy¶wietla komunikat o danym poziomie, o ile u¿ytkownik sobie tego ¿yczy.
  *
- *  - level - poziom wiadomo¶ci,
- *  - format... - tre¶æ wiadomo¶ci (kompatybilna z printf).
+ *  - level - poziom wiadomo¶ci
+ *  - format... - tre¶æ wiadomo¶ci (kompatybilna z printf())
  */
 void gg_debug(int level, const char *format, ...)
 {
@@ -74,7 +74,7 @@ void gg_debug(int level, const char *format, ...)
  * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
  * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
  *
- *  - format... - tre¶æ taka sama jak w innych funkcjach *printf()
+ *  - format... - tre¶æ taka sama jak w funkcji printf()
  *
  * zaalokowany bufor, który nale¿y pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
@@ -126,7 +126,7 @@ char *gg_saprintf(const char *format, ...)
  * po¼niej potrzebne. obcina `\r\n'.
  * 
  *  - ptr - wska¼nik do zmiennej, która przechowuje aktualn± pozycjê
- *    w przemiatanym buforze.
+ *    w przemiatanym buforze
  * 
  * wska¼nik do kolejnej linii tekstu lub NULL, je¶li to ju¿ koniec bufora.
  */
@@ -158,11 +158,11 @@ char *gg_get_line(char **ptr)
  * musieæ niczego inkludowaæ w libgadu.h i nie psuæ jaki¶ g³upich zale¿no¶ci
  * na dziwnych systemach.
  *
- *  - addr - adres serwera (struct in_addr *),
- *  - port - port serwera,
- *  - async - ma byæ asynchroniczne po³±czenie?
+ *  - addr - adres serwera (struct in_addr *)
+ *  - port - port serwera
+ *  - async - asynchroniczne po³±czenie
  *
- * deskryptor socketa lub -1 w przypadku b³êdu (kod b³êdu w zmiennej errno).
+ * deskryptor gniazda lub -1 w przypadku b³êdu (kod b³êdu w zmiennej errno).
  */
 int gg_connect(void *addr, int port, int async)
 {
@@ -212,11 +212,11 @@ int gg_connect(void *addr, int port, int async)
 /*
  * gg_read_line() // funkcja pomocnicza
  *
- * czyta jedn± liniê tekstu z socketa.
+ * czyta jedn± liniê tekstu z gniazda
  *
- *  - sock - socket,
- *  - buf - wska¼nik bufora,
- *  - length - d³ugo¶æ bufora.
+ *  - sock - deskryptor gniazda
+ *  - buf - wska¼nik do bufora
+ *  - length - d³ugo¶æ bufora
  *
  * je¶li trafi na b³±d odczytu, zwraca NULL. inaczej zwraca buf.
  */
@@ -248,9 +248,7 @@ char *gg_read_line(int sock, char *buf, int length)
  *
  * ucina "\r\n" lub "\n" z koñca linii.
  *
- *  - line - linia do przyciêcia.
- *
- * brak.
+ *  - line - linia do przyciêcia
  */
 void gg_chomp(char *line)
 {
@@ -270,7 +268,7 @@ void gg_chomp(char *line)
  * zamienia podany tekst na ci±g znaków do formularza http. przydaje siê
  * przy ró¿nych us³ugach katalogu publicznego.
  *
- *  - str - ci±g znaków do zakodowania.
+ *  - str - ci±g znaków do zakodowania
  *
  * zaalokowany bufor, który nale¿y pó¼niej zwolniæ albo NULL
  * w przypadku b³êdu.
@@ -312,9 +310,8 @@ char *gg_urlencode(const char *str)
  *
  * funkcja licz±ca hash dla adresu e-mail, has³a i paru innych.
  *
- *  - format - format kolejnych parametrów ('s' je¶li dany parametr jest
- *             ci±giem znaków lub 'u' je¶li numerem GG).
- *  - ... - kolejne parametry.
+ *  - format... - format kolejnych parametrów ('s' je¶li dany parametr jest
+ *                ci±giem znaków lub 'u' je¶li numerem GG)
  *
  * hash wykorzystywany przy rejestracji i wszelkich manipulacjach w³asnego
  * wpisu w katalogu publicznym.
@@ -357,7 +354,7 @@ int gg_http_hash(const char *format, ...)
  * odpowiednik gethostbyname() u¿ywaj±cy gethostbyname_r(), gdy potrzebna
  * jest wielobie¿no¶æ. chwilowo korzysta ze zwyk³ego gethostbyname().
  *
- *  - hostname - nazwa serwera.
+ *  - hostname - nazwa serwera
  *
  * zaalokowany bufor, który nale¿y zwolniæ lub NULL w przypadku b³êdu.
  */
@@ -391,18 +388,20 @@ struct gg_thread * gg_threads = 0;
 /*
  * gg_thread_socket() // funkcja pomocnicza, tylko dla win32
  *
- * Zwraca numer socketa, który by³ ostatnio tworzony dla w±tku
- * o identyfikatorze równym thread_id.
+ * zwraca deskryptor gniazda, które by³o ostatnio tworzone dla w±tku
+ * o podanym identyfikatorze.
  *
- * Je¶li na win32 przy po³±czeniach synchronicznych zapamiêtamy w jakim
+ * je¶li na win32 przy po³±czeniach synchronicznych zapamiêtamy w jakim
  * w±tku uruchomili¶my funkcjê, która siê z czymkolwiek ³±czy, to z osobnego
  * w±tku mo¿emy anulowaæ po³±czenie poprzez gg_thread_socket(watek,-1);
  * 
- * - thread_id - Id w±tku. Je¶li jest równe 0, we¼mie aktualny w±tek,
- *               je¶li == -1, usunie wpis o podanym sockecie.
- * - socket - Numer socketa. Je¶li jest == 0, zwróci socket na podanym w±tku
- *            (lub 0) jesli == -1, usunie wpis na podanym w±tku, a je¶li co
- *            innego, to ustawi na podanym w±tku podany socket...
+ * - thread_id - id w±tku. je¶li jest równe 0, brany jest aktualny w±tek,
+ *               je¶li równe -1, usuwa wpis o podanym sockecie.
+ * - socket - deskryptor gniazda. je¶li równe 0, zwraca deskryptor gniazda
+ *            dla podanego w±tku, je¶li równe -1, usuwa wpis, je¶li co¶
+ *            innego, ustawia dla podanego w±tku dany numer deskryptora.
+ *
+ * je¶li socket jest równe 0, zwraca deskryptor gniazda dla podanego w±tku.
  */
 int gg_thread_socket(int thread_id, int socket)
 {

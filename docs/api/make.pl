@@ -8,10 +8,10 @@ open(H, ">ref.functions.html");
 
 print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n";
 
-for $i (glob("../../lib/*.[ch]")) {
+for $i (glob("../../lib/*.c")) {
 	open(F, $i);
 
-	print "Analizuję plik $i\n";
+	print "Plik $i\n";
 
 	while (<F>) {
 		chomp();
@@ -105,6 +105,8 @@ for $i (glob("../../lib/*.[ch]")) {
 		$_ = <F>;
 		chomp();
 
+		next if (/^static/);
+		
 		$decl = $_;
 		
 		s/^[^(]*\(//;
@@ -126,16 +128,21 @@ for $i (glob("../../lib/*.[ch]")) {
 		print H "<div class=header>\nDziałanie:\n</div>\n";
 		print H "<div class=desc>\n$descr\n</div>\n";
 
+		$decl = declarize($decl);
+
 		print H "<div class=header>\nDeklaracja:\n</div>\n";
-		print H "<div class=decl>\n$decl\n</div>\n";
+		print H "<div class=decl>\n$decl;\n</div>\n";
+
 		if (%p_descr) {
 			print H "<div class=header>\nParametry:\n</div>\n";
 			print H "<div class=params>\n<table cellspacing=1 border=0 class=params>\n";
-
+			
 			foreach $i (sort keys %p_descr) {
 				$name = $i;
 				$name =~ s/^[0-9]* //g;
-				$type = $p_type{$name};
+				$name2 = $name;
+				$name2 =~ s/\.\.\.$//;
+				$type = colorize($p_type{$name2});
 				print H "<tr><td class=paramname>$type<i>$name</i></td><td class=paramdescr>" . $p_descr{$i} . "</td></tr>\n";
 			}
 		}
@@ -177,4 +184,71 @@ sub uc_my()
 	$str =~ s/NULL/<tt>NULL<\/tt>/g;
 
 	return $str;
+}
+
+sub space_to_dash($)
+{
+	$_ = $_[0];
+
+	y/ /_/;
+
+	return $_;
+}
+
+sub colorize($)
+{
+	$_ = $_[0];
+
+	@ctypes = qw(void char long short u?int[0-9]+_t int);
+	push @ctypes, "struct hostent";
+	push @ctypes, "struct in_addr";
+	foreach $i (@ctypes) {
+		s/(inline |const |static |unsigned )*($i)/<span class=\"ctype\">$1$2<\/span>/g;
+	}
+
+	$known[0] = "struct gg_[0-9a-z_]+";
+	$known[1] = "uin_t";
+	foreach $i (@known) {
+		$type = $i;
+		$type =~ s/ /_/g;
+		s/(const )*($i)/sprintf("<a class=\"typelink\" href=\"ref.types.html#%s\">%s%s<\/a>", space_to_dash($2), $1, $2)/eg;
+	}
+
+	return $_;
+}
+
+sub declarize()
+{
+	my $result, $params, $name, $type, ($decl) = @_;
+
+	$params = $decl;
+	$params =~ s/[^(]*\(//;
+	$params =~ s/\).*//;
+
+	$name = $decl;
+	$name =~ s/\(.*//;
+	$name =~ s/.*(gg_[a-z0-9_]+)/$1/;
+
+	$type = $decl;
+	$type =~ s/gg_[a-z0-9_]+\(.*//;
+
+	$result = colorize($type) . "<b>$name</b>(";
+
+	foreach (split(/ *, */, $params)) {
+		s/^ *//;
+		s/ *$//;
+
+		if (/([a-zA-Z0-9_]+)$/) {
+			$name = $1;
+			$_ =~ s/$name$//;
+			$result .= colorize($_) . "<i>$name</i>, ";
+		} elsif (/^\.\.\.$/) {
+			$result .= "<i>...</i>";
+		}
+	}
+
+	$result =~ s/, $//;
+	$result .= ")";
+
+	return $result;
 }

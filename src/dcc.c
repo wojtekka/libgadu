@@ -42,19 +42,17 @@
 #include "compat.h"
 #include "libgadu.h"
 
+#ifndef GG_DEBUG_DISABLE
 /*
  * gg_dcc_debug_data() // funkcja wewnêtrzna
  *
  * wy¶wietla zrzut pakietu w hexie.
  * 
- *  - prefix - prefiks zrzutu pakietu,
- *  - fd - deskryptor socketa,
- *  - buf - bufor z danymi,
- *  - size - rozmiar danych.
- *
- * brak.
+ *  - prefix - prefiks zrzutu pakietu
+ *  - fd - deskryptor gniazda
+ *  - buf - bufor z danymi
+ *  - size - rozmiar danych
  */
-#ifndef GG_DEBUG_DISABLE
 static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, int size)
 {
 	int i;
@@ -77,10 +75,10 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, int s
  * wykorzystywane, kiedy druga strona, której chcemy co¶ wys³aæ jest za
  * maskarad±.
  *
- *  - sess - struktura opisuj±ca sesjê GG,
- *  - uin - numerek odbiorcy.
+ *  - sess - struktura opisuj±ca sesjê GG
+ *  - uin - numerek odbiorcy
  *
- * to samo, co gg_send_msg().
+ * patrz gg_send_message_ctcp().
  */
 int gg_dcc_request(struct gg_session *sess, uin_t uin)
 {
@@ -90,12 +88,12 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
 /*
  * gg_dcc_fill_file_info()
  *
- * wype³nia pola gg_dcc niezbêdne do wys³ania pliku.
+ * wype³nia pola struct gg_dcc niezbêdne do wys³ania pliku.
  *
- *  - d - struktura gg_dcc,
- *  - filename - nazwa pliku.
+ *  - d - struktura opisuj±ca po³±czenie DCC
+ *  - filename - nazwa pliku
  *
- * -1 w przypadku b³êdu, 0 je¶li siê powiod³o.
+ * 0, -1.
  */
 int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 {
@@ -151,15 +149,15 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
  * 
  * inicjuje proces wymiany pliku z danym klientem.
  *
- *  - ip - adres ip odbiorcy,
- *  - port - port odbiorcy,
- *  - my_uin - w³asny numer,
- *  - peer_uin - numer obiorcy,
- *  - type - rodzaj wymiany (GG_SESSION_DCC_SEND lub _GET).
+ *  - ip - adres ip odbiorcy
+ *  - port - port odbiorcy
+ *  - my_uin - w³asny numer
+ *  - peer_uin - numer obiorcy
+ *  - type - rodzaj wymiany (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_GET)
  *
- * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
  */
-static struct gg_dcc *gg_dcc_transfer(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin, int type)
+static struct gg_dcc *gg_dcc_transfer(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin, int type)
 {
 	struct gg_dcc *d = NULL;
 	struct in_addr addr;
@@ -204,14 +202,14 @@ static struct gg_dcc *gg_dcc_transfer(unsigned long ip, unsigned short port, uin
  * inicjuje proces odbierania pliku od danego klienta, gdy ten wys³a³ do
  * nas ¿±danie po³±czenia.
  *
- *  - ip - adres ip odbiorcy,
- *  - port - port odbiorcy,
- *  - my_uin - w³asny numer,
- *  - peer_uin - numer obiorcy.
+ *  - ip - adres ip odbiorcy
+ *  - port - port odbiorcy
+ *  - my_uin - w³asny numer
+ *  - peer_uin - numer obiorcy
  *
- * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_dcc *gg_dcc_get_file(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
+struct gg_dcc *gg_dcc_get_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
 	gg_debug(GG_DEBUG_MISC, "// gg_dcc_get_file() handing over to gg_dcc_transfer()\n");
 
@@ -223,14 +221,14 @@ struct gg_dcc *gg_dcc_get_file(unsigned long ip, unsigned short port, uin_t my_u
  * 
  * inicjuje proces wysy³ania pliku do danego klienta.
  *
- *  - ip - adres ip odbiorcy,
- *  - port - port odbiorcy,
- *  - my_uin - w³asny numer,
- *  - peer_uin - numer obiorcy.
+ *  - ip - adres ip odbiorcy
+ *  - port - port odbiorcy
+ *  - my_uin - w³asny numer
+ *  - peer_uin - numer obiorcy
  *
- * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
+struct gg_dcc *gg_dcc_send_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
 	gg_debug(GG_DEBUG_MISC, "// gg_dcc_send_file() handing over to gg_dcc_transfer()\n");
 
@@ -242,14 +240,14 @@ struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_
  * 
  * próbuje nawi±zaæ po³±czenie g³osowe.
  *
- *  - ip - adres ip odbiorcy,
- *  - port - port odbiorcy,
- *  - my_uin - w³asny numer,
- *  - peer_uin - numer obiorcy.
+ *  - ip - adres ip odbiorcy
+ *  - port - port odbiorcy
+ *  - my_uin - w³asny numer
+ *  - peer_uin - numer obiorcy
  *
- * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_dcc *gg_dcc_voice_chat(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
+struct gg_dcc *gg_dcc_voice_chat(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
 	gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_chat() handing over to gg_dcc_transfer()\n");
 
@@ -259,12 +257,11 @@ struct gg_dcc *gg_dcc_voice_chat(unsigned long ip, unsigned short port, uin_t my
 /*
  * gg_dcc_set_type()
  *
- * po zdarzeniu GG_EVENT_DCC_CALLBACK nale¿y ustawiæ typ po³±czenia.
+ * po zdarzeniu GG_EVENT_DCC_CALLBACK nale¿y ustawiæ typ po³±czenia za
+ * pomoc± tej funkcji.
  *
- *  - d - struktura opisuj±ca po³±czenie,
- *  - type - tym po³±czenia (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_VOICE).
- *
- * brak
+ *  - d - struktura opisuj±ca po³±czenie
+ *  - type - typ po³±czenia (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_VOICE)
  */
 void gg_dcc_set_type(struct gg_dcc *d, int type)
 {
@@ -275,8 +272,12 @@ void gg_dcc_set_type(struct gg_dcc *d, int type)
 /*
  * gg_dcc_callback() // funkcja wewnêtrzna
  *
- * wywo³ywana z gg_dcc->callback, odpala gg_dcc_watch_fd i ³aduje rezultat
- * do gg_dcc->event.
+ * wywo³ywana z struct gg_dcc->callback, odpala gg_dcc_watch_fd i umieszcza
+ * rezultat w struct gg_dcc->event.
+ *
+ *  - d - structura opisuj±ca po³±czenie
+ *
+ * 0, -1.
  */
 static int gg_dcc_callback(struct gg_dcc *d)
 {
@@ -290,15 +291,15 @@ static int gg_dcc_callback(struct gg_dcc *d)
 /*
  * gg_dcc_socket_create()
  *
- * tworzy socketa dla bezpo¶redniej komunikacji miêdzy klientami.
+ * tworzy gniazdo dla bezpo¶redniej komunikacji miêdzy klientami.
  *
- *  - uin - w³asny numer,
- *  - port - preferowany port, je¶li równy 0 lub -1, próbuje domy¶lnego.
+ *  - uin - w³asny numer
+ *  - port - preferowany port, je¶li równy 0 lub -1, próbuje domy¶lnego
  *
- * zaalokowana struktura `gg_dcc', któr± po¼niej nale¿y
- * zwolniæ funkcj± gg_free_dcc(), albo NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struct gg_dcc, któr± po¼niej nale¿y zwolniæ funkcj±
+ * gg_free_dcc(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
+struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 {
 	struct gg_dcc *c;
 	struct sockaddr_in sin;
@@ -369,11 +370,11 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
  *
  * wysy³a ramkê danych dla rozmowy g³osowej.
  *
- *  - d - struktura opisuj±ca po³±czenie dcc,
- *  - buf - bufor z danymi,
- *  - length - rozmiar ramki,
+ *  - d - struktura opisuj±ca po³±czenie dcc
+ *  - buf - bufor z danymi
+ *  - length - rozmiar ramki
  *
- * je¶li siê powiod³o 0, je¶li nie -1.
+ * 0, -1.
  */
 int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 {
@@ -445,10 +446,9 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
  *
  * funkcja, któr± nale¿y wywo³aæ, gdy co¶ siê zmieni na gg_dcc->fd.
  *
- *  - c - struktura zwrócona przez gg_create_dcc_socket()
+ *  - h - struktura zwrócona przez gg_create_dcc_socket()
  *
- * zaalokowana struktura gg_event lub NULL, je¶li zabrak³o pamiêci
- * na ni±.
+ * zaalokowana struct gg_event lub NULL, je¶li zabrak³o pamiêci na ni±.
  */
 struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 {
@@ -1112,21 +1112,19 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
  *
  * zwalnia pamiêæ po strukturze po³±czenia dcc.
  *
- *  - c - zwalniana struktura.
- *
- * brak.
+ *  - d - zwalniana struktura
  */
-void gg_dcc_free(struct gg_dcc *c)
+void gg_dcc_free(struct gg_dcc *d)
 {
         gg_debug(GG_DEBUG_FUNCTION, "** gg_free_dcc(...);\n");
 	
-	if (!c)
+	if (!d)
 		return;
 
-	if (c->fd != -1)
-		close(c->fd);
+	if (d->fd != -1)
+		close(d->fd);
 
-	free(c);
+	free(d);
 }
 
 /*
