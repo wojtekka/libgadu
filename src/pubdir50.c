@@ -54,7 +54,7 @@ gg_pubdir50_t gg_pubdir50_new(int type)
 /*
  * gg_pubdir50_add_n()  // funkcja wewnêtrzna
  *
- * funkcja dodaje pole do zapytania lub odpowiedzi.
+ * funkcja dodaje lub zastêpuje istniej±ce pole do zapytania lub odpowiedzi.
  *
  *  - req - wska¼nik opisu zapytania,
  *  - num - numer wyniku (0 dla zapytania),
@@ -67,17 +67,28 @@ int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, const char 
 {
 	struct gg_pubdir50_entry *tmp = NULL, *entry;
 	char *dupfield, *dupvalue;
+	int i;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_add_n(%p, %d, \"%s\", \"%s\");\n", req, num, field, value);
+//	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_add_n(%p, %d, \"%s\", \"%s\");\n", req, num, field, value);
 
-	if (!(dupfield = strdup(field))) {
+	if (!(dupvalue = strdup(value))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_add_n() out of memory\n");
 		return -1;
 	}
 
-	if (!(dupvalue = strdup(value))) {
+	for (i = 0; i < req->entries_count; i++) {
+		if (req->entries[i].num != num || strcmp(req->entries[i].field, field))
+			continue;
+
+		free(req->entries[i].value);
+		req->entries[i].value = dupvalue;
+
+		return 0;
+	}
+		
+	if (!(dupfield = strdup(field))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_add_n() out of memory\n");
-		free(dupfield);
+		free(dupvalue);
 		return -1;
 	}
 
@@ -131,7 +142,7 @@ int gg_pubdir50_seq_set(gg_pubdir50_t req, uint32_t seq)
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_seq_set(%p, %d);\n", req, seq);
 	
 	if (!req) {
-		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50() invalid arguments\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_seq_set() invalid arguments\n");
 		errno = EFAULT;
 		return -1;
 	}
@@ -161,6 +172,7 @@ void gg_pubdir50_free(gg_pubdir50_t s)
 	}
 
 	free(s->entries);
+	free(s);
 }
 
 /*
@@ -212,6 +224,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 	res = time(NULL);
 	r->type = req->type;
 	r->seq = (req->seq) ? fix32(req->seq) : fix32(time(NULL));
+	req->seq = fix32(r->seq);
 
 	for (i = 0, p = buf + 5; i < req->entries_count; i++) {
 		if (req->entries[i].num)
