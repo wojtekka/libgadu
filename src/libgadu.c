@@ -560,6 +560,38 @@ int gg_change_status(struct gg_session *sess, int status)
 }
 
 /*
+ * gg_change_status_descr()
+ *
+ * zmienia status u¿ytkownika. przydatne do /away i /busy oraz /quit.
+ *
+ *  - sess - opis sesji,
+ *  - status - nowy status u¿ytkownika,
+ *  - descr - opis statusu.
+ *
+ * je¶li wys³a³ pakiet zwraca 0, je¶li nie uda³o siê, zwraca -1.
+ */
+int gg_change_status_descr(struct gg_session *sess, int status, char *descr)
+{
+	struct gg_new_status p;
+
+	if (!sess || !descr) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_change_status_descr(..., %d, \"%s\");\n", status, descr);
+
+	p.status = fix32(status);
+
+	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), descr, strlen(descr), NULL);
+}
+
+/*
  * gg_logoff()
  *
  * wylogowuje u¿ytkownika i zamyka po³±czenie.

@@ -55,6 +55,10 @@ void gg_free_event(struct gg_event *e)
 		free(e->event.msg.message);
 	if (e->type == GG_EVENT_NOTIFY)
 		free(e->event.notify);
+	if (e->type == GG_EVENT_NOTIFY_DESCR) {
+		free(e->event.notify_descr.notify);
+		free(e->event.notify_descr.descr);
+	}
 	free(e);
 }
 
@@ -113,49 +117,37 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			
 			e->event.msg.recipients_count = count;
 
-#if 0
 		} else if (*p == 2) {		/* richtext */
 
-			struct gg_msg_richtext *richtext = (void*) p;
-			struct gg_msg_richtext_color *color = NULL;
-			struct gg_msg_format *format;
+			unsigned short *len;
 			void *tmp;
 			
-			printf("packet:richtext\n");
-			p += sizeof(*richtext);
-			printf("packet:after=%p\n",p);
-			
-			if (p > packet_end) {
+			if (p + 4 > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
 				errno = EINVAL;
 				goto fail;
 			}
 
-			if ((richtext->font & GG_FONT_COLOR)) {
-				color = (void*) p;
-				p += sizeof(struct gg_msg_richtext_color);
-			}
+			len = (unsigned short*) p + 2;
 
-			if (p > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
-				errno = EINVAL;
-				goto fail;
-			}
-
-			if (!(tmp = realloc(e->event.msg.formats, (e->event.msg.formats_count + 1) * sizeof(struct gg_msg_format)))) {
+			if (!(tmp = malloc(*len))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
 				goto fail;
 			}
-			e->event.msg.formats = tmp;
 
-			format = &e->event.msg.formats[e->event.msg.formats_count++];
-			format->position = richtext->position;
-			format->length = richtext->length;
-			format->font = richtext->font;
-			format->color[0] = (color) ? color->red : 0;
-			format->color[1] = (color) ? color->green : 0;
-			format->color[2] = (color) ? color->blue : 0;
-#endif
+			p += 4;
+
+			if (p + *len > packet_end) {
+				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				errno = EINVAL;
+				goto fail;
+			}
+				
+			memcpy(tmp, p, *len);
+
+			e->event.msg.formats = tmp;
+			e->event.msg.formats_length = *len;
+
 		} else				/* nieznana opcja */
 			p = packet_end;
 	}
@@ -165,8 +157,6 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	e->event.msg.sender = fix32(r->sender);
 	e->event.msg.time = fix32(r->time);
 	e->event.msg.message = strdup((void*) r + sizeof(*r));
-
-	//printf("%d formats\n", e->event.msg.formats_count);
 
 	return 0;
 	
@@ -187,7 +177,7 @@ fail:
  */
 static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 {
-	struct gg_header *h;
+	struct gg_header *h = NULL;
 	void *p;
 
 	if (!sess) {
@@ -199,7 +189,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 	if (!(h = gg_recv_packet(sess))) {
 		gg_debug(GG_DEBUG_MISC, "-- gg_recv_packet failed. errno = %d (%d)\n", errno, strerror(errno));
-		return -1;
+		goto fail;
 	}
 
 	p = (void*) h + sizeof(struct gg_header);
@@ -208,10 +198,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_RECV_MSG:
 		{
 			if (h->length >= sizeof(struct gg_recv_msg))
-				if (gg_handle_recv_msg(h, e)) {
-					free(h);
-					return -1;
-				}
+				if (gg_handle_recv_msg(h, e))
+					goto fail;
 			
 			break;
 		}
@@ -220,22 +208,55 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		{
 			struct gg_notify_reply *n = p;
 			int count, i;
+			char *tmp;
 
 			gg_debug(GG_DEBUG_MISC, "-- received a notify reply\n");
-			
-			e->type = GG_EVENT_NOTIFY;
-			if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
-				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
-				free(h);
-				return -1;
+
+			if (h->length < sizeof(*n)) {
+				gg_debug(GG_DEBUG_MISC, "-- incomplete packet\n");
+				errno = EINVAL;
+				goto fail;
 			}
-			count = h->length / sizeof(*n);
-			memcpy(e->event.notify, p, h->length);
-			e->event.notify[count].uin = 0;
-			for (i = 0; i < count; i++) {
-				e->event.notify[i].uin = fix32(e->event.notify[i].uin);
-				e->event.notify[i].status = fix32(e->event.notify[i].status);
-				e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
+
+			if (fix32(n->status) == GG_STATUS_BUSY_DESCR || fix32(n->status == GG_STATUS_NOT_AVAIL_DESCR)) {
+				e->type = GG_EVENT_NOTIFY_DESCR;
+				
+				if (!(e->event.notify_descr.notify = (void*) malloc(sizeof(*n) * 2))) {
+					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+					goto fail;
+				}
+				e->event.notify_descr.notify[1].uin = 0;
+				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
+				e->event.notify_descr.notify[0].uin = fix32(e->event.notify_descr.notify[0].uin);
+				e->event.notify_descr.notify[0].status = fix32(e->event.notify_descr.notify[0].status);
+				e->event.notify_descr.notify[0].remote_port = fix16(e->event.notify_descr.notify[0].remote_port);
+
+				count = h->length - sizeof(*n);
+				if (!(tmp = malloc(count))) {
+					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+					goto fail;
+				}
+				memcpy(tmp, p + sizeof(*n), count);
+				tmp[count] = 0;
+				e->event.notify_descr.descr = tmp;
+				
+			} else {
+				e->type = GG_EVENT_NOTIFY;
+				
+				if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
+					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+					goto fail;
+				}
+				
+				memcpy(e->event.notify, p, h->length);
+				count = h->length / sizeof(*n);
+				e->event.notify[count].uin = 0;
+				
+				for (i = 0; i < count; i++) {
+					e->event.notify[i].uin = fix32(e->event.notify[i].uin);
+					e->event.notify[i].status = fix32(e->event.notify[i].status);
+					e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
+				}
 			}
 
 			break;
@@ -252,6 +273,16 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(&e->event.status, p, h->length);
 				e->event.status.uin = fix32(e->event.status.uin);
 				e->event.status.status = fix32(e->event.status.status);
+				if (h->length > sizeof(*s)) {
+					int len = h->length - sizeof(*s);
+					char *buf = malloc(len + 1);
+					if (buf) {
+						memcpy(buf, p + sizeof(*s), len);
+						buf[len] = 0;
+					}
+					e->event.status.descr = buf;
+				} else
+					e->event.status.descr = NULL;
 			}
 
 			break;
@@ -295,8 +326,11 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 	}
 	
 	free(h);
-
 	return 0;
+
+fail:
+	free(h);
+	return -1;
 }
 
 /*
