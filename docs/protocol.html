@@ -8,6 +8,7 @@ BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tab { background-color: #a0a0a0; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
+.tabf2 { background-color: white; color: silver; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
 .example { font-family: monospace; padding: 0.7em; background-color: #c0f0f0; border: 1px solid #80a0a0; }
@@ -45,16 +46,15 @@ H1, H2, H3 { margin-top: 0px; }
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
 		1.9.&nbsp;&nbsp;<a href="#ch1.9">Roz³±czenie</a><br />
 		1.10.&nbsp;&nbsp;<a href="#ch1.10">Katalog publiczny</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.11">Lista kontaktów</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.12">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Us³ugi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
 		2.2.&nbsp;&nbsp;<a href="#ch2.2">Rejestracja konta</a><br />
 		2.3.&nbsp;&nbsp;<a href="#ch2.3">Usuniêcie konta</a><br />
 		2.4.&nbsp;&nbsp;<a href="#ch2.4">Zmiana has³a</a><br />
-		2.5.&nbsp;&nbsp;<a href="#ch2.5">Umieszczenie listy kontaktów na serwerze</a><br />
-		2.6.&nbsp;&nbsp;<a href="#ch2.6">Pobranie listy kontaktów z serwera</a><br />
-		2.7.&nbsp;&nbsp;<a href="#ch2.7">Usuniêcie listy kontaktów z serwera</a><br />
-		2.8.&nbsp;&nbsp;<a href="#ch2.8">Przypomnienie has³a poczt±</a><br />
+		2.5.&nbsp;&nbsp;<a href="#ch2.5">Przypomnienie has³a poczt±</a><br />
 	</li>
 	<li><a href="#ch3">Bezpo¶rednie po³±czenia</a></li>
 	<li><a href="#ch4">Autorzy</a></li>
@@ -126,19 +126,27 @@ siê w poni¿szym opisie.
 <h3>1.2. Zanim siê po³±czymy</h3>
 
 <p>
-¯eby wiedzieæ, z jakim serwerem mamy siê po³±czyæ, nale¿y poudawaæ przez
-chwilê przegl±darkê WWW i po³±czyæ siê z hostem <tt>appmsg.gadu-gadu.pl</tt>.
+¯eby wiedzieæ, z jakim serwerem mamy siê po³±czyæ, nale¿y za pomoc± HTTP
+po³±czyæ siê z <tt>appmsg.gadu-gadu.pl</tt> i wys³aæ:
 </p>
 
 <div class="http">
-<pre>GET /appsvc/appmsg.asp?fmnumber=<b>NUMER</b> HTTP/1.0
-Host: appmsg.gadu-gadu.pl
-User-Agent: Mozilla/4.7 [en] (Win98; I)
-Pragma: no-cache</pre>
+<pre>GET /appsvc/appmsg4.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMO¦Æ</b>
+Accept: image/gif, image/jpeg, image/pjpeg, <b>...</b>
+Accept-Language: pl
+User-Agent: <b>PRZEGL¡DARKA</b>
+Pragma: no-cache
+Host: appmsg.gadu-gadu.pl</pre>
 </div>
 
 <p>
-Oryginalny klient mo¿e wys³aæ jeden z podanych identyfikatorów przegl±darki:
+<b>NUMER</b> jest numerem Gadu-Gadu. <b>WERSJA</b> jest wersj± klienta
+w postaci ,,<tt>A, B, C, D</tt>'' (na przyk³ad ,,<tt>5, 0, 5, 107</tt>'' dla
+wersji 5.0.5 build 107).
+<b>FORMAT</b> okre¶la czy wiadomo¶æ systemowa bêdzie przesy³ana czystym
+tekstem (brak zmiennej "fmt") czy w HTMLu (warto¶æ ,,<tt>2</tt>'').
+<b>WIADOMO¦Æ</b> jest numerem ostatnio otrzymanej wiadomo¶ci systemowej.
+<b>PRZEGL¡DARKA</b> mo¿e byæ jednym z poni¿szych tekstów:
 </p>
 
 <ul>
@@ -151,23 +159,6 @@ Oryginalny klient mo¿e wys³aæ jeden z podanych identyfikatorów przegl±darki:
 </ul>
 
 <p>
-Nowsze wersje (od 4.6.2) korzystaj± z innego skryptu:
-</p>
-
-<div class="http">
-<pre>GET /appsvc/appmsg2.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMO¦Æ</b>
-Host: appmsg.gadu-gadu.pl
-User-Agent: <b>PRZEGL¡DARKA</b>
-Pragma: no-cache</pre>
-</div>
-
-<p>
-Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersj± klienta
-postaci ,,<tt>A, B, C, D</tt>'' (na przyk³ad ,,<tt>5, 0, 5, 107</tt>'' dla
-wersji 5.0.5 buildu 107),
-<b>FORMAT</b> okre¶la czy wiadomo¶æ systemowa bêdzie przesy³ana czystym
-tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej warto¶æ), a
-<b>WIADOMO¦Æ</b> jest numerem ostatnio otrzymanej wiadomo¶ci systemowej.
 Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieæ
 na przyk³ad tak:
 </p>
@@ -175,11 +166,11 @@ na przyk³ad tak:
 <div class="http">
 <pre>HTTP/1.0 200 OK
 
-0 217.17.41.84:8074 217.17.41.84</pre>
+0 0 217.17.41.84:8074 217.17.41.84</pre>
 </div>
 
 <p>
-Pierwsze pole jest numerem wiadomo¶ci systemowej, a drugie i trzecie
+Pierwsze pole jest numerem wiadomo¶ci systemowej, a trzecie i czwarte
 podaj± nam namiary na w³a¶ciwy serwer. Je¶li serwer jest niedostêpny,
 zamiast adresu IP jest zwracany tekst ,,<tt>notoperating</tt>''.
 Je¿eli po³±czenie z portem 8074 nie powiedzie siê z jakich¶ powodów,
@@ -213,7 +204,7 @@ Pragma: no-cache</pre>
 <h3>1.3. Logowanie siê</h3>
 
 <p>
-Po po³±czeniu siê portem 8074 lub 443 serwera Gadu-Gadu, dostajemy pakiet
+Po po³±czeniu siê portem 8074 lub 443 serwera Gadu-Gadu, otrzymujemy pakiet
 typu <tt>0x0001</tt>, który na potrzeby tego dokumentu nazwiemy:
 </p>
 
@@ -233,33 +224,29 @@ klienta:
 </div>
 
 <p>
-Kiedy mamy ju¿ t± warto¶æ mo¿emy odes³aæ pakiet logowania
+Kiedy mamy ju¿ t± warto¶æ mo¿emy odes³aæ pakiet logowania:
 </p>
 
 <div class="c">
-<pre>#define GG_LOGIN 0x000c</pre>
-</div>
+<pre>#define GG_LOGIN60 0x0015
 
-<p>
-Musimy podaæ kilka informacji:
-</p>
-
-<div class="c">
-<pre>struct gg_login {
-	int uin;		<i>/* numer klienta */</i>
-	int hash;		<i>/* hash has³a */</i>
-	int status;		<i>/* pocz±tkowy stan */</i>
-	int version;		<i>/* wersja klienta */</i>
-	int local_ip;		<i>/* mój adres ip */</i>
-	short local_port;	<i>/* port, na którym s³ucham */</i>
-	char description[];	<i>/* opis, nie musi wyst±piæ */</i>
-	int time;		<i>/* czas, nie musi wyst±piæ */</i>
+struct gg_login60 {
+	int uin;              <i>/* mój numerek */</i>
+        int hash;             <i>/* hash has³a */</i>
+        int status;           <i>/* status na dzieñ dobry */</i>
+        int version;          <i>/* moja wersja klienta */</i>
+        char unknown1;        <i>/* 0x00 */</i>
+        int local_ip;         <i>/* mój adres ip */</i>
+        int local_port;       <i>/* port, na którym s³ucham */</i>
+        int external_ip;      <i>/* zewnêtrzny adres ip */</i>
+        short external_port;  <i>/* zewnêtrzny port */</i>
+	char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
+        char unknown2;        <i>/* 0xbe */</i>
 };</pre>
 </div>
 
 <p>
-Hash has³a w pierwszych wersjach by³ liczony w do¶æ prosty sposób, ale
-niestety z któr±¶ zmian± protoko³u wprowadzono nowy algorytm:
+Hash has³a mo¿na obliczyæ nastêpuj±c± funkcj± jêzyka C:
 </p>
 
 <div class="example">
@@ -294,6 +281,7 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Wersje klientów</b></td></tr>
+<tr class="tabf"><td><tt>0x20</tt></td><td>6.0</td></tr>
 <tr class="tabf"><td><tt>0x1e</tt></td><td>5.7 beta (build 121)</td></tr>
 <tr class="tabf"><td><tt>0x1c</tt></td><td>5.7 beta</td></tr>
 <tr class="tabf"><td><tt>0x1b</tt></td><td>5.0.5</td></tr>
@@ -311,13 +299,14 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 
 <p>
 Oczywi¶cie nie s± to wszystkie mo¿liwe wersje klientów, lecz te, które
-uda³o siê z³apaæ na wolno¶ci. Najbezpieczniej bêdzie przedstawiaæ siê jako
-ta wersja, której w³asno¶ci u¿ywamy. Wiadomo, ¿e wersje 4.0 nie obs³ugiwa³y
-trybu ukrytego, tylko dla znajomych itd.
+zosta³y zauwa¿one i odnotowane. W ka¿dym razie, tak czy inaczej nale¿y
+siê przedstawiæ jako co najmniej wersja 6.0, poniewa¿ tej wersji protoko³u
+dotyczy poni¿szy dokument.
 </p>
 
 <p>
-W najnowszej wersji protoko³u jest dodatkowa maska na wersjê:
+Je¶li klient ma kartê d¼wiêkow± i jest w stanie obs³ugiwaæ rozmowy g³osowe,
+do wersji dodawana jest warto¶æ:
 </p>
 
 <div class="c">
@@ -325,11 +314,7 @@ W najnowszej wersji protoko³u jest dodatkowa maska na wersjê:
 </div>
 
 <p>
-która mówi nam, ¿e dany klient mo¿e prowadziæ rozmowy g³osowe.
-</p>
-
-<p>
-Je¶li wszystko siê powiedzie, dostaniemy w odpowiedzi pakiet typu:
+Je¶li autoryzacja siê powiedzie, dostaniemy w odpowiedzi pakiet:
 </p>
 
 <div class="c">
@@ -344,28 +329,6 @@ o zerowej d³ugo¶ci, lub w przypadku b³êdu pakiet:
 <pre>#define GG_LOGIN_FAILED 0x0009</pre>
 </div>
 
-<p>
-Od wersji 4.9.3 (protokó³ 0x18), mo¿liwe jest równie¿ wykorzystanie
-przekierowania portów. Je¶li chcemy wykorzystaæ, nale¿y zamiast
-pakietu GG_LOGIN wys³aæ nastêpuj±cy:
-</p>
-
-<div class="c">
-<pre>#define GG_LOGIN_EXT 0x0013
-
-struct gg_login_ext {
-	int uin;		<i>/* numer klienta */</i>
-	int hash;		<i>/* hash has³a */</i>
-	int status;		<i>/* pocz±tkowy stan */</i>
-	int version;		<i>/* wersja klienta */</i>
-	int local_ip;		<i>/* mój adres ip */</i>
-	short local_port;	<i>/* port, na którym s³ucham */</i>
-	int external_ip;	<i>/* zewnêtrzny adres ip */</i>
-	short external_port;	<i>/* zewnêtrzny port */</i>
-	char description[];	<i>/* opis, nie musi wyst±piæ */</i>
-	int time;		<i>/* czas, nie musi wyst±piæ */</i>
-};</pre>
-</div>
 
 <hr />
 
@@ -474,26 +437,38 @@ o zerowej d³ugo¶ci.
 
 <p>
 Je¶li kto¶ jest, serwer odpowie pakietem zawieraj±cym jedn± lub wiêcej
-struktur <tt>gg_notify_reply</tt>:
+struktur <tt>gg_notify_reply60</tt>:
 </p>
 
 <div class="c">
-<pre>#define GG_NOTIFY_REPLY 0x000c	/* tak, to samo co GG_LOGIN */
+<pre>#define GG_NOTIFY_REPLY60 0x0011
 	
-struct gg_notify_reply {
-	int uin;		/* numerek */
-	int status;		/* status danej osoby */
-	int remote_ip;		/* adres ip delikwenta */
-	short remote_port;	/* port, na którym s³ucha klient */
-	int version;		/* wersja klienta */
-	short unknown1;		/* znowu port? */
+struct gg_notify_reply60 {
+	int uin;		/* numerek plus flagi w najstarszym bajcie */
+	char status;		/* status danej osoby */
+	int remote_ip;		/* adres IP bezpo¶rednich po³±czeñ */
+	short remote_port;	/* port bezpo¶rednich po³±czeñ */
+	char version;		/* wersja klienta */
+	char image_size;	/* maksymalny rozmiar obrazków w KB */
+	char unknown1;		/* 0x00 */
+	char description_size;	/* rozmiar opisu i czasu, nie musi wyst±piæ */
 	char description[];	/* opis, nie musi wyst±piæ */
 	int time;		/* czas, nie musi wyst±piæ */
 };</pre>
 </div>
 
 <p>
-Wiêkszo¶æ pól powinna byæ zrozumia³a. <tt>remote_port</tt> poza zwyk³ym
+W najstarszym bajcie pola <tt>uin</tt> mog± znajdowaæ siê nastêpuj±ce flagi:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Etykieta</b></td><td><b>Warto¶æ</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>GG_UINFLAG_UNKNOWN1</tt></td><td><tt>0x10</tt></td><td>Nieznane</td></tr>
+<tr class="tabf"><td><tt>GG_UINFLAG_UNKNOWN2</tt></td><td><tt>0x20</tt></td><td>Flaga spotykana, gdy u¿ytkownik staje siê niedostêpny</td></tr>
+<tr class="tabf"><td><tt>GG_UINFLAG_VOICE</tt></td><td><tt>0x40</tt></td><td>U¿ytkownik mo¿e prowadziæ rozmowy g³osowe</td></tr>
+</table>
+
+<p><tt>remote_port</tt> poza zwyk³ym
 portem mo¿e przyjmowaæ równie¿ poni¿sze warto¶ci:
 </p>
 
@@ -507,16 +482,6 @@ portem mo¿e przyjmowaæ równie¿ poni¿sze warto¶ci:
 <p>
 Zdarzaj± siê te¿ inne ,,nietypowe'' warto¶ci, ale ich znaczenie nie jest
 jeszcze do koñca znane.
-</p>
-
-<p>
-Je¶li dany klient jest w stanie z podanym opisem, najpierw dostaniemy
-informacjê osobnym pakietem o nim, pó¼niej paczkê struktur
-<tt>gg_notify_reply</tt> z lud¼mi, którzy nie maj± ustawionych opisów.
-</p>
-
-<p>
-Mo¿liwe jest równie¿ otrzymanie pakietu <tt>gg_notify_reply</tt> ze swoim w³asnym numerem, któr± najlepiej zignorowaæ.
 </p>
 
 <p>
@@ -549,22 +514,27 @@ struct gg_remove_notify {
 </div>
 
 <p>
-Je¶li kto¶ opu¶ci Gadu-Gadu lub zmieni stan na niedostêpny lub niewidoczny, otrzymamy pakiet:
+Je¶li kto¶ opu¶ci Gadu-Gadu lub zmieni stan, otrzymamy pakiet:
 </p>
 
 <div class="c">
-<pre>#define GG_STATUS 0x0002
+<pre>#define GG_STATUS60 0x0060
 	
-struct gg_status {
-	int uin;	        <i>/* numerek */</i>
-	int status;	        <i>/* nowy stan */</i>
+struct gg_status60 {
+	int uin;	        <i>/* numer plus flagi w najstarszym bajcie */</i>
+	char status;	        <i>/* nowy stan */</i>
+	int remote_ip;		<i>/* adres IP bezpo¶rednich po³±czeñ */</i>
+	short remote_port;	<i>/* port bezpo¶rednich po³±czeñ */</i>
+	char version;		<i>/* wersja klienta */</i>
+	char image_size;	<i>/* maksymalny rozmiar grafiki */</i>
+	char unknown1;		<i>/* 0x00 *</i>
 	char description[];	<i>/* opis, nie musi wyst±piæ */</i>
 	int time;		<i>/* czas, nie musi wyst±piæ */</i>
 };</pre>
 </div>
 
 <p>
-Natomiast je¶li kto¶ zmieni status na inny ni¿ niedostêpny lub niewidoczny, otrzymamy pakiet <tt>gg_notify_reply</tt>.
+Znaczenie pól jest takie samo jak w <tt>struct gg_notify_reply60</tt>.
 </p>
 
 <hr />
@@ -920,6 +890,128 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk znalezionych osób.
 
 <hr />
 
+<a name="ch1.11"></a>
+<h3>1.11. Lista kontaktów</h3>
+
+<p>
+Od wersji 6.0 lista kontaktów na serwerze zmieniono sposób dostêpu do katalogu publicznego -- sta³
+siê czê¶ci± sesji, zamiast osobnej sesji HTTP. Aby obs³ugiwaæ wyszukiwanie
+osób, odczytywanie w³asnych informacji lub ich modyfikacjê nale¿y u¿yæ
+nastêpuj±cego typu pakietu:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST_REQUEST 0x0016
+	
+struct gg_userlist_request {
+	char type;		<i>/* rodzaj zapytania *</i>
+	char request[];		<i>/* tre¶æ, nie musi wyst±piæ */</i>
+};</pre>
+</div>
+
+<p>
+Pole <tt>type</tt> oznacza rodzaj zapytania:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST_PUT 0x00	<i>/* eksport listy */</i>
+#define GG_USERLIST_GET 0x02	<i>/* import listy */</i></pre>
+</div>
+
+<p>
+W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera tekst
+z³o¿ony z dowolnej liczby wpisów postaci:
+</p>
+
+<div class="example">
+<pre>imie;nazwisko;pseudo;wyswietlane;telefon;grupa;uin;adres&#64;email;0;;0;</pre>
+</div>
+
+<p>
+Ostatnie 3 pola zosta³y dodane w wersji 4.9.3 i s± zwi±zane z d¼wiêkami.
+</p>
+
+<p>
+Na zapytania dotycz±ce listy kontaktów serwer odpowiada pakietem:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST_REPLY 0x0010
+	
+struct gg_userlist_reply {
+	char type;		<i>/* rodzaj zapytania *</i>
+	char request[];		<i>/* tre¶æ, nie musi wyst±piæ */</i>
+};</pre>
+</div>
+
+<p>
+Pole <tt>type</tt> oznacza rodzaj odpowiedzi:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST_PUT_REPLY 0x00	<i>/* eksport listy */</i>
+#define GG_USERLIST_GET_REPLY 0x06	<i>/* import listy */</i></pre>
+</div>
+
+<p>
+W przypadku importu w polu <tt>request</tt> znajdzie siê lista kontaktów
+w takiej samej postaci, w jakiej j± umieszczono. Serwer nie ingeruje w jej
+tre¶æ.
+</p>
+
+<p>
+Aby usun±æ listê kontaktów z serwera nale¿y wys³aæ pust± listê kontaktów.
+</p>
+
+<hr />
+
+<a name="ch1.12"></a>
+<h3>1.12. Indeks pakietów</h3>
+
+<p>
+Pakiety wysy³ane:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Etykieta</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>0x0002</tt></td><td><tt>GG_NEW_STATUS</tt></td><td>Zmiana stanu</td></tr>
+<tr class="tabf2"><td><tt>0x0007</tt></td><td><tt>GG_PONG</tt></td><td>Pong</td></tr>
+<tr class="tabf"><td><tt>0x0008</tt></td><td><tt>GG_PING</tt></td><td>Ping</td></tr>
+<tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_SEND_MSG</tt></td><td>Wys³anie wiadomo¶ci</td></tr>
+<tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_LOGIN</tt></td><td>Logowanie przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_ADD_NOTIFY</tt></td><td>Dodanie do listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_REMOVE_NOTIFY</tt></td><td>Usuniêcie z listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_NOTIFY</tt></td><td>Wys³anie listy kontaktów</td></tr>
+<tr class="tabf2"><td><tt>0x0013</tt></td><td><tt>GG_LOGIN_EXT</tt></td><td>Logowanie przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_PUBDIR50_REQUEST</tt></td><td>Zapytanie katalogu publicznego</td></tr>
+<tr class="tabf"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie</td></tr>
+<tr class="tabf"><td><tt>0x0016</tt></td><td><tt>GG_USERLIST_REQUEST</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
+</table>
+
+<p>
+Pakiety odbierane:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Etykieta</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>0x0001</tt></td><td><tt>GG_WELCOME</tt></td><td>Liczba do wyznaczenie hashu has³a</td></tr>
+<tr class="tabf2"><td><tt>0x0002</tt></td><td><tt>GG_STATUS</tt></td><td>Zmiana stanu przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x0003</tt></td><td><tt>GG_LOGIN_OK</tt></td><td>Logowanie powiod³o siê</td></tr>
+<tr class="tabf"><td><tt>0x0005</tt></td><td><tt>GG_SEND_MSG_ACK</tt></td><td>Potwierdzenie wiadomo¶ci</td></tr>
+<tr class="tabf2"><td><tt>0x0007</tt></td><td><tt>GG_PONG</tt></td><td>Pong</td></tr>
+<tr class="tabf2"><td><tt>0x0008</tt></td><td><tt>GG_PING</tt></td><td>Ping</td></tr>
+<tr class="tabf"><td><tt>0x0009</tt></td><td><tt>GG_LOGIN_FAILED</tt></td><td>Logowanie nie powiod³o siê</td></tr>
+<tr class="tabf"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodz±ca wiadomo¶æ</td></tr>
+<tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_DISCONNECTING</tt></td><td>Zerwanie po³±czenia</td></tr>
+<tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_PUBDIR50_REPLY</tt></td><td>Odpowied¼ katalogu publicznego</td></tr>
+<tr class="tabf"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu</td></tr>
+<tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowied¼ listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0011</tt></td><td><tt>GG_NOTIFY_REPLY60</tt></td><td>Stan listy kontaktów</td></tr>
+</table>
+
+<hr />
+
 <a name="ch2"></a>
 <h2>2. Us³ugi HTTP</h2>
 
@@ -1138,155 +1230,7 @@ Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
 <hr />
 
 <a name="ch2.5"></a>
-<h3>2.5. Umieszczenie listy kontaktów na serwerze</h3>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
-<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsput.asp</tt></td></tr>
-</table>
-
-<p></p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
-<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
-<tr class="tabf"><td><tt>Contacts</tt></td><td>dowolna ilo¶æ rekordów z kontaktami rozdzielone znakiem nowej linii ,,<tt>\r\n</tt>''</td></tr>
-</table>
-
-<p>
-Format pojedynczego kontaktu:
-</p>
-
-<div class="c">
-<pre>imie;nazwisko;pseudo;wyswietlane;telefon;grupa;uin;adres&#64;email;0;;0;</pre>
-</div>
-
-<p>
-Ostatnie 3 pola zosta³y dodane w wersji 4.9.3 i s± zwi±zane z d¼wiêkami.
-</p>
-
-<p>
-Przyk³ad:
-</p>
-
-<div class="http">
-<pre>POST /appsvc/fmcontactsput.asp HTTP/1.0
-Host: pubdir.gadu-gadu.pl
-Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 110
-Pragma: no-cache
-
-FmNum=1000&amp;Pass=sekret&amp;Contacts=imie;nazwisko;pseudo;wyswietlane;+48123123123;grup
-a1;1000;adres&#64;email.pl;0;;0;</pre>
-</div>
-
-<p>
-Je¶li siê uda³o, serwer odpowie:
-</p>
-
-<div class="http">
-<pre>put_success:</pre>
-</div>
-
-<hr />
-
-<a name="ch2.6"></a>
-<h3>2.6. Pobranie listy kontaktów z serwera</h3>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
-<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsget.asp</tt></td></tr>
-</table>
-
-<p></p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
-<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
-</table>
-
-<p>
-Przyk³ad:
-</p>
-
-<div class="http">
-<pre>POST /appsvc/fmcontactsget.asp HTTP/1.0
-Host: pubdir.gadu-gadu.pl
-Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 22
-Pragma: no-cache
-
-FmNum=1000&amp;Pass=sekret</pre>
-</div>
-
-<p>
-Je¶li siê uda³o, serwer odpowie:
-</p>
-
-<div class="http">
-<pre>get_results:<b>rekord_1</b>
-<b>rekord_2</b>
-...
-<b>rekord_N</b></pre>
-</div>
-
-<p>
-Rekord ma taki sam format jak w <a href="#ch2.5">2.5</a>.
-</p>
-
-<hr />
-
-<a name="ch2.7"></a>
-<h3>2.7. Usuniêcie listy kontaktów z serwera</h3>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
-<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsput.asp</tt></td></tr>
-</table>
-
-<p></p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
-<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
-<tr class="tabf"><td><tt>Delete</tt></td><td>warto¶æ ,,<tt>1</tt>''</td></tr>
-</table>
-
-<p>
-Przyk³ad:
-</p>
-
-<div class="http">
-<pre>POST /appsvc/fmcontactsput.asp HTTP/1.0
-Host: pubdir.gadu-gadu.pl
-Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 31
-Pragma: no-cache
-
-FmNum=1000&amp;Pass=sekret&amp;Delete=1</pre>
-</div>
-
-<p>
-Je¶li siê uda³o, serwer odpowie:
-</p>
-
-<div class="http">
-<pre>put_success:</pre>
-</div>
-
-<hr />
-
-<a name="ch2.8"></a>
-<h3>2.8. Przypomnienie has³a poczt±</h3>
+<h3>2.5. Przypomnienie has³a poczt±</h3>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
@@ -1375,11 +1319,11 @@ Nadawca wysy³a  po kolei:
 
 	#define GG_DCC_HAVE_FILE     0x0001
 	#define GG_DCC_HAVE_FILEINFO 0x0003
-	int dunno1; /* 0 */
-	int dunno2; /* 0 */
+	int unknown1; /* 0 */
+	int unknown2; /* 0 */
 	file_info_struct finfo;
 
-Podejrzewam, ¿e dunno2:dunno1 jest pozycj± w pliku, od której nadawca 
+Podejrzewam, ¿e unknown2:unknown1 jest pozycj± w pliku, od której nadawca 
 chce wysy³aæ plik, ale nie uda³o mi siê zasymulowaæ sytuacji, w której 
 by³yby u¿ywane.
 
@@ -1401,7 +1345,7 @@ Dalej nadawca czeka na akceptacjê odbiorcy, czyli nastêpuj±c± strukturkê:
 	struct {
 		int type;      /* 0x0006 GG_DCC_GIMME_FILE */
 		int start;     /* od której pozycji zacz±æ przesy³anie */
-		int dunno;     /* 0 */
+		int unknown;   /* 0 */
 	};
 
 Teraz mo¿emy zacz±æ przesy³anie pliku. Plik przesy³amy w paczkach d³ugo¶ci 
@@ -1412,7 +1356,7 @@ paczki:
 				   jest ostatnia. 0x0002 GG_DCC_LAST_FILEHEADER
 				   wpp. */
 		int chunk_size; /* rozmiar paczki */
-		int dunno;      /* 0 */
+		int unknown;    /* 0 */
 	};
 
 Po wys³aniu ostatniej paczki zamykamy po³±czenie. Plik zosta³ przes³any.
@@ -1422,8 +1366,8 @@ Zachowanie odbiorcy jest symetryczne:
 1. odbiera kolejno 
 	GG_DCC_HAVE_FILE
 	GG_DCC_HAVE_FILEINFO
-	int dunno1;
-	int dunno2;
+	int unknown1;
+	int unknown2;
 	file_info_struct finfo;
 
 2. je¶li u¿ytkownik zgodzi siê odebraæ plik, to wysy³amy struktrê jakiej
