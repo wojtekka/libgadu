@@ -2,7 +2,7 @@
 
 /*
  *  (C) Copyright 2001 Wojtek Kaniewski <wojtekka@irc.pl>,
- *                     Robert J. Wo¼ny <speedy@atman.pl>
+ *                     Robert J. Wo¼ny <speedy@ziew.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License Version 2 as
@@ -330,6 +330,7 @@ static int gg_send_packet(int sock, int type, void *packet, int length, void *pa
 struct gg_session *gg_login(uin_t uin, char *password, int async)
 {
 	struct gg_session *sess;
+	char *hostname;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%u, \"...\", %d);\n", uin, async);
 
@@ -349,9 +350,15 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	sess->last_pong = 0;
 	sess->server_ip = 0;
 	sess->initial_status = 0;
+	
+	if (gg_http_use_proxy) {
+		hostname = gg_http_proxy_host;
+	} else {
+		hostname = GG_APPMSG_HOST;
+	};
 
 	if (async) {
-		if (gg_resolve(&sess->fd, &sess->pid, GG_APPMSG_HOST)) {
+		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
 			gg_debug(GG_DEBUG_MISC, "-- resolving failed\n");
 			free(sess);
 			return NULL;
@@ -359,11 +366,11 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	} else {
 		struct in_addr a;
 
-		if ((a.s_addr = inet_addr(GG_APPMSG_HOST)) == INADDR_NONE) {
+		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 			struct hostent *he;
 	
-			if (!(he = gethostbyname(GG_APPMSG_HOST))) {
-				gg_debug(GG_DEBUG_MISC, "-- host %s not found\n", GG_APPMSG_HOST);
+			if (!(he = gethostbyname(hostname))) {
+				gg_debug(GG_DEBUG_MISC, "-- host %s not found\n", hostname);
 				free(sess);
 				return NULL;
 			} else
@@ -893,12 +900,21 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			gg_debug(GG_DEBUG_MISC, "-- http connection succeded, sending query\n");
 
-			snprintf(buf, sizeof(buf) - 1,
-				"GET /appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
-				"Host: " GG_APPMSG_HOST "\r\n"
-				"User-Agent: " GG_HTTP_USERAGENT "\r\n"
-				"Pragma: no-cache\r\n"
-				"\r\n", sess->uin);
+			if (gg_http_use_proxy) {
+				snprintf(buf, sizeof(buf) - 1,
+					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
+					"Host: " GG_APPMSG_HOST "\r\n"
+					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+					"Pragma: no-cache\r\n"
+					"\r\n", sess->uin);
+			} else {
+				snprintf(buf, sizeof(buf) - 1,
+					"GET /appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
+					"Host: " GG_APPMSG_HOST "\r\n"
+					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+					"Pragma: no-cache\r\n"
+					"\r\n", sess->uin);
+			};
 
 			if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
 				gg_debug(GG_DEBUG_MISC, "-- sending query failed\n");
