@@ -476,7 +476,7 @@ struct gg_http *gg_token(int async)
 		"Pragma: no-cache\r\n"
 		"\r\n";
 
-	if (!(h = gg_http_connect(GG_APPMSG_HOST, GG_APPMSG_PORT, async, "POST", "/appsvc/regtoken.asp", query))) {
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/regtoken.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> token, gg_http_connect() failed mysteriously\n");
 		return NULL;
 	}
@@ -564,7 +564,7 @@ int gg_token_watch_fd(struct gg_http *h)
 
 		free(url);
 	
-		if (!(h2 = gg_http_connect(GG_APPMSG_HOST, GG_APPMSG_PORT, h->async, "GET", path, "Host: " GG_APPMSG_HOST "\r\nUser-Agent: " GG_HTTP_USERAGENT "\r\n\r\n"))) {
+		if (!(h2 = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, h->async, "GET", path, "Host: " GG_REGISTER_HOST "\r\nUser-Agent: " GG_HTTP_USERAGENT "\r\n\r\n"))) {
 			gg_debug(GG_DEBUG_MISC, "=> token, gg_http_connect() failed mysteriously\n");
 			free(path);
 			free(tokenid);
