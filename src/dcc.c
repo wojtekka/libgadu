@@ -82,6 +82,34 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
 	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, "\002", 1);
 }
 
+/* 
+ * gg_dcc_fill_filetime()  // funkcja wewnêtrzna
+ *
+ * zamienia czas w postaci unixowej na windowsowy.
+ *
+ *  - unix - czas w postaci unixowej
+ *  - filetime - czas w postaci windowsowej
+ */
+void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
+{
+#ifdef __GG_LIBGADU_HAVE_LONG_LONG
+	unsigned long long tmp;
+
+	tmp = ut;
+	tmp += 11644473600LL;
+	tmp *= 10000000LL;
+
+#ifndef __GG_LIBGADU_BIGENDIAN
+	ft[0] = (uint32_t) tmp;
+	ft[1] = (uint32_t) (tmp >> 32);
+#else
+	ft[0] = gg_fix32((uint32_t) (tmp >> 32));
+	ft[1] = gg_fix32((uint32_t) tmp);
+#endif
+
+#endif
+}
+
 /*
  * gg_dcc_fill_file_info()
  *
@@ -95,7 +123,8 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
 int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 {
 	struct stat st;
-	const char *p;
+	const char *name, *ext, *p;
+	int i, j;
 	
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_fill_file_info(%p, \"%s\");\n", d, filename);
 	
@@ -126,17 +155,32 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 	if (!(st.st_mode & S_IWUSR))
 		d->file_info.mode |= gg_fix32(GG_DCC_FILEATTR_READONLY);
 
-	/* XXX czas pliku */
+	gg_dcc_fill_filetime(st.st_atime, d->file_info.atime);
+	gg_dcc_fill_filetime(st.st_mtime, d->file_info.mtime);
+	gg_dcc_fill_filetime(st.st_ctime, d->file_info.ctime);
 	
 	d->file_info.size = gg_fix32(st.st_size);
+	d->file_info.mode = gg_fix32(0x20);	/* FILE_ATTRIBUTE_ARCHIVE */
 
-	for (p = filename + strlen(filename); p > filename && *p != '/'; p--);
+	if (!(name = strrchr(filename, '/')))
+		name = filename;
+	else
+		name++;
 
-	if (*p == '/')
-		p++;
+	if (!(ext = strrchr(name, '.')))
+		ext = name + strlen(name);
+
+	for (i = 0, p = name; i < 8 && p < ext; i++, p++)
+		d->file_info.short_filename[i] = toupper(name[i]);
 	
-	gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info() short name \"%s\"\n", p);
-	strncpy(d->file_info.filename, p, sizeof(d->file_info.filename));
+	if (strlen(ext) > 0) {
+		for (j = 0; *ext && j < 4; j++, p++)
+			d->file_info.short_filename[i + j] = toupper(ext[j]);
+		
+	}
+
+	gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info() short name \"%s\", dos name \"%s\"\n", name, d->file_info.short_filename);
+	strncpy(d->file_info.filename, name, sizeof(d->file_info.filename) - 1);
 
 	return 0;
 }
