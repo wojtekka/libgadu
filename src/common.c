@@ -298,21 +298,20 @@ char *gg_urlencode(char *str)
  * manipulacjach w³asnego wpisu w katalogu publicznym.
  */
 
-long gg_http_hash(unsigned char *email, unsigned char *password)
+int gg_http_hash(unsigned char *email, unsigned char *password)
 {
-	unsigned long a, c;
-	long b;
-	int i;
+	unsigned int a, c;
+	int b, i;
 	b = (-1);
 
 	i = 0;
-	while ((c = (long) email[i++]) != 0) {
+	while ((c = (int) email[i++]) != 0) {
 		a = (c ^ b) + (c << 8);
 		b = (a >> 24) | (a << 8);
 	}
 
 	i = 0;
-	while ((c = (long) password[i++]) != 0) {
+	while ((c = (int) password[i++]) != 0) {
 		a = (c ^ b) + (c << 8);
 		b = (a >> 24) | (a << 8);
 	}
