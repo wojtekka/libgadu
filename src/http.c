@@ -93,6 +93,8 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 	h->fd = -1;
 	h->error = 0;
         h->type = GG_SESSION_HTTP;
+	h->id = 0;
+	h->user_data = NULL;
 	
 	if (async) {
 		if (gg_resolve(&h->fd, &h->pid, hostname)) {
