@@ -765,7 +765,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				gg_dcc_debug_data("read", h->fd, buf, tmp);
+				gg_dcc_debug_data("read", h->fd, h->voice_buf + h->chunk_offset, tmp);
 
 				h->chunk_offset += tmp;
 
