@@ -27,6 +27,40 @@ BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 
 <hr />
 
+<a name="index"></a>
+
+<h2>Spis tre¶ci</h2>
+
+<ol start="0">
+	<li><a href="#ch0">Informacje wstêpne</a></li>
+	<li><a href="#ch1">Protokó³ Gadu-Gadu</a><br>
+		1.1.&nbsp;&nbsp;<a href="#ch11">Format pakietów</a><br>
+		1.2.&nbsp;&nbsp;<a href="#ch12">Zanim siê po³±czymy</a><br>
+		1.3.&nbsp;&nbsp;<a href="#ch13">Logowanie siê</a><br>
+		1.4.&nbsp;&nbsp;<a href="#ch14">Zmiana stanu</a><br>
+		1.5.&nbsp;&nbsp;<a href="#ch15">Ludzie przychodz±, ludzie odchodz±</a><br>
+		1.6.&nbsp;&nbsp;<a href="#ch16">Wysy³anie wiadomo¶ci</a><br>
+		1.7.&nbsp;&nbsp;<a href="#ch17">Otrzymywanie wiadomo¶ci</a><br>
+		1.8.&nbsp;&nbsp;<a href="#ch18">Ping, pong</a><br>
+		1.9.&nbsp;&nbsp;<a href="#ch19">Roz³±czenie</a><br>
+	</li>
+	<li><a href="#ch2">Us³ugi HTTP</a><br>
+		2.1.&nbsp;&nbsp;<a href="#ch21">Format danych</a><br>
+		2.2.&nbsp;&nbsp;<a href="#ch22">Rejestracja konta</a><br>
+		2.3.&nbsp;&nbsp;<a href="#ch23">Usuniêcie konta</a><br>
+		2.4.&nbsp;&nbsp;<a href="#ch24">Zmiana has³a</a><br>
+		2.5.&nbsp;&nbsp;<a href="#ch25">Umieszczenie listy kontaktów na serwerze</a><br>
+		2.6.&nbsp;&nbsp;<a href="#ch26">Pobranie listy kontaktów z serwera</a><br>
+		2.7.&nbsp;&nbsp;<a href="#ch27">Usuniêcie listy kontaktów z serwera</a><br>
+		2.8.&nbsp;&nbsp;<a href="#ch28">Przypomnienie has³a poczt±</a><br>
+	</li>
+	<li><a href="#ch3">Bezpo¶rednie po³±czenia</a></li>
+	<li><a href="#ch4">Autorzy</a></li>
+</ol>
+
+<hr />
+
+<a name="ch0"></a>
 <h2>0. Informacje wstêpne</h2>
 
 <p>
@@ -39,8 +73,10 @@ wysy³anych miêdzy klientem a serwerem.
 
 <hr />
 
+<a name="ch1"></a>
 <h2>1. Protokó³ Gadu-Gadu</h2>
 
+<a name="ch11"></a>
 <h3>1.1. Format pakietów</h3>
 
 <p>
@@ -74,6 +110,7 @@ przedrostkiem <tt>unknown</tt>.
 
 <hr />
 
+<a name="ch12"></a>
 <h3>1.2. Zanim siê po³±czymy</h3>
 
 <p>
@@ -143,6 +180,7 @@ adres strony, któr± nale¿y otworzyæ w przegl±darce.
 
 <hr />
 
+<a name="ch13"></a>
 <h3>1.3. Logowanie siê</h3>
 
 <p>
@@ -299,6 +337,7 @@ struct gg_login_ext {
 
 <hr />
 
+<a name="ch14"></a>
 <h3>1.4. Zmiana stanu</h3>
 
 <p>
@@ -349,6 +388,7 @@ zerem oraz ewentualny czas powrotu w postaci ilo¶ci sekund od 1 stycznia
 
 <hr />
 
+<a name="ch15"></a>
 <h3>1.5. Ludzie przychodz±, ludzie odchodz±</h3>
 
 <p>
@@ -488,6 +528,7 @@ Natomiast je¶li kto¶ zmieni status na inny ni¿ niedostêpny lub niewidoczny, otrz
 
 <hr />
 
+<a name="ch16"></a>
 <h3>1.6. Wysy³anie wiadomo¶ci</h3>
 
 <p>
@@ -656,6 +697,7 @@ a stan wiadomo¶ci mo¿e byæ jednym z nastêpuj±cych:
 
 <hr />
 
+<a name="ch17"></a>
 <h3>1.7. Otrzymywanie wiadomo¶ci</h3>
 
 <p>
@@ -687,6 +729,7 @@ rozmówców.
 
 <hr />
 
+<a name="ch18"></a>
 <h3>1.8. Ping, pong</h3>
 
 <p>
@@ -704,6 +747,7 @@ zmienia siê z wersji na wersjê, wiêc najlepiej nie polegaæ na tym.
 
 <hr />
 
+<a name="ch19"></a>
 <h3>1.9. Roz³±czenie</h3>
 
 <p>
@@ -722,24 +766,400 @@ has³em, lub gdy równocze¶nie po³±czy siê drugi klient z tym samym numerem
 
 <hr />
 
+<a name="ch2">
 <h2>2. Us³ugi HTTP</h2>
 
+<a name="ch21"></a>
+<h3>2.1. Format danych</h3>
+
 <p>
-Opis znajduje siê w pliku <a href="http.txt">http.txt</a>.
+Komunikacja z <tt>appmsg.gadu-gadu.pl</tt> metod± <tt>GET</tt> HTTP/1.0
+zosta³a opisana w poprzednim rozdziale, pozosta³e pakiety u¿ywaj± 
+<tt>POST</tt> dla HTTP/1.0, a w odpowiedzi 1.1. Maj± one postaæ:
+</p>
+
+<div class="http">
+<pre>POST <b>¦CIE¯KA</b> HTTP/1.0
+Host: <b>HOST</b>
+Content-Type: application/x-www-form-urlencoded
+User-Agent: <b>AGENT</b>
+Content-Length: <b>D£UGO¦Æ</b>
+Pragma: no-cache
+
+<b>DANE</b></pre>
+</div>
+
+<p>
+Gdzie <tt><b>AGENT</b></tt> to nazwa przegl±darki (na przyk³ad <tt>Mozilla/4.0
+(compatible; MSIE 5.0; Windows 98)</tt> lub inne, wymienione w rozdziale
+<a href="#ch12">1.2</a>), <tt><b>D£UGO¦Æ</b></tt> to d³ugo¶æ bloku
+<tt><b>DANE</b></tt> w znakach.
+</p>
+
+<p>
+Je¶li bêdzie mowa o wysy³aniu danych do serwera, to chodzi o ca³y powy¿szy
+pakiet, opisane zostan± tylko: <tt><b>HOST</b></tt>, <tt><b>¦CIE¯KA</b></tt>
+i <tt><b>DANE</b></tt>. Pakiet jest wysy³any na port 80. Gdy mowa o wysy³aniu
+pól zapytania, mowa o <tt><b>DANE</b></tt> o warto¶ci:
+</p>
+
+<div class="http">
+<pre>pole1=warto¶æ1&amp;pole2=warto¶æ2&amp;...</pre>
+</div>
+
+<p>
+Pamiêtaj o zmianie kodowania na CP1250 i zakodowaniu danych do postaci URL
+(na przyk³ad funkcj± typu <tt>urlencode</tt>).
+</p>
+
+<p>
+Odpowiedzi serwera na powy¿sze zapytania maj± mniej wiêcej postaæ:
+</p>
+
+<div class="http">
+<pre>HTTP/1.1 200 OK
+Server: Microsoft-IIS/5.0
+Date: Mon, 01 Jul 2002 22:30:31 GMT
+Connection: Keep-Alive
+Content-Length: <b>D£UGO¦Æ</b>
+Content-Type: text/html
+Set-Cookie: <b>COOKIE</b>
+Cache-control: private
+
+<b>ODPOWIED¬</b></pre>
+</div>
+
+<p>
+Nag³ówki nie s± dla nas wa¿ne. Mo¿na zauwa¿yæ tylko to, ¿e czasami serwer
+ustawia <tt><b>COOKIE</b></tt> np. ,,<tt>ASPSESSIONIDQQGGGLJC=CAEKMBGDJCFBEOKCELEFCNKH; path=/</tt>''. Pisz±c dalej, ¿e serwer ,,odpowie warto¶ci±'' mo¿na
+tylko o polu <b>ODPOWIED¬</b>. Kodowanie znaków w odpowiedzi to CP1250.
 </p>
 
 <hr />
 
+<a name="ch22"></a>
+
+<h3>2.2. Rejestracja konta</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>pwd</tt></td><td>has³o dla nowego numeru</td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>adres e-mail do przypomnienia has³a</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt>. Algorytmu szukaj w ¼ród³ach libgadu w <tt>lib/common.c</tt></td></tr>
+</table>
+
+<p>
+Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/fmregister.asp HTTP/1.0
+Host: register.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 51
+Pragma: no-cache
+		
+pwd=sekret&amp;email=moj@adres.email.pl&amp;code=1104465363</pre>
+</div>
+
+<p>
+Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>reg_success:<b>UIN</b></pre>
+</div>
+
+<p>
+Gdzie <tt><b>UIN</b></tt> to nowy numer, który w³a¶nie otrzymali¶my.
+</p>
+
+<hr />
+
+<a name="ch23"></a>
+<h3>2.3. Usuniêcie konta</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>fmnumber</tt></td><td>usuwany numer</td></tr>
+<tr class="tabf"><td><tt>fmpwd</tt></td><td>has³o</td></tr>
+<tr class="tabf"><td><tt>delete</tt></td><td>warto¶æ ,,<tt>1</tt>''</td></tr>
+<tr class="tabf"><td><tt>fmemail</tt></td><td>adres e-mail podany przy rejestracji</td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>warto¶æ ,,<tt>deletedaccount@gadu-gadu.pl</tt>''</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt></td></tr>
+</table>
+
+<p>
+Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/fmregister.asp HTTP/1.0
+Host: register.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 126
+Pragma: no-cache
+		
+fmnumber=4617436&amp;fmpwd=haslo&amp;delete=1&amp;fmemail=moj@email.pl&amp;pwd=%2D700963936&amp;email=
+deletedaccount@gadu%2Dgadu.pl&amp;code=477559883</pre>
+</div>
+
+<p>
+Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>reg_success:<b>UIN</b></pre>
+</div>
+
+<p>
+Gdzie <tt><b>UIN</b></tt> to numer, który skasowali¶my.
+</p>
+
+<hr />
+
+<a name="ch24"></a>
+<h3>2.4. Zmiana has³a</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>fmnumber</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>fmpwd</tt></td><td>stare has³o</td></tr>
+<tr class="tabf"><td><tt>pwd</tt></td><td>nowe has³o</td></tr>
+<tr class="tabf"><td><tt>fmemail</tt></td><td>adres e-mail podany przy rejestracji</td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>nowy adres e-mail do przypomnienia has³a</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt></td></tr>
+</table>
+
+<p>
+Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>reg_success:<b>UIN</b></pre>
+</div>
+
+<p>
+Je¶li pole <tt>fmemail</tt> jest b³êdne, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>bademail</pre>
+</div>
+
+<hr />
+
+<a name="ch25"></a>
+<h3>2.5. Umieszczenie listy kontaktów na serwerze</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsput.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
+<tr class="tabf"><td><tt>Contacts</tt></td><td>dowolna ilo¶æ rekordów z kontaktami rozdzielone znakiem nowej linii ,,<tt>\r\n</tt>''</td></tr>
+</table>
+
+<p>
+Format pojedynczego kontaktu:
+</p>
+
+<div class="c">
+<pre>imie;nazwisko;pseudo;wyswietlane;telefon;grupa;uin;adres@email;0;;0;</pre>
+</div>
+
+<p>
+Ostatnie 3 pola zosta³y dodane w wersji 4.9.3 i s± zwi±zane z d¼wiêkami.
+</p>
+
+<p>
+Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/fmcontactsput.asp HTTP/1.0
+Host: pubdir.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 110
+Pragma: no-cache
+
+FmNum=1000&amp;Pass=sekret&amp;Contacts=imie;nazwisko;pseudo;wyswietlane;+48123123123;grup
+a1;1000;adres@email.pl;0;;0;</pre>
+</div>
+
+<p>
+Je¶li siê uda³o, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>put_success:</pre>
+</div>
+
+<hr />
+
+<a name="ch26"></a>
+<h3>2.6. Pobranie listy kontaktów z serwera</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsget.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
+</table>
+
+<p>
+Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/fmcontactsget.asp HTTP/1.0
+Host: pubdir.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 22
+Pragma: no-cache
+
+FmNum=1000&amp;Pass=sekret</pre>
+</div>
+
+<p>
+Je¶li siê uda³o, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>get_results:<b>rekord_1</b>
+<b>rekord_2</b>
+...
+<b>rekord_N</b></pre>
+</div>
+
+<p>
+Rekord ma taki sam format jak w <a href="ch26">2.6</a>.
+</p>
+
+<hr />
+
+<a name="ch27"></a>
+<h3>2.7. Usuniêcie listy kontaktów z serwera</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>pubdir.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmcontactsput.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>FmNum</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>Pass</tt></td><td>has³o</td></tr>
+<tr class="tabf"><td><tt>Delete</tt></td><td>warto¶æ ,,<tt>1</tt>''</td></tr>
+</table>
+
+<p>
+Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/fmcontactsput.asp HTTP/1.0
+Host: pubdir.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 31
+Pragma: no-cache
+
+FmNum=1000&amp;Pass=sekret&amp;Delete=1</pre>
+</div>
+
+<p>
+Je¶li siê uda³o, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>put_success:</pre>
+</div>
+
+<hr />
+
+<a name="ch28"></a>
+<h3>2.8. Przypomnienie has³a poczt±</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>retr.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmsendpwd.asp</tt></td></tr>
+</table>
+
+<p></p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>userid</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>userid</tt></td></tr>
+</table>
+
+<p>
+Je¶li siê uda³o, serwer odpowie:
+</p>
+
+<div class="http">
+<pre>pwdsend_success</pre>
+</div>
+
+<hr />
+
+<a name="ch3"></a>
 <h2>3. Bezpo¶rednie po³±czenie</h2>
 
 <p>
 Opis znajduje siê w pliku <a href="dcc-protocol.txt">dcc-protocol.txt</a>.
 </p>
 
-<a name="ch4"></a>
-	
 <hr />
 
+<a name="ch4"></a>
 <h2>4. Autorzy</h2>
 
 <p>
