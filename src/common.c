@@ -300,23 +300,32 @@ char *gg_urlencode(char *str)
 
 long gg_http_hash(unsigned char *email, unsigned char *password)
 {
-  unsigned long a, c;
-  long b;
-  int i;
-  b = (-1);
-  
-  i = 0;
-  while ((c = (long) email[i++]) != 0) {
-      a = (c ^ b) + (c << 8);
-      b = (a >> 24) | (a << 8);
-  }
+	unsigned long a, c;
+	long b;
+	int i;
+	b = (-1);
 
-  i = 0;
-  while ((c = (long) password[i++]) != 0) {
-      a = (c ^ b) + (c << 8);
-      b = (a >> 24) | (a << 8);
-  }
+	i = 0;
+	while ((c = (long) email[i++]) != 0) {
+		a = (c ^ b) + (c << 8);
+		b = (a >> 24) | (a << 8);
+	}
 
-  return (b < 0 ? -b : b);
+	i = 0;
+	while ((c = (long) password[i++]) != 0) {
+		a = (c ^ b) + (c << 8);
+		b = (a >> 24) | (a << 8);
+	}
+
+	return (b < 0 ? -b : b);
 }
 
+/*
+ * Local variables:
+ * c-indentation-style: k&r
+ * c-basic-offset: 8
+ * indent-tabs-mode: notnil
+ * End:
+ *
+ * vim: expandtab shiftwidth=8:
+ */

@@ -1158,4 +1158,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	return e;
 }
 
-
+/*
+ * Local variables:
+ * c-indentation-style: k&r
+ * c-basic-offset: 8
+ * indent-tabs-mode: notnil
+ * End:
+ *
+ * vim: expandtab shiftwidth=8:
+ */

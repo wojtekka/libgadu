@@ -416,3 +416,12 @@ void gg_free_http(struct gg_http *h)
 	free(h);
 }
 
+/*
+ * Local variables:
+ * c-indentation-style: k&r
+ * c-basic-offset: 8
+ * indent-tabs-mode: notnil
+ * End:
+ *
+ * vim: expandtab shiftwidth=8:
+ */
