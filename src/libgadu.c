@@ -744,20 +744,20 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 }
 
 /*
- * gg_send_message_conf()
+ * gg_send_message_confer()
  *
  * wysy³a wiadomo¶æ do kilku u¿ytkownikow (konferencja). zwraca losowy numer
  * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
  *
  *  - sess - opis sesji,
  *  - msgclass - rodzaj wiadomo¶ci,
- *  - recipients_count - ilosc adresatow
- *  - recipients - numerki adresatow,
+ *  - recipients_count - ilo¶æ adresatów,
+ *  - recipients - numerki adresatów,
  *  - message - tre¶æ wiadomo¶ci.
  *
  * w przypadku b³êdu zwraca -1, inaczej numer sekwencyjny.
  */
-int gg_send_message_conf(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
+int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
 {
 	struct gg_send_msg s;
 	struct gg_msg_recipients r;
