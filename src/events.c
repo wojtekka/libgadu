@@ -229,7 +229,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				goto fail;
 			}
 
-			if (fix32(n->status) == GG_STATUS_BUSY_DESCR || fix32(n->status == GG_STATUS_NOT_AVAIL_DESCR)) {
+			if (fix32(n->status) == GG_STATUS_BUSY_DESCR || fix32(n->status == GG_STATUS_NOT_AVAIL_DESCR) || fix32(n->status) == GG_STATUS_AVAIL_DESCR) {
 				e->type = GG_EVENT_NOTIFY_DESCR;
 				
 				if (!(e->event.notify_descr.notify = (void*) malloc(sizeof(*n) * 2))) {
