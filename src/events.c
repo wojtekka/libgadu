@@ -133,7 +133,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 				goto fail;
 			}
 
-			count = fix32(m->count);
+			count = gg_fix32(m->count);
 			
 			if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
 				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for recipients data\n");
@@ -146,7 +146,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			p += sizeof(uin_t) * count;
 
 			for (i = 0; i < count; i++)
-				e->event.msg.recipients[i] = fix32(e->event.msg.recipients[i]);
+				e->event.msg.recipients[i] = gg_fix32(e->event.msg.recipients[i]);
 			
 			e->event.msg.recipients_count = count;
 
@@ -192,9 +192,9 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	}
 
 	e->type = GG_EVENT_MSG;
-	e->event.msg.msgclass = fix32(r->msgclass);
-	e->event.msg.sender = fix32(r->sender);
-	e->event.msg.time = fix32(r->time);
+	e->event.msg.msgclass = gg_fix32(r->msgclass);
+	e->event.msg.sender = gg_fix32(r->sender);
+	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.message = strdup((char*) r + sizeof(*r));
 
 	return 0;
@@ -258,7 +258,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				goto fail;
 			}
 
-			if (fix32(n->status) == GG_STATUS_BUSY_DESCR || fix32(n->status == GG_STATUS_NOT_AVAIL_DESCR) || fix32(n->status) == GG_STATUS_AVAIL_DESCR) {
+			if (gg_fix32(n->status) == GG_STATUS_BUSY_DESCR || gg_fix32(n->status == GG_STATUS_NOT_AVAIL_DESCR) || gg_fix32(n->status) == GG_STATUS_AVAIL_DESCR) {
 				e->type = GG_EVENT_NOTIFY_DESCR;
 				
 				if (!(e->event.notify_descr.notify = (void*) malloc(sizeof(*n) * 2))) {
@@ -267,9 +267,9 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				}
 				e->event.notify_descr.notify[1].uin = 0;
 				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
-				e->event.notify_descr.notify[0].uin = fix32(e->event.notify_descr.notify[0].uin);
-				e->event.notify_descr.notify[0].status = fix32(e->event.notify_descr.notify[0].status);
-				e->event.notify_descr.notify[0].remote_port = fix16(e->event.notify_descr.notify[0].remote_port);
+				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
+				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
+				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
 
 				count = h->length - sizeof(*n);
 				if (!(tmp = malloc(count + 1))) {
@@ -293,9 +293,9 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify[count].uin = 0;
 				
 				for (i = 0; i < count; i++) {
-					e->event.notify[i].uin = fix32(e->event.notify[i].uin);
-					e->event.notify[i].status = fix32(e->event.notify[i].status);
-					e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
+					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
+					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
+					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);		
 				}
 			}
 
@@ -311,8 +311,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			if (h->length >= sizeof(*s)) {
 				e->type = GG_EVENT_STATUS;
 				memcpy(&e->event.status, p, sizeof(*s));
-				e->event.status.uin = fix32(e->event.status.uin);
-				e->event.status.status = fix32(e->event.status.status);
+				e->event.status.uin = gg_fix32(e->event.status.uin);
+				e->event.status.status = gg_fix32(e->event.status.status);
 				if (h->length > sizeof(*s)) {
 					int len = h->length - sizeof(*s);
 					char *buf = malloc(len + 1);
@@ -336,9 +336,9 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			if (h->length >= sizeof(*s)) {
 				e->type = GG_EVENT_ACK;
-				e->event.ack.status = fix32(s->status);
-				e->event.ack.recipient = fix32(s->recipient);
-				e->event.ack.seq = fix32(s->seq);
+				e->event.ack.status = gg_fix32(s->status);
+				e->event.ack.recipient = gg_fix32(s->recipient);
+				e->event.ack.seq = gg_fix32(s->seq);
 			}
 
 			break;
@@ -844,7 +844,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 	
 			w = (struct gg_welcome*) ((char*) h + sizeof(struct gg_header));
-			w->key = fix32(w->key);
+			w->key = gg_fix32(w->key);
 
 			hash = gg_login_hash(password, w->key);
 	
@@ -873,11 +873,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			} else 
 				l.local_ip = gg_dcc_ip;
 		
-			l.uin = fix32(sess->uin);
-			l.hash = fix32(hash);
-			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-			l.version = fix32(sess->protocol_version);
-			l.local_port = fix16(gg_dcc_port);
+			l.uin = gg_fix32(sess->uin);
+			l.hash = gg_fix32(hash);
+			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
+			l.version = gg_fix32(sess->protocol_version);
+			l.local_port = gg_fix16(gg_dcc_port);
 			
 			if (sess->external_addr && sess->external_port > 1023) {
 				memcpy(&lext, &l, sizeof(l));

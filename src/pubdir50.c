@@ -223,8 +223,8 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 	r = (struct gg_pubdir50_request*) buf;
 	res = time(NULL);
 	r->type = req->type;
-	r->seq = (req->seq) ? fix32(req->seq) : fix32(time(NULL));
-	req->seq = fix32(r->seq);
+	r->seq = (req->seq) ? gg_fix32(req->seq) : gg_fix32(time(NULL));
+	req->seq = gg_fix32(r->seq);
 
 	for (i = 0, p = buf + 5; i < req->entries_count; i++) {
 		if (req->entries[i].num)
@@ -284,7 +284,7 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 
 	e->event.pubdir50 = res;
 
-	res->seq = fix32(r->seq);
+	res->seq = gg_fix32(r->seq);
 
 	switch (res->type) {
 		case GG_PUBDIR50_READ:

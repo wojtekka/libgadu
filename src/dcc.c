@@ -124,11 +124,11 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 	memset(&d->file_info, 0, sizeof(d->file_info));
 
 	if (!(st.st_mode & S_IWUSR))
-		d->file_info.mode |= fix32(GG_DCC_FILEATTR_READONLY);
+		d->file_info.mode |= gg_fix32(GG_DCC_FILEATTR_READONLY);
 
 	/* XXX czas pliku */
 	
-	d->file_info.size = fix32(st.st_size);
+	d->file_info.size = gg_fix32(st.st_size);
 
 	for (p = filename + strlen(filename); p > filename && *p != '/'; p--);
 
@@ -388,7 +388,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	}
 
 	packet.type = 0x03; /* XXX */
-	packet.length = fix32(length);
+	packet.length = gg_fix32(length);
 
 	if (write(d->fd, &packet, sizeof(packet)) < sizeof(packet)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
@@ -566,7 +566,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				gg_read(h->fd, &small, sizeof(small));
 
-				small.type = fix32(small.type);
+				small.type = gg_fix32(small.type);
 
 				switch (small.type) {
 					case 0x0003:	/* XXX */
@@ -603,7 +603,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				gg_read(h->fd, &small, sizeof(small));
 
-				small.type = fix32(small.type);
+				small.type = gg_fix32(small.type);
 
 				switch (small.type) {
 					case 0x0001:	/* XXX */
@@ -649,7 +649,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_FILE_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE_ACK\n");
 				
-				big.type = fix32(0x0006);	/* XXX */
+				big.type = gg_fix32(0x0006);	/* XXX */
 				big.dunno1 = 0;
 				big.dunno2 = 0;
 
@@ -708,8 +708,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				free(h->chunk_buf);
 				h->chunk_buf = NULL;
 
-				big.type = fix32(big.type);
-				h->chunk_size = fix32(big.dunno1);
+				big.type = gg_fix32(big.type);
+				h->chunk_size = gg_fix32(big.dunno1);
 				h->chunk_offset = 0;
 				
 				if (big.type == 0x0005)	{ /* XXX */
@@ -754,7 +754,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				gg_read(h->fd, &small, sizeof(small));
 
-				small.type = fix32(small.type);
+				small.type = gg_fix32(small.type);
 
 				if (small.type < 16 || small.type > sizeof(buf)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() invalid voice frame size (%d)\n", small.type);
@@ -827,8 +827,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connected, sending uins\n");
 				
-				uins[0] = fix32(h->uin);
-				uins[1] = fix32(h->peer_uin);
+				uins[0] = gg_fix32(h->uin);
+				uins[1] = gg_fix32(h->peer_uin);
 
 				gg_write(h->fd, uins, sizeof(uins));
 				
@@ -861,7 +861,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_VOICE_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_VOICE_REQUEST\n");
 
-				small.type = fix32(0x0003);
+				small.type = gg_fix32(0x0003);
 				
 				gg_write(h->fd, &small, sizeof(small));
 
@@ -874,7 +874,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_REQUEST\n");
 
-				small.type = (h->type == GG_SESSION_DCC_GET) ? fix32(0x0003) : fix32(0x0002);	/* XXX */
+				small.type = (h->type == GG_SESSION_DCC_GET) ? gg_fix32(0x0003) : gg_fix32(0x0002);	/* XXX */
 				
 				gg_write(h->fd, &small, sizeof(small));
 				
@@ -911,11 +911,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				small.type = fix32(0x0001);	/* XXX */
+				small.type = gg_fix32(0x0001);	/* XXX */
 				
 				gg_write(h->fd, &small, sizeof(small));
 
-				file_info_packet.big.type = fix32(0x0003);	/* XXX */
+				file_info_packet.big.type = gg_fix32(0x0003);	/* XXX */
 				file_info_packet.big.dunno1 = 0;
 				file_info_packet.big.dunno2 = 0;
 
@@ -970,8 +970,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				h->chunk_offset = 0;
 				
-				big.type = fix32(0x0003);	/* XXX */
-				big.dunno1 = fix32(h->chunk_size);
+				big.type = gg_fix32(0x0003);	/* XXX */
+				big.dunno1 = gg_fix32(h->chunk_size);
 				big.dunno2 = 0;
 				
 				gg_write(h->fd, &big, sizeof(big));
