@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -102,7 +101,7 @@ char *gg_saprintf(const char *format, ...)
                         }
                         buf = tmp;
                         res = vsnprintf(buf, size, format, ap);
-                } while (res == size - 1);
+                } while (res == size - 1 || res == -1);
         } else {
                 if (!(buf = malloc(size + 1)))
                         return NULL;
@@ -179,6 +178,10 @@ int gg_connect(void *addr, int port, int async)
 		gg_debug(GG_DEBUG_MISC, "-- socket() failed. errno = %d (%s)\n", errno, strerror(errno));
 		return -1;
 	}
+
+#ifdef ASSIGN_SOCKETS_TO_THREADS
+	gg_thread_socket(0, sock);
+#endif
 
 	if (async) {
 #ifdef FIONBIO
@@ -376,6 +379,67 @@ struct hostent *gg_gethostbyname(const char *hostname)
 
 	return hp2;
 }
+
+#ifdef ASSIGN_SOCKETS_TO_THREADS
+
+typedef struct gg_thread {
+	int id;
+	int socket;
+	struct gg_thread * next;
+} gg_thread;
+
+struct gg_thread * gg_threads = 0;
+
+/*
+ * gg_thread_socket() // funkcja pomocnicza, tylko dla win32
+ *
+ * Zwraca numer socketa, który by³ ostatnio tworzony dla w±tku
+ * o identyfikatorze równym thread_id.
+ *
+ * Je¶li na win32 przy po³±czeniach synchronicznych zapamiêtamy w jakim
+ * w±tku uruchomili¶my funkcjê, która siê z czymkolwiek ³±czy, to z osobnego
+ * w±tku mo¿emy anulowaæ po³±czenie poprzez gg_thread_socket(watek,-1);
+ * 
+ * - thread_id - Id w±tku. Je¶li jest równe 0, we¼mie aktualny w±tek,
+ *               je¶li == -1, usunie wpis o podanym sockecie.
+ * - socket - Numer socketa. Je¶li jest == 0, zwróci socket na podanym w±tku
+ *            (lub 0) jesli == -1, usunie wpis na podanym w±tku, a je¶li co
+ *            innego, to ustawi na podanym w±tku podany socket...
+ */
+int gg_thread_socket(int thread_id, int socket)
+{
+	char close = thread_id==-1||socket==-1;
+        gg_thread * wsk = gg_threads;
+        gg_thread ** p_wsk = &gg_threads;
+
+        if (!thread_id) thread_id = GetCurrentThreadId();
+        while (wsk) {
+        	if ((thread_id==-1 && wsk->socket==socket)
+        	  || wsk->id==thread_id) {
+       			if (close) {
+                        	closesocket(wsk->socket);
+         			*p_wsk=wsk->next;
+         			free(wsk);       // socket zostaje usuniety
+         			return 1;
+                        } else if (!socket) {return wsk->socket; // Socket zostaje zwrocony
+                        } else {wsk->socket=socket; return socket;} // Socket zostaje ustawiony
+               }
+               p_wsk = &(wsk->next);
+               wsk = wsk->next;
+        }
+        if (close && socket!=-1) {closesocket(socket);}
+        if (close || !socket) return 0;
+        // Dodaje nowy element
+        wsk = malloc(sizeof(gg_thread));
+        wsk->id = thread_id;
+        wsk->socket = socket;
+        wsk->next = 0;
+        *p_wsk = wsk;
+        return socket;
+}
+
+#endif /* ASSIGN_SOCKETS_TO_THREADS */
+
 
 /*
  * Local variables:

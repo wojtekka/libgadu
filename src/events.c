@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -510,7 +509,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			gg_debug(GG_DEBUG_MISC, "-- connected to hub, sending query\n");
 
-			if (sess->proxy_addr && sess->proxy_port) {
+			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
 				snprintf(buf, sizeof(buf) - 1,
 					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
@@ -647,7 +646,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			addr.s_addr = inet_addr(host);
 			sess->server_addr = addr.s_addr;
 
-			if (sess->proxy_addr && sess->proxy_port) {
+			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
 				if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
 					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
 					goto fail_connecting;
@@ -700,6 +699,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug(GG_DEBUG_MISC, "-- connected\n");
 			
+			if (gg_proxy_http_only)
+				sess->proxy_port = 0;
+
 			if (sess->proxy_addr && sess->proxy_port) {
 				char buf[100];
 

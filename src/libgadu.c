@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -55,6 +54,7 @@ unsigned long gg_dcc_ip = 0;
 char *gg_proxy_host = NULL;
 int gg_proxy_port = 0;
 int gg_proxy_enabled = 0;
+int gg_proxy_http_only = 0;
 
 #ifndef lint 
 static char rcsid[]
