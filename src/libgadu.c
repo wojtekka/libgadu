@@ -1230,7 +1230,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_welcome *w;
 			struct gg_login l;
 			unsigned int hash;
-			char *password = sess->password;
+			unsigned char *password = sess->password;
 			struct sockaddr_in sin;
 			int sin_len = sizeof(sin);
 			unsigned long sess_ip = 0;
