@@ -514,7 +514,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			}
 
 			if (h->length > 1) {
-				char *tmp, len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
+				char *tmp;
+				int len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
 				
 				gg_debug(GG_DEBUG_MISC, "userlist_reply=%p, len=%d\n", sess->userlist_reply, len);
 				
