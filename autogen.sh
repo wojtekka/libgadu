@@ -1,4 +1,6 @@
 #!/bin/sh
+# $Id$
+
 aclocal -I m4
 autoheader
 autoconf

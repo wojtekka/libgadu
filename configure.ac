@@ -2,16 +2,30 @@ dnl $Id$
 
 AC_INIT(src/libgadu.h)
 AM_INIT_AUTOMAKE(libgadu, 1.1.0)
+
 AC_PREREQ(2.50)
-AC_CONFIG_HEADERS(config.h)
+AC_CANONICAL_HOST
+AC_CONFIG_HEADERS(src/libgadu-config.h)
+dnl AM_CONFIG_HEADERS(src/libgadu-configam.h)
 
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_LIBTOOL
 AC_C_CONST
 AC_C_BIGENDIAN
+AC_PROG_LIBTOOL
+
+dnl broken stdint.h 
+AC_NEED_STDINT_H
+if test "x$STDINT_H" = "x"; then
+    AC_DEFINE([HAVE_OWN_STDINT_H], [], [Define if you have own stdint_h])
+    cp stdint.h src/libgadu-stdint.h
+fi
+
+if test "x$HAVE_STDINT_H" = "x"; then 
+    echo "#include <stdint.h>" > src/libgadu-stdint.h
+fi
 
 dnl SunOS
 AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
@@ -105,4 +119,3 @@ AC_CHECK_TYPES([long long])
 AC_CONFIG_FILES([Makefile src/Makefile src/libgadu.pc])
 
 AC_OUTPUT
-
