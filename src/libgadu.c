@@ -331,6 +331,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 {
 	struct gg_session *sess;
 	char *hostname;
+	int port;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%u, \"...\", %d);\n", uin, async);
 
@@ -353,8 +354,10 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	
 	if (gg_http_use_proxy) {
 		hostname = gg_http_proxy_host;
+		port = gg_http_proxy_port;
 	} else {
 		hostname = GG_APPMSG_HOST;
+		port = GG_APPMSG_PORT;
 	};
 
 	if (async) {
@@ -377,7 +380,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 				memcpy((char*) &a, he->h_addr, sizeof(a));
 		}
 
-		if (!(sess->fd = gg_connect(&a, GG_APPMSG_PORT, 0)) == -1) {
+		if (!(sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "-- connection failed\n");
 			free(sess);
 			return NULL;
@@ -801,6 +804,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 {
 	struct gg_event *e;
 	int res = 0;
+	int port;
 
 	if (!sess) {
 		errno = EFAULT;
@@ -843,8 +847,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			waitpid(sess->pid, NULL, 0);
 
 			gg_debug(GG_DEBUG_MISC, "-- resolved, now connecting\n");
+			
+			if (gg_http_use_proxy) {
+				port = gg_http_proxy_port;
+			} else {
+				port = GG_APPMSG_PORT;
+			};
 
-			if ((sess->fd = gg_connect(&a, GG_APPMSG_PORT, sess->async)) == -1) {
+			if ((sess->fd = gg_connect(&a, port, sess->async)) == -1) {
 				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
 				
 				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying direct connection\n");
