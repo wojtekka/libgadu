@@ -724,6 +724,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 
 				h->chunk_size = small.type;
+				h->chunk_offset = 0;
+
+				if (!(h->voice_buf = malloc(h->chunk_size))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory for voice frame\n");
+					return NULL;
+				}
 
 				h->state = GG_STATE_READING_VOICE_DATA;
 				h->check = GG_CHECK_READ;
@@ -731,30 +737,37 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			 	
 				return e;
 
-			case GG_STATE_READING_VOICE_DATA: {
-				char *data;
-				
+			case GG_STATE_READING_VOICE_DATA:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_DATA\n");
 				
-				gg_read(h->fd, buf, h->chunk_size);
-
-				h->state = GG_STATE_READING_VOICE_HEADER;
-				h->check = GG_CHECK_READ;
-				h->timeout = GG_DEFAULT_TIMEOUT;
-			 	
-				if (!(data = malloc(h->chunk_size))) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory for voice frame\n");
-					return NULL;
+				tmp = read(h->fd, buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+				if (tmp < 1) {
+					if (tmp == -1)
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", errno, strerror(errno));
+					else
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed, connection broken\n");
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_NET;
+					return e;
 				}
 
-				memcpy(data, buf, h->chunk_size);
+				gg_dcc_debug_data("read", h->fd, buf, tmp);
 
-				e->type = GG_EVENT_DCC_VOICE_DATA;
-				e->event.dcc_voice_data.data = data;
-				e->event.dcc_voice_data.length = h->chunk_size;
+				h->chunk_offset += tmp;
+
+				if (h->chunk_offset >= h->chunk_size) {
+					h->state = GG_STATE_READING_VOICE_HEADER;
+					h->voice_buf = NULL;
+				
+					e->type = GG_EVENT_DCC_VOICE_DATA;
+					e->event.dcc_voice_data.data = h->voice_buf;
+					e->event.dcc_voice_data.length = h->chunk_size;
+				}
+
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
 				
 				return e;
-			}
 
 			case GG_STATE_CONNECTING:
 			{
