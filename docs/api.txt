@@ -1,5 +1,5 @@
 // jaki¶tam sobie opis API libgadu
-// (c) copyright 2001-2002 by wojtek kaniewski <wojtekka@irc.pl>
+// (c) copyright 2001-2003 by wojtek kaniewski <wojtekka@irc.pl>
 //			      robert j. wozny <speedy@ziew.org>
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
@@ -126,7 +126,7 @@ funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 			/* e->event.ack.seq to numerek wiadomo¶ci */
 			break;
 
-		case GG_EVENT_SEARCH50_REPLY:
+		case GG_EVENT_PUBDIR50_REPLY:
 			printf("znalaz³o kogo¶\n");
 			/* opisane ni¿ej */
 			break;
@@ -151,7 +151,9 @@ lub ,,gg_remove_notify()''.
 wysy³anie wiadomo¶ci za pomoc± ,,gg_send_message()''. parametr ,,class''
 mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
-którego mo¿emy u¿yæ do potwierdzenia.
+którego mo¿emy u¿yæ do potwierdzenia. wiadomo¶æ, która ma byæ sformatowana
+w odpowiedni sposób (pogrubienie, kursywa, kolory, itp.) wysy³amy za pomoc±
+,,gg_send_message_richtext()''.
 
 jedyne zale¿no¶ci libgadu w domy¶lnej wersji to <sys/types.h> i <stdint.h>
 
@@ -200,10 +202,10 @@ rzeczywi¶ci sta³± tekstow±, np. GG_PUBDIR50_UIN to "FmNumber". nale¿y
 pamiêtaæ, ¿e wszystkie argumenty s± tekstami. nie trzeba siê bawiæ w ich
 alokowanie czy co¶ takiego. biblioteka sobie sama zapamiêta. teksty musz±
 byæ oczywi¶cie w CP1250. na koñcu wywo³ujemy gg_pubdir50() i tyle. funkcja
-ta zwraca numer sekwencyjny wyszukiwania, który mo¿emy sobei zachowaæ dla
+ta zwraca numer sekwencyjny wyszukiwania, który mo¿emy sobie zachowaæ dla
 pó¼niejszych referencji.
 
-¿eby otrzymaæ wynik nale¿y obs³u¿yæ zdarzenia GG_EVENT_PUBDIR50_SEARCH_REPLY,
+¿eby otrzymaæ wynik, nale¿y obs³u¿yæ zdarzenia GG_EVENT_PUBDIR50_SEARCH_REPLY,
 GG_EVENT_PUBDIR50_WRITE i GG_EVENT_PUBDIR50_READ. dla przyk³adu, obs³uga
 wyników wyszukiwania wygl±da nastêpuj±co:
 
@@ -250,13 +252,11 @@ dalsz± czê¶æ, uzywamy gg_pubdir50_next(). je¶li chcemy numer sekwencyjny,
 u¿ywamy gg_pubdir50_seq().
 
 w ¿adnym wypadku nie mo¿na siê odwo³ywaæ do pól gg_pubdir50_t, poniewa¿
-mog± siê zmienaiæ miêdzy wersjami biblioteki. dziêki odwo³ywaniu siê przez
+mog± siê zmieniaæ miêdzy wersjami biblioteki. dziêki odwo³ywaniu siê przez
 funkcje, mamy pewno¶æ, ¿e bez wzglêdu na zmiany API/ABI mamy to samo.
 dodatkowo, je¶li dojd± jakies opcje wyszukiwania, nie trzeba w bibliotece
 niczego zmieniaæ -- ¿adnych struktur, itd. po prostu odwo³ujemy siê do
 kolejnego pola przez gg_pubdir50_add() i gg_pubdir50_get().
-
-
 
 
 $Id$
