@@ -895,7 +895,7 @@ void gg_free_session(struct gg_session *sess)
 	}
 #else
 	if (sess->pid != -1)
-		waitpid(sess->pid, NULL, 0);
+		waitpid(sess->pid, NULL, WNOHANG);
 #endif
 
 	if (sess->fd != -1)
