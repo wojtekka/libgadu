@@ -36,7 +36,7 @@ H1, H2, H3 { margin-top: 0px; }
 
 <ol>
 	<li><a href="#ch1">Protokó³ Gadu-Gadu</a><br />
-		1.1.&nbsp;&nbsp;<a href="#ch1.1">Format pakietów</a><br />
+		1.1.&nbsp;&nbsp;<a href="#ch1.1">Format pakietów i konwencje</a><br />
 		1.2.&nbsp;&nbsp;<a href="#ch1.2">Zanim siê po³±czymy</a><br />
 		1.3.&nbsp;&nbsp;<a href="#ch1.3">Logowanie siê</a><br />
 		1.4.&nbsp;&nbsp;<a href="#ch1.4">Zmiana stanu</a><br />
@@ -84,7 +84,7 @@ Najnowsza wersja opisu protoko³u znajduje siê pod adresem
 <h2>1. Protokó³ Gadu-Gadu</h2>
 
 <a name="ch1.1"></a>
-<h3>1.1. Format pakietów</h3>
+<h3>1.1. Format pakietów i konwencje</h3>
 
 <p>
 Podobnie jak coraz wiêksza ilo¶æ komunikatorów, Gadu-Gadu korzysta z
@@ -101,7 +101,7 @@ protoko³u TCP/IP. Ka¿dy pakiet zawiera na pocz±tku dwa sta³e pola:
 <p>
 Wszystkie zmienne liczbowe s± zgodne z kolejno¶ci± bajtów maszyn Intela,
 czyli Little-Endian. Wszystkie teksty s± kodowane przy u¿yciu zestawu
-znaków CP1250 (windows-1250).
+znaków CP1250 (windows-1250). Linie koñcz± siê znakami <tt>\r\n</tt>.
 </p>
 
 <p>
