@@ -342,7 +342,7 @@ char *gg_urlencode(const char *str)
 		str = strdup("");
 
 	for (p = str; *p; p++, size++) {
-		if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9')))
+		if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == ' '))
 			size += 2;
 	}
 
@@ -353,9 +353,13 @@ char *gg_urlencode(const char *str)
 		if ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9'))
 			*q = *p;
 		else {
-			*q++ = '%';
-			*q++ = hex[*p >> 4 & 15];
-			*q = hex[*p & 15];
+			if (*p == ' ')
+				*q = '+';
+			else {
+				*q++ = '%';
+				*q++ = hex[*p >> 4 & 15];
+				*q = hex[*p & 15];
+			}
 		}
 	}
 

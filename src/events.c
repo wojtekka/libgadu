@@ -486,6 +486,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			char buf[1024];
 			int res = 0, res_size = sizeof(res);
+			char *client;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
 
@@ -519,21 +520,28 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
 
+			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
+				goto fail_connecting;
+			}
+
 			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
 				snprintf(buf, sizeof(buf) - 1,
 					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin, (sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION, sess->last_sysmsg);
+					"\r\n", sess->uin, client, sess->last_sysmsg);
 			} else {
 				snprintf(buf, sizeof(buf) - 1,
 					"GET /appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin, (sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION, sess->last_sysmsg);
+					"\r\n", sess->uin, client, sess->last_sysmsg);
 			};
+
+			free(client);
 
 			/* zwolnij pamiêæ po wersji klienta. */
 			if (sess->client_version) {
