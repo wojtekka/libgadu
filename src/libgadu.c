@@ -1069,9 +1069,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_READING_DATA:
 		{
 			char buf[1024], *tmp, *host;
-			char sysmsg[1024];
+			char sysmsgbuf[1024];
 			int port = GG_DEFAULT_PORT;
-			int sysmsgidx = 0;
+			int sysmsgidx = 0, sysmsg = 0;
 			struct in_addr a;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
@@ -1107,17 +1107,26 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 			gg_chomp(buf);
+			
+			tmp = buf;
 
-			if (*buf) 
-				sysmsgidx = atoi(buf);
-						    
-			if (sysmsgidx) {
-			    	gg_read_line(sess->fd, sysmsg, sizeof(sysmsg) - 1);
-				gg_chomp(sysmsg);
+			if (*buf) { 
+				sysmsgidx = atoi(tmp);	
+				while (*tmp && *tmp != ' ')
+				    tmp++;
+				while (*tmp && *tmp == ' ')
+				    tmp++;
+				sysmsg = atoi(tmp);
+				tmp = 0;
+			};
+
+			if (sysmsg && sysmsgidx) {
+			    	gg_read_line(sess->fd, sysmsgbuf, sizeof(sysmsgbuf) - 1);
+				gg_chomp(sysmsgbuf);
 				e->type = GG_EVENT_MSG;
 				e->event.msg.msgclass = sysmsgidx;
 				e->event.msg.sender = 0;
-				e->event.msg.message = strdup(sysmsg);
+				e->event.msg.message = strdup(sysmsgbuf);
 			}
 	
 			close(sess->fd);
