@@ -591,6 +591,11 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		goto fail;
 	}
 
+	if (p->status_descr && !(sess->initial_descr = strdup(p->status_descr))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for status\n");
+		goto fail;
+	}
+
 	sess->uin = p->uin;
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
@@ -598,7 +603,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->async = p->async;
         sess->type = GG_SESSION_GG;
 	sess->initial_status = p->status;
-	sess->initial_descr = p->status_descr;
 	sess->callback = gg_session_callback;
 	sess->destroy = gg_free_session;
 	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
@@ -692,7 +696,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	return sess;
 
 fail:
-	free(sess);
+	if (sess) {
+		if (sess->password)
+			free(sess->password);
+		if (sess->initial_descr)
+			free(sess->initial_descr);
+		free(sess);
+	}
+	
 	return NULL;
 }
 
@@ -713,6 +724,9 @@ void gg_free_session(struct gg_session *sess)
 	if (sess->password)
 		free(sess->password);
 	
+	if (sess->initial_descr)
+		free(sess->initial_descr);
+
 	if (sess->client_version)
 		free(sess->client_version);
 

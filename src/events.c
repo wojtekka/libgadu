@@ -890,6 +890,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				ret = gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			}
 
+			free(sess->initial_descr);
+			sess->initial_descr = NULL;
+
 			if (ret == -1) {
 				gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
 
