@@ -1102,7 +1102,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-			l.dunno = fix32(0x0b);
+			l.version = fix32(GG_CLIENT_VERSION);
 			l.local_ip = 0;
 			l.local_port = 0;
 	
