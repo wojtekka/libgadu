@@ -1008,8 +1008,9 @@ Pole <tt>type</tt> oznacza rodzaj zapytania:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_PUT 0x00	<i>/* eksport listy */</i>
-#define GG_USERLIST_GET 0x02	<i>/* import listy */</i></pre>
+<pre>#define GG_USERLIST_PUT 0x00            <i>/* pocz±tek eksportu listy */</i>
+#define GG_USERLIST_PUT_MORE 0x01       <i>/* dalsza czê¶æ eksportu listy */</i>
+#define GG_USERLIST_GET 0x02            <i>/* import listy */</i></pre>
 </div>
 
 <p>
@@ -1023,6 +1024,10 @@ z³o¿ony z dowolnej liczby wpisów postaci:
 
 <p>
 Ostatnie 3 pola zosta³y dodane w wersji 4.9.3 i s± zwi±zane z d¼wiêkami.
+Lista kontaktów jest dzielona na pakiety po 2048 bajtów. Pierwszy jest
+wysy³any pakietem typu <tt>GG_USERLIST_PUT</tt>, ¿eby uaktualniæ plik na
+serwerze, pozosta³e typu <tt>GG_USERLIST_PUT_MORE</tt>, ¿eby dopisaæ do 
+pliku.
 </p>
 
 <p>
@@ -1043,14 +1048,16 @@ Pole <tt>type</tt> oznacza rodzaj odpowiedzi:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_PUT_REPLY 0x00	<i>/* eksport listy */</i>
-#define GG_USERLIST_GET_REPLY 0x06	<i>/* import listy */</i></pre>
+<pre>#define GG_USERLIST_PUT_REPLY 0x00         <i>/* pocz±tek eksportu listy */</i>
+#define GG_USERLIST_PUT_MORE_REPLY 0x02    <i>/* kontynuacja */</i>
+#define GG_USERLIST_GET_REPLY 0x06         <i>/* pocz±tek importu listy */</i>
+#define GG_USERLIST_GET_MORE_REPLY 0x04    <i>/* kontynuacja */</i></pre>
 </div>
 
 <p>
 W przypadku importu w polu <tt>request</tt> znajdzie siê lista kontaktów
 w takiej samej postaci, w jakiej j± umieszczono. Serwer nie ingeruje w jej
-tre¶æ.
+tre¶æ. Podobnie jak przy wysy³aniu, przychodzi podzielona na mniejsze pakiety.
 </p>
 
 <p>
