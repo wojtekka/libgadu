@@ -951,7 +951,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				h->chunk_offset = 0;
 				
-				big.type = fix32(0x0002);	/* XXX */
+				big.type = fix32(0x0003);	/* XXX */
 				big.dunno1 = fix32(h->chunk_size);
 				big.dunno2 = 0;
 				
