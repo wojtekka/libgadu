@@ -65,6 +65,16 @@ __attribute__ ((unused))
 #endif 
 
 /*
+ * gg_libgadu_version()
+ *
+ * zwraca wersjê libgadu.
+ */
+const char *gg_libgadu_version()
+{
+	return GG_LIBGADU_VERSION;
+}
+
+/*
  * gg_fix32()
  *
  * zamienia kolejno¶æ bajtów w liczbie 32-bitowej tak, by odpowiada³a
