@@ -83,18 +83,22 @@ Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersj± klienta,
 <b>FORMAT</b> okre¶la czy wiadomo¶æ systemowa bêdzie przesy³ana czystym
 tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej warto¶.), a
 <b>WIADOMO¦Æ</b> jest numerem ostatnio otrzymanej wiadomo¶ci systemowej.
-Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieæ:
+Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieæ
+na przyk³ad tak:
 <p><p><pre>
 	HTTP/1.0 200 OK
 	
-	124 1 0 217.17.33.21:8074 0.0.0.0
+	0 217.17.41.84:8074 217.17.41.84
 </pre></p>
-Pierwsze pole jest numerem wiadomo¶ci systemowej, drugie nie jest znane
-(mo¿liwe, ¿e to ilo¶æ linii w odpowiedzi, ale wiadomo¶ci systemowe
-niestety rzadko mo¿na zaobserwowaæ w przyrodzie), a trzecie okre¶la czy
-odpowied¼ zawiera wiadomo¶æ systemow±. Czwarte pole jest adresem serwera,
-z którym klient powinien siê ³±czyæ. Je¿eli po³±czenie z portem 8074 nie
-wyjdzie z jaki¶ powodów, mo¿na siê ³±czyæ na port 443. 
+Pierwsze pole jest numerem wiadomo¶ci systemowej, a drugie i trzecie
+podaj± nam namiary na w³a¶ciwy serwer. Je¶li serwer jest niedostêpny,
+zamiast adresu IP jest zwracany tekst ,,<tt>notoperating</tt>''.
+Je¿eli po³±czenie z portem 8074 nie powiedzie siê z jakich¶ powodów,
+mo¿na siê ³±czyæ na port 443. 
+<p>
+Je¶li pierwsza liczba nie jest równa zero, zaraz po nag³ówku znajduje siê
+wiadomo¶æ systemowa, lub je¶li linia zaczyna siê od znaku ,,<tt>@</tt>'',
+adres strony, któr± nale¿y otworzyæ w przegl±darce.
 
 <hr>
 <h3>1.3. Logowanie siê</h3>
@@ -237,9 +241,12 @@ Mo¿liwe stany to:
 Nale¿y pamiêtaæ, ¿eby przed roz³±czeniem siê z serwerem nale¿y zmieniæ
 stan na <tt>GG_STATUS_NOT_AVAIL</tt> lub <tt>GG_STATUS_NOT_AVAIL_DESCR</tt>.
 Je¶li ma byæ widoczny tylko dla przyjació³, nale¿y dodaæ
-<tt>GG_STATUS_FRIENDS_MASK</tt> do normalnej warto¶ci stanu. Je¶li wybieramy
-stan z opisem, nale¿y do³±czyæ do struktury ci±g znaków niezakoñczony zerem
-oraz ewentualn± godzinê do opisu ,,Bêdê o...''
+<tt>GG_STATUS_FRIENDS_MASK</tt> do normalnej warto¶ci stanu.
+<p>
+Je¶li wybieramy stan opisowy, nale¿y do³±czyæ ci±g znaków zakoñczony
+zerem oraz ewentualny czas powrotu w postaci ilo¶ci sekund od 1 stycznia
+1970r (UTC). Maksymalna d³ugo¶æ opisu wynosi 40 znaków plus zero plus
+4 bajty na godzinê powrotu, co razem daje 45 bajtów.
 
 <hr>
 <h3>1.5. Ludzie przychodz±, ludzie odchodz±</h3>
