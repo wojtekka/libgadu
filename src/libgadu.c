@@ -782,97 +782,112 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 	p = (void*) h + sizeof(struct gg_header);
 	
-	if (h->type == GG_RECV_MSG) {
-		struct gg_recv_msg *r = p;
+	switch (h->type) {
+		case GG_RECV_MSG: {
+			struct gg_recv_msg *r = p;
 
-		gg_debug(GG_DEBUG_MISC, "-- received a message\n");
+			gg_debug(GG_DEBUG_MISC, "-- received a message\n");
 
-		if (h->length >= sizeof(*r)) {
-			e->type = GG_EVENT_MSG;
-			e->event.msg.msgclass = fix32(r->msgclass);
-			e->event.msg.sender = fix32(r->sender);
-			e->event.msg.message = strdup((char*) r + sizeof(*r));
-			e->event.msg.time = fix32(r->time);
+			if (h->length >= sizeof(*r)) {
+				e->type = GG_EVENT_MSG;
+				e->event.msg.msgclass = fix32(r->msgclass);
+				e->event.msg.sender = fix32(r->sender);
+				e->event.msg.message = strdup((char*) r + sizeof(*r));
+				e->event.msg.time = fix32(r->time);
 
-			/* pakiet konferencyjny? */
-			if (h->length > sizeof(*r) + strlen(e->event.msg.message) + 2) {
-				struct gg_msg_recipients *m = (struct gg_msg_recipients *) ((char *)r+ sizeof(*r) + strlen((char *)e->event.msg.message) + 1);
-				int i, count = fix32(m->count);
+				/* pakiet konferencyjny? */
+				if (h->length > sizeof(*r) + strlen(e->event.msg.message) + 2) {
+					struct gg_msg_recipients *m = (struct gg_msg_recipients *) ((char *)r+ sizeof(*r) + strlen((char *)e->event.msg.message) + 1);
+					int i, count = fix32(m->count);
 
-				if (!(e->event.msg.recipients = (void*) malloc(count))) {
-					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
-					free(h);
-					return -1;
+					if (!(e->event.msg.recipients = (void*) malloc(count))) {
+						gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+						free(h);
+						return -1;
+					}
+
+					e->event.msg.recipients_count = count;
+					memcpy(e->event.msg.recipients, (char *)m + sizeof(*m),
+					       sizeof(uin_t) * count);
+
+					for (i = 0; i < count; i++)
+						e->event.msg.recipients[i] = fix32(e->event.msg.recipients[i]);
+				} else {
+					e->event.msg.recipients_count = 0;
+					e->event.msg.recipients = NULL;
 				}
-
-				e->event.msg.recipients_count = count;
-				memcpy(e->event.msg.recipients, (char *)m + sizeof(*m),
-				       sizeof(uin_t) * count);
-
-				for (i = 0; i < count; i++)
-					e->event.msg.recipients[i] = fix32(e->event.msg.recipients[i]);
-			} else {
-				e->event.msg.recipients_count = 0;
-				e->event.msg.recipients = NULL;
 			}
+
+			break;
 		}
-	}
 
-	if (h->type == GG_NOTIFY_REPLY) {
-		struct gg_notify_reply *n = p;
-		int count, i;
+		case GG_NOTIFY_REPLY: {
+			struct gg_notify_reply *n = p;
+			int count, i;
 
-		gg_debug(GG_DEBUG_MISC, "-- received a notify reply\n");
-		
-		e->type = GG_EVENT_NOTIFY;
-		if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
-			gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
-			free(h);
-			return -1;
+			gg_debug(GG_DEBUG_MISC, "-- received a notify reply\n");
+			
+			e->type = GG_EVENT_NOTIFY;
+			if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
+				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+				free(h);
+				return -1;
+			}
+			count = h->length / sizeof(*n);
+			memcpy(e->event.notify, p, h->length);
+			e->event.notify[count].uin = 0;
+			for (i = 0; i < count; i++) {
+				e->event.notify[i].uin = fix32(e->event.notify[i].uin);
+				e->event.notify[i].status = fix32(e->event.notify[i].status);
+				e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
+			}
+
+			break;
 		}
-		count = h->length / sizeof(*n);
-		memcpy(e->event.notify, p, h->length);
-		e->event.notify[count].uin = 0;
-		for (i = 0; i < count; i++) {
-			e->event.notify[i].uin = fix32(e->event.notify[i].uin);
-			e->event.notify[i].status = fix32(e->event.notify[i].status);
-			e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
+
+		case GG_STATUS: {
+			struct gg_status *s = p;
+
+			gg_debug(GG_DEBUG_MISC, "-- received a status change\n");
+
+			if (h->length >= sizeof(*s)) {
+				e->type = GG_EVENT_STATUS;
+				memcpy(&e->event.status, p, h->length);
+				e->event.status.uin = fix32(e->event.status.uin);
+				e->event.status.status = fix32(e->event.status.status);
+			}
+
+			break;
 		}
-	}
 
-	if (h->type == GG_STATUS) {
-		struct gg_status *s = p;
+		case GG_SEND_MSG_ACK: {
+			struct gg_send_msg_ack *s = p;
 
-		gg_debug(GG_DEBUG_MISC, "-- received a status change\n");
+			gg_debug(GG_DEBUG_MISC, "-- received a message ack\n");
 
-		if (h->length >= sizeof(*s)) {
-			e->type = GG_EVENT_STATUS;
-			memcpy(&e->event.status, p, h->length);
-			e->event.status.uin = fix32(e->event.status.uin);
-			e->event.status.status = fix32(e->event.status.status);
+			if (h->length >= sizeof(*s)) {
+				e->type = GG_EVENT_ACK;
+				e->event.ack.status = fix32(s->status);
+				e->event.ack.recipient = fix32(s->recipient);
+				e->event.ack.seq = fix32(s->seq);
+			}
+
+			break;
 		}
-	}
 
-	if (h->type == GG_SEND_MSG_ACK) {
-		struct gg_send_msg_ack *s = p;
+		case GG_PONG: {
+			gg_debug(GG_DEBUG_MISC, "-- received a pong\n");
 
-		gg_debug(GG_DEBUG_MISC, "-- received a message ack\n");
+			e->type = GG_EVENT_PONG;
+			sess->last_pong = time(NULL);
 
-		if (h->length >= sizeof(*s)) {
-			e->type = GG_EVENT_ACK;
-			e->event.ack.status = fix32(s->status);
-			e->event.ack.recipient = fix32(s->recipient);
-			e->event.ack.seq = fix32(s->seq);
+			break;
 		}
+
+		default:
+			gg_debug(GG_DEBUG_MISC, "-- received unknown packet 0x%.2b\n", h->type);
 	}
-
-	if (h->type == GG_PONG) {
-		gg_debug(GG_DEBUG_MISC, "-- received a pong\n");
-
-		e->type = GG_EVENT_PONG;
-		sess->last_pong = time(NULL);
-	}
-
+	
 	free(h);
 
 	return 0;
@@ -1288,6 +1303,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTED\n");
 
+			sess->last_event = time(NULL);
+			
 			if ((res = gg_watch_fd_connected(sess, e)) == -1) {
 
 				gg_debug(GG_DEBUG_MISC, "-- watch_fd_connected failed. errno = %d (%s)\n", errno, strerror(errno));
