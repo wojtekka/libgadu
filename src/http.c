@@ -106,6 +106,7 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 
 		h->state = GG_STATE_RESOLVING;
 		h->check = GG_CHECK_READ;
+		h->timeout = GG_DEFAULT_TIMEOUT;
 	} else {
 		struct hostent *he;
 		struct in_addr a;
@@ -189,6 +190,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		h->state = GG_STATE_CONNECTING;
 		h->check = GG_CHECK_WRITE;
+		h->timeout = GG_DEFAULT_TIMEOUT;
 
 		return 0;
 	}
@@ -214,6 +216,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		h->state = GG_STATE_READING_HEADER;
 		h->check = GG_CHECK_READ;
+		h->timeout = GG_DEFAULT_TIMEOUT;
 
 		return 0;
 	}
@@ -312,12 +315,14 @@ int gg_http_watch_fd(struct gg_http *h)
 				gg_debug(GG_DEBUG_MISC, "=> http, wow, we got header and body in one shot\n");
 				h->state = GG_STATE_PARSING;
 				h->check = 0;
+				h->timeout = GG_DEFAULT_TIMEOUT;
 				close(h->fd);
 				h->fd = -1;
 				return 0;
 			} else {
 				h->state = GG_STATE_READING_DATA;
 				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
 				return 0;
 			}
 		} else

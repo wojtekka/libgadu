@@ -346,6 +346,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	}
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
+	sess->timeout = GG_DEFAULT_TIMEOUT;
 	sess->async = async;
         sess->type = GG_SESSION_GG;
 	
@@ -869,9 +870,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
 			} else {
 				sess->state = GG_STATE_CONNECTING;
 				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
 			}
 				
 			break;
@@ -902,6 +905,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
 				break;
 			}
 			
@@ -937,6 +941,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			sess->state = GG_STATE_READING_DATA;
 			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
 
 			break;
 		}
@@ -1014,6 +1019,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			sess->state = GG_STATE_CONNECTING_GG;
 			sess->check = GG_CHECK_WRITE;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
 		
 			break;
 		}
@@ -1042,6 +1048,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
 
 			break;
 		}
@@ -1135,6 +1142,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				gg_debug(GG_DEBUG_MISC, "-- login succeded\n");
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;
+				sess->timeout = -1;
 				free(h);
 				break;
 			}
