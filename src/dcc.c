@@ -376,11 +376,18 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
  */
 int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 {
-	struct {
+	struct packet_s {
 		uint8_t type;
 		uint32_t length;
-	} packet;
+#ifdef __GNUC__
+	}
+	__attribute__ ((packed)); 
+#else
+	};
+#endif
+	struct packet_s packet;
 
+	gg_debug(GG_DEBUG_FUNCTION, "++ gg_dcc_voice_send(..., %p, %d);\n", buf, length);
 	if (!d || !buf || length < 0 || d->type != GG_SESSION_DCC_VOICE) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() invalid argument\n");
 		return -1;
@@ -393,11 +400,13 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
 		return -1;
 	}
+	gg_dcc_debug_data("write", d->fd, &packet, sizeof(packet));
 
 	if (write(d->fd, buf, length) < length) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
 		return -1;
 	}
+	gg_dcc_debug_data("write", d->fd, buf, length);
 
 	return 0;
 }
@@ -583,6 +592,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						h->state = GG_STATE_READING_REQUEST;
 						h->check = GG_CHECK_READ;
 						h->timeout = GG_DEFAULT_TIMEOUT;
+						h->incoming = 1;
+
 						break;
 
 					default:
@@ -613,7 +624,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						h->state = GG_STATE_SENDING_VOICE_ACK;
 						h->check = GG_CHECK_WRITE;
 						h->timeout = GG_DCC_TIMEOUT_VOICE_ACK;
+						h->type = GG_SESSION_DCC_VOICE;
 						e->type = GG_EVENT_DCC_NEED_VOICE_ACK;
+
 						break;
 						
 					default:
@@ -742,7 +755,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_VOICE_DATA:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_DATA\n");
 				
-				tmp = read(h->fd, buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+				tmp = read(h->fd, h->voice_buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
 				if (tmp < 1) {
 					if (tmp == -1) {
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", errno, strerror(errno));
@@ -759,12 +772,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->chunk_offset += tmp;
 
 				if (h->chunk_offset >= h->chunk_size) {
-					h->state = GG_STATE_READING_VOICE_HEADER;
-					h->voice_buf = NULL;
-				
 					e->type = GG_EVENT_DCC_VOICE_DATA;
 					e->event.dcc_voice_data.data = h->voice_buf;
 					e->event.dcc_voice_data.length = h->chunk_size;
+					h->state = GG_STATE_READING_VOICE_HEADER;
+					h->voice_buf = NULL;
+				
 				}
 
 				h->check = GG_CHECK_READ;
