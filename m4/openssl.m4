@@ -8,7 +8,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
   AC_ARG_WITH(openssl,
     [[  --without-openssl         Compile without OpenSSL]], 
       if test "x$withval" = "xno" ; then
-        without_ncurses=yes
+        without_openssl=yes
       elif test "x$withval" != "xyes" ; then
         with_arg=$withval/include:-L$withval/lib
       fi)
