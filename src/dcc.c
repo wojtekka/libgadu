@@ -117,6 +117,78 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 }
 
 /*
+ * gg_dcc_transfer() // funkcja wewnêtrzna
+ * 
+ * inicjuje proces wymiany pliku z danym klientem.
+ *
+ *  - ip - adres ip odbiorcy,
+ *  - port - port odbiorcy,
+ *  - my_uin - w³asny numer,
+ *  - peer_uin - numer obiorcy,
+ *  - type - rodzaj wymiany (GG_SESSION_DCC_SEND lub _GET).
+ *
+ * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ */
+static struct gg_dcc *gg_dcc_transfer(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin, int type)
+{
+	struct gg_dcc *d = NULL;
+	struct in_addr addr;
+
+	addr.s_addr = ip;
+	
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_transfer(%s, %d, %ld, %ld, %s);\n", inet_ntoa(addr), port, my_uin, peer_uin, (type == GG_SESSION_DCC_SEND) ? "SEND" : "GET");
+	
+	if (!ip || ip == INADDR_NONE || !port || !my_uin || !peer_uin) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_transfer() invalid arguments\n");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!(d = (void*) calloc(1, sizeof(*d)))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_transfer() not enough memory\n");
+		return NULL;
+	}
+
+	d->check = GG_CHECK_WRITE;
+	d->state = GG_STATE_CONNECTING;
+	d->type = type;
+	d->timeout = GG_DEFAULT_TIMEOUT;
+	d->file_fd = -1;
+	d->active = 1;
+	d->fd = -1;
+	d->uin = my_uin;
+	d->peer_uin = peer_uin;
+
+	if ((d->fd = gg_connect(&addr, port, 1)) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_transfer() connection failed\n");
+		free(d);
+		return NULL;
+	}
+
+	return d;
+}
+
+/*
+ * gg_dcc_get_file()
+ * 
+ * inicjuje proces odbierania pliku od danego klienta, gdy ten wys³a³ do
+ * nas ¿±danie po³±czenia.
+ *
+ *  - ip - adres ip odbiorcy,
+ *  - port - port odbiorcy,
+ *  - my_uin - w³asny numer,
+ *  - peer_uin - numer obiorcy.
+ *
+ * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_dcc *gg_dcc_get_file(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
+{
+	gg_debug(GG_DEBUG_MISC, "// gg_dcc_get_file() handing over to gg_dcc_transfer()\n");
+
+	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_GET);
+}
+
+/*
  * gg_dcc_send_file()
  * 
  * inicjuje proces wysy³ania pliku do danego klienta.
@@ -130,41 +202,9 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
  */
 struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
 {
-	struct gg_dcc *d = NULL;
-	struct in_addr addr;
+	gg_debug(GG_DEBUG_MISC, "// gg_dcc_send_file() handing over to gg_dcc_transfer()\n");
 
-	addr.s_addr = ip;
-	
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_send_file(%s, %d, %ld, %ld);\n", inet_ntoa(addr), port, my_uin, peer_uin);
-	
-	if (!ip || ip == INADDR_NONE || !port || !my_uin || !peer_uin) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_send_file() invalid arguments\n");
-		errno = EINVAL;
-		return NULL;
-	}
-
-	if (!(d = (void*) calloc(1, sizeof(*d)))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_send_file() not enough memory\n");
-		return NULL;
-	}
-
-	d->check = GG_CHECK_WRITE;
-	d->state = GG_STATE_CONNECTING;
-	d->type = GG_SESSION_DCC_SEND;
-	d->timeout = GG_DEFAULT_TIMEOUT;
-	d->file_fd = -1;
-	d->active = 1;
-	d->fd = -1;
-	d->uin = my_uin;
-	d->peer_uin = peer_uin;
-
-	if ((d->fd = gg_connect(&addr, port, 1)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_send_file() connection failed\n");
-		free(d);
-		return NULL;
-	}
-
-	return d;
+	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_SEND);
 }
 
 /*
@@ -533,7 +573,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			 	
 				return e;
 
-
 			case GG_STATE_CONNECTING:
 			{
 				uin_t uins[2];
@@ -596,7 +635,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_REQUEST\n");
 
-				small.type = (h->active) ? fix32(0x0003) : fix32(0x0002);	/* XXX */
+				small.type = (h->type == GG_SESSION_DCC_GET) ? fix32(0x0003) : fix32(0x0002);	/* XXX */
 				
 				if ((tmp = write(h->fd, &small, sizeof(small))) != sizeof(small)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", (tmp == -1) ? strerror(errno) : "<sizeof");
@@ -606,7 +645,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 				
-				if (h->active) {
+				if (h->type == GG_SESSION_DCC_GET) {
 					h->state = GG_STATE_READING_REQUEST;
 					h->check = GG_CHECK_READ;
 					h->timeout = GG_DEFAULT_TIMEOUT;
