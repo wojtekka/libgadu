@@ -304,10 +304,10 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 	struct sockaddr_in sin;
 	int sock, bound = 0;
 	
-        gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%ld, %d);\n", uin, port);
+        gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%d, %d);\n", uin, port);
 	
 	if (!uin) {
-                gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() invalid arguments\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() invalid arguments\n");
 		errno = EINVAL;
 		return NULL;
 	}
