@@ -81,6 +81,18 @@ char *gg_vsaprintf(const char *format, va_list ap)
         int size = 0;
 	const char *start;
 	char *buf = NULL;
+	
+#ifdef __GG_LIBGADU_HAVE_VA_COPY
+	va_list aq;
+
+	va_copy(aq, ap);
+#else
+#  ifdef __GG_LIBGADU_HAVE___VA_COPY
+	va_list aq;
+
+	__va_copy(aq, ap);
+#  endif
+#endif
 
 	start = format; 
 
@@ -114,7 +126,17 @@ char *gg_vsaprintf(const char *format, va_list ap)
 
 	format = start;
 	
+#ifdef __GG_LIBGADU_HAVE_VA_COPY
+	vsnprintf(buf, size + 1, format, aq);
+	va_end(aq);
+#else
+#  ifdef __GG_LIBGADU_HAVE___VA_COPY
+	vsnprintf(buf, size + 1, format, aq);
+	va_end(aq);
+#  else
 	vsnprintf(buf, size + 1, format, ap);
+#  endif
+#endif
 	
 	return buf;
 }
