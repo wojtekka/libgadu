@@ -361,7 +361,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->check = GG_CHECK_WRITE;
 					h->timeout = GG_DEFAULT_TIMEOUT;
 					h->uin = tmp;
-					e->type = GG_DCC_EVENT_CLIENT_ACCEPT;
+					e->type = GG_EVENT_DCC_CLIENT_ACCEPT;
 				}
 
 				return e;
