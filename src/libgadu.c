@@ -28,6 +28,8 @@
 #  include <sys/filio.h>
 #endif
 
+#include "libgadu-config.h"
+
 #include <errno.h>
 #include <netdb.h>
 #ifdef __GG_LIBGADU_HAVE_PTHREAD

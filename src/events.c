@@ -26,6 +26,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "libgadu-config.h"
+
 #include <errno.h>
 #ifdef __GG_LIBGADU_HAVE_PTHREAD
 #  include <pthread.h>

@@ -22,7 +22,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "compat.h"
 #include "libgadu.h"
 
 /*
