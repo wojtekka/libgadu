@@ -51,10 +51,11 @@ H1, H2, H3 { margin-top: 0px; }
 	</li>
 	<li><a href="#ch2">Us³ugi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
-		2.2.&nbsp;&nbsp;<a href="#ch2.2">Rejestracja konta</a><br />
-		2.3.&nbsp;&nbsp;<a href="#ch2.3">Usuniêcie konta</a><br />
-		2.4.&nbsp;&nbsp;<a href="#ch2.4">Zmiana has³a</a><br />
-		2.5.&nbsp;&nbsp;<a href="#ch2.5">Przypomnienie has³a poczt±</a><br />
+		2.2.&nbsp;&nbsp;<a href="#ch2.2">Tokeny</a><br />
+		2.3.&nbsp;&nbsp;<a href="#ch2.3">Rejestracja konta</a><br />
+		2.4.&nbsp;&nbsp;<a href="#ch2.4">Usuniêcie konta</a><br />
+		2.5.&nbsp;&nbsp;<a href="#ch2.5">Zmiana has³a</a><br />
+		2.6.&nbsp;&nbsp;<a href="#ch2.6">Przypomnienie has³a poczt±</a><br />
 	</li>
 	<li><a href="#ch3">Bezpo¶rednie po³±czenia</a></li>
 	<li><a href="#ch4">Autorzy</a></li>
@@ -556,7 +557,7 @@ struct gg_status60 {
 	short remote_port;	<i>/* port bezpo¶rednich po³±czeñ */</i>
 	char version;		<i>/* wersja klienta */</i>
 	char image_size;	<i>/* maksymalny rozmiar grafiki */</i>
-	char unknown1;		<i>/* 0x00 *</i>
+	char unknown1;		<i>/* 0x00 */</i>
 	char description[];	<i>/* opis, nie musi wyst±piæ */</i>
 	int time;		<i>/* czas, nie musi wyst±piæ */</i>
 };</pre>
@@ -999,7 +1000,7 @@ u¿yæ pakietu:
 <pre>#define GG_USERLIST_REQUEST 0x0016
 	
 struct gg_userlist_request {
-	char type;		<i>/* rodzaj zapytania *</i>
+	char type;		<i>/* rodzaj zapytania */</i>
 	char request[];		<i>/* tre¶æ, nie musi wyst±piæ */</i>
 };</pre>
 </div>
@@ -1039,7 +1040,7 @@ Na zapytania dotycz±ce listy kontaktów serwer odpowiada pakietem:
 <pre>#define GG_USERLIST_REPLY 0x0010
 	
 struct gg_userlist_reply {
-	char type;		<i>/* rodzaj zapytania *</i>
+	char type;		<i>/* rodzaj zapytania */</i>
 	char request[];		<i>/* tre¶æ, nie musi wyst±piæ */</i>
 };</pre>
 </div>
@@ -1192,12 +1193,87 @@ tylko o polu <b>ODPOWIED¬</b>. Kodowanie znaków w odpowiedzi to CP1250.
 
 <a name="ch2.2"></a>
 
-<h3>2.2. Rejestracja konta</h3>
+<h3>2.2. Tokeny</h3> 
+
+<p>
+Prawdopodobnie ze wzglêdu na nadu¿ycia i wykorzystywanie automatów
+rejestruj±cych do polowañ na ,,z³ote numery GG'', wprowadzono konieczno¶æ
+autoryzacji za pomoc± tokenu. Ka¿da operacja zaczyna siê od pobrania tokenu
+z serwera, wy¶wietlenia u¿ytkownikowi, odczytaniu jego warto¶ci i wys³ania
+zapytania z identyfikatorem i warto¶ci± tokenu. Pobranie tokenu wygl±da 
+nastêpuj±co:
+</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/regtoken.asp</tt></td></tr>
+</table>
+
+<p>
+Nie s± wysy³ane ¿adne parametry. Przyk³ad:
+</p>
+
+<div class="http">
+<pre>POST /appsvc/regtoken.asp HTTP/1.0
+Host: register.gadu-gadu.pl
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
+Content-Length: 0
+Pragma: no-cache
+</pre>
+</div>
+
+<p>
+Serwer w odpowiedzi ode¶le:
+</p>
+
+<div class="http">
+<pre><b>SZEROKO¦Æ WYSOKO¦Æ D£UGO¦Æ
+IDENTYFIKATOR
+¦CIE¯KA</b></pre></div>
+
+<p>
+Gdzie <tt><b>SZEROKO¦Æ</b></tt> i <tt><b>WYSOKO¦Æ</b></tt> opisuj± wymiary
+obrazka z warto¶ci± tokenu, <tt><b>D£UGO¦Æ</b></tt> mówi ile znaków zawiera
+token, <tt><b>IDENTYFIKATOR</b></tt> jest identyfikatorem tokenu (tylko do
+niego pasuje warto¶æ tokenu), a <tt><b>¦CIE¯KA</b></tt> to ¶cie¿ka do skryptu
+zwracaj±cego obrazek z warto¶ci± tokenu. Przyk³adowa odpowied¼:
+</p>
+
+<div class="http">
+<pre>60 24 6
+06C05A44
+http://register.gadu-gadu.pl/appsvc/tokenpic.asp</pre></div>
+
+<p>
+Mo¿emy teraz pobraæ metod± GET z podanej ¶cie¿ki obrazek z tokenem, doklejaj±c
+do ¶cie¿ki parametr <tt><b>tokenid</b></tt> o warto¶ci bed±cej identyfikatorem
+uzyskanym przed chwil±. Adres obrazka z warto¶ci± tokenu dla powy¿szego
+przyk³adu to:
+</p>
+
+<div class="example">
+<pre>http://register.gadu-gadu.pl/appsvc/tokenpic.asp?tokenid=06C05A44</pre>
+</div>
+
+<p>
+Pobrany obrazek (w tej chwili jest w formacie JPEG, ale prawdopodobnie mo¿e
+siê to zmieniæ na dowolny format obs³ugiwany domy¶lnie przez system Windows)
+najlepiej wy¶wietliæ u¿ytkownikowi, prosz±c o podanie warto¶ci na nim
+przedstawionej. Bêdzie ona niezbêdna do przeprowadzenia kolejnych operacji.
+</p>
+
+<hr />
+
+<a name="ch2.3"></a>
+
+<h3>2.3. Rejestracja konta</h3>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister3.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1205,26 +1281,10 @@ tylko o polu <b>ODPOWIED¬</b>. Kodowanie znaków w odpowiedzi to CP1250.
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>has³o dla nowego numeru</td></tr>
-<tr class="tabf"><td><tt>qa</tt></td><td>pytanie pomocnicze i odpowied¼, oddzielone znakiem tyldy ,,<tt>~</tt>''</td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>e-mail na który bêdzie przesy³ane przypomnienie has³a</td></tr>
+<tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
+<tr class="tabf"><td><tt>tokenval</tt></td><td>warto¶æ tokenu</td></tr>
 <tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt>. Algorytmu szukaj w ¼ród³ach libgadu w <tt>lib/common.c</tt></td></tr>
-</table>
-
-<p>
-Dostêpne standardowo pytania pomocnicze i ich aliasy (podawane zamiast
-tre¶ci pytania) to:
-</p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Alias</b></td><td width="80%"><b>Pytanie</b></td></tr>
-<tr class="tabf"><td><tt>1</tt></td><td>Twoja ulubiona potrawa?</td></tr>
-<tr class="tabf"><td><tt>2</tt></td><td>Imiê/nazwisko Twojej sympatii z lat szkolnych?</td></tr>
-<tr class="tabf"><td><tt>3</tt></td><td>Imiê/nazwisko osoby, z któr± siedzia³e¶ w szkolnej ³awie?</td></tr>
-<tr class="tabf"><td><tt>4</tt></td><td>Imiê Twojego dziadka?</td></tr>
-<tr class="tabf"><td><tt>5</tt></td><td>Imiê Twojej babci?</td></tr>
-<tr class="tabf"><td><tt>6</tt></td><td>Nazwisko panieñskie Twojej matki?</td></tr>
-<tr class="tabf"><td><tt>7</tt></td><td>Tytu³ Twojego ulubionego filmu?</td></tr>
-<tr class="tabf"><td><tt>8</tt></td><td>Ulubiony aktor?</td></tr>
-<tr class="tabf"><td><tt>9</tt></td><td>Ulubiony solista/zespó³ muzyczny?</td></tr>
 </table>
 
 <p>
@@ -1232,14 +1292,14 @@ Przyk³ad:
 </p>
 
 <div class="http">
-<pre>POST /appsvc/fmregister2.asp HTTP/1.0
+<pre>POST /appsvc/fmregister3.asp HTTP/1.0
 Host: register.gadu-gadu.pl
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 62
+Content-Length: 76
 Pragma: no-cache
 		
-pwd=sekret&amp;email=moj&#64;adres.email.pl&amp;qa=5~Maria&amp;code=1104465363</pre>
+pwd=sekret&amp;email=abc&#64;xyz.pl<!-- &amp;qa=5~Maria -->&amp;tokenid=06C05A44&amp;tokenval=e94d56&amp;code=1104465363</pre>
 </div>
 
 <p>
@@ -1256,13 +1316,13 @@ Gdzie <tt><b>UIN</b></tt> to nowy numer, który w³a¶nie otrzymali¶my.
 
 <hr />
 
-<a name="ch2.3"></a>
-<h3>2.3. Usuniêcie konta</h3>
+<a name="ch2.4"></a>
+<h3>2.4. Usuniêcie konta</h3>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister3.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1273,8 +1333,10 @@ Gdzie <tt><b>UIN</b></tt> to nowy numer, który w³a¶nie otrzymali¶my.
 <tr class="tabf"><td><tt>fmpwd</tt></td><td>has³o</td></tr>
 <tr class="tabf"><td><tt>delete</tt></td><td>warto¶æ ,,<tt>1</tt>''</td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>losowa liczba</td></tr>
-<tr class="tabf"><td><tt>qa</tt></td><td>pytanie pomocnicza i odpowied¼ (patrz punkt <a href="#ch2.2">2.2</a>)</td></tr>
-<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>pwd</tt></td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>warto¶æ ,,<tt>deletedaccount@gadu-gadu.pl</tt>''</td></tr>
+<tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
+<tr class="tabf"><td><tt>tokenval</tt></td><td>warto¶æ tokenu</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>pwd</tt> i <tt>email</tt></td></tr>
 </table>
 
 <p>
@@ -1286,10 +1348,11 @@ Przyk³ad:
 Host: register.gadu-gadu.pl
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 74
+Content-Length: 137
 Pragma: no-cache
 		
-fmnumber=4969256&amp;fmpwd=haslo&amp;delete=1&amp;pwd=%2D388046464&amp;qa=&amp;code=1483497094</pre>
+fmnumber=4969256&amp;fmpwd=haslo&amp;delete=1&amp;email=deletedaccount@gadu-gadu.pl&amp;pwd=%2D38
+8046464&amp;tokenid=06C05A44&amp;tokenval=e94d56&amp;code=1483497094</pre>
 </div>
 
 <p>
@@ -1306,13 +1369,13 @@ Gdzie <tt><b>UIN</b></tt> to numer, który skasowali¶my.
 
 <hr />
 
-<a name="ch2.4"></a>
-<h3>2.4. Zmiana has³a</h3>
+<a name="ch2.5"></a>
+<h3>2.5. Zmiana has³a</h3>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister3.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1322,8 +1385,10 @@ Gdzie <tt><b>UIN</b></tt> to numer, który skasowali¶my.
 <tr class="tabf"><td><tt>fmnumber</tt></td><td>numer</td></tr>
 <tr class="tabf"><td><tt>fmpwd</tt></td><td>stare has³o</td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>nowe has³o</td></tr>
-<tr class="tabf"><td><tt>qa</tt></td><td>pytanie pomocnicze i odpowied¼, patrz punkt <a href="#ch2.2">2.2</a></td></tr>
-<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>pwd</tt></td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>nowe adres e-email</td></tr>
+<tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
+<tr class="tabf"><td><tt>tokenval</tt></td><td>warto¶æ tokenu</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>pwd</tt> i <tt>email</tt></td></tr>
 </table>
 
 <p>
@@ -1336,13 +1401,13 @@ Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
 
 <hr />
 
-<a name="ch2.5"></a>
-<h3>2.5. Przypomnienie has³a poczt±</h3>
+<a name="ch2.6"></a>
+<h3>2.6. Przypomnienie has³a poczt±</h3>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>retr.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmsendpwd.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmsendpwd3.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1350,6 +1415,8 @@ Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>userid</tt></td><td>numer</td></tr>
+<tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
+<tr class="tabf"><td><tt>tokenval</tt></td><td>warto¶æ tokenu</td></tr>
 <tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>userid</tt></td></tr>
 </table>
 
