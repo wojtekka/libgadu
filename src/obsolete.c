@@ -126,7 +126,14 @@ void gg_search_request_free(struct gg_search_request *r)
 
 struct gg_http *gg_register(const char *email, const char *password, int async)
 {
-	gg_debug(GG_DEBUG_MISC, "// gg_register() is obsolete. use gg_register2() instead!\n");
+	gg_debug(GG_DEBUG_MISC, "// gg_register() is obsolete. use gg_register3() instead!\n");
+	errno = EINVAL;
+	return NULL;
+}
+
+struct gg_http *gg_register2(const char *email, const char *password, const char *qa, int async)
+{
+	gg_debug(GG_DEBUG_MISC, "// gg_register2() is obsolete. use gg_register3() instead!\n");
 	errno = EINVAL;
 	return NULL;
 }
@@ -140,14 +147,21 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
 
 struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async)
 {
-	gg_debug(GG_DEBUG_MISC, "// gg_change_passwd() is obsolete. use gg_change_passwd3() instead!\n");
+	gg_debug(GG_DEBUG_MISC, "// gg_change_passwd() is obsolete. use gg_change_passwd4() instead!\n");
 	errno = EINVAL;
 	return NULL;
 }
 
 struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *newpasswd, const char *email, const char *newemail, int async)
 {
-	gg_debug(GG_DEBUG_MISC, "// gg_change_passwd2() is obsolete. use gg_change_passwd3() instead!\n");
+	gg_debug(GG_DEBUG_MISC, "// gg_change_passwd2() is obsolete. use gg_change_passwd4() instead!\n");
+	errno = EINVAL;
+	return NULL;
+}
+
+struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *newpasswd, const char *qa, int async)
+{
+	gg_debug(GG_DEBUG_MISC, "// gg_change_passwd3() is obsolete. use gg_change_passwd4() instead!\n");
 	errno = EINVAL;
 	return NULL;
 }

@@ -29,24 +29,26 @@
 #include "libgadu.h"
 
 /*
- * gg_register2()
+ * gg_register3()
  *
- * rozpoczyna rejestracjê u¿ytkownika protoko³em GG 5.0.
+ * rozpoczyna rejestracjê u¿ytkownika protoko³em GG 6.0. wymaga wcze¶niejszego
+ * pobrania tokenu za pomoc± funkcji gg_token().
  *
  *  - email - adres e-mail klienta
  *  - password - has³o klienta
- *  - qa - has³o pomocnicze i odpowied¼, oddzielone tyld±
+ *  - tokenid - identyfikator tokenu
+ *  - tokenval - warto¶æ tokenu
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_register_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_register2(const char *email, const char *password, const char *qa, int async)
+struct gg_http *gg_register3(const char *email, const char *password, const char *tokenid, const char *tokenval, int async)
 {
         struct gg_http *h;
-	char *__pwd, *__email, *__qa, *form, *query;
+	char *__pwd, *__email, *__tokenid, *__tokenval, *form, *query;
 
-	if (!email | !password) {
+	if (!email | !password | !tokenid | !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> register, NULL parameter\n");
 		errno = EINVAL;
 		return NULL;
@@ -54,23 +56,27 @@ struct gg_http *gg_register2(const char *email, const char *password, const char
 
 	__pwd = gg_urlencode(password);
 	__email = gg_urlencode(email);
-	__qa = gg_urlencode(qa);
+	__tokenid = gg_urlencode(tokenid);
+	__tokenval = gg_urlencode(tokenval);
 
-	if (!__pwd || !__email) {
+	if (!__pwd || !__email || !__tokenid || !__tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> register, not enough memory for form fields\n");
 		free(__pwd);
 		free(__email);
-		free(__qa);
+		free(__tokenid);
+		free(__tokenval);
                 errno = ENOMEM;
 		return NULL;
 	}
 
-	form = gg_saprintf("pwd=%s&email=%s&qa=%s&code=%u", __pwd, __email,
-			__qa, gg_http_hash("ss", email, password));
+	form = gg_saprintf("pwd=%s&email=%s&tokenid=%s&tokenval=%s&code=%u",
+			__pwd, __email, __tokenid, __tokenval,
+			gg_http_hash("ss", email, password));
 
 	free(__pwd);
 	free(__email);
-	free(__qa);
+	free(__tokenid);
+	free(__tokenval);
 
 	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> register, not enough memory for form query\n");
@@ -92,7 +98,7 @@ struct gg_http *gg_register2(const char *email, const char *password, const char
 
 	free(form);
 
-	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister2.asp", query))) {
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> register, gg_http_connect() failed mysteriously\n");
 		free(query);
                 return NULL;
@@ -194,25 +200,28 @@ struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, 
 }
 
 /*
- * gg_change_passwd3()
+ * gg_change_passwd4()
  *
- * wysy³a ¿±danie zmiany has³a zgodnie z protoko³em GG 5.0.4
+ * wysy³a ¿±danie zmiany has³a zgodnie z protoko³em GG 6.0. wymaga
+ * wcze¶niejszego pobrania tokenu za pomoc± funkcji gg_token().
  *
  *  - uin - numer
+ *  - email - adres e-mail
  *  - passwd - stare has³o
  *  - newpasswd - nowe has³o
- *  - qa - pytanie pomocnicze i odpowied¼ oddzielone tyld±
+ *  - tokenid - identyfikator tokenu
+ *  - tokenval - warto¶æ tokenu
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_change_passwd_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *newpasswd, const char *qa, int async)
+struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *passwd, const char *newpasswd, const char *tokenid, const char *tokenval, int async)
 {
 	struct gg_http *h;
-	char *form, *query, *__fmpwd, *__pwd, *__qa;
+	char *form, *query, *__email, *__fmpwd, *__pwd, *__tokenid, *__tokenval;
 
-	if (!passwd || !newpasswd) {
+	if (!uin || !email || !passwd || !newpasswd || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> change, NULL parameter\n");
 		errno = EINVAL;
 		return NULL;
@@ -220,22 +229,28 @@ struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *new
 	
 	__fmpwd = gg_urlencode(passwd);
 	__pwd = gg_urlencode(newpasswd);
-	__qa = gg_urlencode(qa);
+	__email = gg_urlencode(email);
+	__tokenid = gg_urlencode(tokenid);
+	__tokenval = gg_urlencode(tokenval);
 
-	if (!__fmpwd || !__pwd) {
+	if (!__fmpwd || !__pwd || !__email || !__tokenid || !__tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
-		free(__qa);
+		free(__email);
+		free(__tokenid);
+		free(__tokenval);
 		errno = ENOMEM;
 		return NULL;
 	}
 	
-	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&qa=&code=%u", uin, __fmpwd, __pwd, gg_http_hash("s", newpasswd)))) {
+	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&email=%s&tokenid=%s&tokenval=%s&code=%u", uin, __fmpwd, __pwd, __email, __tokenid, __tokenval, gg_http_hash("ss", newpasswd, email)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
-		free(__qa);
+		free(__email);
+		free(__tokenid);
+		free(__tokenval);
 
 		errno = ENOMEM;
 		return NULL;
@@ -243,7 +258,9 @@ struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *new
 	
 	free(__fmpwd);
 	free(__pwd);
-	free(__qa);
+	free(__email);
+	free(__tokenid);
+	free(__tokenval);
 	
 	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
 
@@ -259,7 +276,7 @@ struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *new
 
 	free(form);
 
-	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister2.asp", query))) {
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, gg_http_connect() failed mysteriously\n");
                 free(query);
 		return NULL;
@@ -314,7 +331,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 
 	free(form);
 
-	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmsendpwd.asp", query))) {
+	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmsendpwd3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, gg_http_connect() failed mysteriously\n");
                 free(query);
 		return NULL;
