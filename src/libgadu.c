@@ -46,7 +46,6 @@
 int gg_debug_level = 0;
 
 int gg_dcc_port = 0;
-char *gg_dcc_ip = NULL;
 
 /*
  *  zmienne opisuj±ce parametry proxy http.
@@ -1261,13 +1260,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess_ip = sin.sin_addr.s_addr;	
 		
 			sess->client_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
+			sess->client_port = gg_dcc_port;
 			
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(GG_CLIENT_VERSION);
-			l.local_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
-			l.local_port = fix16(gg_dcc_port);
+			l.local_ip = sess->client_ip;
+			l.local_port = fix16(sess->client_port);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
 
