@@ -44,6 +44,9 @@
 
 int gg_debug_level = 0;
 
+int gg_dcc_port = 0;
+char *gg_dcc_ip = NULL;
+
 #ifndef lint 
 
 static char rcsid[]
@@ -59,7 +62,7 @@ __attribute__ ((unused))
  *
  * dla maszyn big-endianowych zamienia kolejno¶æ bajtów w ,,long''ach.
  */
-static inline unsigned long fix32(unsigned long x)
+unsigned long fix32(unsigned long x)
 {
 #ifndef WORDS_BIGENDIAN
 	return x;
@@ -77,7 +80,7 @@ static inline unsigned long fix32(unsigned long x)
  *
  * dla maszyn big-endianowych zamienia kolejno¶æ bajtów w ,,short''ach.
  */
-static inline unsigned short fix16(unsigned short x)
+unsigned short fix16(unsigned short x)
 {
 #ifndef WORDS_BIGENDIAN
 	return x;
@@ -485,6 +488,43 @@ void gg_logoff(struct gg_session *sess)
 }
 
 /*
+ * gg_send_message_ctcp() // TO BE GONE
+ *
+ * wysy³a wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
+ * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ *
+ *  - sess - opis sesji,
+ *  - msgclass - rodzaj wiadomo¶ci,
+ *  - recipient - numer adresata,
+ *  - message - tre¶æ wiadomo¶ci,
+ *  - message_len - d³ugo¶æ.
+ *
+ * w przypadku b³êdu zwraca -1, inaczej numer sekwencyjny.
+ */
+int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, unsigned char *message, int message_len)
+{
+	struct gg_send_msg s;
+
+	if (!sess) {
+		errno = EFAULT;
+		return -1;
+	}
+	
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_ctcp(..., %d, %u, \"...\");\n", msgclass, recipient);
+
+	s.recipient = fix32(recipient);
+	s.seq = fix32(0);
+	s.msgclass = fix32(msgclass);
+	
+	return gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, message_len);
+}
+
+/*
  * gg_send_message()
  *
  * wysy³a wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
@@ -805,12 +845,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	int res = 0;
 	int port;
 
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_watch_fd(...);\n");
+	
 	if (!sess) {
 		errno = EFAULT;
 		return NULL;
 	}
-
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_watch_fd(...);\n");
 
 	if (!(e = (void*) malloc(sizeof(*e)))) {
 		gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
@@ -1117,8 +1157,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(GG_CLIENT_VERSION);
-			l.local_ip = 0;
-			l.local_port = 0;
+			l.local_ip = (gg_dcc_ip) ? inet_addr(gg_dcc_ip) : INADDR_NONE;
+			l.local_port = fix16(gg_dcc_port);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
 
