@@ -1009,11 +1009,23 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_TRAFFIC, "-- got http response (%s)\n", buf);
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
 				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected\n");
+				gg_debug(GG_DEBUG_MISC, "-- moving to direct connection\n");
+				a.s_addr = sess->server_ip;
 
-				errno = EINVAL;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_INVALID;
-				sess->state = GG_STATE_IDLE;
+				if ((sess->fd = gg_connect(&a, GG_DEFAULT_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
+					if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, sess->async)) == -1) {
+						gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
+
+						e->type = GG_EVENT_CONN_FAILED;
+						e->event.failure = GG_FAILURE_CONNECTING;
+						sess->state = GG_STATE_IDLE;
+						break;
+					}
+				}
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
 				break;
 			}
 	
