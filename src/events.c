@@ -756,7 +756,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				/* je¶li logujemy siê po TLS, nie próbujemy
 				 * siê ³±czyæ ju¿ z niczym innym w przypadku
 				 * b³êdu. nie do¶æ, ¿e nie ma sensu, to i
-				 * trzebaby siê bawiæ w tworzenie na nowo
+				 * trzeba by siê bawiæ w tworzenie na nowo
 				 * SSL i SSL_CTX. */
 
 				if (sess->ssl) {
