@@ -154,7 +154,7 @@ odpowiadaj± za to sta³e GG_USER_NORMAL, GG_USER_BLOCKED i GG_USER_OFFLINE.
 ,,gg_change_status_descr()'' lub ,,gg_change_status_descr_time()''.
 
 wysy³anie wiadomo¶ci za pomoc± ,,gg_send_message()''. parametr ,,class''
-mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
+mówi, czy ma siê pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
 którego mo¿emy u¿yæ do potwierdzenia. wiadomo¶æ, która ma byæ sformatowana
 w odpowiedni sposób (pogrubienie, kursywa, kolory, itp.) wysy³amy za pomoc±
@@ -275,14 +275,14 @@ wyników wyszukiwania wygl±da nastêpuj±co:
 
         gg_event_free(zdarzenie);
 
-je¶li chcemy wiedzieæ, od jakiego numeru zacz±c wyszukiwanie, ¿eby dostaæ
-dalsz± czê¶æ, uzywamy gg_pubdir50_next(). je¶li chcemy numer sekwencyjny,
+je¶li chcemy wiedzieæ, od jakiego numeru zacz±æ wyszukiwanie, ¿eby dostaæ
+dalsz± czê¶æ, u¿ywamy gg_pubdir50_next(). je¶li chcemy numer sekwencyjny,
 u¿ywamy gg_pubdir50_seq().
 
 w ¿adnym wypadku nie mo¿na siê odwo³ywaæ do pól gg_pubdir50_t, poniewa¿
 mog± siê zmieniaæ miêdzy wersjami biblioteki. dziêki odwo³ywaniu siê przez
 funkcje, mamy pewno¶æ, ¿e bez wzglêdu na zmiany API/ABI mamy to samo.
-dodatkowo, je¶li dojd± jakies opcje wyszukiwania, nie trzeba w bibliotece
+dodatkowo, je¶li dojd± jakie¶ opcje wyszukiwania, nie trzeba w bibliotece
 niczego zmieniaæ -- ¿adnych struktur, itd. po prostu odwo³ujemy siê do
 kolejnego pola przez gg_pubdir50_add() i gg_pubdir50_get().
 
