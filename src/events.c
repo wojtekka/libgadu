@@ -51,16 +51,21 @@ void gg_free_event(struct gg_event *e)
 {
 	if (!e)
 		return;
+	
 	if (e->type == GG_EVENT_MSG)
 		free(e->event.msg.message);
+	
 	if (e->type == GG_EVENT_NOTIFY)
 		free(e->event.notify);
+	
 	if (e->type == GG_EVENT_STATUS)
 		free(e->event.status.descr);
+
 	if (e->type == GG_EVENT_NOTIFY_DESCR) {
 		free(e->event.notify_descr.notify);
 		free(e->event.notify_descr.descr);
 	}
+	
 	free(e);
 }
 
@@ -124,20 +129,20 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			unsigned short *len;
 			void *tmp;
 			
-			if (p + 4 > packet_end) {
+			if (p + 3 > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
 				errno = EINVAL;
 				goto fail;
 			}
 
-			len = (unsigned short*) p + 2;
+			len = (unsigned short*) p + 1;
 
 			if (!(tmp = malloc(*len))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
 				goto fail;
 			}
 
-			p += 4;
+			p += 3;
 
 			if (p + *len > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
@@ -272,7 +277,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			if (h->length >= sizeof(*s)) {
 				e->type = GG_EVENT_STATUS;
-				memcpy(&e->event.status, p, h->length);
+				memcpy(&e->event.status, p, sizeof(*s));
 				e->event.status.uin = fix32(e->event.status.uin);
 				e->event.status.status = fix32(e->event.status.status);
 				if (h->length > sizeof(*s)) {
