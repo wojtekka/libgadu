@@ -1072,7 +1072,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_READING_DATA:
 		{
 			char buf[1024], *tmp, *host;
-			char sysmsgbuf[1024];
 			int port = GG_DEFAULT_PORT;
 			int sysmsgidx = 0, sysmsg = 0;
 			struct in_addr a;
@@ -1084,8 +1083,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- got http response (%s)\n", buf);
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
-				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected\n");
-				gg_debug(GG_DEBUG_MISC, "-- moving to direct connection\n");
+				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected. moving to direct connection\n");
 				a.s_addr = sess->server_ip;
 
 				if ((sess->fd = gg_connect(&a, GG_DEFAULT_PORT, sess->async)) == -1) {
@@ -1124,12 +1122,28 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			};
 
 			if (sysmsg && sysmsgidx) {
-			    	gg_read_line(sess->fd, sysmsgbuf, sizeof(sysmsgbuf) - 1);
-				gg_chomp(sysmsgbuf);
+				char tmp[1024], *foo, *sysmsg_buf = NULL;
+				int len = 0;
+				
+				while (gg_read_line(sess->fd, tmp, sizeof(tmp) - 1)) {
+					if (!(foo = realloc(sysmsg_buf, len + strlen(tmp) + 2))) {
+						gg_debug(GG_DEBUG_MISC, "-- out of memory for system message. cutting.\n");
+						break;
+					}
+					sysmsg_buf = foo;
+
+					if (!len)
+						strcpy(sysmsg_buf, tmp);
+					else
+						strcat(sysmsg_buf, tmp);
+					
+					len += strlen(tmp);
+				}
+				
 				e->type = GG_EVENT_MSG;
 				e->event.msg.msgclass = sysmsgidx;
 				e->event.msg.sender = 0;
-				e->event.msg.message = strdup(sysmsgbuf);
+				e->event.msg.message = sysmsg_buf;
 			}
 	
 			close(sess->fd);

@@ -198,9 +198,9 @@ int gg_connect(void *addr, int port, int async)
  *  - buf - wska¼nik bufora,
  *  - length - d³ugo¶æ bufora.
  *
- * olewa b³êdy. je¶li na jaki¶ trafi, potraktuje go jako koniec linii.
+ * je¶li trafi na b³±d odczytu, zwraca NULL. inaczej zwraca buf.
  */
-void gg_read_line(int sock, char *buf, int length)
+char *gg_read_line(int sock, char *buf, int length)
 {
 	int ret;
 
@@ -208,9 +208,10 @@ void gg_read_line(int sock, char *buf, int length)
 	
 	for (; length > 1; buf++, length--) {
 		do {
-			if ((ret = read(sock, buf, 1)) == -1 && errno != EINTR) {
+			if ((ret = read(sock, buf, 1)) < 1 && errno != EINTR) {
+				gg_debug(GG_DEBUG_MISC, "-- gg_read_line(), eof reached\n");
 				*buf = 0;
-				return;
+				return NULL;
 			}
 		} while (ret == -1 && errno == EINTR);
 
@@ -221,7 +222,7 @@ void gg_read_line(int sock, char *buf, int length)
 	}
 
 	*buf = 0;
-	return;
+	return buf;
 }
 
 /*
