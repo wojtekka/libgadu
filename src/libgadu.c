@@ -126,7 +126,7 @@ char *gg_alloc_sprintf(char *format, ...)
 
 	va_start(ap, format);
 
-	if ((size = vsnprintf(buf, 0, format, ap)) < 0)
+	if ((size = vsprintf(buf, format, ap)) < 0)
 		return NULL;
 
 	if (!(buf = malloc(size + 1)))
