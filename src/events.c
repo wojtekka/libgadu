@@ -85,7 +85,25 @@ void gg_event_free(struct gg_event *e)
 	if (e->type == GG_EVENT_USERLIST)
 		free(e->event.userlist.reply);
 	
+	if (e->type == GG_EVENT_IMAGE_REPLY) {
+		free(e->event.image_reply.filename);
+		free(e->event.image_reply.image);
+	}
+
 	free(e);
+}
+
+/*
+ * gg_image_queue_parse() // funkcja wewnêtrzna
+ *
+ * parsuje przychodz±cy pakiet z obrazkiem.
+ *
+ *  - e - opis zdarzenia
+ *  - 
+ */
+static void gg_image_queue_parse(struct gg_event *e, char *p, int length, struct gg_session *sess)
+{
+	/* XXX dokoñczyæ */
 }
 
 /*
@@ -99,7 +117,7 @@ void gg_event_free(struct gg_event *e)
  *
  * 0, -1.
  */
-static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
+static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg_session *sess)
 {
 	struct gg_recv_msg *r = (struct gg_recv_msg*) ((char*) h + sizeof(struct gg_header));
 	char *p, *packet_end = (char*) r + h->length;
@@ -191,6 +209,49 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 			p += len;
 
+		} else if (*p == 4) {		/* pro¶ba o obrazek */
+
+			struct gg_msg_image_request *i = (void*) p;
+
+			if (p + sizeof(*i) > packet_end) {
+				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+				goto malformed;
+			}
+
+			e->event.image_request.sender = gg_fix32(r->sender);
+			e->event.image_request.size = gg_fix32(i->size);
+			e->event.image_request.crc32 = gg_fix32(i->crc32);
+
+			e->type = GG_EVENT_IMAGE_REQUEST;
+
+			return 0;
+
+		} else if (*p == 5) {
+
+			struct gg_msg_image_reply *i = (void*) p;
+
+			if (p + sizeof(*i) + 1 > packet_end) {
+				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+				goto malformed;
+			}
+
+			gg_image_queue_parse(e, p, (int)(packet_end - p), sess);
+
+			return 0;
+
+		} else if (*p == 6) {
+
+			struct gg_msg_image_reply *i = (void*) p;
+
+			if (p + sizeof(*i) + 1 > packet_end) {
+				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+				goto malformed;
+			}
+
+			gg_image_queue_parse(e, p, (int)(packet_end - p), sess);
+
+			return 0;
+
 		} else {				/* nieznana opcja */
 			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
 			p = packet_end;
@@ -252,7 +313,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_RECV_MSG:
 		{
 			if (h->length >= sizeof(struct gg_recv_msg))
-				if (gg_handle_recv_msg(h, e))
+				if (gg_handle_recv_msg(h, e, sess))
 					goto fail;
 			
 			break;

@@ -675,6 +675,51 @@ char *gg_proxy_auth()
 	return out;
 }
 
+static uint32_t gg_crc32_table[256];
+
+/*
+ * gg_crc32_make_table()  // funkcja wewnêtrzna
+ */
+static void gg_crc32_make_table()
+{
+	uint32_t h;
+	int i, j;
+
+	gg_crc32_table[0] = 0;
+
+	for (i = 128; i; i >>= 1) {
+		h = (h >> 1) ^ ((h & 1) ? 0xedb88320L : 0);
+
+		for (j = 0; j < 256; j += 2 * i)
+			gg_crc32_table[i + j] = gg_crc32_table[j] ^ h;
+	}
+}
+
+/*
+ * gg_crc32()
+ *
+ * wyznacza sumê kontroln± CRC32 danego bloku danych.
+ *
+ *  - crc - suma kontrola poprzedniego bloku danych lub 0 je¶li pierwszy
+ *  - buf - bufor danych
+ *  - size - ilo¶æ danych
+ *
+ * suma kontrolna CRC32.
+ */
+uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
+{
+	if (gg_crc32_table[255] == 0)
+		gg_crc32_make_table();
+
+	crc ^= 0xffffffffL;
+
+	while (len--)
+		crc = (crc >> 8) ^ gg_crc32_table[(crc ^ *buf++) & 0xff];
+
+	return crc ^ 0xffffffffL;
+}
+
+
 /*
  * Local variables:
  * c-indentation-style: k&r
