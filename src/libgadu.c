@@ -611,16 +611,12 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_packet(%p, 0x%.2x, ...)\n", sess, type);
 
-	tmp_length = 0;
+	tmp_length = sizeof(struct gg_header);
 
-	if (!(tmp = malloc(sizeof(struct gg_header)))) {
+	if (!(tmp = malloc(tmp_length))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for packet header\n");
 		return -1;
 	}
-
-	h = (struct gg_header*) tmp;
-	h->type = gg_fix32(type);
-	h->length = gg_fix32(0);
 
 	va_start(ap, type);
 
@@ -634,16 +630,16 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 		if (payload_length < 0)
 			gg_debug(GG_DEBUG_MISC, "// gg_send_packet() invalid payload length (%d)\n", payload_length);
 	
-		if (!(tmp2 = realloc(tmp, sizeof(struct gg_header) + tmp_length + payload_length))) {
-                        gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
+		if (!(tmp2 = realloc(tmp, tmp_length + payload_length))) {
+			gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
 			free(tmp);
 			va_end(ap);
-                        return -1;
-                }
+			return -1;
+		}
 
 		tmp = tmp2;
 		
-		memcpy(tmp + sizeof(struct gg_header) + tmp_length, payload, payload_length);
+		memcpy(tmp + tmp_length, payload, payload_length);
 		tmp_length += payload_length;
 
 		payload = va_arg(ap, void *);
@@ -652,18 +648,17 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	va_end(ap);
 
 	h = (struct gg_header*) tmp;
-	h->length = gg_fix32(tmp_length);
+	h->type = gg_fix32(type);
+	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-                unsigned int i;
-		
-                gg_debug(GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
-                for (i = 0; i < sizeof(struct gg_header) + gg_fix32(h->length); i++)
-                        gg_debug(GG_DEBUG_DUMP, " %.2x", (unsigned char) tmp[i]);
-                gg_debug(GG_DEBUG_DUMP, "\n");
-        }
-	
-	tmp_length += sizeof(struct gg_header);
+		unsigned int i;
+
+		gg_debug(GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
+		for (i = 0; i < tmp_length; ++i)
+			gg_debug(GG_DEBUG_DUMP, " %.2x", (unsigned char) tmp[i]);
+		gg_debug(GG_DEBUG_DUMP, "\n");
+	}
 	
 	if ((res = gg_write(sess, tmp, tmp_length)) < tmp_length) {
 		gg_debug(GG_DEBUG_MISC, "// gg_send_packet() write() failed. res = %d, errno = %d (%s)\n", res, errno, strerror(errno));

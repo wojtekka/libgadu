@@ -348,7 +348,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 	struct sockaddr_in sin;
 	int sock, bound = 0;
 	
-        gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%d, %d);\n", uin, port);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%d, %d);\n", uin, port);
 	
 	if (!uin) {
 		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() invalid arguments\n");
@@ -375,6 +375,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 		else {
 			if (++port == 65535) {
 				gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() no free port found\n");
+				close(sock);
 				return NULL;
 			}
 		}
@@ -382,6 +383,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 
 	if (listen(sock, 10)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() unable to listen (%s)\n", strerror(errno));
+		close(sock);
 		return NULL;
 	}
 	
@@ -390,13 +392,13 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 	if (!(c = malloc(sizeof(*c)))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() not enough memory for struct\n");
 		close(sock);
-                return NULL;
+		return NULL;
 	}
 	memset(c, 0, sizeof(*c));
 
 	c->port = c->id = port;
 	c->fd = sock;
-        c->type = GG_SESSION_DCC_SOCKET;
+	c->type = GG_SESSION_DCC_SOCKET;
 	c->uin = uin;
 	c->timeout = -1;
 	c->state = GG_STATE_LISTENING;
@@ -404,7 +406,6 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 	c->callback = gg_dcc_callback;
 	c->destroy = gg_dcc_free;
 	
-	gg_dcc_ip = INADDR_ANY;	
 	return c;
 }
 
@@ -509,12 +510,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		return NULL;
 	}
 
-        if (!(e = (void*) calloc(1, sizeof(*e)))) {
+	if (!(e = (void*) calloc(1, sizeof(*e)))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() not enough memory\n");
-                return NULL;
-        }
+		return NULL;
+	}
 
-        e->type = GG_EVENT_NONE;
+	e->type = GG_EVENT_NONE;
 
 	if (h->type == GG_SESSION_DCC_SOCKET) {
 		struct sockaddr_in sin;
