@@ -68,13 +68,17 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 	gg_debug(GG_DEBUG_MISC, "-- received a message\n");
 
+	printf("packet=%p\n", h);
+
 	for (p = (void*) r + sizeof(*r); *p; p++) {
 		if (p >= packet_end) {
 			gg_debug(GG_DEBUG_MISC, "-- malformed packet, message out of bounds.\n");
+			errno = EINVAL;
 			goto fail;
 		}
 	}
 	p++;
+	printf("p=%p\npacket:end=%p\n", p, packet_end);
 
 	/* przeanalizuj dodatkowe opcje */
 	while (p < packet_end) {
@@ -88,6 +92,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			
 			if (p > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				errno = EINVAL;
 				goto fail;
 			}
 
@@ -95,6 +100,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			
 			if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+				errno = EINVAL;
 				goto fail;
 			}
 			
@@ -107,6 +113,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			
 			e->event.msg.recipients_count = count;
 
+#if 0
 		} else if (*p == 2) {		/* richtext */
 
 			struct gg_msg_richtext *richtext = (void*) p;
@@ -114,10 +121,13 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			struct gg_msg_format *format;
 			void *tmp;
 			
+			printf("packet:richtext\n");
 			p += sizeof(*richtext);
+			printf("packet:after=%p\n",p);
 			
 			if (p > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				errno = EINVAL;
 				goto fail;
 			}
 
@@ -128,15 +138,15 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 			if (p > packet_end) {
 				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				errno = EINVAL;
 				goto fail;
 			}
 
-			e->event.msg.formats_count++;
-			
 			if (!(tmp = realloc(e->event.msg.formats, (e->event.msg.formats_count + 1) * sizeof(struct gg_msg_format)))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
 				goto fail;
 			}
+			e->event.msg.formats = tmp;
 
 			format = &e->event.msg.formats[e->event.msg.formats_count++];
 			format->position = richtext->position;
@@ -145,7 +155,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			format->color[0] = (color) ? color->red : 0;
 			format->color[1] = (color) ? color->green : 0;
 			format->color[2] = (color) ? color->blue : 0;
-
+#endif
 		} else				/* nieznana opcja */
 			p = packet_end;
 	}
@@ -155,6 +165,8 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	e->event.msg.sender = fix32(r->sender);
 	e->event.msg.time = fix32(r->time);
 	e->event.msg.message = strdup((void*) r + sizeof(*r));
+
+	printf("%d formats\n", e->event.msg.formats_count);
 
 	return 0;
 	
