@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -289,36 +290,43 @@ char *gg_urlencode(char *str)
 /*
  * gg_http_hash()
  *
- * funkcja, która liczy hash dla adresu e-mail i has³a.
+ * funkcja, która liczy hash dla adresu e-mail, has³a i paru innych.
  *
- *  - email - adres email,
- *  - password - has³o.
+ *  - format - format kolejnych parametrów,
+ *  - ... - kolejne parametry.
  *
  * zwraca hash wykorzystywany przy rejestracji i wszelkich
- * manipulacjach w³asnego wpisu w katalogu publicznym.
+ * manipulacjach w³asnego wpisu w katalogu publicznym. ,,format''
+ * zawiera znaki 's' je¶li dany parametr jest ci±giem znaków lub
+ * 'u' je¶li jest numerkiem gg.
  */
-
-int gg_http_hash(unsigned char *email, unsigned char *password)
+int gg_http_hash(char *format, ...)
 {
 	unsigned int a, c;
-	int b, i;
-	b = (-1);
+	va_list ap;
+	int b = -1, i, j;
 
-	if (!email)
-		email = "";
-	if (!password)
-		password = "";
+	va_start(ap, format);
 
-	i = 0;
-	while ((c = (int) email[i++]) != 0) {
-		a = (c ^ b) + (c << 8);
-		b = (a >> 24) | (a << 8);
-	}
+	if (!format)
+		return 0;
+	
+	for (j = 0; j < strlen(format); j++) {
+		unsigned char *arg, buf[16];
 
-	i = 0;
-	while ((c = (int) password[i++]) != 0) {
-		a = (c ^ b) + (c << 8);
-		b = (a >> 24) | (a << 8);
+		if (format[j] == 'u') {
+			snprintf(buf, sizeof(buf), "%ld", va_arg(ap, uin_t));
+			arg = buf;
+		} else {
+			if (!(arg = va_arg(ap, unsigned char*)))
+				arg = "";
+		}	
+
+		i = 0;
+		while ((c = (int) arg[i++]) != 0) {
+			a = (c ^ b) + (c << 8);
+			b = (a >> 24) | (a << 8);
+		}
 	}
 
 	return (b < 0 ? -b : b);

@@ -61,7 +61,7 @@ struct gg_http *gg_register(char *email, char *password, int async)
 	}
 
 	form = gg_alloc_sprintf("pwd=%s&email=%s&code=%u", __pwd, __email,
-			gg_http_hash(email, password));
+			gg_http_hash("ss", email, password));
 
 	free(__pwd);
 	free(__email);
@@ -103,6 +103,82 @@ struct gg_http *gg_register(char *email, char *password, int async)
 }
 
 /*
+ * gg_change_passwd()
+ *
+ * wysy³a ¿±danie zmiany has³a.
+ *
+ *  - uin - numerek,
+ *  - passwd - stare has³o,
+ *  - newpasswd - nowe has³o,
+ *  - newemail - nowy adres e-mail,
+ *  - async - ma byæ asynchronicznie?
+ *
+ * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_http *gg_change_passwd(uin_t uin, char *passwd, char *newpasswd, char *newemail, int async)
+{
+	struct gg_http *h;
+	char *form, *query, *__fmpwd, *__pwd, *__email;
+
+	__fmpwd = gg_urlencode(passwd);
+	__pwd = gg_urlencode(newpasswd);
+	__email = gg_urlencode(newemail);
+
+	if (!__fmpwd || !__pwd || !__email) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+		free(__fmpwd);
+		free(__pwd);
+		free(__email);
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	if (!(form = gg_alloc_sprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("usss", uin, passwd, newpasswd, newemail)))) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+		free(__fmpwd);
+		free(__pwd);
+		free(__email);
+
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	free(__fmpwd);
+	free(__pwd);
+	free(__email);
+	
+	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
+
+        query = gg_alloc_sprintf(
+		"Host: " GG_REGISTER_HOST "\r\n"
+                "Content-Type: application/x-www-form-urlencoded\r\n"
+                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
+                "Content-Length: %d\r\n"
+                "Pragma: no-cache\r\n"
+                "\r\n"
+                "%s",
+                strlen(form), form);
+
+	free(form);
+
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister.asp", query))) {
+		gg_debug(GG_DEBUG_MISC, "=> change, gg_http_connect() failed mysteriously\n");
+                free(query);
+		return NULL;
+	}
+
+	h->type = GG_SESSION_PASSWD;
+
+	free(query);
+
+	if (!async)
+		gg_pubdir_watch_fd(h);
+
+	return h;
+}
+
+/*
  * gg_remind_passwd()
  *
  * wysy³a ¿±danie wys³ania has³a na adres e-mail.
@@ -116,11 +192,9 @@ struct gg_http *gg_register(char *email, char *password, int async)
 struct gg_http *gg_remind_passwd(uin_t uin, int async)
 {
 	struct gg_http *h;
-	char *form, *query, uin_str[16];
+	char *form, *query;
 
-	snprintf(uin_str, sizeof(uin_str), "%ld", uin);
-	
-	if (!(form = gg_alloc_sprintf("userid=%d&code=%u", uin, gg_http_hash(uin_str, NULL)))) {
+	if (!(form = gg_alloc_sprintf("userid=%d&code=%u", uin, gg_http_hash("u", uin)))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
 		errno = ENOMEM;
 		return NULL;
