@@ -428,28 +428,91 @@ int gg_http_hash(const char *format, ...)
 /*
  * gg_gethostbyname() // funkcja pomocnicza
  *
- * odpowiednik gethostbyname() u¿ywaj±cy gethostbyname_r(), gdy potrzebna
- * jest wielobie¿no¶æ. chwilowo korzysta ze zwyk³ego gethostbyname().
+ * odpowiednik gethostbyname() troszcz±cy siê o wspó³bie¿no¶æ, gdy mamy do
+ * dyspozycji funkcjê gethostbyname_r().
  *
  *  - hostname - nazwa serwera
  *
- * zaalokowany bufor, który nale¿y zwolniæ lub NULL w przypadku b³êdu.
+ * zwraca wska¼nik na strukturê in_addr, któr± nale¿y zwolniæ.
  */
-struct hostent *gg_gethostbyname(const char *hostname)
+struct in_addr *gg_gethostbyname(const char *hostname)
 {
-	/* XXX u¿yæ gethostbyname_r() */
+	struct in_addr *addr = NULL;
 
-	struct hostent *hp, *hp2;
+#ifdef HAVE_GETHOSTBYNAME_R
+	char *tmpbuf = NULL, *buf = NULL;
+	struct hostent *hp = NULL, *hp2 = NULL;
+	int h_errnop, ret;
+	size_t buflen = 1024;
+	int new_errno;
+	
+	new_errno = ENOMEM;
+	
+	if (!(addr = malloc(sizeof(struct in_addr))))
+		goto cleanup;
+	
+	if (!(hp = calloc(1, sizeof(*hp))))
+		goto cleanup;
+
+	if (!(buf = malloc(buflen)))
+		goto cleanup;
+
+	tmpbuf = buf;
+	
+	while ((ret = gethostbyname_r(hostname, hp, buf, buflen, &hp2, &h_errnop)) == ERANGE) {
+		buflen *= 2;
+		
+		if (!(tmpbuf = realloc(buf, buflen)))
+			break;
+		
+		buf = tmpbuf;
+	}
+	
+	if (ret)
+		new_errno = h_errnop;
+
+	if (ret || !hp2 || !tmpbuf)
+		goto cleanup;
+	
+	memcpy(addr, hp->h_addr, sizeof(struct in_addr));
+	
+	free(buf);
+	free(hp);
+	
+	return addr;
+	
+cleanup:
+	errno = new_errno;
+	
+	if (addr)
+		free(addr);
+	if (hp)
+		free(hp);
+	if (buf)
+		free(buf);
+	
+	return NULL;
+#else
+	struct hostent *hp;
+
+	if (!(addr = malloc(sizeof(struct in_addr)))) {
+		errno = ENOMEM;
+		goto cleanup;
+	}
 
 	if (!(hp = gethostbyname(hostname)))
-		return NULL;
+		goto cleanup;
 
-	if (!(hp2 = calloc(1, sizeof(*hp))))
-		return NULL;
+	memcpy(addr, hp->h_addr, sizeof(struct in_addr));
 
-	memcpy(hp2, hp, sizeof(*hp));
+	return addr;
+	
+cleanup:
+	if (addr)
+		free(addr);
 
-	return hp2;
+	return NULL;
+#endif
 }
 
 #ifdef ASSIGN_SOCKETS_TO_THREADS

@@ -205,13 +205,13 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 
 	if (!res) {
 		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-			struct hostent *he;
+			struct in_addr *hn;
 		
-			if (!(he = gg_gethostbyname(hostname)))
+			if (!(hn = gg_gethostbyname(hostname)))
 				a.s_addr = INADDR_NONE;
 			else {
-				memcpy((char*) &a, he->h_addr, sizeof(a));
-				free(he);
+				a.s_addr = hn->s_addr;
+				free(hn);
 			}
 		}
 
@@ -241,13 +241,13 @@ static void *gg_resolve_pthread_thread(void *arg)
 	struct in_addr a;
 
 	if ((a.s_addr = inet_addr(d->hostname)) == INADDR_NONE) {
-		struct hostent *he;
+		struct in_addr *hn;
 		
-		if (!(he = gg_gethostbyname(d->hostname)))
+		if (!(hn = gg_gethostbyname(d->hostname)))
 			a.s_addr = INADDR_NONE;
 		else {
-			memcpy((char*) &a, he->h_addr, sizeof(a));
-			free(he);
+			a.s_addr = hn->s_addr;
+			free(hn);
 		}
 	}
 
@@ -816,14 +816,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 		if (!p->server_addr || !p->server_port) {
 			if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-				struct hostent *he;
+				struct in_addr *hn;
 	
-				if (!(he = gg_gethostbyname(hostname))) {
+				if (!(hn = gg_gethostbyname(hostname))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_login() host \"%s\" not found\n", hostname);
 					goto fail;
 				} else {
-					memcpy((char*) &a, he->h_addr, sizeof(a));
-					free(he);
+					a.s_addr = hn->s_addr;
+					free(hn);
 				}
 			}
 		} else {
