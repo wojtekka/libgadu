@@ -55,6 +55,7 @@ void (*gg_debug_handler)(int level, const char *format, va_list ap) = NULL;
 int gg_dcc_port = 0;
 unsigned long gg_dcc_ip = 0;
 
+unsigned long gg_local_ip = 0;
 /*
  * zmienne opisuj±ce parametry proxy http.
  */
