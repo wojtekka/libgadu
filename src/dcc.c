@@ -312,7 +312,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct {
 			struct gg_dcc_big_packet big;
 			struct gg_file_info file_info;
-		} __attribute__ ((packed)) file_info_packet;
+		} 
+#ifdef __GNUC__
+		__attribute__ ((packed))
+#endif
+			file_info_packet;
 		
 		switch (h->state) {
 			case GG_STATE_READING_UIN_1:
