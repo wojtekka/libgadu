@@ -24,8 +24,8 @@ zawieszanie programu na czas ³±czenia.
 		my_error();
 
 je¶li uda siê rozpocz±æ proces ³±czenia, dostajemy wska¼nik do struktury,
-inaczej NULL. wywo³anie gg_login() powoduje uruchomienie drugiego procesu w
-tle, który wywo³a gethostbyname() i przez pipe'a zwróci wynik. pó¼niej
+inaczej NULL. wywo³anie gg_login() powoduje uruchomienie drugiego procesu
+w tle, który wywo³a gethostbyname() i przez pipe'a zwróci wynik. pó¼niej
 po³±czy siê z serwerem, wy¶le, odbierze, po³±czy siê ze wskazanym adresem
 IP, zaloguje siê itd. jako ¿e wszystko dziejê siê w tle, klient musi
 sprawdzaæ ca³y czas podane deskryptory. pole ,,blah->fd'' zawiera
@@ -62,7 +62,7 @@ sam dopisze. poza tym, je¶li program sprawdza te¿ inne deskryptory
 jak np. stdin dla klientów konsolowych, dobrze by³oby sprawdziæ, czy
 dana sesja co¶ robi i nie sprawdzaæ ,,blah->fd'' je¶li
 ,,blah->state == GG_STATE_IDLE''. no i od czasu do czasu mo¿na by
-dawaæ znaæ serwerowi, ¿e co¶ siê dzieje za pomoc±...
+dawaæ znaæ serwerowi, ¿e co¶ siê dzieje, za pomoc±...
 
 	gg_ping(blah);
 
@@ -148,7 +148,7 @@ mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
 którego mo¿emy u¿yæ do potwierdzenia.
 
-biblioteka libgadu.c wymaga zdefiniowania / albo i nie WORDS_BIGENDIAN.
+biblioteka libgadu.c wymaga zdefiniowania, albo i nie, WORDS_BIGENDIAN.
 jest ona definiowana [albo i nie] przez skrypt configure - i jest definiowana
 [#define WORDS_BIGENDIAN 1] gdy mamy maszynê bigendianow±.
 
