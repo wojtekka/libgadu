@@ -893,6 +893,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			e->event.msg.msgclass = fix32(r->msgclass);
 			e->event.msg.sender = fix32(r->sender);
 			e->event.msg.message = strdup((char*) r + sizeof(*r));
+			e->event.msg.time = fix32(r->time);
 		}
 	}
 
