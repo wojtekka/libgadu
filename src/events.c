@@ -94,6 +94,46 @@ void gg_event_free(struct gg_event *e)
 }
 
 /*
+ * gg_image_queue_remove()
+ *
+ * usuwa z kolejki dany wpis.
+ *
+ *  - s - sesja
+ *  - q - kolejka
+ *  - freeq - czy zwolniæ kolejkê
+ *
+ * 0/-1
+ */
+int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq)
+{
+	if (!s || !q) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (s->images == q)
+		s->images = q->next;
+	else {
+		struct gg_image_queue *qq;
+
+		for (qq = s->images; qq; qq = qq->next) {
+			if (qq->next == q) {
+				qq->next = q->next;
+				break;
+			}
+		}
+	}
+
+	if (freeq) {
+		free(q->image);
+		free(q->filename);
+		free(q);
+	}
+
+	return 0;
+}
+
+/*
  * gg_image_queue_parse() // funkcja wewnêtrzna
  *
  * parsuje przychodz±cy pakiet z obrazkiem.
@@ -101,9 +141,77 @@ void gg_event_free(struct gg_event *e)
  *  - e - opis zdarzenia
  *  - 
  */
-static void gg_image_queue_parse(struct gg_event *e, char *p, int length, struct gg_session *sess)
+static void gg_image_queue_parse(struct gg_event *e, char *p, int len, struct gg_session *sess, uin_t sender)
 {
-	/* XXX dokoñczyæ */
+	struct gg_msg_image_reply *i = (void*) p;
+	struct gg_image_queue *q, *qq;
+
+	if (!p || !sess || !e)
+		return;
+
+	/* znajd¼ dany obrazek w kolejce danej sesji */
+	
+	for (qq = sess->images, q = NULL; qq; qq = qq->next) {
+		if (sender == qq->sender && i->size == qq->size && i->crc32 == qq->crc32) {
+			q = qq;
+			break;
+		}
+	}
+
+	if (!q) {
+		gg_debug(GG_DEBUG_MISC, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.4x\n", sender, i->size, i->crc32);
+		return;
+	}
+
+	if (p[0] == 0x05) {
+		int i, ok = 0;
+		
+		/* sprawd¼, czy mamy tekst zakoñczony \0 */
+
+		for (i = 0; i < len; i++) {
+			if (!p[0]) {
+				ok = 1;
+				break;
+			}
+		}
+
+		if (!ok) {
+			gg_debug(GG_DEBUG_MISC, "// gg_image_queue_parse() malformed packet from %d, unlimited filename\n", sender);
+			return;
+		}
+
+		if (!(q->filename = strdup(p))) {
+			gg_debug(GG_DEBUG_MISC, "// gg_image_queue_parse() not enough memory for filename\n");
+			return;
+		}
+
+		len -= strlen(p) + 1;
+		p += strlen(p) + 1;
+	} else {
+		len -= sizeof(struct gg_msg_image_reply);
+		p += sizeof(struct gg_msg_image_reply);
+	}
+
+	if (q->done + len > q->size)
+		len = q->size - q->done;
+		
+	memcpy(q->image + q->done, p, len);
+	q->done += len;
+
+	/* je¶li skoñczono odbieraæ obrazek, wygeneruj zdarzenie */
+
+	if (q->done >= q->size) {
+		e->type = GG_EVENT_IMAGE_REPLY;
+		e->event.image_reply.sender = sender;
+		e->event.image_reply.size = q->size;
+		e->event.image_reply.crc32 = q->crc32;
+		e->event.image_reply.filename = q->filename;
+		e->event.image_reply.image = q->image;
+
+		gg_image_queue_remove(sess, q, 0);
+
+		free(q);
+	}
 }
 
 /*
@@ -130,131 +238,127 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 		return 0;
 	}
 	
-	gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet=%p\n", h);
-
 	for (p = (char*) r + sizeof(*r); *p; p++) {
 		if (*p == 0x02 && p == packet_end - 1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
 			break;
 		}
 		if (p >= packet_end) {
-			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds\n");
+			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds (0)\n");
 			goto malformed;
 		}
 	}
+	
 	p++;
-	gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() p=%p, packet:end=%p\n", p, packet_end);
 
 	/* przeanalizuj dodatkowe opcje */
 	while (p < packet_end) {
-		
-		if (*p == 1) {			/* konferencje */
-
-			struct gg_msg_recipients *m = (void*) p;
-			int i, count;
+		switch (*p) {
+			case 0x01:		/* konferencja */
+			{
+				struct gg_msg_recipients *m = (void*) p;
+				uint32_t i, count;
 			
-			p += sizeof(*m);
+				p += sizeof(*m);
 			
-			if (p > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1)\n");
-				goto malformed;
-			}
+				if (p > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1)\n");
+					goto malformed;
+				}
 
-			count = gg_fix32(m->count);
+				count = gg_fix32(m->count);
+
+				if (p + count * sizeof(uin_t) > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1.5)\n");
+					goto malformed;
+				}
 			
-			if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for recipients data\n");
-				errno = EINVAL;
-				goto fail;
-			}
+				if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for recipients data\n");
+					errno = ENOMEM;
+					goto fail;
+				}
 			
-			memcpy(e->event.msg.recipients, p, sizeof(uin_t) * count);
-
-			p += sizeof(uin_t) * count;
-
-			for (i = 0; i < count; i++)
-				e->event.msg.recipients[i] = gg_fix32(e->event.msg.recipients[i]);
-			
-			e->event.msg.recipients_count = count;
-
-		} else if (*p == 2) {		/* richtext */
-
-			unsigned short len;
-			void *tmp;
-			
-			if (p + 3 > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (2)\n");
-				goto malformed;
-			}
-
-			len = gg_fix16(*((unsigned short*) (p + 1)));
-			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() p = %p, packetend = %p, len = %d\n", p, packet_end, len);
-
-			if (!(tmp = malloc(len))) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for richtext data\n");
-				goto fail;
-			}
-
-			p += 3;
-
-			if (p + len > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-				goto malformed;
-			}
+				for (i = 0; i < count; i++, p += sizeof(uin_t))
+					e->event.msg.recipients[i] = gg_fix32(*((uint32_t*) p));
 				
-			memcpy(tmp, p, len);
-
-			e->event.msg.formats = tmp;
-			e->event.msg.formats_length = len;
-
-			p += len;
-
-		} else if (*p == 4) {		/* pro¶ba o obrazek */
-
-			struct gg_msg_image_request *i = (void*) p;
-
-			if (p + sizeof(*i) > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-				goto malformed;
+				e->event.msg.recipients_count = count;
+				
+				break;
 			}
 
-			e->event.image_request.sender = gg_fix32(r->sender);
-			e->event.image_request.size = gg_fix32(i->size);
-			e->event.image_request.crc32 = gg_fix32(i->crc32);
+			case 0x02:		/* richtext */
+			{
+				unsigned short len;
+				char *buf;
+			
+				if (p + 3 > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (2)\n");
+					goto malformed;
+				}
 
-			e->type = GG_EVENT_IMAGE_REQUEST;
+				len = gg_fix16(*((unsigned short*) (p + 1)));
 
-			return 0;
+				if (!(buf = malloc(len))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for richtext data\n");
+					errno = ENOMEM;
+					goto fail;
+				}
 
-		} else if (*p == 5) {
+				p += 3;
 
-			struct gg_msg_image_reply *i = (void*) p;
+				if (p + len > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+					free(buf);
+					goto malformed;
+				}
+				
+				memcpy(buf, p, len);
 
-			if (p + sizeof(*i) + 1 > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-				goto malformed;
+				e->event.msg.formats = buf;
+				e->event.msg.formats_length = len;
+
+				p += len;
+
+				break;
 			}
 
-			gg_image_queue_parse(e, p, (int)(packet_end - p), sess);
+			case 0x04:		/* image_request */
+			{
+				struct gg_msg_image_request *i = (void*) p;
 
-			return 0;
+				if (p + sizeof(*i) > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+					goto malformed;
+				}
 
-		} else if (*p == 6) {
+				e->event.image_request.sender = gg_fix32(r->sender);
+				e->event.image_request.size = gg_fix32(i->size);
+				e->event.image_request.crc32 = gg_fix32(i->crc32);
 
-			struct gg_msg_image_reply *i = (void*) p;
+				e->type = GG_EVENT_IMAGE_REQUEST;
 
-			if (p + sizeof(*i) + 1 > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-				goto malformed;
+				return 0;
 			}
 
-			gg_image_queue_parse(e, p, (int)(packet_end - p), sess);
+			case 0x05:		/* image_reply */
+			case 0x06:
+			{
+				if (p + sizeof(struct gg_msg_image_reply) + 1 > packet_end) {
+					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (4)\n");
+					goto malformed;
+				}
 
-			return 0;
+				gg_image_queue_parse(e, p, (int)(packet_end - p), sess, gg_fix32(r->sender));
 
-		} else {				/* nieznana opcja */
-			gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
-			p = packet_end;
+				return 0;
+			}
+
+			default:
+			{
+				gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
+				p = packet_end;
+			}
 		}
 	}
 
@@ -338,6 +442,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				
 				if (!(e->event.notify_descr.notify = (void*) malloc(sizeof(*n) * 2))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+					errno = ENOMEM;
 					goto fail;
 				}
 				e->event.notify_descr.notify[1].uin = 0;
@@ -349,6 +454,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				count = h->length - sizeof(*n);
 				if (!(tmp = malloc(count + 1))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+					errno = ENOMEM;
 					goto fail;
 				}
 				memcpy(tmp, p + sizeof(*n), count);
@@ -360,6 +466,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				
 				if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+					errno = ENOMEM;
 					goto fail;
 				}
 				

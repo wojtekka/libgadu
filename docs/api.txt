@@ -323,6 +323,49 @@ zawarto¶æ listy kontaktów znajdziemy w polu ,,reply''.
 
 ***
 
+WIADOMO¦CI GRAFICZNE
+
+informacje o obrazku s± zawarte w bloku wiadomo¶ci dotycz±cym formatowania
+tekstu. dla danego znaku tekstu pole ,,font'' zawiera GG_FONT_IMAGE i zaraz
+potem znajduje siê struktura gg_msg_richtext_image, np.
+
+  0x00	koniec wiadomo¶ci
+  0x02	.flag = 0x02				gg_msg_richtext
+  0x0d	.length = 0x000d			|
+  0x00  |					|
+  0x00  .position = 0x00			gg_msg_richtext_format
+  0x00  |					|
+  0x80  font = GG_FONT_IMAGE 			|
+  0x90	.unknown1 = 0x0190			gg_msg_richtext_image
+  0x01	|					|
+  0x12	.size = 0x3412				|
+  0x34	|					|
+  0x00	|					|
+  0x00	|					|
+  0x56	.crc32 = 0x7856				|
+  0x78	|					|
+  0x00	|					|
+  0x00	|					|
+
+wiemy zatem, ¿e obrazek ma d³ugo¶æ 0x3412 i sumê kontroln± 0x7856. je¶li
+nie mamy takiego obrazka zapisanego u siebie, wywo³ujemy funkcjê:
+
+	gg_image_request(sesja, nadawca, rozmiar, suma_kontrolna);
+
+i czekam na zdarzenie GG_EVENT_IMAGE_REPLY, w którym wa¿ne s± dla nas
+pola .size, .crc32, .filename (nazwa obrazka), .image (tre¶æ obrazka).
+rodzaj pliku graficznego nie jest okre¶lony przy transmisji. libgadu
+ignoruje wszystkie obrazki, które nie by³y zamówione, ¿eby unikn±æ
+zajêcia ca³ej dostêpnej pamiêci, gdy kto¶ nieustannie wysy³a nam ró¿ne
+obrazki.
+
+je¶li wysy³amy wiadomo¶æ graficzn± musimy obs³ugiwaæ zdarzenie
+GG_EVENT_IMAGE_REQUEST. w polach .size i .crc32 s± informacje o
+obrazku, którego potrzebuje nasz rozmówca. API biblioteki nie zawiera
+jeszcze funkcji do wysy³ania obrazków.
+
+***
+
 BEZPO¦REDNIE PO£¡CZENIA
 
 gadu-gadu, w przeciwieñstwie do irc, umo¿liwia po³±czenia w obie strony,
