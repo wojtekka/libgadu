@@ -35,7 +35,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
 	LDFLAGS="$lib -lcrypto"
 	AC_CHECK_LIB(ssl, RSA_new, [
 	  AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-	  have_openssl=true
+	  have_openssl=yes
 	  OPENSSL_LIBS="$lib -lcrypto"
 	  if test "x$incl" != "x/usr/include"; then
     	    OPENSSL_INCLUDES="-I$incl"
@@ -47,7 +47,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
     done
   fi
 
-  if test "x$have_openssl" != "xtrue"; then
+  if test "x$have_openssl" != "xyes"; then
     AC_MSG_RESULT(not found)
   fi
 ])
