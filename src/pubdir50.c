@@ -298,6 +298,10 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 			break;
 	}
 
+	/* brak wyników? */
+	if (length == 5)
+		return 0;
+
 	/* pomiñ pocz±tek odpowiedzi */
 	p = packet + 5;
 
