@@ -744,6 +744,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		for (i = 0; i < count; i++) {
 			e->event.notify[i].uin = fix32(e->event.notify[i].uin);
 			e->event.notify[i].status = fix32(e->event.notify[i].status);
+			e->event.notify[i].remote_ip = fix32(e->event.notify[i].remote_ip);		
+			e->event.notify[i].remote_port = fix16(e->event.notify[i].remote_port);		
 		}
 	}
 
