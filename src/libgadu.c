@@ -36,8 +36,8 @@
 #include <stdarg.h>
 #include <pwd.h>
 #include <time.h>
-#include "endian.h"
 #include "libgg.h"
+#include "config.h"
 
 int gg_debug_level = 0;
 
@@ -79,7 +79,7 @@ void gg_debug(int level, char *format, ...)
  */
 static inline unsigned long fix32(unsigned long x)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
 	return x;
 #else
 	return (unsigned long)
@@ -97,7 +97,7 @@ static inline unsigned long fix32(unsigned long x)
  */
 static inline unsigned short fix16(unsigned short x)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#ifndef WORDS_BIGENDIAN
 	return x;
 #else
 	return (unsigned short)
@@ -147,6 +147,40 @@ char *gg_alloc_sprintf(char *format, ...)
         va_end(ap);
 
         return buf;
+}
+
+/*
+ * gg_get_line() // funkcja wewnêtrzna
+ * 
+ * podaje kolejn± liniê z bufora tekstowego. psuje co bezpowrotnie, dziel±c
+ * na kolejne stringi. zdarza siê, nie ma potrzeby pisania funkcji dubluj±cej
+ * bufor ¿eby tylko mieæ nieruszone dane wej¶ciowe, skoro i tak nie bêd± nam
+ * po¼niej potrzebne. obcina `\r\n'.
+ * 
+ *  - ptr - wska¼nik do zmiennej, która przechowuje aktualn± pozycjê
+ *    w przemiatanym buforze.
+ * 
+ * wska¼nik do kolejnej linii tekstu lub NULL, je¶li to ju¿ koniec bufora.
+ */
+char *gg_get_line(char **ptr)
+{
+        char *foo, *res;
+
+        if (!ptr || !*ptr || !strcmp(*ptr, ""))
+                return NULL;
+
+        res = *ptr;
+
+        if (!(foo = strchr(*ptr, '\n')))
+                *ptr += strlen(*ptr);
+        else {
+                *ptr = foo + 1;
+                *foo = 0;
+                if (res[strlen(res) - 1] == '\r')
+                        res[strlen(res) - 1] = 0;
+        }
+
+        return res;
 }
 
 /*
