@@ -351,6 +351,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	sess->last_pong = 0;
 	sess->server_ip = 0;
 	sess->initial_status = 0;
+        sess->type = GG_SESSION_GG;
 	
 	if (gg_http_use_proxy) {
 		hostname = gg_http_proxy_host;
@@ -386,7 +387,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 			return NULL;
 		}
 
-		sess->state = GG_STATE_CONNECTING_HTTP;
+		sess->state = GG_STATE_CONNECTING;
 
 		while (sess->state != GG_STATE_CONNECTED) {
 			struct gg_event *e;
@@ -873,19 +874,19 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
 			} else {
-				sess->state = GG_STATE_CONNECTING_HTTP;
+				sess->state = GG_STATE_CONNECTING;
 				sess->check = GG_CHECK_WRITE;
 			}
 				
 			break;
 		}
 
-		case GG_STATE_CONNECTING_HTTP:
+		case GG_STATE_CONNECTING:
 		{
 			char buf[1024];
 			int res, res_size = sizeof(res);
 
-			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING_HTTP\n");
+			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING\n");
 
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
@@ -938,19 +939,19 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 
-			sess->state = GG_STATE_WRITING_HTTP;
+			sess->state = GG_STATE_READING_DATA;
 			sess->check = GG_CHECK_READ;
 
 			break;
 		}
 
-		case GG_STATE_WRITING_HTTP:
+		case GG_STATE_READING_DATA:
 		{
 			char buf[1024], *tmp, *host;
 			int port = GG_DEFAULT_PORT;
 			struct in_addr a;
 
-			gg_debug(GG_DEBUG_MISC, "== GG_STATE_WRITING_HTTP\n");
+			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
 
 			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 			gg_chomp(buf);
@@ -1043,13 +1044,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug(GG_DEBUG_MISC, "-- connected\n");
 			
-			sess->state = GG_STATE_WAITING_FOR_KEY;
+			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 
 			break;
 		}
 
-		case GG_STATE_WAITING_FOR_KEY:
+		case GG_STATE_READING_KEY:
 		{
 			struct gg_header *h;			
 			struct gg_welcome *w;
@@ -1057,7 +1058,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			unsigned int hash;
 			char *password = sess->password;
 
-			gg_debug(GG_DEBUG_MISC, "== GG_STATE_WAITING_FOR_KEY\n");
+			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_KEY\n");
 
 			if (!(h = gg_recv_packet(sess))) {
 				gg_debug(GG_DEBUG_MISC, "-- gg_recv_packet() failed. errno = %d (%s)\n", errno, strerror(errno));
@@ -1114,16 +1115,16 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 	
-			sess->state = GG_STATE_SENDING_KEY;
+			sess->state = GG_STATE_READING_REPLY;
 
 			break;
 		}
 
-		case GG_STATE_SENDING_KEY:
+		case GG_STATE_READING_REPLY:
 		{
 			struct gg_header *h;
 
-			gg_debug(GG_DEBUG_MISC, "== GG_STATE_SENDING_KEY\n");
+			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_REPLY\n");
 
 			if (!(h = gg_recv_packet(sess))) {
 				gg_debug(GG_DEBUG_MISC, "-- recv_packet failed\n");
@@ -1193,5 +1194,5 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
  * indent-tabs-mode: notnil
  * End:
  *
- * vim: expandtab shiftwidth=8:
+ * vim: shiftwidth=8:
  */

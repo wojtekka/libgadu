@@ -261,7 +261,7 @@ char *gg_urlencode(char *str)
 	int size = 0;
 
 	if (!str)
-		str = "";
+		str = strdup("");
 
 	for (p = str; *p; p++, size++) {
 		if ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9'))
@@ -326,5 +326,5 @@ int gg_http_hash(unsigned char *email, unsigned char *password)
  * indent-tabs-mode: notnil
  * End:
  *
- * vim: expandtab shiftwidth=8:
+ * vim: shiftwidth=8:
  */
