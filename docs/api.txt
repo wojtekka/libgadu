@@ -1,6 +1,6 @@
 // jaki¶tam sobie opis API libgg
-// (c) copyright 2001 by wojtek kaniewski <wojtekka@irc.pl>
-//			 robert j. wozny <speedy@ziew.org>
+// (c) copyright 2001-2002 by wojtek kaniewski <wojtekka@irc.pl>
+//			      robert j. wozny <speedy@ziew.org>
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
 w ramach jednego procesu/w±tku obs³ugiwaæ tyle sesji, na ile pozwol±

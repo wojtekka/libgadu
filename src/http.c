@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License Version 2 as
@@ -72,8 +72,6 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 				method, path, header);
 	}
 
-        gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
-
 	if (!h->query) {
                 gg_debug(GG_DEBUG_MISC, "// gg_http_connect() not enough memory for query\n");
 		free(h);
@@ -81,6 +79,8 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 		return NULL;
 	}
 	
+	gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
+
 	h->async = async;
 	h->port = port;
 	h->fd = -1;

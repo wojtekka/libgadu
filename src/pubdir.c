@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License Version 2 as
@@ -347,7 +347,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 }
 
 /*
- * gg_free_register()
+ * gg_free_pubdir()
  *
  * zwalnia pamiêæ po efektach zabawy z katalogiem publicznym.
  *
@@ -362,6 +362,29 @@ void gg_free_pubdir(struct gg_http *h)
 	
 	free(h->data);
 	gg_free_http(h);
+}
+
+/*
+ * gg_free_modify()
+ *
+ * zwalnia pamiêæ zajmowan± przez strukturê gg_modify i jej pola.
+ *
+ *  - m - to co¶, co nie jest ju¿ nam potrzebne.
+ *
+ * nie zwraca niczego. 
+ */
+void gg_free_modify(struct gg_modify *m)
+{
+	if (!m)
+		return;
+
+	free(m->first_name);
+	free(m->last_name);
+	free(m->nickname);
+	free(m->email);
+	free(m->city);
+	
+	free(m);
 }
 
 /*
