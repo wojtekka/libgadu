@@ -759,10 +759,17 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				big.type = gg_fix32(big.type);
 				h->chunk_size = gg_fix32(big.dunno1);
 				h->chunk_offset = 0;
-				
+
 				if (big.type == 0x0005)	{ /* XXX */
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() transfer refused\n");
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_REFUSED;
+					return e;
+				}
+
+				if (h->chunk_size == 0) { 
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() empty chunk, EOF\n");
+					e->type = GG_EVENT_DCC_DONE;
 					return e;
 				}
 
@@ -1106,6 +1113,21 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->check = GG_CHECK_WRITE;
 
 				return e;
+
+			case 1000:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_AFTERLIFE\n");
+
+				size = read(h->fd, buf, sizeof(buf));
+
+				gg_dcc_debug_data("read", h->fd, buf, size);
+
+				if (size == 0) {
+					e->type = GG_EVENT_DCC_DONE;
+					return e;
+				}
+
+				break;
+				
 				
 			case GG_STATE_GETTING_FILE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_GETTING_FILE\n");
@@ -1148,7 +1170,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->offset += size;
 				
 				if (h->offset >= h->file_info.size) {
+#if 0
 					e->type = GG_EVENT_DCC_DONE;
+					return e;
+#endif
+					h->state = 1000;
+					h->check = GG_CHECK_READ;
 					return e;
 				}
 
