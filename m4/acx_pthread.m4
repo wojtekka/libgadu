@@ -1,8 +1,8 @@
 dnl Available from the GNU Autoconf Macro Archive at:
 dnl http://www.gnu.org/software/ac-archive/htmldoc/acx_pthread.html
 dnl
-dnl Slightly modified by Wojtek Kaniewski <wojtekka@irc.pl>
-dnl -- removed AC_CANONICAL_HOST dependency
+dnl Slightly modified by Wojtek Kaniewski <wojtekka@irc.pl> to remove
+dnl dependency from AC_CANONICAL_HOST
 dnl
 AC_DEFUN([ACX_PTHREAD], [
 AC_LANG_SAVE
@@ -61,20 +61,22 @@ acx_pthread_flags="pthreads none -Kthread -kthread lthread -pthread -pthreads -m
 # pthread: Linux, etcetera
 # --thread-safe: KAI C++
 
-#case "${host_cpu}-${host_os}" in
-#       *solaris*)
-#
-#        # On Solaris (at least, for some versions), libc contains stubbed
-#        # (non-functional) versions of the pthreads routines, so link-based
-#        # tests will erroneously succeed.  (We need to link with -pthread or
-#        # -lpthread.)  (The stubs are missing pthread_cleanup_push, or rather
-#        # a function called by this macro, so we could check for that, but
-#        # who knows whether they'll stub that too in a future libc.)  So,
-#        # we'll just look for -pthreads and -lpthread first:
-#
-#        acx_pthread_flags="-pthread -pthreads pthread -mt $acx_pthread_flags"
-#        ;;
-#esac
+UNAME_SYSTEM=`(uname -s) 2> /dev/null` || UNAME_SYSTEM=unknown
+
+case "$UNAME_SYSTEM" in
+        *SunOS*)
+
+        # On Solaris (at least, for some versions), libc contains stubbed
+        # (non-functional) versions of the pthreads routines, so link-based
+        # tests will erroneously succeed.  (We need to link with -pthread or
+        # -lpthread.)  (The stubs are missing pthread_cleanup_push, or rather
+        # a function called by this macro, so we could check for that, but
+        # who knows whether they'll stub that too in a future libc.)  So,
+        # we'll just look for -pthreads and -lpthread first:
+
+        acx_pthread_flags="-pthread -pthreads pthread -mt $acx_pthread_flags"
+        ;;
+esac
 
 if test x"$acx_pthread_ok" = xno; then
 for flag in $acx_pthread_flags; do
@@ -156,16 +158,16 @@ if test "x$acx_pthread_ok" = xyes; then
                 AC_MSG_WARN([we do not know how to create joinable pthreads])
         fi
 
-#        AC_MSG_CHECKING([if more special flags are required for pthreads])
-#        flag=no
-#        case "${host_cpu}-${host_os}" in
-#                *-aix* | *-freebsd*)     flag="-D_THREAD_SAFE";;
-#                *solaris* | *-osf* | *-hpux*) flag="-D_REENTRANT";;
-#        esac
-#        AC_MSG_RESULT(${flag})
-#        if test "x$flag" != xno; then
-#                PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
-#        fi
+        AC_MSG_CHECKING([if more special flags are required for pthreads])
+        flag=no
+	case "$UNAME_SYSTEM" in 
+                *AIX* | *FreeBSD*)     flag="-D_THREAD_SAFE";;
+                *SunOS* | *OSF* | *HP-UX*) flag="-D_REENTRANT";;
+        esac
+        AC_MSG_RESULT(${flag})
+        if test "x$flag" != xno; then
+                PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
+        fi
 
         LIBS="$save_LIBS"
         CFLAGS="$save_CFLAGS"
