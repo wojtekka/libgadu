@@ -178,6 +178,8 @@ static void gg_image_queue_parse(struct gg_event *e, char *p, int len, struct gg
 	if (p[0] == 0x05) {
 		int i, ok = 0;
 		
+		q->done = 0;
+
 		len -= sizeof(struct gg_msg_image_reply);
 		p += sizeof(struct gg_msg_image_reply);
 
