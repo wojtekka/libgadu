@@ -1163,6 +1163,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 
 			a.s_addr = inet_addr(host);
+			sess->server_ip = a.s_addr;
 
 			if ((sess->fd = gg_connect(&a, port, sess->async)) == -1) {
 				gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
@@ -1186,13 +1187,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING_GG\n");
 
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
+				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
 
-				errno = res;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_CONNECTING;
-				sess->state = GG_STATE_IDLE;
-				break;
+				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
+				if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
+				    gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
+				    
+				    errno = res;
+				    e->type = GG_EVENT_CONN_FAILED;
+				    e->event.failure = GG_FAILURE_CONNECTING;
+				    sess->state = GG_STATE_IDLE;
+				    break;
+				}
 			}
 
 			gg_debug(GG_DEBUG_MISC, "-- connected\n");
