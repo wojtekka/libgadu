@@ -241,6 +241,8 @@ static void *gg_resolve_pthread_thread(void *arg)
 	struct gg_resolve_pthread_data *d = arg;
 	struct in_addr a;
 
+	pthread_detach(pthread_self());
+
 	if ((a.s_addr = inet_addr(d->hostname)) == INADDR_NONE) {
 		struct in_addr *hn;
 		
