@@ -25,6 +25,6 @@ kilka uwag co do przeno¶no¶ci kodu:
    zapisana do bufora, gdyby starczy³o miejsca.
 
 6) trzeba uwa¿aæ na kolejno¶æ bajtów, je¶li pisze siê lub czyta binarne
-   warto¶ci liczbowe w plików lub gniazd.
+   warto¶ci liczbowe z plików lub gniazd.
 
 $Id$

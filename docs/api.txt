@@ -146,7 +146,8 @@ libgadu.c, libgadu.h i ¼róde³ konsolowego klienta. je¶li dodajemy lub
 usuwamy kogo¶ w trakcie dzia³ania, nale¿y skorzystaæ z ,,gg_add_notify()''
 lub ,,gg_remove_notify()''.
 
-¿eby zmieniæ stan na zajêty lub dostêpny, u¿ywamy ,,gg_change_status()''.
+¿eby zmieniæ stan na zajêty lub dostêpny, u¿ywamy ,,gg_change_status()''
+lub ,,gg_change_status_descr()''.
 
 wysy³anie wiadomo¶ci za pomoc± ,,gg_send_message()''. parametr ,,class''
 mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
