@@ -732,7 +732,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		case GG_STATE_CONNECTING_GG:
 		{
-			int res, res_size = sizeof(res);
+			int res = 0, res_size = sizeof(res);
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
 
