@@ -783,7 +783,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 	p = (void*) h + sizeof(struct gg_header);
 	
 	switch (h->type) {
-		case GG_RECV_MSG: {
+		case GG_RECV_MSG:
+		{
 			struct gg_recv_msg *r = p;
 
 			gg_debug(GG_DEBUG_MISC, "-- received a message\n");
@@ -821,7 +822,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_NOTIFY_REPLY: {
+		case GG_NOTIFY_REPLY:
+		{
 			struct gg_notify_reply *n = p;
 			int count, i;
 
@@ -845,7 +847,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_STATUS: {
+		case GG_STATUS:
+		{
 			struct gg_status *s = p;
 
 			gg_debug(GG_DEBUG_MISC, "-- received a status change\n");
@@ -860,7 +863,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_SEND_MSG_ACK: {
+		case GG_SEND_MSG_ACK:
+		{
 			struct gg_send_msg_ack *s = p;
 
 			gg_debug(GG_DEBUG_MISC, "-- received a message ack\n");
@@ -875,7 +879,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_PONG: {
+		case GG_PONG: 
+		{
 			gg_debug(GG_DEBUG_MISC, "-- received a pong\n");
 
 			e->type = GG_EVENT_PONG;
@@ -884,8 +889,14 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_DISCONNECTING:
+		{
+			gg_debug(GG_DEBUG_MISC, "-- received disconnection warning\n");
+			break;
+		}
+
 		default:
-			gg_debug(GG_DEBUG_MISC, "-- received unknown packet 0x%.2b\n", h->type);
+			gg_debug(GG_DEBUG_MISC, "-- received unknown packet 0x%.2x\n", h->type);
 	}
 	
 	free(h);
