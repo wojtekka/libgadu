@@ -38,7 +38,7 @@
 #include <pwd.h>
 #include <time.h>
 #ifdef sun
-  #include <sys/filio.h>
+#  include <sys/filio.h>
 #endif
 #include "config.h"
 #include "libgadu.h"
