@@ -272,7 +272,7 @@ int gg_connect(void *addr, int port, int async)
 /*
  * gg_read_line() // funkcja pomocnicza
  *
- * czyta jedn± liniê tekstu z gniazda
+ * czyta jedn± liniê tekstu z gniazda.
  *
  *  - sock - deskryptor gniazda
  *  - buf - wska¼nik do bufora
@@ -286,7 +286,11 @@ char *gg_read_line(int sock, char *buf, int length)
 
 	for (; length > 1; buf++, length--) {
 		do {
-			if ((ret = read(sock, buf, 1)) < 1 && errno != EINTR) {
+			if ((ret = read(sock, buf, 1)) == -1 && errno != EINTR) {
+				gg_debug(GG_DEBUG_MISC, "// gg_read_line() error on read (errno=%d, %s)\n", errno, strerror(errno));
+				*buf = 0;
+				return NULL;
+			} else if (ret == 0) {
 				gg_debug(GG_DEBUG_MISC, "// gg_read_line() eof reached\n");
 				*buf = 0;
 				return NULL;
