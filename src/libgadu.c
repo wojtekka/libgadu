@@ -1,8 +1,8 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>,
- *                          Robert J. Wo¼ny <speedy@ziew.org>,
+ *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *                          Robert J. Wo¼ny <speedy@ziew.org>
  *                          Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
  *                          Tomasz Chiliñski <chilek@chilan.com>
  *
