@@ -525,6 +525,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	sess->seq = 0;
 	sess->recv_left = 0;
 	sess->last_pong = 0;
+	sess->server_ip = 0;
 
 	if (async) {
 		if (gg_resolve(&sess->fd, &sess->pid, GG_APPMSG_HOST)) {
@@ -1021,6 +1022,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				break;
 			}
+			
+			sess->server_ip = a.s_addr;
 
 			close(sess->fd);
 
@@ -1029,17 +1032,26 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "-- resolved, now connecting\n");
 
 			if ((sess->fd = gg_connect(&a, GG_APPMSG_PORT, sess->async)) == -1) {
-				gg_debug(GG_DEBUG_MISC, "-- connection failed\n");
+				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
+				
+				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying direct connection\n");
 
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_CONNECTING;
-				sess->state = GG_STATE_IDLE;
-				break;
+				if ((sess->fd = gg_connect(addr, GG_DEFAULT_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					sess->state = GG_STATE_IDLE;
+					break;
+				}
+
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+			} else {
+				sess->state = GG_STATE_CONNECTING_HTTP;
+				sess->check = GG_CHECK_WRITE;
 			}
-
-			sess->state = GG_STATE_CONNECTING_HTTP;
-			sess->check = GG_CHECK_WRITE;
-
+				
 			break;
 		}
 
@@ -1051,17 +1063,24 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING_HTTP\n");
 
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				gg_debug(GG_DEBUG_MISC, "-- http connection failed, errno = %d (%s)\n", res, strerror(res));
+				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
+				gg_debug(GG_DEBUG_MISC, "-- http connection failed, errno = %d (%s), trying direct connection\n", res, strerror(res));
 
-				errno = res;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_CONNECTING;
-				sess->state = GG_STATE_IDLE;
+				if ((sess->fd = gg_connect(addr, GG_DEFAULT_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					sess->state = GG_STATE_IDLE;
+					break;
+				}
+
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
 				break;
 			}
-
+			
 			gg_debug(GG_DEBUG_MISC, "-- http connection succeded, sending query\n");
-
 
 			snprintf(buf, sizeof(buf) - 1,
 				"GET /appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
