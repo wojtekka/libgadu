@@ -597,6 +597,7 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	
 		if (!(tmp = realloc(tmp, sizeof(struct gg_header) + tmp_length + payload_length))) {
                         gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
+			free(tmp);
                         return -1;
                 }
 		
