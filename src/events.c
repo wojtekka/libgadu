@@ -71,6 +71,9 @@ void gg_event_free(struct gg_event *e)
 
 	if (e->type == GG_EVENT_DCC_VOICE_DATA)
 		free(e->event.dcc_voice_data.data);
+
+	if (e->type == GG_EVENT_SEARCH50_REPLY)
+		gg_search50_free(e->event.search50);
 	
 	free(e);
 }
@@ -355,6 +358,15 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		{
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received disconnection warning\n");
 			e->type = GG_EVENT_DISCONNECT;
+			break;
+		}
+
+		case GG_SEARCH50_REPLY:
+		{
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received search reply\n");
+			e->type = GG_EVENT_SEARCH50_REPLY;
+			if (gg_search50_handle_reply(e, p, h->length) == -1)
+				goto fail;
 			break;
 		}
 
