@@ -42,6 +42,7 @@
 #include <unistd.h>
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
 #  include <openssl/err.h>
+#  include <openssl/rand.h>
 #endif
 
 #include "compat.h"
@@ -723,6 +724,20 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		char buf[1024];
 
 		OpenSSL_add_ssl_algorithms();
+
+		if (!RAND_status()) {
+			char rdata[1024];
+			struct {
+				time_t time;
+				void *ptr;
+			} rstruct;
+
+			time(&rstruct.time);
+			rstruct.ptr = (void *) &rstruct;			
+
+			RAND_seed((void *) rdata, sizeof(rdata));
+			RAND_seed((void *) &rstruct, sizeof(rstruct));
+		}
 
 		sess->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
 
