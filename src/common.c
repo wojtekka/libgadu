@@ -59,6 +59,7 @@ void gg_debug(int level, const char *format, ...)
 		va_start(ap, format);
 		vfprintf((gg_debug_file) ? gg_debug_file : stderr, format, ap);
 		va_end(ap);
+		fflush((gg_debug_file) ? gg_debug_file : stderr);
 	}
 }
 
