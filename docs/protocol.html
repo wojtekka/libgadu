@@ -4,9 +4,13 @@
 <meta http-equiv="Content-type" content="text/html; charset=iso-8859-2">
 </head>
 <body bgcolor=white text=black>
+
+<center>
+<table width=600><tr><td>
+
 <center>
 <h1>Protokół Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001-2002 by <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001, 2002 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr>
@@ -29,8 +33,8 @@ protokołu TCP/IP. Każdy pakiet zawiera na początku dwa stałe pola:
 </p>
 <p><pre>
         struct gg_header {
-		int type;		/* typ pakietu */
-		int length;		/* długość reszty pakietu */
+		int type;	<i>/* typ pakietu */</i>
+		int length;	<i>/* długość reszty pakietu */</i>
 	};
 </pre></p>
 <p>
@@ -54,7 +58,7 @@ przedrostkiem <tt>unknown</tt>.
 Żeby wiedzieć, z jakim serwerem mamy się połączyć, należy poudawać przez
 chwilę przeglądarkę WWW i połączyć się z hostem <tt>appmsg.gadu-gadu.pl</tt>.
 <p><p><pre>
-	GET /appsvc/appmsg.asp?fmnumber=<b>NumerGG</b> HTTP/1.0
+	GET /appsvc/appmsg.asp?fmnumber=<b>NUMER</b> HTTP/1.0
 	Host: appmsg.gadu-gadu.pl
 	User-Agent: Mozilla/4.7 [en] (Win98; I)
 	Pragma: no-cache
@@ -68,79 +72,110 @@ Oryginalny klient może wysłać jeden z podanych identyfikatorów przeglądarki:
 	Mozilla/4.0 (compatible; MSIE 5.0; Windows 98; DigExt)
 	Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
 </pre></p>
-Nowsze wersje klienta do zapytania dodają również pole
-<tt>version=<b>x.y</b></tt> opisujące, z jakim klientem
-serwer ma do czynienia. Jednak ze względu na możliwe różnice w protokole i
-inne traktowanie różnych wersji klienta, lepiej pomijać ten parametr. Na
-postawione wcześniej zapytanie, serwer powinien odpowiedzieć:
+Nowsze wersje (od 4.8.9) korzystają z innego skryptu:
+<p><p><pre>
+	GET /appsvc/appmsg2.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMOŚĆ</b>
+	Host: appmsg.gadu-gadu.pl
+	User-Agent: ...
+	Pragma: no-cache
+</pre></p>
+Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersją klienta,
+<b>FORMAT</b> określa czy wiadomość systemowa będzie przesyłana czystym
+tekstem (wartość "0") czy w HTMLu (wartość "1"), a <b>WIADOMOŚĆ</b> jest
+numerem ostatnio otrzymanej wiadomości systemowej. Na postawione
+w ten sposób zapytanie, serwer powinien odpowiedzieć:
 <p><p><pre>
 	HTTP/1.0 200 OK
 	
 	124 1 0 217.17.33.21:8074 0.0.0.0
 </pre></p>
-nie mam pojęcia ;) wygląda na to, że cały g*du-g*du jest
-przemyślany i w przyszłości będzie można używać różnych serwerów do różnych
-rzeczy, typu szukanie, obsługa klientów itd. póki co, łączyć się trzeba na
-pierwszy adres (tak, ten z portem).
-Jeżeli połączenie z portem 8074 nie wyjdzie z jakiś specyficznych powodów -
-można się łączyć na port 443. 
+Pierwsze pole jest numerem wiadomości systemowej, drugie nie jest znane
+(możliwe, że to ilość linii w odpowiedzi, ale wiadomości systemowe
+niestety rzadko można zaobserwować w przyrodzie), a trzecie określa czy
+odpowiedź zawiera wiadomość systemową. Czwarte pole jest adresem serwera,
+z którym klient powinien się łączyć. Jeżeli połączenie z portem 8074 nie
+wyjdzie z jakiś powodów, można się łączyć na port 443. 
 
 <hr>
 <h3>1.3. Logowanie się</h3>
 <p>
-po połączeniu się portem serwera g*du-g*du, dostajemy pakiet typu 0x0001,
-który na potrzeby tego dokumentu nazwiemy:
+Po połączeniu się portem 8074 lub 443 serwera Gadu-gadu, dostajemy pakiet
+typu <tt>0x0001</tt>, który na potrzeby tego dokumentu nazwiemy:
 <p><p><pre>
 	#define GG_WELCOME 0x0001
 </pre></p>
-reszta pakietu zawiera liczbę, na podstawie której liczony jest hash z hasła
+Reszta pakietu zawiera liczbę, na podstawie której liczony jest hash z hasła
 klienta:
 <p><p><pre>
 	struct gg_welcome {
-		int key;		/* klucz szyfrowania hasła */
+		int seed;	<i>/* klucz szyfrowania hasła */</i>
 	};
 </pre></p>	
-kiedy mamy już tą wartość możemy odesłać pakiet logowania
+Kiedy mamy już tą wartość możemy odesłać pakiet logowania
 <p><p><pre>
 	#define GG_LOGIN 0x000c
 </pre></p>
-musimy podać kilka informacji:
+Musimy podać kilka informacji:
 <p><p><pre>
 	struct gg_login {
-		int uin;		/* twój numerek */
-		int hash;		/* hash hasła */
-		int status;		/* status na dzień dobry */
-		int version;		/* wersja klienta */
-		int local_ip;		/* mój adres ip */
-		short local_port;	/* port, na którym słucham */
+		int uin;		<i>/* numer klienta */</i>
+		int hash;		<i>/* hash hasła */</i>
+		int status;		<i>/* początkowy stan */</i>
+		int version;		<i>/* wersja klienta */</i>
+		int local_ip;		<i>/* mój adres ip */</i>
+		short local_port;	<i>/* port, na którym słucham */</i>
 	};
 </pre></p>
-jak obliczyć hash hasła? hmm... nic prostszego. do każdej literki hasła
-dodaje się jedynkę, mnoży wszystko razem, a potem przez liczbę podaną przez
-serwer. 
+Hash hasła w pierwszych wersjach był liczony w dość prosty sposób, ale
+niestety z którąś zmianą protokołu wprowadzono nowy algorytm:
 <p><p><pre>
-	for (hash = 1; *passwd; passwd++)
-		hash *= (*passwd) + 1;
+	int gg_login_hash(char *password, int seed)
+	{
+		unsigned int x, y, z;
+
+		y = seed;
+
+		for (x = 0; *password; password++) {
+			x = (x &amp; 0xffffff00) | *password;
+			y ^= x;
+			y += x;
+			x &lt;&lt;= 8;
+			y ^= x;
+			x &lt;&lt;= 8;
+			y -= x;
+			x &lt;&lt;= 8;
+			y ^= x;
+
+			z = y &amp; 0x1f;
+			y = (y &lt;&lt; z) | (y &gt;&gt; (32 - z));
+		}
+
+		return y;
+	}
 </pre></p>
-zrozumiałe, racja? liczba oznaczająca wersję może być jedną z poniższych:
-<p><p><pre>
-	0x15 - 4.8.9 b1, 4.8.9 b2, 4.8.9 b3
-	0x14 - 4.8.3, 4.8.1
-	0x11 - 4.6.10, 4.6.1
-	0x10 - 4.5.22, 4.5.21, 4.5.19, 4.5.17, 4.5.15
-	0x0f - 4.5.12
-	0x0b - 4.0.30, 4.0.29, 4.0.28, 4.0.25
-</pre></p>
-oczywiście nie są to wszystkie możliwe wersje klientów, lecz te, które
-udało się sprawdzić. najbezpieczniej będzie przedstawiać się jako ta
-wersja, której ficzerów używamy. wiadomo, że 4.0.x nie obsługiwały trybu
-ukrytego, ani tylko dla znajomych itd.
+Liczba oznaczająca wersję może być jedną z poniższych:
 <p>
-jeśli wszystko się powiedzie, dostaniemy w odpowiedzi pakiet typu
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Wartość<b></td><td><b>Wersje klientów</b></td></tr>
+<tr><td><tt>0x16</tt></td><td>4.9.1</td></tr>
+<tr><td><tt>0x15</tt></td><td>4.8.9</td></tr>
+<tr><td><tt>0x14</tt></td><td>4.8.3, 4.8.1</td></tr>
+<tr><td><tt>0x11</tt></td><td>4.6.10, 4.6.1</td></tr>
+<tr><td><tt>0x10</tt></td><td>4.5.22, 4.5.21, 4.5.19, 4.5.17, 4.5.15</td></tr>
+<tr><td><tt>0x0f</tt></td><td>4.5.12</td></tr>
+<tr><td><tt>0x0b</tt></td><td>4.0.30, 4.0.29, 4.0.28, 4.0.25</td></tr>
+</table></center>
+<p>
+Oczywiście nie są to wszystkie możliwe wersje klientów, lecz te, które
+udało się złapać na wolności. Najbezpieczniej będzie przedstawiać się jako
+ta wersja, której własności używamy. Wiadomo, że wersje 4.0 nie obsługiwały
+trybu ukrytego, tylko dla znajomych itd. 
+<p>
+Jeśli wszystko się powiedzie, dostaniemy w odpowiedzi pakiet typu:
 <p><p><pre>
 	#define GG_LOGIN_OK 0x0003
 </pre></p>
-z polem header->length = 0, lub pakiet
+o zerowej długości, lub w przypadku błędu pakiet:
 <p><p><pre>
 	#define GG_LOGIN_FAILED 0x0009
 </pre></p>
@@ -148,45 +183,66 @@ z polem header->length = 0, lub pakiet
 <hr>
 <h3>1.4. Zmiana stanu</h3>
 <p>
-g*du-g*du przewiduje trzy stany klienta, które zmieniamy pakietem
+Gadu-gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 <p><p><pre>
 	#define GG_NEW_STATUS 0x0002
 
-	#define GG_STATUS_NOT_AVAIL 0x0001	/* rozłączony */
-	#define GG_STATUS_AVAIL 0x0002		/* dostępny */
-	#define GG_STATUS_BUSY 0x0003		/* zajęty */
-	#define GG_STATUS_BUSY_DESCR 0x0004	/* zajęty z opisem */
-	#define GG_STATUS_INVISIBLE 0x0014	/* niewidoczny */
-	#define GG_STATUS_NOT_AVAIL_DESCR 0x0015 /* niedostępny z opisem */
-
-	#define GG_STATUS_FRIENDS_MASK 0x8000	/* tylko dla przyjaciół */
-	
 	struct gg_new_status {
-		int status;			/* na jaki zmienić? */
-		char description[];		/* opis, nie musi wystąpić */
+		int status;		<i>/* na jaki zmienić? */</i>
+		char description[];	<i>/* opis, nie musi wystąpić */</i>
 	}
 </pre></p>
-należy pamiętać, żeby przed rozłączeniem się z serwerem należy zmienić
-stan na GG_STATUS_NOT_AVAIL. jeśli ma być widoczny tylko dla przyjaciół,
-należy dodać GG_STATUS_FRIENDS do normalnej wartości stanu. jeśli wybieramy
-stan z opisem, należy dokleić do struktury ciąg znaków niezakończony zerem.
+Możliwe stany to:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><tt>GG_STATUS_NOT_AVAIL</tt></td><td><tt>0x0001</tt></td><td>Niedostępny</td></tr>
+<tr><td><tt>GG_STATUS_NOT_AVAIL_DESCR</tt></td><td><tt>0x0015</tt></td><td>Niedostępny (z opisem)</td></tr>
+<tr><td><tt>GG_STATUS_AVAIL</tt></td><td><tt>0x0002</tt></td><td>Dostępny</td></tr>
+<tr><td><tt>GG_STATUS_AVAIL_DESCR</tt></td><td><tt>0x0004</tt></td><td>Dostępny (z opisem)</td></tr>
+<tr><td><tt>GG_STATUS_BUSY</tt></td><td><tt>0x0003</tt></td><td>Zajęty</td></tr>
+<tr><td><tt>GG_STATUS_BUSY_DESCR</tt></td><td><tt>0x0005</tt></td><td>Zajęty (z opisem)</td></tr>
+<tr><td><tt>GG_STATUS_INVISIBLE</tt></td><td><tt>0x0014</tt></td><td>Niewidoczny</td></tr>
+<tr><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0015</tt></td><td>Niewidoczny z opisem</td></tr>
+<tr><td><tt>GG_STATUS_BLOCKED</tt></td><td><tt>0x0006</tt></td><td>Zablokowany</td></tr>
+<tr><td><tt>GG_STATUS_FRIENDS_MASK</tt></td><td><tt>0x8000</tt></td><td>Maska bitowa oznaczająca tryb tylko dla przyjaciół</td></tr>
+</table></center>
+<p>
+Należy pamiętać, żeby przed rozłączeniem się z serwerem należy zmienić
+stan na <tt>GG_STATUS_NOT_AVAIL</tt> lub <tt>GG_STATUS_NOT_AVAIL_DESCR</tt>.
+Jeśli ma być widoczny tylko dla przyjaciół, należy dodać
+<tt>GG_STATUS_FRIENDS_MASK</tt> do normalnej wartości stanu. Jeśli wybieramy
+stan z opisem, należy dołączyć do struktury ciąg znaków niezakończony zerem.
 
 <hr>
 <h3>1.5. Ludzie przychodzą, ludzie odchodzą</h3>
 <p>
-zaraz po zalogowaniu możemy wysłać serwerowi listę ludzików w naszej liście
-kontaktów, żeby dowiedzieć się, czy są w tej chwili dostępni. pakiet zawiera
-dowolną ilość struktur gg_notify:
+Zaraz po zalogowaniu możemy wysłać serwerowi naszą listę kontaktów, żeby
+dowiedzieć się, czy są w danej chwili dostępni. Pakiet zawiera dowolną
+ilość struktur <tt>gg_notify</tt>:
 <p><pre>
 	#define GG_NOTIFY 0x0010
 	
 	struct gg_notify {
-		int uin;		/* numerek danej osoby */
-		char dunno1;		/* == 3 */
+		int uin;	<i>/* numerek danej osoby */</i>
+		char type;	<i>/* rodzaj użytkownika */</i>
 	};
 </pre></p>	
-jeśli ktoś jest, serwer odpowie pakietem zawierającym jedną lub więcej
-struktur gg_notify_reply:
+Gdzie pole <tt>type</tt> przyjmuje następujące wartości:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><tt>GG_USER_NORMAL</tt></td><td><tt>0x03</tt></td><td>Zwykły użytkownik dodany do listy kontkatów</td></tr>
+<tr><td><tt>GG_USER_BLOCKED</tt></td><td><tt>0x04</tt></td><td>Użytkownik, którego wiadomości nie chcemy otrzymywać</td></tr>
+</table></center>
+
+<!-- Adam pisał, że jest to bitmapa, w której 0x01 znaczy otwarte okienko
+rozmowy z daną osobą, ale wyglądałoby to co najmniej dziwnie, więc
+uprościłem trochę całą sprawę. -->
+
+<p>
+Jeśli ktoś jest, serwer odpowie pakietem zawierającym jedną lub więcej
+struktur <tt>gg_notify_reply</tt>:
 <p><p><pre>
 	#define GG_NOTIFY_REPLY 0x000c	/* tak, to samo co GG_LOGIN */
 	
@@ -196,158 +252,233 @@ struktur gg_notify_reply:
 		int remote_ip;		/* adres ip delikwenta */
 		short remote_port;	/* port, na którym słucha klient */
 		int version;		/* wersja klienta */
-		short dunno1;		/* znowu port? */
+		short unknown1;		/* znowu port? */
 		char description[];	/* opis, nie musi wystąpić */
 	};
 </pre></p>
-większość pól powinna być zrozumiała. remote_port poza zwykłym portem
-może przyjmować również poniższe wartości:
-<p><pre>
-        0 - klient nie obsługuje bezpośrednich połączeń,
-	1 - klient jest za NAT,
-	2 - klient nie ma nas w swojej liście kontaktów.
-</pre></p>
-zdarzają się też inne ,,nietypowe'' wartości, ale ich znaczenie nie jest
+Większość pól powinna być zrozumiała. <tt>remote_port</tt> poza zwykłym
+portem może przyjmować również poniższe wartości:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td>0</td><td>Klient nie obsługuje bezpośrednich połączeń</td></tr>
+<tr><td>1</td><td>Klient łączy się zza NAT lub innej formy maskarady</td></tr>
+<tr><td>2</td><td>Klient nie ma nas w swojej liście kontaktów</td></tr>
+</table></center>
+<p>
+Zdarzają się też inne ,,nietypowe'' wartości, ale ich znaczenie nie jest
 jeszcze do końca znane.
 <p>
-jeśli dany klient jest w stanie z podanym opisem, najpierw dostaniemy
-informację osobnym pakietem o nim, później paczkę struktur gg_notify_reply
-z ludźmi, którzy nie mają ustawionych opisów.
+Jeśli dany klient jest w stanie z podanym opisem, najpierw dostaniemy
+informację osobnym pakietem o nim, później paczkę struktur
+<tt>gg_notify_reply</tt> z ludźmi, którzy nie mają ustawionych opisów.
 <p>
-żeby dodać kogoś do listy w trakcie pracy, trzeba wysłać niżej opisany
-pakiet. jego format jest identyczny jak przy GG_NOTIFY.
+Żeby dodać kogoś do listy w trakcie pracy, trzeba wysłać niżej opisany
+pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>.
 <p><p><pre>
-	#define GG_ADD 0x000d
+	#define GG_ADD_NOTIFY 0x000d
 	
 	struct gg_add {
-		int uin;		/* numerek */
-		char dunno1;		/* == 3 */
+		int uin;	<i>/* numerek */</i>
+		char type;	<i>/* rodzaj użytkownika */</i>
 	};
 </pre></p>
-jeśli ktoś opuści g*du-g*du lub zmieni stan, otrzymamy pakiet
+By usunąć z listy kontaktół, wysyła się podobny pakiet:
+<p><p><pre>
+	#define GG_REMOVE_NOTIFY 0x000e
+	
+	struct gg_add {
+		int uin;	<i>/* numerek */</i>
+		char type;	<i>/* rodzaj użytkownika */</i>
+	};
+</pre></p>
+Jeśli ktoś opuści Gadu-gadu lub zmieni stan, otrzymamy pakiet:
 <p><p><pre>
 	#define GG_STATUS 0x0002
 	
 	struct gg_status {
-		int uin;		/* numerek */
-		int status;		/* nowy stan */
+		int uin;	<i>/* numerek */</i>
+		int status;	<i>/* nowy stan */</i>
 	};
 </pre></p>
 
 <hr>
 <h3>1.6. Wysyłanie wiadomości</h3>
 <p>
-przejdźmy do sedna sprawy ;)
+Wiadomości wysyła się następującym typem pakietu:
 <p><p><pre>
 	#define GG_SEND_MSG 0x000b
 
-	#define GG_CLASS_QUEUED 0x0001	/* tylko przy odbieraniu */
-	#define GG_CLASS_MSG 0x0004
-	#define GG_CLASS_CHAT 0x0008
-	#define GG_CLASS_CTCP 0x0010	/* dla klienta GG */
-	#define GG_CLASS_UNKNOWN_1 0x0020
-
 	struct gg_send_msg {
-		int recipient;
-		int seq;
-		int class;
-		char message[];
+		int recipient;		<i>/* numer odbiorcy */</i>
+		int seq;		<i>/* numer sekwencyjny */</i>
+		int class;		<i>/* klasa wiadomości */</i>
+		char message[];		<i>/* treść */</i>
 	};
 </pre></p>
-wiadomo, odbiorca. numer sekwencyjny, który wykorzystujemy potem do
-potwierdzenia. nie wykluczone, że w jakis sposób odróżnia się różne
-rozmowy za pomocą części bajtów, ale raczej nie ma znaczenia. klasa
-wiadomości pozwala odróżnić, czy wiadomość ma się pokazać w osobnym
-okienku czy jako kolejna linijka w okienku rozmowy. wygląda na to,
-że to jakaś bitmapa, więc najlepiej olać inne bity niż 0x0e. (czasem
-klienty wysyłają 0x04, czasem 0x24 -- widocznie 0x20 to też jakaś
-flaga). jeśli odbiorca będzie niedostępny podczas wysyłania wiadomości,
-odbierze ją z zaznaczonym bitem GG_CLASS_QUEUED. wiadomość nie powinna
-przekraczać 2000 znaków.
+Numer sekwencyjny jest wykorzystywany przy potwierdzeniu dostarczenia
+lub zakolejkowania pakietu. Nie jest wykluczone, że w jakis sposób odróżnia
+się różne rozmowy za pomocą części bajtów, ale raczej nie powinno mieć to
+ma znaczenia. Klasa wiadomości pozwala odróżnić, czy wiadomość ma się
+pojawić w osobnym okienku czy jako kolejna linijka w okienku rozmowy. Jest
+to mapa bitowa, więc najlepiej ignorować te bity, których znaczenia nie
+znamy:
 <p>
-oryginalny klient wysyłając wiadomość do kilku użytkowników, wysyła po
-prostu kilka takich samych pakietów z różnymi numerkami odbiorców. nie
-ma osobnego pakietu do tego. natomiast jeśli chodzi o ,,konferencyjne''
-do pakietu doklejana jest za ,,char message[];'' następująca struktura:
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><tt>GG_CLASS_QUEUED</tt></td><td><tt>0x0001</tt></td><td>Bit ustawiany wyłącznie przy odbiorze wiadomości, gdy wiadomość została wcześniej zakolejkowania z powodu nieobecności</td></tr>
+<tr><td><tt>GG_CLASS_MSG</tt></td><td><tt>0x0004</tt></td><td>Wiadomość ma się pojawić w osobnym okienku</td></tr>
+<tr><td><tt>GG_CLASS_CHAT</tt></td><td><tt>0x0008</tt></td><td>Wiadomość jest częścią toczącej się rozmowy i zostanie wyświetlona w istniejącym okienku</td></tr>
+<tr><td><tt>GG_CLASS_CTCP</tt></td><td><tt>0x0010</tt></td><td>Wiadomość jest przeznaczona dla klienta Gadu-Gadu i nie powinna być wyświetlona użytkownikowi.</td></tr>
+<tr><td><tt>GG_CLASS_UNKNOWN_1</tt></td><td><tt>0x0020</tt></td><td>Bit o nieznanym znaczeniu, lecz występujący dość często w naturalnych warunkach.</td></tr>
+</table></center>
+<p>
+Długość treści wiadomości nie powinna przekraczać 2000 znaków.
+<p>
+Oryginalny klient wysyłając wiadomość do kilku użytkowników, wysyła po
+kilka takich samych pakietów z różnymi numerkami odbiorców. Nie ma osobnego
+pakietu do tego. Natomiast jeśli chodzi o <i>połączenia konferencyjne</i>
+do pakietu doklejana jest następująca struktura:
 <p><p><pre>
-	struct gg_send_recipients {
-		char flag;		/* == 1 */
-		int count;		/* ilość odbiorców */
-		int recipients[];	/* tablica odbiorców */
+	struct gg_msg_recipients {
+		char flag;		<i>/* == 1 */</i>
+		int count;		<i>/* ilość odbiorców */</i>
+		int recipients[];	<i>/* tablica odbiorców */</i>
 	};
 </pre></p>
-na przykład, by wysłać do trzech ludzi, należy wysłać pakiet:
+Na przykład, by wysłać do dwóch osób, należy wysłać pakiet:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Offset</b></td><td><b>Wartość</b></td></tr>
+<tr><td><i>n</i></td><td>Treść wiadomości</td></tr>
+<tr><td><i>m</i></td><td><tt>0x01</tt></td></tr>
+<tr><td><i>m</i> + 1</td><td rowspan=4><tt>0x02</tt></td></tr>
+<tr><td><i>m</i> + 2</td></tr>
+<tr><td><i>m</i> + 3</td></tr>
+<tr><td><i>m</i> + 4</td></tr>
+<tr><td><i>m</i> + 5</td><td rowspan=4>Numer pierwszego adresata</td></tr>
+<tr><td><i>m</i> + 6</td></tr>
+<tr><td><i>m</i> + 7</td></tr>
+<tr><td><i>m</i> + 8</td></tr>
+<tr><td><i>m</i> + 9</td><td rowspan=4>Numer drugiego adresata</td></tr>
+<tr><td><i>m</i> + 10</td></tr>
+<tr><td><i>m</i> + 11</td></tr>
+<tr><td><i>m</i> + 12</td></tr>
+</table></center>
+<p>
+Od wersji 4.8.1 możliwe jest również dodawanie do wiadomości różnych
+atrybutów tekstu jak pogrubienie czy kolory. Niezbędne jest dołączenie
+następnującej struktury:
 <p><p><pre>
-	- -- --- --+--+--+--+--+--+--+-----------+-----------+
-          treść    |\0|\1|    0x02   |    uin1   |   uin2    |
-	- -- -- ---+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+	struct gg_msg_richtext {
+		char flag;	<i>/* == 2 */</i>
+		short length;	<i>/* długość dalszej części */</i>
+	};
 </pre></p>
-serwer po otrzymaniu wiadomości odsyła informację o tym. przy okazji
-mówi, czy wiadomość dotarła do odbiorcy (status == GG_ACK_DELIVERED),
-czy może jest offline i została zakolejkowana (GG_ACK_QUEUED). jeśli
-była wysyłana wiadomość do wiadomości klienta (GG_MSG_CLASS_CTCP),
-przy nieobecności odbiorcy, zostanie zwrócone GG_ACK_NOT_DELIVERED.
+Dalsza część pakietu zawiera odpowiednią ilość struktur o łączej długości
+określonej polem <tt>length</tt>:
+<p><p><pre>
+	struct gg_msg_richtext_format {
+		short position;	<i>/* pozycja atrybutu w tekście */</i>
+		char font;	<i>/* atrybuty czcionki */</i>
+		char rgb[3];	<i>/* kolor czcionki, nie musi wystąpić */</i>
+	};
+</pre></p>
+Każda z tych struktur określa kawałek tekstu począwszy od znaku określonego
+przez pole <tt>position</tt> (liczone od zera) aż do następnego wpisu lub
+końca tekstu. Pole <tt>font</tt> jest mapą bitową i kolejne bity mają
+następujące znaczenie:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><tt>GG_FONT_BOLD</tt></td><td><tt>0x01</tt></td><td>Pogrubiony tekst</td></tr>
+<tr><td><tt>GG_FONT_ITALIC</tt></td><td><tt>0x02</tt></td><td>Kursywa</td></tr>
+<tr><td><tt>GG_FONT_UNDERLINE</tt></td><td><tt>0x04</tt></td><td>Podkreślenie</td></tr>
+<tr><td><tt>GG_FONT_COLOR</tt></td><td><tt>0x08</tt></td><td>Kolorowy tekst. Tylko w tym wypadku struktura <tt>gg_msg_richtext_format</tt> zawiera pole <tt>rgb[]</tt> będące opisem trzech składowych koloru, kolejno czerwonej, zielonej i niebieskiej.</td></tr>
+</table></center>
+<p>
+Dla przykładu, by przesłać tekst ,,ala <b>ma</b> kota'', należy dołączyć do
+wiadomości następującą sekwencję bajtów:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Offset</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><i>n</i></td><td><tt>0x02</tt></td><td>Opis atrybutów tekstu...</td></tr>
+<tr><td><i>n</i> + 1</td><td rowspan=2><tt>0x0006</tt></td><td rowspan=2>...mający 6 bajtów długości</td></tr>
+<tr><td><i>n</i> + 2</td></tr>
+<tr bgcolor="#f0f0f0"><td><i>n</i> + 3</td><td rowspan=2><tt>0x0004</tt></td><td rowspan=2>Atrybut zaczyna się od pozycji 4...</td></tr>
+<tr bgcolor="#f0f0f0"><td><i>n</i> + 4</td></tr>
+<tr bgcolor="#f0f0f0"><td><i>n</i> + 5</td><td><tt>0x01</tt></td><td>...i jest to pogrubiony tekst</tr>
+<tr><td><i>n</i> + 6</td><td rowspan=2><tt>0x0006</tt></td><td rowspan=2>Atrybut zaczyna się od pozycji 6...</td></tr>
+<tr><td><i>n</i> + 7</td></tr>
+<tr><td><i>n</i> + 8</td><td><tt>0x00</tt></td><td>...i jest to zwykły tekst</tr>
+</table></center>
+<p>
+Serwer po otrzymaniu wiadomości odsyła potwierdzenie, które przy okazji
+mówi nam, czy wiadomość dotarła do odbiorcy czy została zakolejkowana
+z powodu nieobecności. Otrzymujemy je w postaci pakietu:
 <p><p><pre>
 	#define GG_SEND_MSG_ACK 0x0005
 	
-	#define GG_ACK_DELIVERED 0x0002
-	#define GG_ACK_QUEUED 0x0003
-	#define GG_ACK_NOT_DELIVERED 0x0006
-
 	struct gg_send_msg_ack {
-		int status;
-		int recipient;
-		int seq;
+		int status;	<i>/* stan wiadomości */</i>
+		int recipient;	<i>/* numer odbiorcy */</i>
+		int seq;	<i>/* numer sekwencyjny */</i>
 	};
 </pre></p>
-numer sekwencyjny i adresat ten sam, co przy wysyłaniu.
+Numer sekwencyjny i numer adresata są takie same jak podczas wysyłania,
+a stan wiadomości może być jednym z następnyjących:
+<p>
+<center><table border=1 cellspacing=0 cellpadding=2>
+<tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr><td><tt>GG_ACK_DELIVERED</tt></td><td><tt>0x0002</tt></td><td>Wiadomość dostarczono</td></tr>
+<tr><td><tt>GG_ACK_QUEUED</tt></td><td><tt>0x0003</tt></td><td>Wiadomość zakolejkowano</td></tr>
+<tt><td><tt>GG_ACK_NOT_DELIVERED</tt></td><td><tt>0x0006</tt></td><td>Wiadomości nie dostarczono. Odpowiedź ta występuje tylko w przypadku wiadomości klasy <tt>GG_CLASS_CTCP</tt></td></tr>
+</table></center>
+<p>
 
 <hr>
 <h3>1.7. Otrzymywanie wiadomości</h3>
 <p>
-zbyt wiele wyjaśnień chyba nie trzeba. wiadomo od kogo. drugie pole to
-najprawdopodobniej jakiś numerek sekwencyjny. trzecie oznacza czas nadania
-wiadomości. klasa wiadomości taka sama jak przy wysyłaniu:
+Wiadomości serwer przysyła za pomocą pakietu:
 <p><p><pre>
 	#define GG_RECV_MSG 0x000a
 	
 	struct gg_recv_msg {
-		int sender;
-		int seq;
-		int time;
-		int class;
-		char message[];
+		int sender;		<i>/* numer nadawcy */</i>
+		int seq;		<i>/* numer sekwencyjny */</i>
+		int time;		<i>/* czas nadania */</i>
+		int class;		<i>/* klasa wiadomości */</i>
+		char message[];		<i>/* treść wiadomości */</i>
 	};
 </pre></p>
-w przypadku pakietów ,,konferencyjnych'' na końcu pakietu doklejona jest
-struktura identyczna ze struct gg_send_recipients zawierająca pozostałych
+Czas nadania jest zapisany najwyraźniej w ilości sekund od 1 stycznie 1970r.
+W przypadku pakietów ,,konferencyjnych'' na końcu pakietu doklejona jest
+struktura identyczna z <tt>gg_msg_recipients</tt> zawierająca pozostałych
 rozmówców.
 
 <hr>
-<h3>1.8. Ping/pong</h3>
+<h3>1.8. Ping, pong</h3>
 <p>
-od czasu do czasu klient wysyła pakiet a'la ping do serwera i dostaje pustą
-odpowiedź. o ile dobrze pamiętam, serwer rozłącza się po upływie 5 minut od
-otrzymania ostatniej informacji.
+Od czasu do czasu klient wysyła pakiet do serwera, by oznajmić, że połączenie
+jeszcze jest utrzymywane. Jeśli serwer nie dostanie takiego pakietu w
+przeciągu 5 minut, zrywa połączenie. To, czy klient dostaje odpowiedź
+zmienia się z wersji na wersję, więc najlepiej nie polegać na tym.
 <p><p><pre>
 	#define GG_PING 0x0008
 	
-	/* nie ma niczego */
-	
 	#define GG_PONG 0x0007
-	
-	/* nie ma niczego */
 </pre></p>
 
 <hr>
 <h3>1.9. Rozłączenie</h3>
 <p>
-jeśli serwer zechce nas rozłączyć, wyśle wcześniej pusty pakiet:
+Jeśli serwer zechce nas rozłączyć, wyśle wcześniej pusty pakiet:
 <p><p><pre>
 	#define GG_DISCONNECTING 0x000b
-	
-	/* nie ma niczego */
 </pre></p>
+Ma to miejsce, gdy próbowano zbyt wiele razy połączyć się z nieprawidłowym
+hasłem, lub gdy równocześnie połączy się drugi klient z tym samym numerem
+(nowe połączenie ma większy priorytet).
 
 <hr>
 <h2>2. Usługi HTTP</h2>
@@ -365,7 +496,7 @@ Do zrobienia.
 <p>
 Autorami powyższego opisu są:
 <ul>
-<li>Wojtek Kaniewski (wojtekka/irc.pl): pierwsza wersja opisu, poprawki.
+<li>Wojtek Kaniewski (wojtekka/irc.pl): pierwsza wersja opisu, poprawki, utrzymanie wszystkiego w porządku.
 <li>Robert J. Woźny (speedy/atman.pl): opis nowości w protokole GG 4.6, poprawki.
 <li>Tomasz Jarzynka (tomee/cpi.pl): badanie timeoutów.
 <li>Adam Ludwikowski (adam.ludwikowski/wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomości, powody nieobecności.
@@ -379,6 +510,9 @@ Autorami powyższego opisu są:
 <font color=silver>
 $Id$
 </font>
+
+</tr></td></table>
+</center>
 
 </body>
 </html>
