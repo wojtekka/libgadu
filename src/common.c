@@ -65,26 +65,25 @@ void gg_debug(int level, const char *format, ...)
 #endif
 
 /*
- * gg_saprintf() // funkcja pomocnicza
+ * gg_vsaprintf() // funkcja pomocnicza
  *
- * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
+ * robi dok³adnie to samo, co vsprintf(), tyle ¿e alokuje sobie wcze¶niej
  * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
  * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
  *
- *  - format... - tre¶æ taka sama jak w funkcji printf()
+ *  - format - opis wy¶wietlanego tekstu jak dla printf()
+ *  - ap - lista argumentów dla printf()
  *
  * zaalokowany bufor, który nale¿y pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
  */
-char *gg_saprintf(const char *format, ...)
+char *gg_vsaprintf(const char *format, va_list ap)
 {
-        va_list ap;
         int size = 0;
 	const char *start;
 	char *buf = NULL;
 
 	start = format; 
-        va_start(ap, format);
 
 #ifndef HAVE_C99_VSNPRINTF
 	{
@@ -114,16 +113,35 @@ char *gg_saprintf(const char *format, ...)
 	}
 #endif
 
-	va_end(ap);
-	
 	format = start;
-	va_start(ap, format);
 	
 	vsnprintf(buf, size + 1, format, ap);
 	
+	return buf;
+}
+
+/*
+ * gg_saprintf() // funkcja pomocnicza
+ *
+ * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
+ * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
+ * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
+ *
+ *  - format... - tre¶æ taka sama jak w funkcji printf()
+ *
+ * zaalokowany bufor, który nale¿y pó¼niej zwolniæ, lub NULL
+ * je¶li nie uda³o siê wykonaæ zadania.
+ */
+char *gg_saprintf(const char *format, ...)
+{
+	va_list ap;
+	char *res;
+
+	va_start(ap, format);
+	res = gg_vsaprintf(format, ap);
 	va_end(ap);
 
-	return buf;
+	return res;
 }
 
 /*
