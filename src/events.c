@@ -234,7 +234,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify_descr.notify[0].remote_port = fix16(e->event.notify_descr.notify[0].remote_port);
 
 				count = h->length - sizeof(*n);
-				if (!(tmp = malloc(count))) {
+				if (!(tmp = malloc(count + 1))) {
 					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
 					goto fail;
 				}
