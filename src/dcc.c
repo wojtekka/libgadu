@@ -539,7 +539,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 #endif
 
-				h->state = GG_STATE_SENDING_FILE_HEADER;
+//				h->state = GG_STATE_SENDING_FILE_HEADER;
+				h->state = GG_STATE_SENDING_FILE;
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
@@ -571,7 +572,17 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() offset=%d, size=%d\n", h->offset, h->file_info.size);
 				lseek(h->file_fd, h->offset, SEEK_SET);
-				size = read(h->file_fd, buf, sizeof(buf));
+
+				if (h->offset)
+					size = read(h->file_fd, buf, sizeof(buf));
+				else {
+					big.type = fix32(0x0002);	/* XXX */
+					big.dunno1 = fix32(h->file_info.size);	/* XXX dlaczego? */
+					big.dunno2 = 0;
+		
+					memcpy(buf, &big, sizeof(big));
+					size = read(h->file_fd, buf + sizeof(big), sizeof(buf) - sizeof(big));
+				}	
 
 				/* b³±d */
 				if (size == -1) {
@@ -604,7 +615,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					}
 				}
 
-				tmp = write(h->fd, buf, size);
+				if (h->offset)
+					tmp = write(h->fd, buf, size);
+				else
+					tmp = write(h->fd, buf, size + sizeof(big));
 
 				if (tmp == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
@@ -613,7 +627,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				h->offset += tmp;
+				h->offset += size;
 				
 				if (h->offset == h->file_info.size)
 					e->type = GG_EVENT_DCC_DONE;
