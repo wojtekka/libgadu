@@ -1,5 +1,6 @@
 // jaki¶tam sobie opis API libgg
 // (c) copyright 2001 by wojtek kaniewski <wojtekka@irc.pl>
+//			 robert j. wozny <speedy@ziew.org>
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
 w ramach jednego procesu/w±tku obs³ugiwaæ tyle sesji, na ile pozwol±
@@ -135,25 +136,21 @@ mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
 którego mo¿emy u¿yæ do potwierdzenia.
 
-biblioteka libgg.c wymaga pliku nag³ówkowego endian.h, który bêdzie
-zawiera³ definicjê __BYTE_ORDER równ± __BIG_ENDIAN lub __LITTLE_ENDIAN.
-równie dobrze mo¿e on zawieraæ ,,#include <endian.h>'' lub podobnego,
-dla danej platformy. je¶li piszesz co¶ z u¿yciem glib, mo¿esz tam
-wrzuciæ co¶ takiego:
+biblioteka libgg.c wymaga zdefiniowania / albo i nie WORDS_BIGENDIAN.
+jest ona definiowana [albo i nie] przez skrypt configure - i jest definiowana
+[#define WORDS_BIGENDIAN 1] gdy mamy maszynê bigendianow±.
+
+je¿eli piszesz co¶ z u¿yciem glib, mo¿esz wrzuciæ co¶ takiego:
 
 	#include <glib.h>
 
-	#define __BIG_ENDIAN G_BIG_ENDIAN
-	#define __LITTLE_ENDIAN G_LITTLE_ENDIAN
-
-	#if G_BYTE_ORDER == G_LITTLE_ENDIAN
-	#	define __BYTE_ORDER __LITTLE_ENDIAN
-	#else
-	#	define __BYTE_ORDER __BIG_ENDIAN
+	#if G_BYTE_ORDER == G_BIG_ENDIAN 
+	#    define WORDS_BIGENDIAN 1
 	#endif
 
 nie testowa³em, ale powinno dzia³aæ.
-
+je¿eli za¶ nie korzystasz z glib, skryptu configure... to b±d¼ ostrze¿ony: 
+bez zdefiniowania WORDS_BIGENDIAN na maszynach bigendianowych nie bêdzie 
+poprawnie pracowaæ ;>
 
 $Id$
-
