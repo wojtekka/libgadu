@@ -42,7 +42,13 @@
 int gg_debug_level = 0;
 
 #ifndef lint 
- static char rcsid[] = "$Id$";
+
+static char rcsid[]
+#ifdef __GNUC__
+__attribute__ ((unused))
+#endif
+= "$Id$";
+
 #endif 
 
 /*
@@ -361,7 +367,6 @@ static void *gg_recv_packet(struct gg_session *sess)
 
 	sess->recv_left = 0;
 
-#ifdef GG_DEBUG
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
 		int i;
 
@@ -370,7 +375,6 @@ static void *gg_recv_packet(struct gg_session *sess)
 			gg_debug(GG_DEBUG_DUMP, " %.2x", (unsigned char) buf[i]);
 		gg_debug(GG_DEBUG_DUMP, "\n");
 	}
-#endif
 
 	return buf;
 }
@@ -419,7 +423,6 @@ static int gg_send_packet(int sock, int type, void *packet, int length, void *pa
 	if (payload)
 		memcpy(tmp + sizeof(struct gg_header) + length, payload, payload_length);
 
-#ifdef GG_DEBUG
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
 		int i;
 
@@ -428,7 +431,6 @@ static int gg_send_packet(int sock, int type, void *packet, int length, void *pa
 			gg_debug(GG_DEBUG_DUMP, " %.2x", (unsigned char) tmp[i]);
 		gg_debug(GG_DEBUG_DUMP, "\n");
 	}
-#endif
 
 	plen = sizeof(struct gg_header) + length + payload_length;
 	
