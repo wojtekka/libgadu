@@ -118,24 +118,25 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 }
 
 /*
- * gg_unregister2()
+ * gg_unregister3()
  *
- * usuwa konto u¿ytkownika z serwera protoko³em GG 5.0
+ * usuwa konto u¿ytkownika z serwera protoko³em GG 6.0
  *
  *  - uin - numerek GG
  *  - password - has³o klienta
- *  - qa - pytanie pomocnicze i odpowied¼, oddzielone tyld±
+ *  - tokenid - identyfikator tokenu
+ *  - tokenval - warto¶æ tokenu
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_unregister_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, int async)
+struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *tokenid, const char *tokenval, int async)
 {
 	struct gg_http *h;
-	char *__fmpwd, *__qa, *__pwd, *form, *query;
+	char *__fmpwd, *__pwd, *__tokenid, *__tokenval, *form, *query;
 
-	if (!password || !qa) {
+	if (!password || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, NULL parameter\n");
 		errno = EINVAL;
 		return NULL;
@@ -143,22 +144,25 @@ struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, 
     
 	__pwd = gg_saprintf("%ld", random());
 	__fmpwd = gg_urlencode(password);
-	__qa = gg_urlencode(qa);
+	__tokenid = gg_urlencode(tokenid);
+	__tokenval = gg_urlencode(tokenval);
 
-	if (!__fmpwd || !__pwd || !__qa) {
+	if (!__fmpwd || !__pwd || !__tokenid || !__tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for form fields\n");
 		free(__pwd);
 		free(__fmpwd);
-		free(__qa);
+		free(__tokenid);
+		free(__tokenval);
                 errno = ENOMEM;
 		return NULL;
 	}
 
-	form = gg_saprintf("fmnumber=%d&fmpwd=%s&delete=1&pwd=%s&qa=%s&code=%u", uin, __fmpwd, __pwd, __qa, gg_http_hash("s", __pwd));
+	form = gg_saprintf("fmnumber=%d&fmpwd=%s&delete=1&pwd=%s&email=deletedaccount@gadu-gadu.pl&tokenid=%s&tokenval=%s&code=%u", uin, __fmpwd, __pwd, __tokenid, __tokenval, gg_http_hash("ss", "deletedaccount@gadu-gadu.pl", __pwd));
 
 	free(__fmpwd);
 	free(__pwd);
-	free(__qa);
+	free(__tokenid);
+	free(__tokenval);
 
 	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for form query\n");
@@ -180,7 +184,7 @@ struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, 
 
 	free(form);
 
-	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister2.asp", query))) {
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, gg_http_connect() failed mysteriously\n");
 		free(query);
 		return NULL;

@@ -2,7 +2,7 @@
 // (c) copyright 2001-2003 by wojtek kaniewski <wojtekka@irc.pl>
 //			      robert j. wozny <speedy@ziew.org>
 
-// tekst poprawiany ostatnio 2003-09-30
+// tekst poprawiany ostatnio 2003-10-03
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
 w ramach jednego procesu/w±tku obs³ugiwaæ tyle sesji, na ile pozwol±
@@ -198,6 +198,8 @@ spisaæ token.
 maj±c ju¿ token, je¶li chcemy zarejestrowaæ konto, wywo³ujemy
 ,,gg_register3()'' z odpowiednimi parametrami, a je¶li chodzi o zmianê has³a,
 to ,,gg_change_passwd4()''.
+
+konto usuwane jest funkcj± ,,gg_unregister3()''.
 
 ***
 
