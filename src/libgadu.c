@@ -2,7 +2,8 @@
 
 /*
  *  (C) Copyright 2001 Wojtek Kaniewski <wojtekka@irc.pl>,
- *                     Robert J. Wo¼ny <speedy@ziew.org>
+ *                     Robert J. Wo¼ny <speedy@ziew.org>,
+ *                     Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License Version 2 as
@@ -297,7 +298,6 @@ static int gg_send_packet(int sock, int type, ...)
 
 	va_start(ap, type);
 
-	payload = NULL;
 	payload = va_arg(ap, void *);
 
 	while (payload) {
@@ -793,6 +793,28 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			e->event.msg.sender = fix32(r->sender);
 			e->event.msg.message = strdup((char*) r + sizeof(*r));
 			e->event.msg.time = fix32(r->time);
+
+			/* pakiet konferencyjny? */
+			if (h->length > sizeof(*r) + strlen(e->event.msg.message) + 2) {
+				struct gg_msg_recipients *m = (struct gg_msg_recipients *) ((char *)r+ sizeof(*r) + strlen((char *)e->event.msg.message) + 1);
+				int i, count = fix32(m->count);
+
+				if (!(e->event.msg.recipients = (void*) malloc(count))) {
+					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+					free(h);
+					return -1;
+				}
+
+				e->event.msg.recipients_count = count;
+				memcpy(e->event.msg.recipients, (char *)m + sizeof(*m),
+				       sizeof(uin_t) * count);
+
+				for (i = 0; i < count; i++)
+					e->event.msg.recipients[i] = fix32(e->event.msg.recipients[i]);
+			} else {
+				e->event.msg.recipients_count = 0;
+				e->event.msg.recipients = NULL;
+			}
 		}
 	}
 
