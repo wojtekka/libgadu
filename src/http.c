@@ -35,22 +35,31 @@
 #include "http.h"
 
 /*
+ * zmienne opisuj±ce parametry proxy http.
+ */
+char *gg_http_proxy_host = NULL;
+int gg_http_proxy_port = 0;
+
+/*
  * gg_http_connect()
  *
  * rozpoczyna po³±czenie po http.
  *
  *  - hostname - adres serwera,
  *  - port - port serwera,
- *  - async - dla asynchronicznego po³±czenia 1.
+ *  - async - dla asynchronicznego po³±czenia 1,
+ *  - method - metoda http (GET/POST/cokolwiek),
+ *  - path - ¶cie¿ka do zasobu (musi byæ poprzedzona ,,/''),
+ *  - header - nag³ówek zapytania plus ewentualne dane dla POST.
  *
  * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y
  * zwolniæ funkcj± gg_free_http(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_http_connect(char *hostname, int port, int async, char *query)
+struct gg_http *gg_http_connect(char *hostname, int port, int async, char *method, char *path, char *header)
 {
 	struct gg_http *h;
 
-	if (!hostname || !port) {
+	if (!hostname || !port || !method || !path || !header) {
 		errno = EINVAL;
 		return NULL;
 	}
@@ -59,10 +68,21 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *query
                 return NULL;
 	memset(h, 0, sizeof(*h));
 
-	if (!(h->query = strdup(query))) {
+	if (gg_http_proxy_host && gg_http_proxy_port) {
+		h->query = gg_alloc_sprintf("%s http://%s:%d%s HTTP/1.1\r\n%s",
+				method, hostname, port, path, header);
+		hostname = gg_http_proxy_host;
+		port = gg_http_proxy_port;
+	} else {
+		h->query = gg_alloc_sprintf("%s %s HTTP/1.1\r\n%s",
+				method, path, header);
+	}
+
+	if (!h->query) {
 		free(h);
 		return NULL;
 	}
+	
 	h->async = async;
 	h->port = port;
 	h->fd = -1;
