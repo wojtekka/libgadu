@@ -642,7 +642,7 @@ void gg_logoff(struct gg_session *sess)
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_logoff(...);\n");
 
-	if (sess->status != GG_STATUS_NOT_AVAIL && sess->status != GG_STATUS_NOT_AVAIL_DESCR)
+	if ((sess->status != GG_STATUS_NOT_AVAIL) && (sess->status != GG_STATUS_NOT_AVAIL_DESCR))
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 	
 	if (sess->fd != -1) {
