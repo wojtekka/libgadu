@@ -36,6 +36,9 @@
 #include <stdarg.h>
 #include <pwd.h>
 #include <time.h>
+#ifdef sun
+  #include <sys/filio.h>
+#endif
 #include "libgg.h"
 #include "config.h"
 
