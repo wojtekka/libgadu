@@ -306,7 +306,7 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
  * wysy³a ¿±danie przypomnienia has³a e-mailem.
  *
  *  - uin - numer
- *  - email - email
+ *  - email - adres e-mail taki, jak ten zapisany na serwerze
  *  - async - po³±czenie asynchroniczne
  *  - tokenid - identyfikator tokenu
  *  - tokenval - warto¶æ tokenu
@@ -327,7 +327,7 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
 	
 	__tokenid = gg_urlencode(tokenid);
 	__tokenval = gg_urlencode(tokenval);
-	__email= gg_urlencode(email);
+	__email = gg_urlencode(email);
 
 	if (!__tokenid || !__tokenval || !__email) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
