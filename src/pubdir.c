@@ -27,7 +27,6 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
-#include "config.h"
 #include "libgadu.h"
 
 /*

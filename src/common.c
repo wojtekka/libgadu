@@ -36,7 +36,6 @@
   #include <sys/filio.h>
 #endif
 #include <fcntl.h>
-#include "config.h"
 #include "libgadu.h"
 
 FILE *gg_debug_file = NULL;

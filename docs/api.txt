@@ -148,21 +148,7 @@ mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
 którego mo¿emy u¿yæ do potwierdzenia.
 
-biblioteka libgadu.c wymaga zdefiniowania, albo i nie, WORDS_BIGENDIAN.
-jest ona definiowana [albo i nie] przez skrypt configure - i jest definiowana
-[#define WORDS_BIGENDIAN 1] gdy mamy maszynê bigendianow±.
+jedyne zale¿no¶ci libgadu w domy¶lnej wersji to <sys/types.h> i <stdint.h>
 
-je¿eli piszesz co¶ z u¿yciem glib, mo¿esz wrzuciæ co¶ takiego:
-
-	#include <glib.h>
-
-	#if G_BYTE_ORDER == G_BIG_ENDIAN 
-	#    define WORDS_BIGENDIAN 1
-	#endif
-
-nie testowa³em, ale powinno dzia³aæ.
-je¿eli za¶ nie korzystasz z glib, skryptu configure... to b±d¼ ostrze¿ony: 
-bez zdefiniowania WORDS_BIGENDIAN na maszynach bigendianowych nie bêdzie 
-poprawnie pracowaæ ;>
 
 $Id$

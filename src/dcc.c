@@ -36,7 +36,6 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
-#include "config.h"
 #include "compat.h"
 #include "libgadu.h"
 

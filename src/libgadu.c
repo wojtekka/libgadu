@@ -35,7 +35,6 @@
 #ifdef sun
 #  include <sys/filio.h>
 #endif
-#include "config.h"
 #include "compat.h"
 #include "libgadu.h"
 
@@ -85,7 +84,7 @@ const char *gg_libgadu_version()
  */
 uint32_t gg_fix32(uint32_t x)
 {
-#ifndef WORDS_BIGENDIAN
+#ifndef __GG_LIBGADU_BIGENDIAN
 	return x;
 #else
 	return (uint32_t)
@@ -109,7 +108,7 @@ uint32_t gg_fix32(uint32_t x)
  */
 uint16_t gg_fix16(uint16_t x)
 {
-#ifndef WORDS_BIGENDIAN
+#ifndef __GG_LIBGADU_BIGENDIAN
 	return x;
 #else
 	return (uint16_t)
