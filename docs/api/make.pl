@@ -130,6 +130,8 @@ for $i (glob("../../lib/*.c")) {
 
 		$decl = declarize($decl);
 
+		$functions{$name} = declarize2($decl);
+
 		print H "<div class=header>\nDeklaracja:\n</div>\n";
 		print H "<div class=decl>\n$decl;\n</div>\n";
 
@@ -158,6 +160,38 @@ for $i (glob("../../lib/*.c")) {
 
 print H "</body>\n</html>\n";
 close(H);
+
+open(F, "functions.txt");
+
+open(H, ">ref.html");
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n";
+
+$first = 1;
+
+while(<F>) {
+	chomp;
+
+	next if (/^[\t ]*$/);
+
+	if (/^[A-Z]/) {
+		if (!$first) {
+			print H "</div>\n";
+		}
+		$first = 0;
+		print H "<div class=\"funcgroup\">$_</div>\n";
+		print H "<div class=\"indexdecl\">\n";
+	}
+
+	if (/^\t(.*)/) {
+		print H $functions{$1}, ";<br>\n";
+	}
+}
+
+print H "</body>\n</html>\n";
+
+close(F);
+close(H);
+
 
 sub uc_char($)
 {
@@ -219,29 +253,29 @@ sub colorize($)
 
 sub declarize()
 {
-	my $result, $params, $name, $type, ($decl) = @_;
+	my $result, $params, $nam, $type, ($decl) = @_;
 
 	$params = $decl;
 	$params =~ s/[^(]*\(//;
 	$params =~ s/\).*//;
 
-	$name = $decl;
-	$name =~ s/\(.*//;
-	$name =~ s/.*(gg_[a-z0-9_]+)/$1/;
+	$nam = $decl;
+	$nam =~ s/\(.*//;
+	$nam =~ s/.*(gg_[a-z0-9_]+)/$1/;
 
 	$type = $decl;
 	$type =~ s/gg_[a-z0-9_]+\(.*//;
 
-	$result = colorize($type) . "<b>$name</b>(";
+	$result = colorize($type) . "<b>$nam</b>(";
 
 	foreach (split(/ *, */, $params)) {
 		s/^ *//;
 		s/ *$//;
 
 		if (/([a-zA-Z0-9_]+)$/) {
-			$name = $1;
-			$_ =~ s/$name$//;
-			$result .= colorize($_) . "<i>$name</i>, ";
+			$nam = $1;
+			$_ =~ s/$nam$//;
+			$result .= colorize($_) . "<i>$nam</i>, ";
 		} elsif (/^\.\.\.$/) {
 			$result .= "<i>...</i>";
 		}
@@ -252,3 +286,16 @@ sub declarize()
 
 	return $result;
 }
+
+sub declarize2()
+{
+	my ($str) = @_;
+
+	$str =~ s/<a [^>]*>/<span class=\"ggtype\">/g;
+	$str =~ s/<\/a>/<\/span>/g;
+
+	$str =~ s/<b>([^<]*)<\/b>/<b><a class=\"funclink\" href=\"ref.functions.html#$1\">$1<\/a><\/b>/g;
+
+	return $str;
+}
+

@@ -1,0 +1,65 @@
+Funkcje dotycz±ce po³±czenia z serwerem Gadu-Gadu
+	gg_login
+	gg_watch_fd
+	gg_event_free
+	gg_change_status
+	gg_change_status_descr
+	gg_send_message
+	gg_send_message_ctcp
+	gg_send_message_confer
+	gg_ping
+	gg_notify
+	gg_add_notify
+	gg_remove_notify
+	gg_logoff
+	gg_free_session
+
+Funkcje obs³ugi katalogu publicznego
+	gg_register
+	gg_change_passwd
+	gg_remind_passwd
+	gg_change_info
+
+	gg_pubdir_watch_fd
+	gg_pubdir_free
+	gg_change_info_request_new
+	gg_change_info_request_free
+
+Funkcje przeszukiwania katalogu publicznego
+	gg_search
+	gg_search_watch_fd
+	gg_search_free
+	gg_search_request_mode*
+
+Funkcje obs³ugi list kontaktów na serwerze
+	gg_userlist_get
+	gg_userlist_get_watch_fd
+	gg_userlist_get_free
+	gg_userlist_put
+	gg_userlist_put_watch_fd
+	gg_userlist_put_free
+
+Funkcje obs³ugi bezpo¶rednich po³±czeñ
+	gg_dcc_socket_create
+	gg_dcc_watch_fd
+	gg_dcc_request
+	gg_dcc_fill_file_info
+	gg_dcc_get_file
+	gg_dcc_send_file
+	gg_dcc_voice_chat
+	gg_dcc_voice_send
+	gg_dcc_set_type
+	gg_dcc_free
+	
+Funkcje pomocnicze
+	gg_debug
+	gg_fix16
+	gg_fix32
+	gg_connect
+	gg_saprintf
+	gg_urlencode
+	gg_chomp
+	gg_http_connect
+	gg_http_watch_fd
+	gg_http_stop
+	gg_http_free
