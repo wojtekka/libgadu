@@ -676,16 +676,17 @@ char *gg_proxy_auth()
 }
 
 static uint32_t gg_crc32_table[256];
+static int gg_crc32_initialized = 0;
 
 /*
  * gg_crc32_make_table()  // funkcja wewnêtrzna
  */
 static void gg_crc32_make_table()
 {
-	uint32_t h;
+	uint32_t h = 0;
 	int i, j;
 
-	gg_crc32_table[0] = 0;
+	memset(gg_crc32_table, 0, sizeof(gg_crc32_table));
 
 	for (i = 128; i; i >>= 1) {
 		h = (h >> 1) ^ ((h & 1) ? 0xedb88320L : 0);
@@ -693,6 +694,8 @@ static void gg_crc32_make_table()
 		for (j = 0; j < 256; j += 2 * i)
 			gg_crc32_table[i + j] = gg_crc32_table[j] ^ h;
 	}
+
+	gg_crc32_initialized = 1;
 }
 
 /*
@@ -708,7 +711,7 @@ static void gg_crc32_make_table()
  */
 uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
 {
-	if (gg_crc32_table[255] == 0)
+	if (!gg_crc32_initialized)
 		gg_crc32_make_table();
 
 	crc ^= 0xffffffffL;

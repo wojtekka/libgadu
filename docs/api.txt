@@ -336,7 +336,7 @@ potem znajduje siê struktura gg_msg_richtext_image, np.
   0x00  .position = 0x00			gg_msg_richtext_format
   0x00  |					|
   0x80  font = GG_FONT_IMAGE 			|
-  0x90	.unknown1 = 0x0190			gg_msg_richtext_image
+  0x90	.unknown1 = 0x0109			gg_msg_richtext_image
   0x01	|					|
   0x12	.size = 0x3412				|
   0x34	|					|
@@ -361,8 +361,8 @@ obrazki.
 
 je¶li wysy³amy wiadomo¶æ graficzn± musimy obs³ugiwaæ zdarzenie
 GG_EVENT_IMAGE_REQUEST. w polach .size i .crc32 s± informacje o
-obrazku, którego potrzebuje nasz rozmówca. API biblioteki nie zawiera
-jeszcze funkcji do wysy³ania obrazków.
+obrazku, którego potrzebuje nasz rozmówca. wysy³amy funkcj±
+gg_image_reply(sesja, odbiorca, nazwa_pliku, zawarto¶æ_pliku, d³ugo¶æ);
 
 ***
 

@@ -1120,6 +1120,88 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 }
 
 /*
+ * gg_image_reply()
+ *
+ * wysy³a ¿±dany obrazek.
+ *
+ *  - sess - opis sesji
+ *  - recipient - numer adresata
+ *  - filename - nazwa pliku
+ *  - image - bufor z obrazkiem
+ *  - size - rozmiar obrazka
+ *
+ * 0/-1
+ */
+int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size)
+{
+	struct gg_msg_image_reply *r;
+	struct gg_send_msg s;
+	const char *tmp;
+	char buf[1910];
+	int res;
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_image_reply(%p, %d, \"%s\", %p, %d);\n", sess, recipient, filename, image, size);
+
+	if (!sess || !filename || !image) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	/* wytnij ¶cie¿ki, zostaw tylko nazwê pliku */
+	while ((tmp = rindex(filename, '/')) || (tmp = rindex(filename, '\\')))
+		filename = tmp + 1;
+
+	if (strlen(filename) < 1 || strlen(filename) > 1024) {
+		errno = EINVAL;
+		return -1;
+	}
+	
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	s.recipient = gg_fix32(recipient);
+	s.seq = gg_fix32(0);
+	s.msgclass = gg_fix32(GG_CLASS_MSG);
+
+	buf[0] = 0;
+	r = (void*) &buf[1];
+
+	r->flag = 0x05;
+	r->size = gg_fix32(size);
+	r->crc32 = gg_fix32(gg_crc32(0, image, size));
+
+	while (size > 0) {
+		int buflen, chunklen;
+		
+		/* \0 + struct gg_msg_image_reply */
+		buflen = sizeof(struct gg_msg_image_reply) + 1;
+
+		/* w pierwszym kawa³ku jest nazwa pliku */
+		if (r->flag == 0x05) {
+			strcpy(buf + buflen, filename);
+			buflen += strlen(filename) + 1;
+		}
+
+		chunklen = (size >= sizeof(buf) - buflen) ? (sizeof(buf) - buflen) : size;
+
+		memcpy(buf + buflen, image, chunklen);
+		size -= chunklen;
+		image += chunklen;
+		
+		res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), buf, buflen + chunklen, NULL);
+
+		if (res == -1)
+			break;
+
+		r->flag = 0x06;
+	}
+
+	return res;
+}
+
+/*
  * gg_send_message_ctcp()
  *
  * wysy³a wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
