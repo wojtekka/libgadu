@@ -166,7 +166,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 /*
  * gg_http_watch_fd()
  *
- * przy asynchronicznej obs³udze HTTP funkcjê t± nale¿y wywo³aæ je¶li
+ * przy asynchronicznej obs³udze HTTP funkcjê t± nale¿y wywo³aæ, je¶li
  * zmieni³o siê co¶ na obserwowanym deskryptorze.
  *
  *  - h - struktura opisuj±ca po³±czenie
@@ -196,6 +196,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		}
 
 		close(h->fd);
+		h->fd = -1;
 
 #ifndef __GG_LIBGADU_HAVE_PTHREAD
 		waitpid(h->pid, NULL, 0);
@@ -222,15 +223,17 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_CONNECTING) {
-		int res, res_size = sizeof(res);
+		int res = 0;
+		unsigned int res_size = sizeof(res);
 
 		if (h->async && (getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed (errno=%d, %s)\n", res, strerror(res));
+			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed (errno=%d, %s)\n", (res) ? res : errno , strerror((res) ? res : errno));
 			close(h->fd);
 			h->fd = -1;
 			h->state = GG_STATE_ERROR;
 			h->error = GG_ERROR_CONNECTING;
-			errno = res;
+			if (res)
+				errno = res;
 			return 0;
 		}
 
@@ -269,7 +272,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 	if (h->state == GG_STATE_READING_HEADER) {
 		char buf[1024], *tmp;
-		int res;
+		unsigned int res;
 
 		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading header failed (errno=%d)\n", errno);
@@ -341,7 +344,7 @@ int gg_http_watch_fd(struct gg_http *h)
 					line++;
 			}
 
-			if (!h->body_size) {
+			if (h->body_size <= 0) {
 				gg_debug(GG_DEBUG_MISC, "=> http, content-length not found\n");
 				h->body_size = left;
 			}
@@ -475,8 +478,6 @@ void gg_http_free_fields(struct gg_http *h)
 	if (!h)
 		return;
 
-	gg_http_stop(h);
-
 	if (h->body) {
 		free(h->body);
 		h->body = NULL;
@@ -502,6 +503,10 @@ void gg_http_free_fields(struct gg_http *h)
  */
 void gg_http_free(struct gg_http *h)
 {
+	if (!h)
+		return;
+
+	gg_http_stop(h);
 	gg_http_free_fields(h);
 	free(h);
 }

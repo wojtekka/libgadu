@@ -382,7 +382,7 @@ struct gg_http *gg_remind_passwd2(uin_t uin, const char *tokenid, const char *to
  * gg_pubdir_watch_fd()
  *
  * przy asynchronicznych operacjach na katalogu publicznym nale¿y wywo³ywaæ
- * t± funkcjê przy zmianach na obserwowanym deskryptorze.
+ * tê funkcjê przy zmianach na obserwowanym deskryptorze.
  *
  *  - h - struktura opisuj±ca po³±czenie
  *
@@ -496,7 +496,7 @@ struct gg_http *gg_token(int async)
  * gg_token_watch_fd()
  *
  * przy asynchronicznych operacjach zwi±zanych z tokenem nale¿y wywo³ywaæ
- * t± funkcjê przy zmianach na obserwowanym deskryptorze.
+ * tê funkcjê przy zmianach na obserwowanym deskryptorze.
  *
  *  - h - struktura opisuj±ca po³±czenie
  *
@@ -541,6 +541,7 @@ int gg_token_watch_fd(struct gg_http *h)
 
 		if (h->body && (!(url = malloc(strlen(h->body))) || !(tokenid = malloc(strlen(h->body))))) {
 			gg_debug(GG_DEBUG_MISC, "=> token, not enough memory for results\n");
+			free(url);
 			return -1;
 		}
 		

@@ -342,8 +342,8 @@ char *gg_urlencode(const char *str)
 	const char *p;
 	int size = 0;
 
-	if (!str)
-		str = strdup("");
+	if (!str && !(str = strdup("")))
+		return NULL;
 
 	for (p = str; *p; p++, size++) {
 		if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == ' ') || (*p == '@') || (*p == '.') || (*p == '-'))
@@ -391,9 +391,6 @@ int gg_http_hash(const char *format, ...)
 
 	va_start(ap, format);
 
-	if (!format)
-		return 0;
-	
 	for (j = 0; j < strlen(format); j++) {
 		unsigned char *arg, buf[16];
 
@@ -411,6 +408,8 @@ int gg_http_hash(const char *format, ...)
 			b = (a >> 24) | (a << 8);
 		}
 	}
+
+	va_end(ap);
 
 	return (b < 0 ? -b : b);
 }
@@ -647,14 +646,15 @@ char *gg_base64_decode(const char *buf)
 char *gg_proxy_auth()
 {
 	char *tmp, *enc, *out;
+	unsigned int tmp_size;
 	
 	if (!gg_proxy_enabled || !gg_proxy_username || !gg_proxy_password)
 		return NULL;
 
-	if (!(tmp = malloc(strlen(gg_proxy_username) + strlen(gg_proxy_password) + 2)))
+	if (!(tmp = malloc((tmp_size = strlen(gg_proxy_username) + strlen(gg_proxy_password) + 2))))
 		return NULL;
 
-	sprintf(tmp, "%s:%s", gg_proxy_username, gg_proxy_password);
+	snprintf(tmp, tmp_size, "%s:%s", gg_proxy_username, gg_proxy_password);
 
 	if (!(enc = gg_base64_encode(tmp))) {
 		free(tmp);
@@ -668,7 +668,7 @@ char *gg_proxy_auth()
 		return NULL;
 	}
 	
-	sprintf(out, "Proxy-Authorization: Basic %s\r\n", enc);
+	snprintf(out, strlen(enc) + 40,  "Proxy-Authorization: Basic %s\r\n", enc);
 
 	free(enc);
 

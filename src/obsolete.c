@@ -197,4 +197,3 @@ void gg_change_info_request_free(struct gg_change_info_request *r)
 {
 
 }
-
