@@ -568,6 +568,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 			}
 
 			if (e->type == GG_EVENT_CONN_FAILED) {
+				errno = EACCES;
 				gg_debug(GG_DEBUG_MISC, "-- could not login\n");
 				gg_free_event(e);
 				free(sess);
@@ -1018,6 +1019,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (read(sess->fd, &a, sizeof(a)) < sizeof(a) || a.s_addr == INADDR_NONE) {
 				gg_debug(GG_DEBUG_MISC, "-- resolving failed\n");				
 
+				errno = ENOENT;
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_RESOLVING;
 				sess->state = GG_STATE_IDLE;
@@ -1101,6 +1103,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
 				gg_debug(GG_DEBUG_MISC, "-- sending query failed\n");
 
+				errno = EIO;
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_WRITING;
 				sess->state = GG_STATE_IDLE;
@@ -1129,6 +1132,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
 				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected\n");
 
+				errno = EINVAL;
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_INVALID;
 				sess->state = GG_STATE_IDLE;
@@ -1202,7 +1206,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
 				    gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
 				    
-				    errno = res;
 				    e->type = GG_EVENT_CONN_FAILED;
 				    e->event.failure = GG_FAILURE_CONNECTING;
 				    sess->state = GG_STATE_IDLE;
@@ -1243,6 +1246,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				free(h);
 				close(sess->fd);
+				errno = EINVAL;
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_INVALID;
 				sess->state = GG_STATE_IDLE;
@@ -1317,6 +1321,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			} else {
 				gg_debug(GG_DEBUG_MISC, "-- invalid packet\n");
 				e->event.failure = GG_FAILURE_INVALID;
+				errno = EINVAL;
 			}
 
 			e->type = GG_EVENT_CONN_FAILED;
