@@ -590,16 +590,20 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	payload = va_arg(ap, void *);
 
 	while (payload) {
+		char *tmp2;
+
 		payload_length = va_arg(ap, int);
 
 		if (payload_length < 0)
 			gg_debug(GG_DEBUG_MISC, "// gg_send_packet() invalid payload length (%d)\n", payload_length);
 	
-		if (!(tmp = realloc(tmp, sizeof(struct gg_header) + tmp_length + payload_length))) {
+		if (!(tmp2 = realloc(tmp, sizeof(struct gg_header) + tmp_length + payload_length))) {
                         gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
 			free(tmp);
                         return -1;
                 }
+
+		tmp = tmp2;
 		
 		memcpy(tmp + sizeof(struct gg_header) + tmp_length, payload, payload_length);
 		tmp_length += payload_length;

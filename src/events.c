@@ -568,6 +568,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_WRITING;
 				sess->state = GG_STATE_IDLE;
+				close(sess->fd);
+				sess->fd = -1;
 				break;
 			}
 
@@ -652,6 +654,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 						gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() out of memory for system message, ignoring\n");
 						break;
 					}
+
 					sysmsg_buf = foo;
 
 					if (!len)
