@@ -716,6 +716,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
 	sess->last_sysmsg = p->last_sysmsg;
 	sess->image_size = p->image_size;
+	sess->pid = -1;
 
 	if (p->tls == 1) {
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
@@ -1041,7 +1042,7 @@ void gg_logoff(struct gg_session *sess)
 	}
 #else
 	if (sess->pid != -1) {
-		waitpid(sess->pid, NULL, 0);
+		waitpid(sess->pid, NULL, WNOHANG);
 		sess->pid = -1;
 	}
 #endif
