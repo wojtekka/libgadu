@@ -23,9 +23,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "libgadu-config.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#  include <pthread.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -192,7 +197,15 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		close(h->fd);
 
+#ifndef __GG_LIBGADU_HAVE_PTHREAD
 		waitpid(h->pid, NULL, 0);
+#else
+		if (h->resolver) {
+			pthread_cancel(*((pthread_t *) h->resolver));
+			free(h->resolver);
+			h->resolver = NULL;
+		}
+#endif
 
 		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(a), h->port);
 
