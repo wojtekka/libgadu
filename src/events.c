@@ -1311,16 +1311,19 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->fd = -1;
 				break;
 			}
-	
+
 			if (h->type != GG_WELCOME) {
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() invalid packet received\n");
+				if (h->type == GG_NEED_EMAIL)
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() email change needed\n");
+				else
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() invalid packet received\n");
 
 				free(h);
 				close(sess->fd);
 				sess->fd = -1;
 				errno = EINVAL;
 				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_INVALID;
+				e->event.failure = (h->type == GG_NEED_EMAIL) ? GG_FAILURE_NEED_EMAIL : GG_FAILURE_INVALID;
 				sess->state = GG_STATE_IDLE;
 				break;
 			}
