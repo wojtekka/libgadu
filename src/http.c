@@ -112,7 +112,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 			memcpy((char*) &a, he->h_addr, sizeof(a));
 
 		if (!(h->fd = gg_connect(&a, port, 0)) == -1) {
-                        gg_debug(GG_DEBUG_MISC, "// gg_http_connect() connection failed\n");
+                        gg_debug(GG_DEBUG_MISC, "// gg_http_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			gg_free_http(h);
 			return NULL;
 		}
@@ -180,7 +180,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(a), h->port);
 
 		if ((h->fd = gg_connect(&a, h->port, h->async)) == -1) {
-			gg_debug(GG_DEBUG_MISC, "=> http, connection failed\n");
+			gg_debug(GG_DEBUG_MISC, "=> http, connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			gg_http_error(GG_ERROR_CONNECTING);
 		}
 
@@ -195,9 +195,13 @@ int gg_http_watch_fd(struct gg_http *h)
 		int res, res_size = sizeof(res);
 
 		if (h->async && (getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed\n");
+			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed (errno=%d, %s)\n", res, strerror(res));
 			close(h->fd);
-			gg_http_error(GG_ERROR_CONNECTING);
+			h->fd = -1;
+			h->state = GG_STATE_ERROR;
+			h->error = GG_ERROR_CONNECTING;
+			errno = res;
+			return 0;
 		}
 
 		gg_debug(GG_DEBUG_MISC, "=> http, connected, sending request\n");
