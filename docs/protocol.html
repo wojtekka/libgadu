@@ -257,7 +257,7 @@ przejd¼my do sedna sprawy ;)
 wiadomo, odbiorca. numer sekwencyjny, który wykorzystujemy potem do
 potwierdzenia. nie wykluczone, ¿e w jakis sposób odró¿nia siê ró¿ne
 rozmowy za pomoc± czê¶ci bajtów, ale raczej nie ma znaczenia. klasa
-wiadomo¶ci pozwala odró¿niæ, czy wiadomo¶æ ma siê pokazaæ w osobym
+wiadomo¶ci pozwala odró¿niæ, czy wiadomo¶æ ma siê pokazaæ w osobnym
 okienku czy jako kolejna linijka w okienku rozmowy. wygl±da na to,
 ¿e to jaka¶ bitmapa, wiêc najlepiej olaæ inne bity ni¿ 0x0e. (czasem
 klienty wysy³aj± 0x04, czasem 0x24 -- widocznie 0x20 to te¿ jaka¶
@@ -267,7 +267,7 @@ przekraczaæ 2000 znaków.
 <p>
 oryginalny klient wysy³aj±c wiadomo¶æ do kilku u¿ytkowników, wysy³a po
 prostu kilka takich samych pakietów z ró¿nymi numerkami odbiorców. nie
-ma osobnego pakietu do tego. natomiast je¶li chodzi o ,,konferencyjnê''
+ma osobnego pakietu do tego. natomiast je¶li chodzi o ,,konferencyjne''
 do pakietu doklejana jest za ,,char message[];'' nastêpuj±ca struktura:
 <p><p><pre>
 	struct gg_send_recipients {
@@ -319,7 +319,7 @@ wiadomo¶ci. klasa wiadomo¶ci taka sama jak przy wysy³aniu:
 		char message[];
 	};
 </pre></p>
-w przypadku pakietów ,,konferencyjnych'' na koncu pakietu doklejona jest
+w przypadku pakietów ,,konferencyjnych'' na koñcu pakietu doklejona jest
 struktura identyczna ze struct gg_send_recipients zawieraj±ca pozosta³ych
 rozmówców.
 
@@ -355,7 +355,7 @@ je¶li serwer zechce nas roz³±czyæ, wy¶le wcze¶niej pusty pakiet:
 Do zrobienia.
 
 <hr>
-<h2>3. Bezpo¶renie po³±czenie</h2>
+<h2>3. Bezpo¶rednie po³±czenie</h2>
 <p>
 Do zrobienia.
 
