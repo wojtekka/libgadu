@@ -28,4 +28,3 @@ kilka uwag co do przeno¶no¶ci kodu:
    warto¶ci liczbowe w plików lub gniazd.
 
 $Id$
-
