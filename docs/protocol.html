@@ -794,6 +794,7 @@ a stan wiadomo¶ci mo¿e byæ jednym z nastêpuj±cych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Etykieta</b></td><td><b>Warto¶æ</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>GG_ACK_BLOCKED</tt></td><td><tt>0x0001</tt></td><td>Wiadomo¶ci nie przes³ano (zdarza siê przy wiadomo¶ciach zawieraj±cych adresy internetowe blokowanych przez serwer GG gdy odbiorca nie ma nas na li¶cie)</td></tr>
 <tr class="tabf"><td><tt>GG_ACK_DELIVERED</tt></td><td><tt>0x0002</tt></td><td>Wiadomo¶æ dostarczono</td></tr>
 <tr class="tabf"><td><tt>GG_ACK_QUEUED</tt></td><td><tt>0x0003</tt></td><td>Wiadomo¶æ zakolejkowano</td></tr>
 <tr class="tabf"><td><tt>GG_ACK_MBOXFULL</tt></td><td><tt>0x0004</tt></td><td>Wiadomo¶ci nie dostarczono. Skrzynka odbiorcza na serwerze jest pe³na (20 wiadomo¶ci maks). Wystêpuje tylko w trybie offline</td></tr>
@@ -1050,14 +1051,18 @@ Pole <tt>type</tt> oznacza rodzaj odpowiedzi:
 <div class="c">
 <pre>#define GG_USERLIST_PUT_REPLY 0x00         <i>/* pocz±tek eksportu listy */</i>
 #define GG_USERLIST_PUT_MORE_REPLY 0x02    <i>/* kontynuacja */</i>
-#define GG_USERLIST_GET_REPLY 0x06         <i>/* pocz±tek importu listy */</i>
-#define GG_USERLIST_GET_MORE_REPLY 0x04    <i>/* kontynuacja */</i></pre>
+#define GG_USERLIST_GET_MORE_REPLY 0x04    <i>/* pocz±tek importu listy */</i></pre>
+#define GG_USERLIST_GET_REPLY 0x06         <i>/* ostatnia czê¶æ importu */</i>
 </div>
 
 <p>
 W przypadku importu w polu <tt>request</tt> znajdzie siê lista kontaktów
 w takiej samej postaci, w jakiej j± umieszczono. Serwer nie ingeruje w jej
 tre¶æ. Podobnie jak przy wysy³aniu, przychodzi podzielona na mniejsze pakiety.
+Pobieranie krótkiej listy kontaktów zwykle powoduje wys³anie pojedynczego
+pakietu <tt>GG_USERLIST_GET_REPLY</tt>, a gdy lista jest d³uga, serwer mo¿e
+przys³aæ dowoln± ilo¶æ pakietów <tt>GG_USERLIST_GET_MORE_REPLY</tt> przed
+pakietem <tt>GG_USERLIST_GET_REPLY</tt>.
 </p>
 
 <p>
