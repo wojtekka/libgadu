@@ -286,3 +286,19 @@ char *gg_urlencode(char *str)
 	return buf;
 }
 
+/*
+ * gg_http_hash()
+ *
+ * funkcja, która liczy hash dla adresu e-mail i has³a. jeszcze jej nie ma,
+ * wiêc zak³adanie u¿ytkowników nie jest mo¿liwe.
+ *
+ *  - email - adres email,
+ *  - password - has³o.
+ *
+ * powinna zwracaæ hash wykorzystywany przy rejestracji i wszelkich
+ * manipulacjach w³asnego wpisu w katalogu publicznym.
+ */
+unsigned long gg_http_hash(char *email, char *password)
+{
+	return 0;
+}
