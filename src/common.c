@@ -226,7 +226,7 @@ int gg_connect(void *addr, int port, int async)
 	}
 
 #ifdef ASSIGN_SOCKETS_TO_THREADS
-	gg_thread_socket(0, sock);
+	gg_win32_thread_socket(0, sock);
 #endif
 
 	if (async) {
@@ -425,23 +425,23 @@ struct hostent *gg_gethostbyname(const char *hostname)
 
 #ifdef ASSIGN_SOCKETS_TO_THREADS
 
-typedef struct gg_thread {
+typedef struct gg_win32_thread {
 	int id;
 	int socket;
-	struct gg_thread * next;
-} gg_thread;
+	struct gg_win32_thread *next;
+} gg_win32_thread;
 
-struct gg_thread * gg_threads = 0;
+struct gg_win32_thread *gg_win32_threads = 0;
 
 /*
- * gg_thread_socket() // funkcja pomocnicza, tylko dla win32
+ * gg_win32_thread_socket() // funkcja pomocnicza, tylko dla win32
  *
  * zwraca deskryptor gniazda, które by³o ostatnio tworzone dla w±tku
  * o podanym identyfikatorze.
  *
  * je¶li na win32 przy po³±czeniach synchronicznych zapamiêtamy w jakim
  * w±tku uruchomili¶my funkcjê, która siê z czymkolwiek ³±czy, to z osobnego
- * w±tku mo¿emy anulowaæ po³±czenie poprzez gg_thread_socket(watek,-1);
+ * w±tku mo¿emy anulowaæ po³±czenie poprzez gg_win32_thread_socket(watek, -1);
  * 
  * - thread_id - id w±tku. je¶li jest równe 0, brany jest aktualny w±tek,
  *               je¶li równe -1, usuwa wpis o podanym sockecie.
@@ -451,35 +451,49 @@ struct gg_thread * gg_threads = 0;
  *
  * je¶li socket jest równe 0, zwraca deskryptor gniazda dla podanego w±tku.
  */
-int gg_thread_socket(int thread_id, int socket)
+int gg_win32_thread_socket(int thread_id, int socket)
 {
-	char close = thread_id==-1||socket==-1;
-        gg_thread * wsk = gg_threads;
-        gg_thread ** p_wsk = &gg_threads;
+	char close = (thread_id == -1) || socket == -1;
+	gg_win32_thread *wsk = gg_win32_threads;
+	gg_win32_thread **p_wsk = &gg_win32_threads;
 
-        if (!thread_id) thread_id = GetCurrentThreadId();
-        while (wsk) {
-        	if ((thread_id==-1 && wsk->socket==socket)
-        	  || wsk->id==thread_id) {
-       			if (close) {
+	if (!thread_id)
+		thread_id = GetCurrentThreadId();
+	
+	while (wsk) {
+		if ((thread_id == -1 && wsk->socket == socket) || wsk->id == thread_id) {
+			if (close) {
+				/* socket zostaje usuniety */
                         	closesocket(wsk->socket);
-         			*p_wsk=wsk->next;
-         			free(wsk);       // socket zostaje usuniety
+         			*p_wsk = wsk->next;
+         			free(wsk);
          			return 1;
-                        } else if (!socket) {return wsk->socket; // Socket zostaje zwrocony
-                        } else {wsk->socket=socket; return socket;} // Socket zostaje ustawiony
+                        } else if (!socket) {
+				/* socket zostaje zwrocony */
+				return wsk->socket;
+                        } else {
+				/* socket zostaje ustawiony */
+				wsk->socket = socket;
+				return socket;
+			}
                }
+		
                p_wsk = &(wsk->next);
                wsk = wsk->next;
         }
-        if (close && socket!=-1) {closesocket(socket);}
-        if (close || !socket) return 0;
-        // Dodaje nowy element
-        wsk = malloc(sizeof(gg_thread));
+	
+        if (close && socket != -1)
+		closesocket(socket);
+        if (close || !socket)
+		return 0;
+	
+        /* Dodaje nowy element */
+        wsk = malloc(sizeof(gg_win32_thread));
         wsk->id = thread_id;
         wsk->socket = socket;
         wsk->next = 0;
         *p_wsk = wsk;
+	
         return socket;
 }
 

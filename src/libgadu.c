@@ -351,10 +351,16 @@ void *gg_recv_packet(struct gg_session *sess)
 	}
 
 	if (sess->recv_left < 1) {
-		while (ret != sizeof(h)) {
-			ret = read(sess->fd, &h, sizeof(h));
+		if (sess->header_left != 0) {
+			memcpy(&h, sess->header_buf, sizeof(h));
+			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv: resuming last read (%d bytes left)\n", sess->header_left);
+		} else
+			sess->header_left = 8;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv(%d,%p,%d) = %d\n", sess->fd, &h, sizeof(h), ret);
+		while (sess->header_left > 0) {
+			ret = read(sess->fd, &h + 8 - sess->header_left, sess->header_left);
+
+			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv(%d,%p,%d) = %d\n", sess->fd, &h + 8 - sess->header_left, sess->header_left, ret);
 
 			if (!ret) {
 				gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: connection broken\n");
@@ -367,10 +373,18 @@ void *gg_recv_packet(struct gg_session *sess)
 					continue;
 				}
 
+				if (errno == EAGAIN) {
+					gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
+					return NULL;
+				}
+
 				gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: errno=%d, %s\n", errno, strerror(errno));
 
 				return NULL;
 			}
+
+			memcpy(sess->header_buf, &h, 8 - sess->header_left);
+			sess->header_left -= ret;
 		}
 
 		h.type = gg_fix32(h.type);

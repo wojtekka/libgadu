@@ -148,7 +148,7 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
 		return NULL;
 	}
 
-	form = gg_saprintf("fmnumber=%ld&fmpwd=%s&delete=1&fmemail=%s&"
+	form = gg_saprintf("fmnumber=%d&fmpwd=%s&delete=1&fmemail=%s&"
 			"pwd=%s&email=%s&code=%u",
 			uin, __fmpwd, __fmemail, __pwd, __email,
 			gg_http_hash("ss", email0, __pwd));
@@ -236,7 +236,7 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
 		return NULL;
 	}
 	
-	if (!(form = gg_saprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("ss", newemail, newpasswd)))) {
+	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("ss", newemail, newpasswd)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
@@ -324,7 +324,7 @@ struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *new
 		return NULL;
 	}
 	
-	if (!(form = gg_saprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&fmemail=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __fmemail, __email, gg_http_hash("ss", newemail, newpasswd)))) {
+	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&fmemail=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __fmemail, __email, gg_http_hash("ss", newemail, newpasswd)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
@@ -577,7 +577,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 		p->success = 1;
 		if (tmp[7] == ':')
 			p->uin = strtol(tmp + 8, NULL, 0);
-		gg_debug(GG_DEBUG_MISC, "=> pubdir, success (uin=%ld)\n", p->uin);
+		gg_debug(GG_DEBUG_MISC, "=> pubdir, success (uin=%d)\n", p->uin);
 	} else
 		gg_debug(GG_DEBUG_MISC, "=> pubdir, error.\n");
 

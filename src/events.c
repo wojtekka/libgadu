@@ -101,7 +101,8 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 		e->type = GG_EVENT_NONE;
 		return 0;
 	}
-	//printf("packet=%p\n", h);
+	
+	gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet=%p\n", h);
 
 	for (p = (char*) r + sizeof(*r); *p; p++) {
 		if (*p == 0x02 && p == packet_end - 1) {
@@ -115,7 +116,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 		}
 	}
 	p++;
-	//printf("p=%p\npacket:end=%p\n", p, packet_end);
+	gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() p=%p, packet:end=%p\n", p, packet_end);
 
 	/* przeanalizuj dodatkowe opcje */
 	while (p < packet_end) {
