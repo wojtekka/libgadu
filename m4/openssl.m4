@@ -14,7 +14,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
       fi)
 
   if test "x$without_openssl" != "xyes" ; then
-    AC_MSG_CHECKING([for openssl/ssl.h])
+    AC_MSG_CHECKING(for ssl.h)
 
     for i in $with_arg \
     		/usr/include: \
@@ -27,40 +27,31 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
     		/cw/include:"-L/cw/lib" \
 		/boot/home/config/include:"-L/boot/home/config/lib"; do
 	
-      incl=`echo "$i" | sed 's/:.*//'`	# 'g³upi vim
-      lib=`echo "$i" | sed 's/.*://'`	# 'g³upi vim
-
-      have_openssl_h=""
+      incl=`echo "$i" | sed 's/:.*//'`
+      lib=`echo "$i" | sed 's/.*://'`
 
       if test -f $incl/openssl/ssl.h; then
-	cflags="$CFLAGS"
-	CFLAGS="-I$path $CFLAGS"
-	AC_TRY_COMPILE([#include <openssl/ssl.h>], [SSL *foo;], [
-	  CFLAGS="$cflags"
-	  have_openssl_h=yes
-          AC_MSG_RESULT($incl/openssl/ssl.h)
-  	  ldflags_old="$LDFLAGS"
-	  LDFLAGS="$lib -lssl -lcrypto"
-	  save_LIBS="$LIBS"
-	  LIBS="-lssl -lcrypto $LIBS"
-	  AC_CHECK_LIB(ssl, RSA_new, [
-	    AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-	    have_openssl=yes
-	    OPENSSL_LIBS="$lib -lssl -lcrypto"
-	    if test "x$incl" != "x/usr/include"; then
-    	      OPENSSL_INCLUDES="-I$incl"
-	    fi
-	  ])
-	  LIBS="$save_LIBS"
-	  LDFLAGS="$ldflags_old"
-	  break
+        AC_MSG_RESULT($incl/openssl/ssl.h)
+	ldflags_old="$LDFLAGS"
+	LDFLAGS="$lib -lssl -lcrypto"
+	save_LIBS="$LIBS"
+	LIBS="-lssl -lcrypto $LIBS"
+	AC_CHECK_LIB(ssl, RSA_new, [
+	  AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
+	  have_openssl=yes
+	  OPENSSL_LIBS="$lib -lssl -lcrypto"
+	  if test "x$incl" != "x/usr/include"; then
+    	    OPENSSL_INCLUDES="-I$incl"
+	  fi
 	])
-	CFLAGS="$cflags"
+	LIBS="$save_LIBS"
+	LDFLAGS="$ldflags_old"
+	break
       fi
     done
 
-    if test "x$have_openssl_h" != "xyes"; then
-      AC_MSG_RESULT([no])
+    if test "x$have_openssl" != "xyes"; then
+      AC_MSG_RESULT(not found)
     fi
   fi
 ])
