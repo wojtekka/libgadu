@@ -795,7 +795,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-			l.version = fix32(GG_CLIENT_VERSION);
+			l.version = fix32(sess->version);
 			l.local_ip = gg_dcc_ip;
 			l.local_port = fix16(gg_dcc_port);
 	

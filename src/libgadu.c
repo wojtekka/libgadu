@@ -458,6 +458,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->destroy = gg_free_session;
 	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
 	sess->server_addr = p->server_addr;
+	sess->version = (p->client_version) ? p->client_version : GG_DEFAULT_CLIENT_VERSION;
 	
 	if (gg_proxy_enabled) {
 		hostname = gg_proxy_host;
