@@ -1,4 +1,4 @@
-<!-- (C) Copyright 2001-2002 by ekg team -->
+<!-- (C) Copyright 2001-2003 by ekg team -->
 <html>
 <head>
 <meta http-equiv="Content-type" content="text/html; charset=iso-8859-2">
@@ -10,7 +10,7 @@
 
 <center>
 <h1>Protokół Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001, 2002 <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001 - 2003 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr>
@@ -81,7 +81,7 @@ Nowsze wersje (od 4.6.2) korzystają z innego skryptu:
 </pre></p>
 Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersją klienta,
 <b>FORMAT</b> określa czy wiadomość systemowa będzie przesyłana czystym
-tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej wartoś.), a
+tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej wartość), a
 <b>WIADOMOŚĆ</b> jest numerem ostatnio otrzymanej wiadomości systemowej.
 Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieć
 na przykład tak:
@@ -128,6 +128,8 @@ Musimy podać kilka informacji:
 		int version;		<i>/* wersja klienta */</i>
 		int local_ip;		<i>/* mój adres ip */</i>
 		short local_port;	<i>/* port, na którym słucham */</i>
+		char description[];	<i>/* opis, nie musi wystąpić */</i>
+		int time;		<i>/* czas, nie musi wystąpić */</i>
 	};
 </pre></p>
 Hash hasła w pierwszych wersjach był liczony w dość prosty sposób, ale
@@ -161,7 +163,8 @@ Liczba oznaczająca wersję może być jedną z poniższych:
 <p>
 <center><table border=1 cellspacing=0 cellpadding=2>
 <tr bgcolor=silver><td><b>Wartość<b></td><td><b>Wersje klientów</b></td></tr>
-<tr><td><tt>0x18</tt></td><td>5.0.1, 4.9.3</td></tr>
+<tr><td><tt>0x19</tt></td><td>5.0.3</td></tr>
+<tr><td><tt>0x18</tt></td><td>5.0.1, 5.0.0, 4.9.3</td></tr>
 <tr><td><tt>0x17</tt></td><td>4.9.2</td></tr>
 <tr><td><tt>0x16</tt></td><td>4.9.1</td></tr>
 <tr><td><tt>0x15</tt></td><td>4.8.9</td></tr>
@@ -206,6 +209,8 @@ pakietu GG_LOGIN wysłać następujący:
 		short local_port;	<i>/* port, na którym słucham */</i>
 		int external_ip;	<i>/* zewnętrzny adres ip */</i>
 		short external_port;	<i>/* zewnętrzny port */</i>
+		char description[];	<i>/* opis, nie musi wystąpić */</i>
+		int time;		<i>/* czas, nie musi wystąpić */</i>
 	};
 </pre></p>
 		
@@ -314,6 +319,8 @@ Jeśli dany klient jest w stanie z podanym opisem, najpierw dostaniemy
 informację osobnym pakietem o nim, później paczkę struktur
 <tt>gg_notify_reply</tt> z ludźmi, którzy nie mają ustawionych opisów.
 <p>
+Możliwe jest również otrzymanie pakietu <tt>gg_notify_reply</tt> ze swoim własnym numerem, którą najlepiej zignorować.
+<p>
 Żeby dodać kogoś do listy w trakcie pracy, trzeba wysłać niżej opisany
 pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>.
 <p><p><pre>
@@ -333,15 +340,18 @@ By usunąć z listy kontaktów, wysyła się podobny pakiet:
 		char type;	<i>/* rodzaj użytkownika */</i>
 	};
 </pre></p>
-Jeśli ktoś opuści Gadu-Gadu lub zmieni stan, otrzymamy pakiet:
+Jeśli ktoś opuści Gadu-Gadu lub zmieni stan na niedostępny lub niewidoczny, otrzymamy pakiet:
 <p><p><pre>
 	#define GG_STATUS 0x0002
 	
 	struct gg_status {
-		int uin;	<i>/* numerek */</i>
-		int status;	<i>/* nowy stan */</i>
+		int uin;	        <i>/* numerek */</i>
+		int status;	        <i>/* nowy stan */</i>
+		char description[];	<i>/* opis, nie musi wystąpić */</i>
+		int time;		<i>/* czas, nie musi wystąpić */</i>
 	};
 </pre></p>
+Natomiast jeśli ktoś zmieni status na inny niż niedostępny lub niewidoczny, otrzymamy pakiet <tt>gg_notify_reply</tt>.</p>
 
 <hr>
 <h3>1.6. Wysyłanie wiadomości</h3>
@@ -374,7 +384,7 @@ znamy:
 <tr><td><tt>GG_CLASS_ACK</tt></td><td><tt>0x0020</tt></td><td>Klient nie życzy sobie potwierdzenia wiadomości.</td></tr>
 </table></center>
 <p>
-Długość treści wiadomości nie powinna przekraczać 2000 znaków.
+Długość treści wiadomości nie powinna przekraczać 2000 znaków. Oryginalny klient zezwala na wysłanie do 1989 znaków.
 <p>
 Oryginalny klient wysyłając wiadomość do kilku użytkowników, wysyła po
 kilka takich samych pakietów z różnymi numerkami odbiorców. Nie ma osobnego
@@ -552,6 +562,7 @@ Autorami powyższego opisu są:
 <li>Kamil Dębski (kdebski%kki.net.pl): czas w stanach opisowych.
 <li>Paweł Piwowar (alfapawel%go2.pl): format czasu.
 <li>Tomasz Chiliński (chilek%chilan.com): nowości w 5.0.2.
+<li>Radosław Nowak (rano%ranosoft.com): uzupełnienie statusu opisowego, wersja 5.0.3.
 </ul>
 
 <hr>
