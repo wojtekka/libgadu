@@ -706,8 +706,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 
+			sess->port = port;
+
 			/* ³±czymy siê z w³a¶ciwym serwerem. */
-			if ((sess->fd = gg_connect(&addr, port, sess->async)) == -1) {
+			if ((sess->fd = gg_connect(&addr, sess->port, sess->async)) == -1) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", errno, strerror(errno));
 
 				sess->port = GG_HTTPS_PORT;
