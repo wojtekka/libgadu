@@ -896,6 +896,14 @@ void gg_free_session(struct gg_session *sess)
 		SSL_CTX_free(sess->ssl_ctx);
 #endif
 
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
+	if (sess->resolver) {
+		pthread_cancel(*((pthread_t*) sess->resolver));
+		free(sess->resolver);
+		sess->resolver = NULL;
+	}
+#endif
+
 	free(sess);
 }
 
