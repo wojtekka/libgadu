@@ -456,6 +456,11 @@ void gg_http_free(struct gg_http *h)
 
 	gg_http_stop(h);
 
+	if (h->body) {
+		free(h->body);
+		h->body = NULL;
+	}
+
 	if (h->query) {
 		free(h->query);
 		h->query = NULL;
