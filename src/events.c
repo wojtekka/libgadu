@@ -59,47 +59,58 @@ void gg_event_free(struct gg_event *e)
 	if (!e)
 		return;
 	
-	if (e->type == GG_EVENT_MSG) {
-		free(e->event.msg.message);
-		free(e->event.msg.formats);
-		free(e->event.msg.recipients);
-	}
+	switch (e->type) {
+		case GG_EVENT_MSG:
+			free(e->event.msg.message);
+			free(e->event.msg.formats);
+			free(e->event.msg.recipients);
+			break;
 	
-	if (e->type == GG_EVENT_NOTIFY)
-		free(e->event.notify);
+		case GG_EVENT_NOTIFY:
+			free(e->event.notify);
+			break;
 	
-	if (e->type == GG_EVENT_NOTIFY60) {
-		int i;
+		case GG_EVENT_NOTIFY60:
+		{
+			int i;
 
-		for (i = 0; e->event.notify60[i].uin; i++)
-			free(e->event.notify60[i].descr);
+			for (i = 0; e->event.notify60[i].uin; i++)
+				free(e->event.notify60[i].descr);
 		
-		free(e->event.notify60);
-	}
+			free(e->event.notify60);
+		}
 
-	if (e->type == GG_EVENT_STATUS60)
-		free(e->event.status60.descr);
+		case GG_EVENT_STATUS60:
+			free(e->event.status60.descr);
+			break;
 	
-	if (e->type == GG_EVENT_STATUS)
-		free(e->event.status.descr);
+		case GG_EVENT_STATUS:
+			free(e->event.status.descr);
+			break;
 
-	if (e->type == GG_EVENT_NOTIFY_DESCR) {
-		free(e->event.notify_descr.notify);
-		free(e->event.notify_descr.descr);
-	}
+		case GG_EVENT_NOTIFY_DESCR:
+			free(e->event.notify_descr.notify);
+			free(e->event.notify_descr.descr);
+			break;
 
-	if (e->type == GG_EVENT_DCC_VOICE_DATA)
-		free(e->event.dcc_voice_data.data);
+		case GG_EVENT_DCC_VOICE_DATA:
+			free(e->event.dcc_voice_data.data);
+			break;
 
-	if (e->type == GG_EVENT_PUBDIR50_SEARCH_REPLY || e->type == GG_EVENT_PUBDIR50_READ || e->type == GG_EVENT_PUBDIR50_WRITE)
-		gg_pubdir50_free(e->event.pubdir50);
+		case GG_EVENT_PUBDIR50_SEARCH_REPLY:
+		case GG_EVENT_PUBDIR50_READ:
+		case GG_EVENT_PUBDIR50_WRITE:
+			gg_pubdir50_free(e->event.pubdir50);
+			break;
 
-	if (e->type == GG_EVENT_USERLIST)
-		free(e->event.userlist.reply);
+		case GG_EVENT_USERLIST:
+			free(e->event.userlist.reply);
+			break;
 	
-	if (e->type == GG_EVENT_IMAGE_REPLY) {
-		free(e->event.image_reply.filename);
-		free(e->event.image_reply.image);
+		case GG_EVENT_IMAGE_REPLY:
+			free(e->event.image_reply.filename);
+			free(e->event.image_reply.image);
+			break;
 	}
 
 	free(e);
