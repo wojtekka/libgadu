@@ -949,7 +949,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_READING_DATA:
 		{
 			char buf[1024], *tmp, *host;
+			char sysmsg[1024];
 			int port = GG_DEFAULT_PORT;
+			int sysmsglen = 0;
 			struct in_addr a;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
@@ -973,6 +975,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 			gg_chomp(buf);
+
+			if (*buf) 
+				sysmsglen = atoi(buf);
+						    
+			if (sysmsglen) {
+			    	gg_read_line(sess->fd, sysmsg, sizeof(sysmsg) - 1);
+				gg_chomp(sysmsg);
+				e->type = GG_EVENT_MSG;
+				e->event.msg.msgclass = 0;
+				e->event.msg.sender = 0;
+				e->event.msg.message = strdup(sysmsg);
+			}
 	
 			close(sess->fd);
 	
@@ -1001,7 +1015,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				*tmp = 0;
 				port = atoi(tmp+1);
 			}
-
 			a.s_addr = inet_addr(host);
 			sess->server_ip = a.s_addr;
 
