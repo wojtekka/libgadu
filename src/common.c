@@ -170,7 +170,7 @@ char *gg_get_line(char **ptr)
         else {
                 *ptr = foo + 1;
                 *foo = 0;
-                if (res[strlen(res) - 1] == '\r')
+                if (strlen(res) > 1 && res[strlen(res) - 1] == '\r')
                         res[strlen(res) - 1] = 0;
         }
 
