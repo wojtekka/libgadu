@@ -181,7 +181,7 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve(%p, %p, \"%s\");\n", fd, pid, hostname);
 	
-	if (!fd | !pid) {
+	if (!fd || !pid) {
 		errno = EFAULT;
 		return -1;
 	}
