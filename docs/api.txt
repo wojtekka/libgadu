@@ -2,7 +2,7 @@
 // (c) copyright 2001-2003 by wojtek kaniewski <wojtekka@irc.pl>
 //			      robert j. wozny <speedy@ziew.org>
 
-// tekst poprawiany ostatnio 2003-03-11
+// tekst poprawiany ostatnio 2003-03-18
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
 w ramach jednego procesu/w±tku obs³ugiwaæ tyle sesji, na ile pozwol±
@@ -286,5 +286,196 @@ dodatkowo, je¶li dojd± jakies opcje wyszukiwania, nie trzeba w bibliotece
 niczego zmieniaæ -- ¿adnych struktur, itd. po prostu odwo³ujemy siê do
 kolejnego pola przez gg_pubdir50_add() i gg_pubdir50_get().
 
+***
+
+BEZPO¦REDNIE PO£¡CZENIA
+
+gadu-gadu, w przeciwieñstwie do irc, umo¿liwia po³±czenia w obie strony,
+bez wzglêdu na to, który klient nadaje, a który odbiera. do tego, je¶li
+obie strony wychodz± z tego samego adresu IP, serwer informuje ich o ich
+adresach wewnêtrznych z tego samego LANu. mamy kilka mo¿liwych sytuacji:
+
+a) mam publiczny lub niepubliczny adres IP i chcê wys³aæ plik do kogo¶
+   z publicznym adresem -- ³±czê siê z jego klientem, przedstawiam siê,
+   mówiê czego chcê i je¶li to zaakceptuje, zaczynam wysy³aæ plik. bardzo
+   to przypomina zwyk³e po³±czenia dcc klientów irc.
+
+b) mam publiczny adres IP i wysy³am plik do kogo¶ za maskarad± -- wysy³am
+   do niego odpowiedni pakiet ctcp (client-to-client protocol). jest to
+   pakiet klasy GG_CLASS_CTCP (0x10) o tre¶ci sk³adaj±cej siê z jednego
+   znaku o kodzie 0x02. druga strona, odebrawszy taki pakiet ³±czy siê
+   z nami, mówi, ¿e proszono j± o po³±czenie i czeka na dalsze instrukcje.
+   wtedy wysy³amy informacjê, ¿e owszem, chcemy wys³aæ plik, mówimy jaki
+   i je¶li druga strona to zaakceptuje, nadajemy.
+
+c) mam niepubliczny adres IP, tak samo jak i druga strona -- tutaj
+   nawi±zanie po³±czenia jest mo¿liwe tylko i wy³±cznie, gdy oba klienty
+   znajduj± siê w tej samej sieci (tj. oba ³±cz± siê z serwerem GG z tego
+   samego adresu zewnêtrznego) i wygl±da to wtedy identycznie jak w punkcie
+   a).
+
+to, czy mo¿emy siê z kim¶ po³±czyæ widaæ po porcie, jaki dostajemy w
+pakietach gg_notify_reply. je¶li jest mniejszy ni¿ 10, po³±czenie nie
+jest mo¿liwe, a wtedy wysy³amy pakiet ctcp za pomoc± funkcji
+gg_dcc_request().
+
+ka¿de po³±czenie zwi±zanie z dcc opisywane jest przez strukturê gg_dcc.
+najwa¿niejsze jest GG_SESSION_DCC_SOCKET, które odpowiada za przychodz±ce
+po³±czenia. tworzymy je przez:
+
+	struct gg_dcc *socket = gg_dcc_socket_create(uin, port);
+
+	if (!socket)
+		b³±d("nie mogê otworzyæ socketu");
+
+	dodaj_do_listy_przegl±danych_deskryptorów(socket);
+
+port mo¿e wynosiæ 0, a wtedy libgadu samo we¼mie pierwszy lepszy
+z brzegu. w razie powodzenia zwraca zaalokowan± strukturê gg_dcc,
+której najbardziej interesuj±cym polem jest gg_dcc->port zawieraj±ce
+numer przyznanego portu. je¶li funkcja zwróci NULL, patrzymy na errno.
+EINVAL to niew³a¶ciwie parametry, ENOMEM brak pamiêci, a reszta
+mo¿liwych b³êdów to te zwi±zane z socketami, typu EADDRINUSE gdy nie
+mo¿e wolnego portu znale¼æ.
+
+teraz wypada³oby ustawiæ zmienn± ,,gg_dcc_port'' i po³±czyæ siê z
+serwerem GG, ¿eby og³osiæ swoje namiary. og³aszany adres IP bêdzie
+brany z po³±czenia z serwerem.
+
+	gg_dcc_port = socket->port;
+	po³±cz_siê_z_serwerem();
+
+w ka¿dym razie, gdy pojawi siê co¶ na deskryptorze, wywo³ujemy:
+
+	struct gg_event *event = gg_dcc_watch_fd(socket);
+
+	if (!event) {
+		usuñ_z_listy_przegl±danych_deskryptorów(socket);
+		gg_dcc_free(socket);
+		b³±d("powa¿ny b³±d"):
+	}
+
+b³±d jest zwracany tylko w naprawdê krytycznych sytuacjach, gdy
+brakuje pamiêci, lub nie powiod³a siê operacja na socketach, która
+nie mia³a siê nie powie¶æ (i przy okazji dalsza zabawa jest
+kompletnie bezcelowa).
+
+je¶li b³êdu nie bêdzie, dostajemy informacje o zdarzeniu. w przypadku
+GG_SESSION_DCC_SOCKET mog± to byæ:
+
+1) GG_EVENT_NONE -- nic ciekawego siê nie wydarzy³o.
+
+2) GG_EVENT_DCC_ERROR -- wyst±pi³ b³±d, którego kod znajduje siê w
+   event->event.dcc_error. w przypadku tego typu sesji mo¿liwy jest
+   tylko GG_ERROR_DCC_HANDSHAKE, który mówi, ¿e nie uda³o siê nawi±zaæ
+   po³±czenia z klientem.
+
+3) GG_EVENT_DCC_NEW -- nowe po³±czenie od klienta. w polu
+   event->event.dcc_new jest struktura gg_dcc typu GG_SESSION_DCC,
+   któr± dodajemy do listy przegl±danych deskryptorów.
+
+w ka¿dym z tych wypadków nale¿y po sprawdzeniu zdarzenia wywo³aæ funkcjê:
+
+	gg_event_free(socket->event);
+
+by zwolniæ pamiêæ po zdarzeniu.
+
+
+gdy nadejdzie po³±czenie i dopiszemy je do listy przegl±danych deskryptorów,
+musimy zwracaæ uwagê na nastêpuj±ce zdarzenia:
+
+1) GG_EVENT_NONE -- nic siê nie zdarzy³o.
+
+2) GG_EVENT_DCC_CLIENT_ACCEPT -- klient siê przedstawi³ i czeka na
+   autoryzacjê po³±czenia. sprawdzamy gg_dcc->uin czy jest naszym numerem
+   i czy gg_dcc->peer_uin jest na naszej li¶cie kontaktów i czy chcemy z
+   nim nawi±zywaæ po³±czenie. je¶li nie, to po prostu usuwamy po³±czenie:
+
+   	if (!akceptujemy_po³±czenie(klient->uin, klient->peer_uin)) {
+		usuñ_z_listy_przegl±danych_deskryptorów(client);
+		gg_dcc_free(klient);
+	}
+
+3) GG_EVENT_DCC_CALLBACK -- poprosili¶my klienta, ¿eby siê z nami po³±czy³
+   za pomoc± gg_dcc_request() i on teraz pyta siê, czego chcemy. zaraz po
+   tym zdarzeniu nale¿y wywo³aæ funkcjê:
+
+	gg_dcc_set_type(klient, rodzaj_po³±czenia);
+
+   gdzie rodzaj to GG_SESSION_DCC_SEND albo GG_SESSION_DCC_VOICE. je¶li
+   wysy³amy plik, mo¿na od razu wywo³aæ gg_dcc_fill_file_info(), ale nie
+   jest to wymagane. kiedy przyjdzie pora, libgadu sama nas o to poprosi.
+
+4) GG_EVENT_DCC_NEED_FILE_ACK -- klient chce wys³aæ nam plik. w strukturze
+   gg_dcc->file_info znajduj± siê wszystkie informacje na temat pliku, jak
+   jego nazwa, rozmiar, atrybuty, data i czas utworzenia itp. je¶li nie
+   chcemy pliku, zamykamy po³±czenie w podobny sposób jak przy braku
+   autoryzacji. libgadu jeszcze nie potrafi odpowiadaæ negatywnie na pro¶by
+   po³±czeñ dcc. je¶li chcemy plik, otwieramy plik do zapisu i numer jego
+   deskryptora zapisujemy do gg_dcc->file_fd. dalej libgadu zajmie siê
+   transferem.
+
+5) GG_EVENT_DCC_NEED_FILE_INFO -- wcze¶niej poprosili¶my drug± stronê by
+   siê z nami po³±czy³a, bo jest za maskarad±, a my chcemy wys³aæ plik.
+   w tym wypadku mo¿emy albo sami wype³niæ strukturê gg_dcc->file_info,
+   któr± biblioteka wy¶le drugiej stronie, albo skorzystaæ z funkcji
+   gg_dcc_fill_file_info().
+
+   	if (gg_dcc_fill_file_info(klient, nazwa_pliku)) {
+		b³±d("nie mogê otworzyæ pliku");
+		usuñ_z_listy_przegl±danych_deskryptorów(klient);
+		gg_dcc_free(klient);
+	}
+
+6) GG_EVENT_DCC_DONE -- zakoñczono transfer, mo¿na ju¿ nie patrzeæ na
+   deskryptor i zwolniæ pamiêæ po po³±czeniu.
+
+7) GG_EVENT_DCC_ERROR -- b³±d. mo¿liwy kod b³êdu to GG_ERROR_DCC_HANDSHAKE
+   gdy nie powiod³o siê ustanowienie po³±czenia z klientem, GG_ERROR_DCC_NET
+   kiedy nie uda³o siê wys³aæ lub odczytaæ czego¶ z socketa, GG_ERROR_DCC_FILE
+   gdy nie mo¿na by³o odczytaæ albo zapisaæ do pliku, GG_ERROR_DCC_EOF gdy
+   plik lub po³±czenie zbyt wcze¶nie siê skoñczy, GG_ERROR_DCC_REFUSED gdy
+   u¿ytkownik po drugiej stronie odmówi³ po³±czenia.
+
+tutaj równie¿ nale¿y pamiêtaæ o wywo³ywaniu gg_event_free().
+
+
+je¶li chcemy sami wys³aæ plik, sprawdzamy najpierw, czy druga strona
+mo¿e przyj±æ po³±czenie, patrz±c na jej port. je¶li powy¿ej 10, mo¿emy
+¶mia³o wywo³aæ funkcjê:
+
+	struct gg_dcc *klient = gg_dcc_send_file(adres_ip, port, nasz_uin, jego_uin);
+
+	if (!klient)
+		b³±d("nie mo¿na ustanowiæ po³±czenia");
+
+zaraz potem mo¿emy wywo³aæ funkcjê gg_dcc_fill_file_info() by uzupe³niæ
+informacjê o pliku...
+
+	gg_dcc_fill_file_info(klient, nazwa_pliku);
+
+...ale je¶li tego nie zrobimy teraz, biblioteka poprosi nas o to
+w odpowiedniej za pomoc± zdarzenia GG_EVENT_DCC_NEED_FILE_INFO.
+
+je¶li port jest podejrzanie niski, znaczy ¿e po³±czenie jest niemo¿liwe
+i wtedy wywo³ujemy funkcjê:
+
+	gg_dcc_request(sesja_gg, jego_uin);
+
+gdzie sesja_gg to nasza sesja GG (jako¶ musimy wys³aæ wiadomo¶æ),
+a jego_uin to numer drugiej strony. spowoduje ona, ¿e druga strona
+spróbuje siê z nami po³±czyæ, je¶li ma tak± mo¿liwo¶æ.
+
+
+gdy otrzymamy wiadomo¶æ klasy GG_CLASS_CTCP o tre¶ci 0x02 znaczy,
+¿e kto¶ chce nam co¶ przes³aæ i mamy siê z nim po³±czyæ. wywo³ujemy
+wtedy:
+
+	struct gg_dcc *klient = gg_dcc_get_file(adres_ip, port, nasz_uin, jego_uin);
+
+	if (!klient)
+		b³±d("nie mo¿na ustanowiæ po³±czenia");
+
+dalej tak samo, jak przy zwyk³ym odbieraniu pliku.
 
 $Id$
