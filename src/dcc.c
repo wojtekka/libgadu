@@ -361,6 +361,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->check = GG_CHECK_WRITE;
 					h->timeout = GG_DEFAULT_TIMEOUT;
 					h->uin = tmp;
+					e->type = GG_DCC_EVENT_CLIENT_ACCEPT;
 				}
 
 				return e;
@@ -804,7 +805,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				tmp = write(h->file_fd, buf, size);
 				
 				if (tmp == -1 || tmp < size) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%d:%s)\n", tmp, size, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:fd=%d:res=%d:%s)\n", tmp, h->file_fd, size, strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
