@@ -843,25 +843,29 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			free(sess->password);
 			sess->password = NULL;
-			
-#if 0
-			if (!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len))
-				sess_ip = sin.sin_addr.s_addr;	
 
-			if (gg_dcc_ip) {
-				sess->client_addr = (sess_ip) ? (sess_ip) : INADDR_NONE;
-				sess->client_port = gg_dcc_port;
-			} else {
-				sess->client_ip = 0;
-				sess->client_port = 0;
-			};
-#endif
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() gg_dcc_ip = %s\n", inet_ntoa(*((struct in_addr*) &gg_dcc_ip)));
 			
+			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
+				struct sockaddr_in sin;
+				int sin_len = sizeof(sin);
+
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() detecting address\n");
+
+				if (!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len)) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() detected address to %s\n", inet_ntoa(sin.sin_addr));
+					l.local_ip = sin.sin_addr.s_addr;
+				} else {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() unable to detect address\n");
+					l.local_ip = 0;
+				}
+			} else 
+				l.local_ip = gg_dcc_ip;
+		
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(sess->protocol_version);
-			l.local_ip = gg_dcc_ip;
 			l.local_port = fix16(gg_dcc_port);
 			
 			if (sess->external_addr && sess->external_port > 1023) {
