@@ -223,7 +223,6 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes\n", res);
 
-#if 0
 		if (!h->header_buf) {
 			if (!(h->header_buf = malloc(res + 1))) {
 				gg_debug(GG_DEBUG_MISC, "=> not enough memory for header\n");
@@ -239,7 +238,6 @@ int gg_http_watch_fd(struct gg_http *h)
 			memcpy(h->header_buf + h->header_size, buf, res);
 			h->header_size += res;
 		}
-#endif
 
 		if (!(h->header = realloc(h->header, h->header_size + res + 1))) {
 			gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for header\n");
