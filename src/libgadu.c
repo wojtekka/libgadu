@@ -110,39 +110,36 @@ unsigned short fix16(unsigned short x)
  */
 static unsigned int gg_login_hash(unsigned char *password, unsigned int seed)
 {
+#if 0
 	unsigned int hash;
-	
-#if 1 || defined(GG_OLD_LOGIN_HASH) || defined(WORDS_BIGENDIAN)
+
 	for (hash = 1; *password; password++)
 		hash *= (*password) + 1;
 	hash *= seed;
 
 	return hash;
-#else
+#endif
+
 	unsigned int x, y, z;
 
-	hash = seed;
+	y = seed;
 
 	for (x = 0; *password; password++) {
 		x = (x & 0xffffff00) | *password;
-		hash ^= x;
-		hash += x;
+		y ^= x;
+		y += x;
 		x <<= 8;
-		hash ^= x;
+		y ^= x;
 		x <<= 8;
-		hash -= x;
+		y -= x;
 		x <<= 8;
-		hash ^= x;
+		y ^= x;
 
-		for (y = hash & 0x1f; y; y--) {
-			if ((hash & 0x80000000))
-				hash = (hash << 1) | 1;
-			else
-				hash <<= 1;
-		}
+		z = y & 0x1F;
+		y = (y << z) | (y >> (32 - z));
 	}
-#endif
-	return hash;
+
+	return y;
 }
 
 /*
@@ -1351,7 +1348,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			};
 			
 			l.uin = fix32(sess->uin);
-			l.hash = fix32(hash);
+			l.hash = hash;
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(GG_CLIENT_VERSION);
 			l.local_ip = sess->client_ip;
