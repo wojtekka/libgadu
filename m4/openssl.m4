@@ -34,6 +34,8 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
         AC_MSG_RESULT($incl/openssl/ssl.h)
 	ldflags_old="$LDFLAGS"
 	LDFLAGS="$lib -lcrypto"
+	save_LIBS="$LIBS"
+	LIBS="-lcrypto $LIBS"
 	AC_CHECK_LIB(ssl, RSA_new, [
 	  AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
 	  have_openssl=yes
@@ -42,6 +44,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
     	    OPENSSL_INCLUDES="-I$incl"
 	  fi
 	])
+	LIBS="$save_LIBS"
 	LDFLAGS="$ldflags_old"
 	break
       fi
