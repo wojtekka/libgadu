@@ -1,4 +1,4 @@
-// jaki¶tam sobie opis API libgg
+// jaki¶tam sobie opis API libgadu
 // (c) copyright 2001-2002 by wojtek kaniewski <wojtekka@irc.pl>
 //			      robert j. wozny <speedy@ziew.org>
 
@@ -26,8 +26,8 @@ po zalogowaniu siê. jako ¿e wszystko dziejê siê w tle, klient musi
 sprawdzaæ ca³y czas podane deskryptory. pole ,,blah->fd'' zawiera
 deskryptor, a ,,blah->check'' jest bitmap± i zawiera GG_CHECK_READ i/lub
 GG_CHECK_WRITE je¶li mamy sprawdziæ czy przysz³y nowe dane i/lub mo¿emy
-wysy³aæ. je¶li co¶ siê wydarzy, wywo³ujemy ,,gg_watch_fd()'', a libgg sobie
-ju¿ sprawdzi, co takiego siê zdarzy³o:
+wysy³aæ. je¶li co¶ siê wydarzy, wywo³ujemy ,,gg_watch_fd()'', a libgadu
+sobie ju¿ sprawdzi, co takiego siê zdarzy³o:
 
 	while (1) {
 		fd_set rd, wr, ex;
@@ -132,9 +132,9 @@ po zalogowaniu wypada³oby wys³aæ serwerowi listê u¿ytkowników, którzy nas
 interesuj±. ,,gg_notify()'' przyjmuje za argument tablicê zmiennych typu
 ,,uin_t''. w odpowiedzi dostaniemy GG_EVENT_NOTIFY i tablicê struktur
 ,,struct gg_notify_reply'', je¶li kto¶ jest. po szczegó³y odsy³am do
-libgg.c, libgg.h i ¼róde³ konsolowego klienta. je¶li dodajemy lub usuwamy
-kogo¶ w trakcie dzia³ania, nale¿y skorzystaæ z ,,gg_add_notify()'' lub
-,,gg_remove_notify()''.
+libgadu.c, libgadu.h i ¼róde³ konsolowego klienta. je¶li dodajemy lub
+usuwamy kogo¶ w trakcie dzia³ania, nale¿y skorzystaæ z ,,gg_add_notify()''
+lub ,,gg_remove_notify()''.
 
 ¿eby zmieniæ stan na zajêty lub dostêpny, u¿ywamy ,,gg_change_status()''.
 
@@ -143,7 +143,7 @@ mówi, czy ma sie pojawiæ w osobnym okienku (GG_CLASS_MSG) czy w okienku
 rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomo¶ci,
 którego mo¿emy u¿yæ do potwierdzenia.
 
-biblioteka libgg.c wymaga zdefiniowania / albo i nie WORDS_BIGENDIAN.
+biblioteka libgadu.c wymaga zdefiniowania / albo i nie WORDS_BIGENDIAN.
 jest ona definiowana [albo i nie] przez skrypt configure - i jest definiowana
 [#define WORDS_BIGENDIAN 1] gdy mamy maszynê bigendianow±.
 
