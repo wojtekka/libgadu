@@ -238,7 +238,7 @@ int gg_connect(void *addr, int port, int async)
 		return -1;
 	}
 
-        bzero(&myaddr, sizeof(myaddr));
+        memset(&myaddr, 0, sizeof(myaddr));
         myaddr.sin_family = AF_INET;
 
         myaddr.sin_addr.s_addr = gg_local_ip;
