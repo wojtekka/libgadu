@@ -229,7 +229,7 @@ fail:
 static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 {
 	struct gg_header *h = NULL;
-	void *p;
+	char *p;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_watch_fd_connected(%p, %p);\n", sess, e);
 
@@ -257,7 +257,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 		case GG_NOTIFY_REPLY:
 		{
-			struct gg_notify_reply *n = p;
+			struct gg_notify_reply *n = (void*) p;
 			int count, i;
 			char *tmp;
 
@@ -287,7 +287,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
 					goto fail;
 				}
-				memcpy(tmp, (char*) p + sizeof(*n), count);
+				memcpy(tmp, p + sizeof(*n), count);
 				tmp[count] = 0;
 				e->event.notify_descr.descr = tmp;
 				
@@ -315,7 +315,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 		case GG_STATUS:
 		{
-			struct gg_status *s = p;
+			struct gg_status *s = (void*) p;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
 
@@ -328,7 +328,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					int len = h->length - sizeof(*s);
 					char *buf = malloc(len + 1);
 					if (buf) {
-						memcpy(buf, (char*) p + sizeof(*s), len);
+						memcpy(buf, p + sizeof(*s), len);
 						buf[len] = 0;
 					}
 					e->event.status.descr = buf;
@@ -339,18 +339,132 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_NOTIFY_REPLY60:
+		{
+			struct gg_notify_reply60 *n = (void*) p;
+			int length = h->length, i = 0;
+
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
+
+			e->type = GG_EVENT_NOTIFY60;
+			e->event.notify60 = malloc(sizeof(*e->event.notify60));
+
+			if (!e->event.notify60) {
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+				goto fail;
+			}
+
+			gg_debug(GG_DEBUG_MISC, "// sizeof() = %d\n", sizeof(*e->event.notify60));
+
+			e->event.notify60[0].uin = 0;
+			
+			while (length >= sizeof(struct gg_notify_reply60)) {
+				uin_t uin = gg_fix32(n->uin);
+				char *tmp;
+
+				e->event.notify60[i].uin = uin & 0x00ffffff;
+				e->event.notify60[i].status = gg_fix32(n->status);
+				e->event.notify60[i].remote_ip = n->remote_ip;
+				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
+				e->event.notify60[i].version = n->version;
+				e->event.notify60[i].image_size = n->image_size;
+				e->event.notify60[i].descr = NULL;
+				e->event.notify60[i].time = 0;
+
+				if (GG_S_D(gg_fix32(n->status))) {
+					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
+
+					if (descr_len < length) {
+						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
+							gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+							goto fail;
+						}
+
+						memcpy(e->event.notify60[i].descr, (char*) n + sizeof(struct gg_notify_reply60) + 1, descr_len);
+						e->event.notify60[i].descr[descr_len] = 0;
+
+						/* XXX czas */
+					}
+					
+					length -= sizeof(struct gg_notify_reply60) + descr_len + 1;
+					n = (void*) ((char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
+				} else {
+					length -= sizeof(struct gg_notify_reply60);
+					n = (void*) ((char*) n + sizeof(struct gg_notify_reply60));
+				}
+
+				if (!(tmp = realloc(e->event.notify60, (i + 2) * sizeof(*e->event.notify60)))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+					free(e->event.notify60);
+					goto fail;
+				}
+
+				e->event.notify60 = (void*) tmp;
+				e->event.notify60[++i].uin = 0;
+			}
+
+			break;
+		}
+		
+		case GG_STATUS60:
+		{
+			struct gg_status60 *s = (void*) p;
+			uint32_t uin;
+
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
+
+			if (h->length < sizeof(*s))
+				break;
+
+			uin = gg_fix32(s->uin);
+
+			e->type = GG_EVENT_STATUS60;
+			e->event.status60.uin = uin & 0x00ffffff;
+			e->event.status60.status = gg_fix32(s->status);
+			e->event.status60.remote_ip = s->remote_ip;
+			e->event.status60.remote_port = gg_fix16(s->remote_port);
+			e->event.status60.version = s->version;
+			e->event.status60.image_size = s->image_size;
+			e->event.status60.descr = NULL;
+			e->event.status60.time = 0;
+
+//			if (uin & 0x10000000)
+//				e->event.status60.status |= GG_STATUS_FRIENDS_MASK;
+
+			if (uin & 0x40000000)
+				e->event.status60.version |= GG_HAS_AUDIO_MASK;
+
+			if (h->length > sizeof(*s)) {
+				int len = h->length - sizeof(*s);
+				char *buf = malloc(len + 1);
+
+				if (buf) {
+					memcpy(buf, (char*) p + sizeof(*s), len);
+					buf[len] = 0;
+				}
+
+				e->event.status60.descr = buf;
+
+				if (len > 4 && p[h->length - 5] == 0)
+					e->event.status60.time = *((int*) (p + h->length - 4));
+			}
+
+			break;
+		}
+
 		case GG_SEND_MSG_ACK:
 		{
-			struct gg_send_msg_ack *s = p;
+			struct gg_send_msg_ack *s = (void*) p;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a message ack\n");
 
-			if (h->length >= sizeof(*s)) {
-				e->type = GG_EVENT_ACK;
-				e->event.ack.status = gg_fix32(s->status);
-				e->event.ack.recipient = gg_fix32(s->recipient);
-				e->event.ack.seq = gg_fix32(s->seq);
-			}
+			if (h->length < sizeof(*s))
+				break;
+
+			e->type = GG_EVENT_ACK;
+			e->event.ack.status = gg_fix32(s->status);
+			e->event.ack.recipient = gg_fix32(s->recipient);
+			e->event.ack.seq = gg_fix32(s->seq);
 
 			break;
 		}
