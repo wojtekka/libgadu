@@ -82,39 +82,51 @@ void gg_debug(int level, const char *format, ...)
 char *gg_saprintf(const char *format, ...)
 {
         va_list ap;
-        char *buf = NULL, *tmp;
-        int size = 0, res;
+        int size = 0;
 	const char *start;
+	char *buf = NULL;
 
 	start = format; 
         va_start(ap, format);
 
-	if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
-                size = 128;
-                do {
-                        size *= 2;
-                        if (!(tmp = realloc(buf, size))) {
-                                free(buf);
-                                return NULL;
-                        }
-                        buf = tmp;
-                        res = vsnprintf(buf, size, format, ap);
-                } while (res == size - 1 || res == -1);
-        } else {
-                if (!(buf = malloc(size + 1)))
-                        return NULL;
-        }
+#ifndef HAVE_C99_VSNPRINTF
+	{
+		int res;
+		char *tmp;
+		
+		size = 128;
+		do {
+			size *= 2;
+			if (!(tmp = realloc(buf, size))) {
+				free(buf);
+				return NULL;
+			}
+			buf = tmp;
+			res = vsnprintf(buf, size, format, ap);
+		} while (res == size - 1 || res == -1);
+	}
+#else
+	{
+		char tmp[1];
+		
+		/* libce Solarisa przy buforze NULL zawsze zwracaj± -1, wiêc
+		 * musimy podaæ co¶ istniej±cego jako cel printf()owania. */
+		size = vsnprintf(tmp, sizeof(tmp), format, ap);
+		if (!(buf = malloc(size + 1)))
+			return NULL;
+	}
+#endif
 
 	va_end(ap);
 	
 	format = start;
 	va_start(ap, format);
 	
-        vsnprintf(buf, size + 1, format, ap);
+	vsnprintf(buf, size + 1, format, ap);
 	
-        va_end(ap);
+	va_end(ap);
 
-        return buf;
+	return buf;
 }
 
 /*
