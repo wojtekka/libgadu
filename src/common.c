@@ -18,24 +18,24 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <netdb.h>
-#include <errno.h>
-#ifndef _AIX
-#  include <string.h>
-#endif
-#include <stdarg.h>
 #ifdef sun
-  #include <sys/filio.h>
+#  include <sys/filio.h>
 #endif
+
+#include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "libgadu.h"
 
 FILE *gg_debug_file = NULL;
@@ -308,7 +308,6 @@ void gg_chomp(char *line)
 	if (line[strlen(line) - 1] == '\r')
 		line[strlen(line) - 1] = 0;
 }
-
 
 /*
  * gg_urlencode() // funkcja wewnêtrzna
@@ -591,7 +590,7 @@ char *gg_base64_decode(const char *buf)
 		}
 		if (!(foo = strchr(gg_base64_charset, *buf)))
 			foo = gg_base64_charset;
-		val = (int)foo - (int)gg_base64_charset;
+		val = (int)(foo - gg_base64_charset);
 		buf++;
 		switch (index) {
 			case 0:

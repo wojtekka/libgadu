@@ -18,15 +18,14 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include <ctype.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#ifndef _AIX
-#  include <string.h>
-#endif
-#include <stdarg.h>
-#include <ctype.h>
+
 #include "libgadu.h"
 
 /*
@@ -85,7 +84,7 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
 		"Pragma: no-cache\r\n"
 		"\r\n"
 		"%s",
-		strlen(form), form);
+		(int) strlen(form), form);
 
 	free(form);
 
@@ -174,7 +173,7 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
 		"Pragma: no-cache\r\n"
 		"\r\n"
 		"%s",
-		strlen(form), form);
+		(int) strlen(form), form);
 
 	free(form);
 
@@ -260,7 +259,7 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
                 "Pragma: no-cache\r\n"
                 "\r\n"
                 "%s",
-                strlen(form), form);
+                (int) strlen(form), form);
 
 	free(form);
 
@@ -350,7 +349,7 @@ struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *new
                 "Pragma: no-cache\r\n"
                 "\r\n"
                 "%s",
-                strlen(form), form);
+                (int) strlen(form), form);
 
 	free(form);
 
@@ -405,7 +404,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
                 "Pragma: no-cache\r\n"
                 "\r\n"
                 "%s",
-                strlen(form), form);
+                (int) strlen(form), form);
 
 	free(form);
 
@@ -501,7 +500,7 @@ struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_ch
                 "Pragma: no-cache\r\n"
                 "\r\n"
                 "%s",
-                strlen(form), form);
+                (int) strlen(form), form);
 
 	free(form);
 

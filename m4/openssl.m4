@@ -16,7 +16,6 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
   if test "x$without_openssl" != "xyes" ; then
     AC_MSG_CHECKING(for ssl.h)
 
-
     for i in $with_arg \
     		/usr/include: \
 		/usr/local/include:"-L/usr/local/lib" \
@@ -49,10 +48,9 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
 	break
       fi
     done
-  fi
 
-  if test "x$have_openssl" != "xyes"; then
-    AC_MSG_RESULT(not found)
+    if test "x$have_openssl" != "xyes"; then
+      AC_MSG_RESULT(not found)
+    fi
   fi
 ])
-

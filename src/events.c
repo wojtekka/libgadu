@@ -19,24 +19,25 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <sys/wait.h>
+
 #include <errno.h>
-#ifndef _AIX
-#  include <string.h>
-#endif
-#include <time.h>
-#include "compat.h"
-#include "libgadu.h"
 #ifdef __GG_LIBGADU_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "compat.h"
+#include "libgadu.h"
 
 /*
  * gg_event_free()

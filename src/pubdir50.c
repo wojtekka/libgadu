@@ -17,12 +17,11 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#ifndef _AIX
-#  include <string.h>
-#endif
+
 #include "compat.h"
 #include "libgadu.h"
 

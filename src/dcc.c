@@ -18,24 +18,25 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/stat.h>
-#include <fcntl.h>		/* XXX fixy na inne systemy */
-#include <sys/ioctl.h>		/* XXX j.w. */
-#include <errno.h>
-#ifndef _AIX
-#  include <string.h>
-#endif
 #ifdef sun
 #  include <sys/filio.h>
 #endif
-#include <stdarg.h>
+
 #include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "compat.h"
 #include "libgadu.h"
 
