@@ -53,7 +53,7 @@
  *
  * niczego nie zwraca.
  */
-void gg_debug(int level, char *format, ...)
+void gg_debug(int level, const char *format, ...)
 {
 	va_list ap;
 	
@@ -76,7 +76,7 @@ void gg_debug(int level, char *format, ...)
  * zwraca zaalokowany buforek, który wypada³oby pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
  */
-char *gg_alloc_sprintf(char *format, ...)
+char *gg_alloc_sprintf(const char *format, ...)
 {
         va_list ap;
         char *buf = NULL, *tmp;
@@ -259,9 +259,10 @@ void gg_chomp(char *line)
  * zwraca zaalokowany bufor, który wypada³oby kiedy¶ zwolniæ albo NULL
  * w przypadku b³êdu.
  */
-char *gg_urlencode(char *str)
+char *gg_urlencode(const char *str)
 {
-	char *p, *q, *buf, hex[] = "0123456789abcdef";
+	char *q, *buf, hex[] = "0123456789abcdef";
+	const char *p;
 	int size = 0;
 
 	if (!str)
@@ -303,7 +304,7 @@ char *gg_urlencode(char *str)
  * zawiera znaki 's' je¶li dany parametr jest ci±giem znaków lub
  * 'u' je¶li jest numerkiem gg.
  */
-int gg_http_hash(char *format, ...)
+int gg_http_hash(const char *format, ...)
 {
 	unsigned int a, c;
 	va_list ap;

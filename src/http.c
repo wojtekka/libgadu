@@ -48,7 +48,7 @@
  * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y
  * zwolniæ funkcj± gg_free_http(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_http_connect(char *hostname, int port, int async, char *method, char *path, char *header)
+struct gg_http *gg_http_connect(const char *hostname, int port, int async, const char *method, const char *path, const char *header)
 {
 	struct gg_http *h;
 

@@ -108,7 +108,7 @@ unsigned short fix16(unsigned short x)
  *
  * zwraca hash.
  */
-unsigned int gg_login_hash(unsigned char *password, unsigned int seed)
+unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 {
 #if 0
 	unsigned int hash;
@@ -156,7 +156,7 @@ unsigned int gg_login_hash(unsigned char *password, unsigned int seed)
  *
  * zwraca 0 je¶li uda³o siê odpaliæ proces lub -1 w przypadku b³êdu.
  */
-int gg_resolve(int *fd, int *pid, char *hostname)
+int gg_resolve(int *fd, int *pid, const char *hostname)
 {
 	int pipes[2], res;
 	struct in_addr a;
@@ -422,7 +422,7 @@ static int gg_session_callback(struct gg_session *s)
  * w przypadku b³êdu zwraca NULL, je¶li idzie dobrze (async) albo posz³o
  * dobrze (sync), zwróci wska¼nik do zaalokowanej struktury `gg_session'.
  */
-struct gg_session *gg_login(uin_t uin, char *password, int async)
+struct gg_session *gg_login(uin_t uin, const char *password, int async)
 {
 	struct gg_session *sess;
 	char *hostname;
@@ -570,7 +570,7 @@ int gg_change_status(struct gg_session *sess, int status)
  *
  * je¶li wys³a³ pakiet zwraca 0, je¶li nie uda³o siê, zwraca -1.
  */
-int gg_change_status_descr(struct gg_session *sess, int status, char *descr)
+int gg_change_status_descr(struct gg_session *sess, int status, const char *descr)
 {
 	struct gg_new_status p;
 
@@ -630,7 +630,7 @@ void gg_logoff(struct gg_session *sess)
  *
  * w przypadku b³êdu zwraca -1, inaczej numer sekwencyjny.
  */
-int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, unsigned char *message, int message_len)
+int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, int message_len)
 {
 	struct gg_send_msg s;
 
@@ -666,7 +666,7 @@ int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient,
  *
  * w przypadku b³êdu zwraca -1, inaczej numer sekwencyjny.
  */
-int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, unsigned char *message)
+int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message)
 {
 	struct gg_send_msg s;
 

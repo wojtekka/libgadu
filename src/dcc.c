@@ -63,10 +63,10 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
  *
  * zwraca -1 w przypadku b³êdu, 0 je¶li siê powiod³o.
  */
-int gg_dcc_fill_file_info(struct gg_dcc *d, char *filename)
+int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 {
 	struct stat st;
-	char *p;
+	const char *p;
 	
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_fill_file_info(..., \"%s\");\n", filename);
 	

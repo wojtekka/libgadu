@@ -39,7 +39,7 @@
  * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_register(char *email, char *password, int async)
+struct gg_http *gg_register(const char *email, const char *password, int async)
 {
         struct gg_http *h;
 	char *__pwd, *__email, *form, *query;
@@ -120,7 +120,7 @@ struct gg_http *gg_register(char *email, char *password, int async)
  * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_change_passwd(uin_t uin, char *passwd, char *newpasswd, char *newemail, int async)
+struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async)
 {
 	struct gg_http *h;
 	char *form, *query, *__fmpwd, *__pwd, *__email;
@@ -430,7 +430,7 @@ void gg_pubdir_free(struct gg_http *h)
  *
  * zwraca zaalokowan± strukturê lub NULL.
  */
-struct gg_change_info_request *gg_change_info_request_new(char *first_name, char *last_name, char *nickname, char *email, int born, int gender, char *city)
+struct gg_change_info_request *gg_change_info_request_new(const char *first_name, const char *last_name, const char *nickname, const char *email, int born, int gender, const char *city)
 {
 	struct gg_change_info_request *r = calloc(1, sizeof(struct gg_change_info_request));
 
