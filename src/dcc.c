@@ -657,6 +657,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				gg_write(h->fd, &big, sizeof(big));
 
 				h->state = GG_STATE_READING_FILE_HEADER;
+				h->chunk_size = sizeof(big);
+				h->chunk_offset = 0;
+				if (!(h->chunk_buf = malloc(sizeof(big)))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory\n");
+					free(e);
+					return NULL;
+				}
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
@@ -682,7 +689,25 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_HEADER\n");
 				
-				gg_read(h->fd, &big, sizeof(big));
+				tmp = read(h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+
+				if (tmp == -1) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() read() failed (%d:%s)\n", errno, strerror(errno));
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_NET;
+					return e;
+				}
+
+				gg_dcc_debug_data("read", h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+				
+				h->chunk_offset += tmp;
+
+				if (h->chunk_offset < h->chunk_size)
+					return e;
+
+				memcpy(&big, h->chunk_buf, sizeof(big));
+				free(h->chunk_buf);
+				h->chunk_buf = NULL;
 
 				big.type = fix32(big.type);
 				h->chunk_size = fix32(big.dunno1);
@@ -1083,6 +1108,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() chunk finished\n");
 					h->state = GG_STATE_READING_FILE_HEADER;
 					h->timeout = GG_DEFAULT_TIMEOUT;
+					h->chunk_offset = 0;
+					h->chunk_size = sizeof(big);
+					if (!(h->chunk_buf = malloc(sizeof(big)))) {
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory\n");
+						free(e);
+						return NULL;
+					}
 				} else {
 					h->state = GG_STATE_GETTING_FILE;
 					h->timeout = GG_DCC_TIMEOUT_GET;
@@ -1123,6 +1155,11 @@ void gg_dcc_free(struct gg_dcc *d)
 
 	if (d->fd != -1)
 		close(d->fd);
+
+	if (d->chunk_buf) {
+		free(d->chunk_buf);
+		d->chunk_buf = NULL;
+	}
 
 	free(d);
 }
