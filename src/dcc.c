@@ -377,8 +377,8 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 {
 	struct {
-		u_int8_t type;
-		u_int32_t length;
+		uint8_t type;
+		uint32_t length;
 	} packet;
 
 	if (!d || !buf || length < 0 || d->type != GG_SESSION_DCC_VOICE) {
