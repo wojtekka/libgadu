@@ -16,19 +16,19 @@
 <hr>
 <h2>0. Informacje wstêpne</h2>
 <p>
-Opis protoko³u u¿ywanego przez Gadu-gadu bazuje na do¶wiadczeniach
+Opis protoko³u u¿ywanego przez Gadu-Gadu bazuje na do¶wiadczeniach
 przeprowadzonych przez autorów oraz informacjach nadsy³anych przez 
-u¿ytkowników. ¯aden klient Gadu-gadu nie zosta³ skrzywdzony podczas
+u¿ytkowników. ¯aden klient Gadu-Gadu nie zosta³ skrzywdzony podczas
 badañ. Reverse-engineering opiera³ siê g³ównie na analizie pakietów
 wysy³anych miêdzy klientem a serwerem.
 </p>
 
 <hr>
-<h2>1. Protokó³ Gadu-gadu</h2>
+<h2>1. Protokó³ Gadu-Gadu</h2>
 
 <h3>1.1. Format pakietów</h3>
 <p>
-Podobnie jak coraz wiêksza ilo¶æ komunikatorów, Gadu-gadu korzysta z
+Podobnie jak coraz wiêksza ilo¶æ komunikatorów, Gadu-Gadu korzysta z
 protoko³u TCP/IP. Ka¿dy pakiet zawiera na pocz±tku dwa sta³e pola:
 </p>
 <p><pre>
@@ -99,7 +99,7 @@ wyjdzie z jaki¶ powodów, mo¿na siê ³±czyæ na port 443.
 <hr>
 <h3>1.3. Logowanie siê</h3>
 <p>
-Po po³±czeniu siê portem 8074 lub 443 serwera Gadu-gadu, dostajemy pakiet
+Po po³±czeniu siê portem 8074 lub 443 serwera Gadu-Gadu, dostajemy pakiet
 typu <tt>0x0001</tt>, który na potrzeby tego dokumentu nazwiemy:
 <p><p><pre>
 	#define GG_WELCOME 0x0001
@@ -183,7 +183,7 @@ o zerowej d³ugo¶ci, lub w przypadku b³êdu pakiet:
 <hr>
 <h3>1.4. Zmiana stanu</h3>
 <p>
-Gadu-gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
+Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 <p><p><pre>
 	#define GG_NEW_STATUS 0x0002
 
@@ -203,7 +203,7 @@ Mo¿liwe stany to:
 <tr><td><tt>GG_STATUS_BUSY</tt></td><td><tt>0x0003</tt></td><td>Zajêty</td></tr>
 <tr><td><tt>GG_STATUS_BUSY_DESCR</tt></td><td><tt>0x0005</tt></td><td>Zajêty (z opisem)</td></tr>
 <tr><td><tt>GG_STATUS_INVISIBLE</tt></td><td><tt>0x0014</tt></td><td>Niewidoczny</td></tr>
-<tr><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0015</tt></td><td>Niewidoczny z opisem</td></tr>
+<tr><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0016</tt></td><td>Niewidoczny z opisem</td></tr>
 <tr><td><tt>GG_STATUS_BLOCKED</tt></td><td><tt>0x0006</tt></td><td>Zablokowany</td></tr>
 <tr><td><tt>GG_STATUS_FRIENDS_MASK</tt></td><td><tt>0x8000</tt></td><td>Maska bitowa oznaczaj±ca tryb tylko dla przyjació³</td></tr>
 </table></center>
@@ -283,7 +283,7 @@ pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>.
 		char type;	<i>/* rodzaj u¿ytkownika */</i>
 	};
 </pre></p>
-By usun±æ z listy kontaktó³, wysy³a siê podobny pakiet:
+By usun±æ z listy kontaktów, wysy³a siê podobny pakiet:
 <p><p><pre>
 	#define GG_REMOVE_NOTIFY 0x000e
 	
@@ -292,7 +292,7 @@ By usun±æ z listy kontaktó³, wysy³a siê podobny pakiet:
 		char type;	<i>/* rodzaj u¿ytkownika */</i>
 	};
 </pre></p>
-Je¶li kto¶ opu¶ci Gadu-gadu lub zmieni stan, otrzymamy pakiet:
+Je¶li kto¶ opu¶ci Gadu-Gadu lub zmieni stan, otrzymamy pakiet:
 <p><p><pre>
 	#define GG_STATUS 0x0002
 	
