@@ -463,6 +463,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->destroy = gg_free_session;
 	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
 	sess->server_addr = p->server_addr;
+	sess->external_port = p->external_port;
+	sess->external_addr = p->external_addr;
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 	if (p->has_audio)
 		sess->protocol_version |= GG_HAS_AUDIO_MASK;

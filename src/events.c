@@ -726,9 +726,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_header *h;			
 			struct gg_welcome *w;
 			struct gg_login l;
+			struct gg_login_ext lext;
 			unsigned int hash;
 			unsigned char *password = sess->password;
-
+			int ret;
+			
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_KEY\n");
 
 			/* XXX bardzo, bardzo, bardzo g³upi pomys³ na pozbycie siê tekstu wrzucanego przez proxy. */
@@ -805,10 +807,19 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.version = fix32(sess->protocol_version);
 			l.local_ip = gg_dcc_ip;
 			l.local_port = fix16(gg_dcc_port);
-	
-			gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
+			
+			if (sess->external_addr && sess->external_port > 1023) {
+				memcpy(&lext, &l, sizeof(l));
+				lext.external_ip = sess->external_addr;
+				lext.external_port = sess->external_port;
+				gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN_EXT packet\n");
+				ret = gg_send_packet(sess->fd, GG_LOGIN_EXT, &lext, sizeof(lext), NULL);
+			} else {
+				gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
+				ret = gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), NULL);			    
+			}
 
-			if (gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), NULL) == -1) {
+			if (ret == -1) {
 				gg_debug(GG_DEBUG_TRAFFIC, "-- oops, failed. errno = %d (%s)\n", errno, strerror(errno));
 
 				close(sess->fd);
