@@ -57,7 +57,11 @@ H1, H2, H3 { margin-top: 0px; }
 		2.5.&nbsp;&nbsp;<a href="#ch2.5">Zmiana has³a</a><br />
 		2.6.&nbsp;&nbsp;<a href="#ch2.6">Przypomnienie has³a poczt±</a><br />
 	</li>
-	<li><a href="#ch3">Bezpo¶rednie po³±czenia</a></li>
+	<li><a href="#ch3">Po³±czenia bezpo¶rednie</a><br />
+		3.1.&nbsp;&nbsp;<a href="#ch3.1">Nawi±zanie po³±czenia</a><br />
+		3.2.&nbsp;&nbsp;<a href="#ch3.2">Przesy³anie plików</a><br />
+		3.3.&nbsp;&nbsp;<a href="#ch3.3">Rozmowy g³osowe</a><br />
+	</li>
 	<li><a href="#ch4">Autorzy</a></li>
 </ol>
 
@@ -107,10 +111,22 @@ znaków CP1250 (windows-1250). Linie koñcz± siê znakami <tt>\r\n</tt>.
 
 <p>
 Przy opisie struktur, za³o¿ono, ¿e <tt>char</tt> ma rozmiar 1 bajtu,
-<tt>short</tt> 2 bajtów, <tt>int</tt> 4 bajtów. U¿ywaj±c innych
-architektur ni¿ i386 nale¿y zwróciæ szczególn± uwagê na rozmiar typów
-zmiennych i kolejno¶æ znaków.
+<tt>short</tt> 2 bajtów, <tt>int</tt> 4 bajtów, <tt>long long</tt> 8 bajtów.
+U¿ywaj±c architektur innych ni¿ i386, nale¿y zwróciæ szczególn± uwagê na
+rozmiar typów zmiennych i kolejno¶æ znaków. Poza tym, wiêkszo¶æ dostêpnych
+obecnie kompilatorów domy¶lnie wyrównuje zmienne do rozmiaru s³owa danej
+architektury, wiêc nale¿y wy³±czyæ t± funkcjê. W przypadku gcc bêdzie to
+<tt>__attribute__ ((packed))</tt> zaraz za deklaracj± ka¿dej struktury. a dla
+Microsoft Visual C++ powinno pomóc:
 </p>
+
+<div class="c">
+<pre>#pragma pack(push, 1)
+
+<i>/* deklaracje */</i>
+
+#pragma pack(pop)</pre>
+</div>
 
 <p>
 Pola, który znaczenie jest nieznane, lub nie do koñca jasne, oznaczono
@@ -1017,19 +1033,43 @@ Pole <tt>type</tt> oznacza rodzaj zapytania:
 
 <p>
 W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera tekst
-z³o¿ony z dowolnej liczby wpisów postaci:
+z³o¿ony z dowolnej liczby linii postaci:
 </p>
 
 <div class="example">
-<pre>imie;nazwisko;pseudo;wyswietlane;telefon;grupa;uin;adres&#64;email;0;;0;</pre>
+<pre>imiê;nazwisko;pseudonim;wy¶wietlane;telefon_komórkowy;grupa;uin;adres_email;dostê
+pny;¶cie¿ka_dostêpny;wiadomo¶æ;¶cie¿ka_wiadomo¶æ;ukrywanie;telefon_domowy</pre>
 </div>
 
 <p>
-Ostatnie 3 pola zosta³y dodane w wersji 4.9.3 i s± zwi±zane z d¼wiêkami.
-Lista kontaktów jest dzielona na pakiety po 2048 bajtów. Pierwszy jest
-wysy³any pakietem typu <tt>GG_USERLIST_PUT</tt>, ¿eby uaktualniæ plik na
-serwerze, pozosta³e typu <tt>GG_USERLIST_PUT_MORE</tt>, ¿eby dopisaæ do 
-pliku.
+Funkcje mniej oczywistych pól to:
+</p>
+
+<ul>
+
+<li><tt>dostêpny</tt> okre¶la d¼wiêki zwi±zane z pojawieniem siê danej osoby
+i przyjmuje warto¶ci <tt>0</tt> (u¿yte zostan± ustawienia globalne), <tt>1</tt>
+(d¼wiêk powiadomienia zostanie wy³±czony), <tt>2</tt> (zostanie odtworzony
+plik okre¶lony w polu <tt>¶cie¿ka_dostêpny</tt>).<br />&nbsp;</li>
+
+<li><tt>wiadomo¶æ</tt> dzia³a podobnie jak <tt>dostêpny</tt>, ale okre¶la
+d¼wiêk dla przychodz±cej wiadomo¶ci.<br />&nbsp;</li>
+
+<li><tt>ukrywanie</tt> okre¶la czy bêdziemy dostêpni (<tt>0</tt>) czy
+niedostêpni (<tt>1</tt>) dla danej osoby w trybie tylko dla znajomych.</li>
+
+</ul>
+
+<p>
+Pole niewype³nione mo¿e zostaæ puste, a w przypadku pól liczbowych, przyj±æ
+warto¶æ <tt>0</tt>.
+</p>
+
+<p>
+Podczas przesy³ania lista kontaktów jest dzielona na pakiety po 2048 bajtów.
+Pierwszy jest wysy³any pakietem typu <tt>GG_USERLIST_PUT</tt>, ¿eby uaktualniæ
+plik na serwerze, pozosta³e typu <tt>GG_USERLIST_PUT_MORE</tt>, ¿eby dopisaæ
+do pliku.
 </p>
 
 <p>
@@ -1431,63 +1471,246 @@ Je¶li siê uda³o, serwer odpowie:
 <hr />
 
 <a name="ch3"></a>
-<h2>3. Bezpo¶rednie po³±czenia</h2>
+<h2>3. Po³±czenia bezpo¶rednie</h2>
 
-<pre>Author: Walerian Soko³owski (C) Copyright 2002
-You a free to change it in every way you want.
+<a name="ch3.1"></a>
+<h3>3.1. Nawi±zanie po³±czenia</h3>
 
------ (0) disclaimer ------------------------------
-Opisujê tu protokó³ przesy³ania plików w miêdzy klientami G*du-G*du.
-Informacjê czerpa³em ze ¼róde³ gglib w której¶ z wersji
-oraz z do¶wiadczeñ przeprowadzanych w³asnorêcznie. W tym celu nic nie 
-desasemblowa³em i nie reingenerowa³em.
+<p>
+Po³±czenia bezpo¶rednie pozwalaj± przesy³aæ pliki lub prowadziæ rozmowy
+g³osowe bez po¶rednictwa serwera. Pocz±tkowe wersje Gadu-Gadu potrafi³y
+przesy³aæ bezpo¶rednio równie¿ wiadomo¶ci tekstowe, ale funkcjonalno¶æ
+ta zosta³a zarzucona.
+</p>
 
------ 1) zamiast wstêpu ------------------------------------------------------
-Protokó³ jest pewn± implementacj± czê¶ci powszechnie znanego DCC 
-opisanego w którym¶ z RFC. 
+<p>
+Po³±czenia s± mo¿liwe jedynie w sytuacji, gdy co najmniej jedna ze stron
+posiada publiczny adres IP. Je¶li jest to strona wywo³ywana, wystarczy
+po³±czyæ siê na podany adres IP i port. Gdy nie ma mo¿liwo¶ci po³±czenia
+siê ze stron± wywo³ywan±, nale¿y wys³aæ do niej wiadomo¶æ klasy
+<tt>GG_CLASS_CTCP</tt>, zawieraj±c± jeden bajt o warto¶ci <tt>0x02</tt>.
+Odebranie takiej wiadomo¶ci powinno spowodowaæ po³±czenie bezpo¶rednie
+z nadawc±, w którym role stron bêd± zamienione a¿ do momentu okre¶lenia
+rzeczywistego kierunku transmisji.
+</p>
 
-Obowi±zuj± naturalne dla GG ustalenia, a wiêc sizeof(int) = 4 oraz transmisja
-jest intel endian. 
+<p>
+Po nawi±zaniu po³±czenia nale¿y wys³aæ pakiet zawieraj±cy numery Gadu-Gadu
+strony wywo³uj±cej i wywo³ywanej. W odró¿nieniu od po³±czenia z serwerem,
+w po³±czeniach bezpo¶rednich pakiety nie s± poprzedzane strukturami
+<tt>gg_header</tt>.
+</p>
 
------ 2) nawi±zanie po³±czenia ------------------------------------------------
-Klient ³±cz±c siê z serwerem GG wysy³a swój adres IP i port, na którym
-nas³uchuje (patrz opis gg_login). Gdy który¶ z kontaktów staje siê 
-dostêpny (w³a¶nie siê po³±czyli¶my lub on w³a¶nie zmieni³ stan) 
-otrzymujemu powiadomienie o tym w paczce typu GG_NOTIFY_REPLY, 
-która zawiera jego adresek IP i port, na którym on nas³uchuje (patrz
-opis gg_notify_reply). Tak wiêc w najprostszej sytuacji, gdy nie dziel±
-nas ¿adne firewalle strona wysy³aj±ca ma adres odbiorcy.
- 
-Je¶li odbiorca znajduje siê za firewallem, a nadawca nie, to nadawca
-mo¿e poprosiæ odbiorcê o nawi±zanie po³±czenia wysy³aj±c do niego
-komunikat typu 0x0010 (GG_CLASS_CTCP) o zawarto¶ci 0x02. W taki sposób
-na czas nawi±zania po³±czenia nadawca i odbiorca zamieniaj± siê rolami.
-I do koñca punktu bêdê ich nazywaæ wg. pe³nionych ról.
+<div class="c">
+<pre>struct gg_dcc_welcome {
+	int uin;	<i>/* numer strony wywo³uj±cej */</i>
+	int peer_uin;	<i>/* numer strony wywo³ywanej */</i>
+};</pre>
+</div>
 
-A wiêc nadawca nawi±zuje po³±czenie TCP z adresem odbiorcy i wysy³a
-swój UIN i UIN odbiorcy:
+<p>
+Strona wywo³ywana sprawdza, czy nadawca istnieje w li¶cie kontaktów i czy
+³±czy siê z tego samego adresu, który zg³osi³ serwerowi. Gdy który¶ z
+parametrów siê nie zgadza, po³±czenie nale¿y ze wzglêdów bezpieczeñstwa
+zerwaæ. Pomy¶lna autoryzacja jest sygnalizowana przez wys³anie do strony
+wywo³uj±cej pakietu:
+</p>
 
-	struct {
-		int uin1; /* mój numerek  */
-		int uin2; /* jego numerek */
-	};
+<div class="c">
+<pre>struct gg_dcc_welcome_ack {
+	int ack;	<i>/* warto¶æ 0x47414455, tekst "UDAG" */</i>
+};</pre>
+</div>
 
-Odbiorca potwierdzaj±c nawi±zanie po³±czenia z klientem GG wysy³a 4 bajty:
- 
-	struct {
-		char [] "UDAG";
-	};
+<p>
+Strona wywo³uj±ca nastêpnie wysy³a pakiet, w którym okre¶la kto w³a¶ciwie
+ma rozpocz±æ transmisjê:
+</p>
 
-Je¶li nadawca ma wysy³aæ plik, to wysy³a 0x0002:
- 
-	#define GG_DCC_CATCH_FILE 0x0002
+<div class="c">
+<pre>#define GG_DCC_DIRECTION_IN 0x0002
+#defnie GG_DCC_DIRECTION_OUT 0x0003
 
-Je¶li to odbiorca ma wysy³aæ, to nadawca wysy³a 0x0003:
-	
-	#define GG_DCC_WANT_FILE 0x0003
+struct gg_dcc_direction {
+	int type;	<i>/* w któr± stronê po³±czenie? */</i>
+};</pre>
+</div>
 
-Po tym wszystkim uwa¿a siê po³±czenie za nawi±zane.
+<p>
+Je¶li strona wywo³uj±ca by³a stron± inicjuj±c± po³±czenie bezpo¶rednie (nie
+chodzi o po³±czenie TCP, a o ¿±danie u¿ytkownika), wysy³a
+<tt>GG_DCC_DIRECTION_IN</tt>, a nastêpnie wysy³a pakiety zale¿ne od rodzaju
+po³±czenia bezpo¶redniego, opisane w dalszych rozdzia³ach. Gdy strona
+wywo³uj±ca zosta³a poproszona o po³±czenie za pomoc± wiadomo¶ci klasy
+<tt>GG_CLASS_CTCP</tt>, wysy³a <tt>GG_DCC_DIRECTION_OUT</tt> i oczekuje na
+pakiet zale¿ny od rodzaju po³±czenia bezpo¶redniego. Jak widaæ, rzeczywisty
+kierunek transmisji jest ju¿ okre¶lony.
+</p>
 
+<hr />
+
+<a name="ch3.2"></a>
+<h3>3.2. Przesy³anie plików</h3>
+
+<p>
+Aby powiadomo¶æ o chêci przes³ania pliku, nale¿y wys³aæ nastêpuj±ce pakiety.
+Pierwszy okre¶la rodzaj po³±czenia, drugi zawiera szczegó³y dotycz±ce pliku.
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_REQUEST_SEND 0x0001
+
+struct gg_dcc_request {
+	int type;	<i>/* GG_DCC_REQUEST_SEND */</i>
+};
+
+#define GG_DCC_FILE_INFO 0x0003
+
+struct gg_dcc_file_info {
+	int type;			<i>/* GG_DCC_FILE_INFO */</i>
+	int unknown1;			<i>/* == 0 */</i>
+	int unknown2;			<i>/* == 0 */</i>
+
+	struct gg_file_info {
+		int dwFileAttributes;		<i>/* atrybuty pliku */</i>
+		long long ftCreationTime;	<i>/* czas utworzenia pliku */</i>
+		long long ftLastAccessTime;	<i>/* czas ostatniego dostêpu */</i>
+		long long ftLastWriteTime;	<i>/* czas ostatniego zapisu */</i>
+		int nFileSizeHigh;		<i>/* górne 32 bity rozmiaru */</i>
+		int nFileSizeLow;		<i>/* dolne 32 bity rozmiaru */</i>
+		int dwReserved0;		<i>/* == 0 */</i>
+		int dwReserved1;		<i>/* == 0 */</i>
+		char cFileName[262];		<i>/* nazwa pliku */</i>
+		char cAlternateFileName[14];	<i>/* krótka nazwa pliku */</i>
+	} info;
+};</pre>
+</div>
+
+<p>
+Struktura <tt>gg_file_info</tt> odpowiada strukturze <tt>WIN32_FIND_DATA</tt>
+z API Win32.
+</p>
+
+<p>
+Strona wywo³ywana, w przypadku gdy u¿ytkownik zaakceptuje pobranie pliku,
+odsy³a pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_SEND_ACK 0x0006
+
+struct gg_dcc_send_ack {
+	int type;	<i>/* GG_DCC_SEND_ACK */</i>
+	int offset;	<i>/* od którego zaczynamy przesy³anie */</i>
+	int unknown1;	<i>/* == 0 */</i>
+};</pre>
+</div>
+
+<p>
+Je¶li plik zosta³ ju¿ czê¶ciowo odebrany i chcemy wznowiæ przesy³anie,
+w polu <tt>offset</tt> wystarczy podaæ ile bajtów ju¿ mamy, a odebrane
+dane dopisaæ na koñcu pliku.
+</p>
+
+<p>
+Po zaakceptowaniu pliku, strona wywo³uj±ca przesy³a jego zawarto¶æ podzielon±
+na pakiety, a nastêpnie zamyka po³±czenie.
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_SEND_DATA 0x0003
+#define GG_DCC_SEND_DATA_LAST 0x0002
+
+struct gg_dcc_send_data {
+	int type;	<i>/* typ pakietu */</i>
+	int length;	<i>/* rozmiar pakietu */</i>
+	char data[];	<i>/* dane */</i>
+};</pre>
+</div>
+
+<p>
+Domy¶lnie dane s± dzielone na pakiety o rozmiarze 4096 bajtów. Ostatni pakiet
+danych jest oznaczany typem <tt>GG_DCC_SEND_DATA_LAST</tt>, podczas gdy
+pozosta³e <tt>GG_DCC_SEND_DATA</tt>. Podczas implementacji dobrze by³o by
+rozwa¿yæ, czy strona wywo³ywana powinna odebraæ nie wiêcej ni¿ rozmiar pliku
+zadeklarowany w strukturze <tt>gg_file_info</tt> czy odbieraæ dane a¿ do
+otrzymania pakietu typu <tt>GG_DCC_SEND_DATA_LAST</tt>, implementacji.
+</p>
+
+<hr />
+
+<a name="ch3.3"></a>
+<h3>3.3. Rozmowy g³osowe</h3>
+
+<p>
+Aby powiadomo¶æ o chêci rozmowy g³osowej nale¿y wys³aæ pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_REQUEST_VOICE 0x0002
+
+struct gg_dcc_request {
+	int type;	<i>/* GG_DCC_REQUEST_VOICE */</i>
+};</pre>
+</div>
+
+<p>
+Strona wywo³ana mo¿e potwierdziæ chêæ przeprowadzenia rozmowy za pomoc±
+pakietu:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_VOICE_ACK 0x01
+
+struct gg_dcc_voice_ack {
+	char type;	<i>/* GG_DCC_VOICE_ACK */</i>
+};</pre>
+</div>
+
+<p>
+Je¶li strona wywo³ana chce odrzuciæ rozmowê g³osow±, zrywa po³±czenie.
+Mimo tego, strona wywo³uj±ca nie powinna ignorowaæ warto¶ci potwierdzenia.
+</p>
+
+<p>
+Nastêpnie przesy³ane s± próbki d¼wiêkowe kodowane microsoftowym wariantem
+GSM. Pod systemem Windows wystarczy u¿yæ standardowego kodeka, pod innymi
+mo¿na skorzystaæ z biblioteki
+<a href="http://kbs.cs.tu-berlin.de/~jutta/toast.html">libgsm</a> z opcj±
+WAV49. Pakiet danych wygl±da nastêpuj±co:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_VOICE_DATA 0x03
+
+struct gg_dcc_voice_data {
+	char type;	<i>/* GG_DCC_VOICE_DATA */</i>
+	int length;	<i>/* d³ugo¶æ pakietu */</i>
+	char data[];	<i>/* dane */</i>
+};</pre>
+</div>
+
+<p>
+W celu zakoñczenia rozmowy g³osowej, zamiast powy¿szej ramki wysy³a siê:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC_VOICE_TERMINATE 0x04
+
+struct gg_dcc_voice_terminate {
+	char type;	<i>/* GG_DCC_VOICE_TERMINATE */</i>
+};</pre>
+</div>
+
+<p>
+Do wersji 5.0.5 w jednym pakiecie by³o umieszczone 6 ramek GSM (<i>6 * 32,5 =
+195 bajtów</i>), a pocz±wszy od tej wersji przesy³a siê po 10 ramek GSM,
+poprzedzaj±c je bajtem zerowym (<i>1 + 10 * 32,5 = 326 bajtów</i>).
+</p>
+
+<hr />
+
+<pre>
 ----- 3) transmisja pliku: strona nadawcy -------------------------------------
 Nadawca wysy³a  po kolei:
 
@@ -1562,21 +1785,33 @@ Autorami powy¿szego opisu s±:
 </p>
 
 <ul>
-	<li><b>Wojtek Kaniewski</b> (wojtekka%irc.pl): pierwsza wersja opisu, poprawki, utrzymanie wszystkiego w porz±dku.</li>
-	<li><b>Robert J. Wo¼ny</b> (speedy%atman.pl): opis nowo¶ci w protokole GG 4.6, poprawki.</li>
+	<li><b>Wojtek Kaniewski</b> (wojtekka%irc.pl): pierwsza wersja opisu,
+	poprawki, utrzymanie wszystkiego w porz±dku.</li>
+	<li><b>Robert J. Wo¼ny</b> (speedy%atman.pl): opis nowo¶ci w protokole
+	GG 4.6, poprawki.</li>
 	<li><b>Tomasz Jarzynka</b> (tomee%cpi.pl): badanie timeoutów.</li>
-	<li><b>Adam Ludwikowski</b> (adam.ludwikowski%wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomo¶ci, powody nieobecno¶ci.</li>
-	<li><b>Marek Kozina</b> (klith%hybrid.art.pl): czas otrzymania wiadomo¶ci.</li>
-	<li><b>Rafa³ Florek</b> (raf%regionet.regionet.pl): opis po³±czeñ konferencyjnych.</li>
-	<li><b>Igor Popik</b> (igipop%wsfiz.edu.pl): klasy wiadomo¶ci przy odbieraniu zakolejkowanej.</li>
-	<li><b>Rafa³ Cyran</b> (ajron%wp.pl): informacje o remote_port, rodzaje potwierdzeñ przy ctcp, GG_LOGIN_EXT.</li>
-	<li><b>Piotr Mach</b> (pm%gadu-gadu.com): ilo¶æ kontaktów, pe³na skrzynka, pusta lista, maska audio, us³ugi HTTP, GG_LOGIN_EXT.</li>
-	<li><b>Adam Czy¶ciak</b> (acc%interia.pl): potwierdzenie wiadomo¶ci GG_CLASS_ACK.</li>
-	<li><b>Kamil Dêbski</b> (kdebski%kki.net.pl): czas w stanach opisowych.</li>
+	<li><b>Adam Ludwikowski</b> (adam.ludwikowski%wp.pl): wiele poprawek,
+	wersje klientów, rozszerzone wiadomo¶ci, powody nieobecno¶ci.</li>
+	<li><b>Marek Kozina</b> (klith%hybrid.art.pl): czas otrzymania
+	wiadomo¶ci.</li>
+	<li><b>Rafa³ Florek</b> (raf%regionet.regionet.pl): opis po³±czeñ
+	konferencyjnych.</li>
+	<li><b>Igor Popik</b> (igipop%wsfiz.edu.pl): klasy wiadomo¶ci przy
+	odbieraniu zakolejkowanej.</li>
+	<li><b>Rafa³ Cyran</b> (ajron%wp.pl): informacje o remote_port,
+	rodzaje potwierdzeñ przy ctcp, GG_LOGIN_EXT.</li>
+	<li><b>Piotr Mach</b> (pm%gadu-gadu.com): ilo¶æ kontaktów, pe³na
+	skrzynka, pusta lista, maska audio, us³ugi HTTP, GG_LOGIN_EXT.</li>
+	<li><b>Adam Czy¶ciak</b> (acc%interia.pl): potwierdzenie wiadomo¶ci
+	GG_CLASS_ACK.</li>
+	<li><b>Kamil Dêbski</b> (kdebski%kki.net.pl): czas w stanach
+	opisowych.</li>
 	<li><b>Pawe³ Piwowar</b> (alfapawel%go2.pl): format czasu.</li>
 	<li><b>Tomasz Chiliñski</b> (chilek%chilan.com): nowo¶ci w 5.0.2.</li>
-	<li><b>Rados³aw Nowak</b> (rano%ranosoft.com): uzupe³nienie statusu opisowego, wersja 5.0.3.</li>
-	<li><b>Walerian Soko³owski</b>: opis protoko³u bezpo¶rednich po³±czeñ.</li>
+	<li><b>Rados³aw Nowak</b> (rano%ranosoft.com): uzupe³nienie statusu
+	opisowego, wersja 5.0.3.</li>
+	<li><b>Walerian Soko³owski</b>: pierwsza wersja opisu protoko³u
+	bezpo¶rednich po³±czeñ.</li>
 	<li><b>Nikodem</b> (n-d%tlen.pl): flagi rodzaju u¿ytkownika.</li>
 </ul>
 
