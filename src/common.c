@@ -81,7 +81,9 @@ char *gg_saprintf(const char *format, ...)
         va_list ap;
         char *buf = NULL, *tmp;
         int size = 0, res;
+	const char *start;
 
+	start = format; 
         va_start(ap, format);
 
         if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
@@ -100,8 +102,13 @@ char *gg_saprintf(const char *format, ...)
                         return NULL;
         }
 
+	va_end(ap);
+	
+	format = start;
+	va_start(ap, format);
+	
         vsnprintf(buf, size + 1, format, ap);
-
+	
         va_end(ap);
 
         return buf;
