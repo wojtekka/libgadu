@@ -30,6 +30,7 @@ Funkcje przeszukiwania katalogu publicznego
 	gg_search_watch_fd
 	gg_search_free
 	gg_search_request_mode*
+	gg_search_request_free
 
 Funkcje obs³ugi list kontaktów na serwerze
 	gg_userlist_get
