@@ -46,7 +46,7 @@
  */
 struct gg_http *gg_register3(const char *email, const char *password, const char *tokenid, const char *tokenval, int async)
 {
-        struct gg_http *h;
+	struct gg_http *h;
 	char *__pwd, *__email, *__tokenid, *__tokenval, *form, *query;
 
 	if (!email | !password | !tokenid | !tokenval) {
@@ -66,7 +66,7 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 		free(__email);
 		free(__tokenid);
 		free(__tokenval);
-                errno = ENOMEM;
+		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -81,7 +81,7 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 
 	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> register, not enough memory for form query\n");
-                errno = ENOMEM;
+		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -102,7 +102,7 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
 	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> register, gg_http_connect() failed mysteriously\n");
 		free(query);
-                return NULL;
+		return NULL;
 	}
 
 	h->type = GG_SESSION_REGISTER;
@@ -154,7 +154,7 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 		free(__fmpwd);
 		free(__tokenid);
 		free(__tokenval);
-                errno = ENOMEM;
+		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -269,21 +269,21 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 	
 	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
 
-        query = gg_saprintf(
+	query = gg_saprintf(
 		"Host: " GG_REGISTER_HOST "\r\n"
-                "Content-Type: application/x-www-form-urlencoded\r\n"
-                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
-                "Content-Length: %d\r\n"
-                "Pragma: no-cache\r\n"
-                "\r\n"
-                "%s",
-                (int) strlen(form), form);
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+		"Content-Length: %d\r\n"
+		"Pragma: no-cache\r\n"
+		"\r\n"
+		"%s",
+		(int) strlen(form), form);
 
 	free(form);
 
 	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, gg_http_connect() failed mysteriously\n");
-                free(query);
+		free(query);
 		return NULL;
 	}
 
@@ -353,21 +353,21 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
 	
 	gg_debug(GG_DEBUG_MISC, "=> remind, %s\n", form);
 
-        query = gg_saprintf(
+	query = gg_saprintf(
 		"Host: " GG_REMIND_HOST "\r\n"
-                "Content-Type: application/x-www-form-urlencoded\r\n"
-                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
-                "Content-Length: %d\r\n"
-                "Pragma: no-cache\r\n"
-                "\r\n"
-                "%s",
-                (int) strlen(form), form);
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+		"Content-Length: %d\r\n"
+		"Pragma: no-cache\r\n"
+		"\r\n"
+		"%s",
+		(int) strlen(form), form);
 
 	free(form);
 
 	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmsendpwd3.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, gg_http_connect() failed mysteriously\n");
-                free(query);
+		free(query);
 		return NULL;
 	}
 
@@ -406,24 +406,24 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 		return -1;
 	}
 
-        if (h->state == GG_STATE_ERROR) {
-                gg_debug(GG_DEBUG_MISC, "=> pubdir, watch_fd issued on failed session\n");
-                errno = EINVAL;
-                return -1;
-        }
+	if (h->state == GG_STATE_ERROR) {
+		gg_debug(GG_DEBUG_MISC, "=> pubdir, watch_fd issued on failed session\n");
+		errno = EINVAL;
+		return -1;
+	}
 	
 	if (h->state != GG_STATE_PARSING) {
 		if (gg_http_watch_fd(h) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> pubdir, http failure\n");
-                        errno = EINVAL;
+			errno = EINVAL;
 			return -1;
 		}
 	}
 
 	if (h->state != GG_STATE_PARSING)
-                return 0;
+		return 0;
 	
-        h->state = GG_STATE_DONE;
+	h->state = GG_STATE_DONE;
 	
 	if (!(h->data = p = malloc(sizeof(struct gg_pubdir)))) {
 		gg_debug(GG_DEBUG_MISC, "=> pubdir, not enough memory for results\n");
@@ -517,22 +517,22 @@ int gg_token_watch_fd(struct gg_http *h)
 		return -1;
 	}
 
-        if (h->state == GG_STATE_ERROR) {
-                gg_debug(GG_DEBUG_MISC, "=> token, watch_fd issued on failed session\n");
-                errno = EINVAL;
-                return -1;
-        }
+	if (h->state == GG_STATE_ERROR) {
+		gg_debug(GG_DEBUG_MISC, "=> token, watch_fd issued on failed session\n");
+		errno = EINVAL;
+		return -1;
+	}
 	
 	if (h->state != GG_STATE_PARSING) {
 		if (gg_http_watch_fd(h) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> token, http failure\n");
-                        errno = EINVAL;
+			errno = EINVAL;
 			return -1;
 		}
 	}
 
 	if (h->state != GG_STATE_PARSING)
-                return 0;
+		return 0;
 	
 	/* je¶li h->data jest puste, to ¶ci±gali¶my tokenid i url do niego,
 	 * ale je¶li co¶ tam jest, to znaczy, ¿e mamy drugi etap polegaj±cy
