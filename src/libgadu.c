@@ -578,7 +578,7 @@ void gg_logoff(struct gg_session *sess)
 	if (sess->state == GG_STATE_CONNECTED)
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 	
-	if (sess->fd) {
+	if (sess->fd != -1) {
 		shutdown(sess->fd, 2);
 		close(sess->fd);
 	}
