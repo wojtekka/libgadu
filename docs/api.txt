@@ -155,12 +155,9 @@ którego mo¿emy u¿yæ do potwierdzenia.
 
 jedyne zale¿no¶ci libgadu w domy¶lnej wersji to <sys/types.h> i <stdint.h>
 
+***
 
-
-[ Date: Sat, 11 Jan 2003 20:28:54 +0100 (CET)   ]
-[ From: Wojtek Kaniewski <wojtekka@dev.null.pl> ]
-[ To: ekg-devel@list.ziew.org                   ]
-[ Subject: [ekg-devel] wyszukiwanie w gg 5.0    ]
+OBS£UGA KATALOGU PUBLICZNEGO GG 5.0 (na podstawie listu na ekg-devel)
 
 skoro ju¿ dzia³a, opiszê aktualne API. g³ównym za³o¿eniem by³a
 maksymalna niezale¿no¶æ od zmian w protokole, zmian nazw pól, dodawania
@@ -169,45 +166,46 @@ oka, ale podpatrzy³em to w powa¿niejszych projektach (np. libdbi).
 
 je¶li chcemy szukaæ:
 
-        gg_search50_t req = gg_search50_new();
+        gg_pubdir50_t req = gg_pubdir50_new(GG_PUBDIR50_SEARCH_REQUEST);
 
         if (!req)
                 out_of_memory();
 
         /* szukamy po numerku... */
 
-        gg_search50_add(req, GG_SEARCH50_UIN, "123456");
+        gg_pubdir50_add(req, GG_PUBDIR50_UIN, "123456");
 
         /* lub... */
 
-        gg_search50_add(req, GG_SEARCH50_FIRSTNAME, "Ania");
-        gg_search50_add(req, GG_SEARCH50_GENDER, GG_SEARCH50_GENDER_FEMALE);
+        gg_pubdir50_add(req, GG_PUBDIR50_FIRSTNAME, "Ania");
+        gg_pubdir50_add(req, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_FEMALE);
 
         /* lub... */
 
-        gg_search50_add(req, GG_SEARCH50_BIRTHYEAR, "1979 1985");
-        gg_search50_add(req, GG_SEARCH50_START, "0");
-        gg_search50_add(req, GG_SEARCH50_ACTIVE, GG_SEARCH50_ACTIVE_TRUE);
+        gg_pubdir50_add(req, GG_PUBDIR50_BIRTHYEAR, "1979 1985");
+        gg_pubdir50_add(req, GG_PUBDIR50_START, "0");
+        gg_pubdir50_add(req, GG_PUBDIR50_ACTIVE, GG_PUBDIR50_ACTIVE_TRUE);
 
         /* i w koñcu... */
 
-        gg_search50(sesja, req);
+        gg_pubdir50(sesja, req);
 
         /* i zwalniamy pamiêæ, albo sobie gdzie¶ zachowujemy. whatever */
 
-        gg_search50_free(req);
+        gg_pubdir50_free(req);
 
-jak witaæ, gg_search50_new() tworzy obiekt opisuj±cy wyszukiwanie,
-gg_search50_add() dodaje kolejne parametry. rodzaj parametru jest w
-rzeczywi¶ci sta³± tekstowk±, np. GG_SEARCH50_UIN to "FmNumber". nale¿y
+jak witaæ, gg_pubdir50_new() tworzy obiekt opisuj±cy operacjê katalogu,
+gg_pubdir50_add() dodaje kolejne parametry. rodzaj parametru jest w
+rzeczywi¶ci sta³± tekstow±, np. GG_PUBDIR50_UIN to "FmNumber". nale¿y
 pamiêtaæ, ¿e wszystkie argumenty s± tekstami. nie trzeba siê bawiæ w ich
 alokowanie czy co¶ takiego. biblioteka sobie sama zapamiêta. teksty musz±
-byæ oczywi¶cie w CP1250. na koñcu wywo³ujemy gg_search50() i tyle. funkcja
+byæ oczywi¶cie w CP1250. na koñcu wywo³ujemy gg_pubdir50() i tyle. funkcja
 ta zwraca numer sekwencyjny wyszukiwania, który mo¿emy sobei zachowaæ dla
 pó¼niejszych referencji.
 
-¿eby otrzymaæ wynik nale¿y obs³u¿yæ zdarzenei GG_EVENT_SEARCH50_RESULT, a
-nastêpnie:
+¿eby otrzymaæ wynik nale¿y obs³u¿yæ zdarzenia GG_EVENT_PUBDIR50_SEARCH_REPLY,
+GG_EVENT_PUBDIR50_WRITE i GG_EVENT_PUBDIR50_READ. dla przyk³adu, obs³uga
+wyników wyszukiwania wygl±da nastêpuj±co:
 
         gg_search50_t res = zdarzenie->event.search50;
         int count = gg_search50_count(res);
@@ -220,12 +218,12 @@ nastêpnie:
         for (int i = 0; i < count; i++) {
                 const char *uin, *first, *nick, *born, *city, *status;
 
-                uin = gg_search50_get(res, i, GG_SEARCH50_UIN);
-                first = gg_search50_get(res, i, GG_SEARCH50_FIRSTNAME);
-                nick = gg_search50_get(res, i, GG_SEARCH50_NICK);
-                born = gg_search50_get(res, i, GG_SEARCH50_BIRTHYEAR);
-                city = gg_search50_get(res, i, GG_SEARCH50_CITY);
-                status = gg_search50_get(res, i, GG_SEARCH50_STATUS);
+                uin = gg_pubdir50_get(res, i, GG_PUBDIR50_UIN);
+                first = gg_pubdir50_get(res, i, GG_PUBDIR50_FIRSTNAME);
+                nick = gg_pubdir50_get(res, i, GG_PUBDIR50_NICK);
+                born = gg_pubdir50_get(res, i, GG_PUBDIR50_BIRTHYEAR);
+                city = gg_pubdir50_get(res, i, GG_PUBDIR50_CITY);
+                status = gg_pubdir50_get(res, i, GG_PUBDIR50_STATUS);
 
                 printf("Numer: %s\nImiê: %s\nPseudonim: %s\n"
                         "Urodzony: %s\nMiejscowo¶æ: %s\n", uin,
@@ -248,25 +246,15 @@ nastêpnie:
         gg_event_free(zdarzenie);
 
 je¶li chcemy wiedzieæ, od jakiego numeru zacz±c wyszukiwanie, ¿eby dostaæ
-dalsz± czê¶æ, uzywamy gg_search50_next(). je¶li chcemy numer sekwencyjny,
-u¿ywamy gg_search50_seq().
+dalsz± czê¶æ, uzywamy gg_pubdir50_next(). je¶li chcemy numer sekwencyjny,
+u¿ywamy gg_pubdir50_seq().
 
-w ¿adnym wypadku nie mo¿na siê odwo³ywaæ do pól gg_search50_t, poniewa¿
+w ¿adnym wypadku nie mo¿na siê odwo³ywaæ do pól gg_pubdir50_t, poniewa¿
 mog± siê zmienaiæ miêdzy wersjami biblioteki. dziêki odwo³ywaniu siê przez
 funkcje, mamy pewno¶æ, ¿e bez wzglêdu na zmiany API/ABI mamy to samo.
 dodatkowo, je¶li dojd± jakies opcje wyszukiwania, nie trzeba w bibliotece
 niczego zmieniaæ -- ¿adnych struktur, itd. po prostu odwo³ujemy siê do
-kolejnego pola przez gg_search50_add() i gg_search50_get().
-
-w przysz³o¶ci tak samo chcia³bym rozwi±zaæ parametry gg_login(), ale to
-inny historia.
-
-teraz pytanie: czy dru¿yna pier¶c^W Kadu ma jakie¶ uwagi, komentarze itp?
-jestem otwarty na propozycje, je¶li jaka¶ zmiana mia³aby u³atwiæ Wam ¿ycie
-(mi mo¿e utrudniæ, byle w granicach rozs±dku ;>)
-
-pozdr,
-w.
+kolejnego pola przez gg_pubdir50_add() i gg_pubdir50_get().
 
 
 

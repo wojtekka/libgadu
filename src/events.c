@@ -361,11 +361,10 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_SEARCH50_REPLY:
+		case GG_PUBDIR50_REPLY:
 		{
-			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received search reply\n");
-			e->type = GG_EVENT_SEARCH50_REPLY;
-			if (gg_search50_handle_reply(e, p, h->length) == -1)
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received pubdir/search reply\n");
+			if (gg_pubdir50_handle_reply(e, p, h->length) == -1)
 				goto fail;
 			break;
 		}
