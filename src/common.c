@@ -200,7 +200,7 @@ int gg_connect(void *addr, int port, int async)
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_connect(%s, %d, %d);\n", inet_ntoa(*a), port, async);
 	
 	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "-- socket() failed. errno = %d (%s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_connect() socket() failed (errno=%d, %s)\n", errno, strerror(errno));
 		return -1;
 	}
 
@@ -214,7 +214,7 @@ int gg_connect(void *addr, int port, int async)
 #else
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
 #endif
-			gg_debug(GG_DEBUG_MISC, "-- ioctl() failed. errno = %d (%s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_connect() ioctl() failed (errno=%d, %s)\n", errno, strerror(errno));
 			close(sock);
 			return -1;
 		}
@@ -226,11 +226,11 @@ int gg_connect(void *addr, int port, int async)
 	
 	if (connect(sock, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
 		if (errno && (!async || errno != EINPROGRESS)) {
-			gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_connect() connect() failed (errno=%d, %s)\n", errno, strerror(errno));
 			close(sock);
 			return -1;
 		}
-		gg_debug(GG_DEBUG_MISC, "-- connect() in progress\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_connect() connect() in progress\n");
 	}
 	
 	return sock;
@@ -254,7 +254,7 @@ char *gg_read_line(int sock, char *buf, int length)
 	for (; length > 1; buf++, length--) {
 		do {
 			if ((ret = read(sock, buf, 1)) < 1 && errno != EINTR) {
-				gg_debug(GG_DEBUG_MISC, "-- gg_read_line(), eof reached\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_read_line() eof reached\n");
 				*buf = 0;
 				return NULL;
 			}

@@ -98,7 +98,7 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 	struct stat st;
 	const char *p;
 	
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_fill_file_info(..., \"%s\");\n", filename);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_fill_file_info(%p, \"%s\");\n", d, filename);
 	
 	if (!d || d->type != GG_SESSION_DCC_SEND) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info() invalid arguments\n");
@@ -295,7 +295,7 @@ static int gg_dcc_callback(struct gg_dcc *d)
  *  - port - preferowany port, je¶li równy 0 lub -1, próbuje domy¶lnego
  *
  * zaalokowana struct gg_dcc, któr± po¼niej nale¿y zwolniæ funkcj±
- * gg_free_dcc(), albo NULL je¶li wyst±pi³ b³±d.
+ * gg_dcc_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 {
@@ -382,7 +382,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	} GG_PACKED;
 	struct packet_s packet;
 
-	gg_debug(GG_DEBUG_FUNCTION, "++ gg_dcc_voice_send(..., %p, %d);\n", buf, length);
+	gg_debug(GG_DEBUG_FUNCTION, "++ gg_dcc_voice_send(%p, %p, %d);\n", d, buf, length);
 	if (!d || !buf || length < 0 || d->type != GG_SESSION_DCC_VOICE) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() invalid argument\n");
 		return -1;
@@ -453,7 +453,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 	struct gg_event *e;
 	int foo;
 
-        gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_watch_fd(...);\n");
+        gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_watch_fd(%p);\n", h);
 	
 	if (!h || (h->type != GG_SESSION_DCC && h->type != GG_SESSION_DCC_SOCKET && h->type != GG_SESSION_DCC_SEND && h->type != GG_SESSION_DCC_GET && h->type != GG_SESSION_DCC_VOICE)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() invalid argument\n");
@@ -1148,7 +1148,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
  */
 void gg_dcc_free(struct gg_dcc *d)
 {
-        gg_debug(GG_DEBUG_FUNCTION, "** gg_free_dcc(...);\n");
+        gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_free(%p);\n", d);
 	
 	if (!d)
 		return;

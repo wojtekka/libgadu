@@ -40,7 +40,7 @@
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
- * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ * funkcj± gg_register_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_register(const char *email, const char *password, int async)
 {
@@ -120,7 +120,7 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
- * funkcj± gg_free_pubdir(), albo NULL je¶li wyst±pi³ b³±d.
+ * funkcj± gg_pubdir_unregister(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email, int async)
 {
@@ -210,7 +210,7 @@ struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
- * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ * funkcj± gg_change_passwd_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async)
 {
@@ -292,7 +292,7 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
  *  - async - po³±czenie asynchroniczne
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
- * funkcj± gg_free_remind_passwd(), albo NULL je¶li wyst±pi³ b³±d.
+ * funkcj± gg_remind_passwd_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_remind_passwd(uin_t uin, int async)
 {
