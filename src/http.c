@@ -39,6 +39,7 @@
  */
 char *gg_http_proxy_host = NULL;
 int gg_http_proxy_port = 0;
+int gg_http_use_proxy = 0;
 
 /*
  * gg_http_connect()
@@ -68,7 +69,7 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
                 return NULL;
 	memset(h, 0, sizeof(*h));
 
-	if (gg_http_proxy_host && gg_http_proxy_port) {
+	if (gg_http_use_proxy) {
 		h->query = gg_alloc_sprintf("%s http://%s:%d%s HTTP/1.0\r\n%s",
 				method, hostname, port, path, header);
 		hostname = gg_http_proxy_host;
@@ -223,6 +224,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes\n", res);
 
+#if 0
 		if (!h->header_buf) {
 			if (!(h->header_buf = malloc(res + 1))) {
 				gg_debug(GG_DEBUG_MISC, "=> not enough memory for header\n");
@@ -238,6 +240,7 @@ int gg_http_watch_fd(struct gg_http *h)
 			memcpy(h->header_buf + h->header_size, buf, res);
 			h->header_size += res;
 		}
+#endif
 
 		if (!(h->header = realloc(h->header, h->header_size + res + 1))) {
 			gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for header\n");
@@ -259,7 +262,7 @@ int gg_http_watch_fd(struct gg_http *h)
 			gg_debug(GG_DEBUG_MISC, "=> http, got all header (%d bytes, %d left)\n", h->header_size - left, left);
 
 			gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-HEADER-----\n%s\n=> -----END-HTTP-HEADER-----\n", h->header);
-#if 0
+
 			/* HTTP/1.1 200 OK */
 			if (strlen(h->header) < 16 || strncmp(h->header + 9, "200", 3)) {
 				gg_debug(GG_DEBUG_MISC, h->header);
@@ -269,7 +272,7 @@ int gg_http_watch_fd(struct gg_http *h)
 				close(h->fd);
 				GET_LOST(GG_FAILURE_404);
 			}
-#endif
+
 			h->data_size = 0;
 			line = h->header;
 			*tmp = 0;
