@@ -43,6 +43,8 @@
 #include "config.h"
 #include "libgadu.h"
 
+#ifndef GG_DEBUG_DISABLE
+
 /*
  * gg_debug() // funkcja wewnêtrzna
  *
@@ -63,6 +65,8 @@ void gg_debug(int level, const char *format, ...)
 		va_end(ap);
 	}
 }
+
+#endif
 
 /*
  * gg_saprintf() // funkcja pomocnicza
