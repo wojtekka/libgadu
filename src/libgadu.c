@@ -197,8 +197,11 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 	if (pipe(pipes) == -1)
 		return -1;
 
-	if ((res = fork()) == -1)
+	if ((res = fork()) == -1) {
+		close(pipes[0]);
+		close(pipes[1]);
 		return -1;
+	}
 
 	if (!res) {
 		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
@@ -277,9 +280,9 @@ static void *gg_resolve_pthread_thread(void *arg)
  */
 int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 {
-	struct gg_resolve_pthread_data *d;
+	struct gg_resolve_pthread_data *d = NULL;
 	pthread_t *tmp;
-	int pipes[2];
+	int pipes[2], new_errno;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve_pthread(%p, %p, \"%s\");\n", fd, resolver, hostname);
 	
@@ -291,6 +294,7 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 
 	if (!(tmp = malloc(sizeof(pthread_t)))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory for pthread id\n");
+		errno = ENOMEM;
 		return -1;
 	}
 	
@@ -300,20 +304,26 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 		return -1;
 	}
 
-	if (!(d = malloc(sizeof(*d))) || !(d->hostname = strdup(hostname))) {
+	if (!(d = malloc(sizeof(*d)))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
-		free(tmp);
-		return -1;
+		new_errno = ENOMEM;
+		goto cleanup;
+	}
+	
+	d->hostname = NULL;
+
+	if (!(d->hostname = strdup(hostname))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
+		new_errno = ENOMEM;
+		goto cleanup;
 	}
 
 	d->fd = pipes[1];
 
 	if (pthread_create(tmp, NULL, gg_resolve_pthread_thread, d)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_phread() unable to create thread\n");
-		close(pipes[0]);
-		close(pipes[1]);
-		free(tmp);
-		return -1;
+		new_errno = errno;
+		goto cleanup;
 	}
 
 	gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() %p\n", tmp);
@@ -323,6 +333,19 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 	*fd = pipes[0];
 
 	return 0;
+
+cleanup:
+	if (d) {
+		free(d->hostname);
+		free(d);
+	}
+
+	close(pipes[0]);
+	close(pipes[1]);
+
+	free(tmp);
+
+	return -1;
 }
 
 #endif
