@@ -39,9 +39,9 @@
 #include "config.h"
 #include "libgadu.h"
 
-#ifndef GG_DEBUG_DISABLE
-
 FILE *gg_debug_file = NULL;
+
+#ifndef GG_DEBUG_DISABLE
 
 /*
  * gg_debug() // funkcja wewnêtrzna
