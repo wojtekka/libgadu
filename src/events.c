@@ -82,7 +82,7 @@ void gg_event_free(struct gg_event *e)
 }
 
 /*
- * gg_handle_message() // funkcja wewnêtrzna
+ * gg_handle_recv_msg() // funkcja wewnêtrzna
  *
  * obs³uguje pakiet z przychodz±c± wiadomo¶ci±, rozbijaj±c go na dodatkowe
  * struktury (konferencje, kolorki) w razie potrzeby.
