@@ -460,7 +460,10 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->destroy = gg_free_session;
 	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
 	sess->server_addr = p->server_addr;
-	sess->version = (p->client_version) ? p->client_version : GG_DEFAULT_CLIENT_VERSION;
+	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
+	if (p->has_audio)
+		sess->protocol_version |= GG_HAS_AUDIO_MASK;
+	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
 	
 	if (gg_proxy_enabled) {
 		hostname = gg_proxy_host;
@@ -555,7 +558,12 @@ void gg_free_session(struct gg_session *sess)
 
 	/* XXX dopisaæ zwalnianie i zamykanie wszystkiego, bo mog³o zostaæ */
 
-	free(sess->password);
+	if (sess->password)
+		free(sess->password);
+	
+	if (sess->client_version)
+		free(sess->client_version);
+
 	free(sess);
 }
 

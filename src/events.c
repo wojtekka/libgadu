@@ -502,19 +502,24 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->proxy_addr && sess->proxy_port) {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg.asp?fmnumber=%u HTTP/1.0\r\n"
+					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin);
+					"\r\n", sess->uin, (sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION, sess->last_sysmsg);
 			} else {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET /appsvc/appmsg.asp?fmnumber=%u HTTP/1.0\r\n"
+					"GET /appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin);
+					"\r\n", sess->uin, (sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION, sess->last_sysmsg);
 			};
+
+			if (sess->client_version) {
+				free(sess->client_version);
+				sess->client_version = NULL;
+			}
 
     			gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", buf);
 	 
@@ -538,7 +543,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			char buf[1024], *tmp, *host;
 			int port = GG_DEFAULT_PORT;
-			int sysmsgidx = 0, sysmsg = 0;
 			struct in_addr addr;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
@@ -585,19 +589,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 			gg_chomp(buf);
 			
-			tmp = buf;
-
-			if (*buf) { 
-				sysmsgidx = atoi(tmp);	
-				while (*tmp && *tmp != ' ')
-				    tmp++;
-				while (*tmp && *tmp == ' ')
-				    tmp++;
-				sysmsg = atoi(tmp);
-				tmp = 0;
-			};
-
-			if (sysmsg && sysmsgidx) {
+			if (atoi(buf)) {
 				char tmp[1024], *foo, *sysmsg_buf = NULL;
 				int len = 0;
 				
@@ -617,7 +609,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 				
 				e->type = GG_EVENT_MSG;
-				e->event.msg.msgclass = sysmsgidx;
+				e->event.msg.msgclass = atoi(buf);
 				e->event.msg.sender = 0;
 				e->event.msg.message = sysmsg_buf;
 			}
@@ -628,14 +620,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 						
 			tmp = buf;
 			
-			while (*tmp && *tmp != ' ')
-				tmp++;
-			while (*tmp && *tmp == ' ')
-				tmp++;
-			while (*tmp && *tmp != ' ')
-				tmp++;
-			while (*tmp && *tmp == ' ')
-				tmp++;
 			while (*tmp && *tmp != ' ')
 				tmp++;
 			while (*tmp && *tmp == ' ')
@@ -808,7 +792,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-			l.version = fix32(sess->version);
+			l.version = fix32(sess->protocol_version);
 			l.local_ip = gg_dcc_ip;
 			l.local_port = fix16(gg_dcc_port);
 	

@@ -692,6 +692,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				big.type = fix32(big.type);
 				h->chunk_size = fix32(big.dunno1);
 				h->chunk_offset = 0;
+				
+				if (big.type == 0x0005)	{ /* XXX */
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_REFUSED;
+					return e;
+				}
+				
 
 				h->state = GG_STATE_GETTING_FILE;
 				h->check = GG_CHECK_READ;

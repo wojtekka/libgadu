@@ -72,7 +72,7 @@ Oryginalny klient mo¿e wys³aæ jeden z podanych identyfikatorów przegl±darki:
 	Mozilla/4.0 (compatible; MSIE 5.0; Windows 98; DigExt)
 	Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
 </pre></p>
-Nowsze wersje (od 4.8.9) korzystaj± z innego skryptu:
+Nowsze wersje (od 4.6.2) korzystaj± z innego skryptu:
 <p><p><pre>
 	GET /appsvc/appmsg2.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMO¦Æ</b>
 	Host: appmsg.gadu-gadu.pl
@@ -81,9 +81,9 @@ Nowsze wersje (od 4.8.9) korzystaj± z innego skryptu:
 </pre></p>
 Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersj± klienta,
 <b>FORMAT</b> okre¶la czy wiadomo¶æ systemowa bêdzie przesy³ana czystym
-tekstem (warto¶æ "0") czy w HTMLu (warto¶æ "1"), a <b>WIADOMO¦Æ</b> jest
-numerem ostatnio otrzymanej wiadomo¶ci systemowej. Na postawione
-w ten sposób zapytanie, serwer powinien odpowiedzieæ:
+tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej warto¶.), a
+<b>WIADOMO¦Æ</b> jest numerem ostatnio otrzymanej wiadomo¶ci systemowej.
+Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieæ:
 <p><p><pre>
 	HTTP/1.0 200 OK
 	
@@ -157,6 +157,8 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 <p>
 <center><table border=1 cellspacing=0 cellpadding=2>
 <tr bgcolor=silver><td><b>Warto¶æ<b></td><td><b>Wersje klientów</b></td></tr>
+<tr><td><tt>0x18</tt></td><td>4.9.3 beta</td></tr>
+<tr><td><tt>0x17</tt></td><td>4.9.2</td></tr>
 <tr><td><tt>0x16</tt></td><td>4.9.1</td></tr>
 <tr><td><tt>0x15</tt></td><td>4.8.9</td></tr>
 <tr><td><tt>0x14</tt></td><td>4.8.3, 4.8.1</td></tr>
@@ -169,17 +171,23 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 Oczywi¶cie nie s± to wszystkie mo¿liwe wersje klientów, lecz te, które
 uda³o siê z³apaæ na wolno¶ci. Najbezpieczniej bêdzie przedstawiaæ siê jako
 ta wersja, której w³asno¶ci u¿ywamy. Wiadomo, ¿e wersje 4.0 nie obs³ugiwa³y
-trybu ukrytego, tylko dla znajomych itd. 
+trybu ukrytego, tylko dla znajomych itd.
+<p>
+W najnowszej wersji protoko³u jest dodatkowa maska na wersjê:
+<p><p><pre>
+	#define GG_HAS_AUDIO_MASK 0x40000000
+</pre></p>
+która mówi nam, ¿e dany klient mo¿e prowadziæ rozmowy g³osowe.
 <p>
 Je¶li wszystko siê powiedzie, dostaniemy w odpowiedzi pakiet typu:
 <p><p><pre>
-	#define GG_LOGIN_OK 0x0003
+      #define GG_LOGIN_OK 0x0003
 </pre></p>
 o zerowej d³ugo¶ci, lub w przypadku b³êdu pakiet:
 <p><p><pre>
-	#define GG_LOGIN_FAILED 0x0009
+      #define GG_LOGIN_FAILED 0x0009
 </pre></p>
-
+		
 <hr>
 <h3>1.4. Zmiana stanu</h3>
 <p>
@@ -218,8 +226,8 @@ stan z opisem, nale¿y do³±czyæ do struktury ci±g znaków niezakoñczony zerem.
 <h3>1.5. Ludzie przychodz±, ludzie odchodz±</h3>
 <p>
 Zaraz po zalogowaniu mo¿emy wys³aæ serwerowi nasz± listê kontaktów, ¿eby
-dowiedzieæ siê, czy s± w danej chwili dostêpni. Pakiet zawiera dowoln±
-ilo¶æ struktur <tt>gg_notify</tt>:
+dowiedzieæ siê, czy s± w danej chwili dostêpni. Pakiet zawiera maksymalnie
+409 struktur <tt>gg_notify</tt>:
 <p><pre>
 	#define GG_NOTIFY 0x0010
 	
@@ -240,6 +248,11 @@ Gdzie pole <tt>type</tt> przyjmuje nastêpuj±ce warto¶ci:
 rozmowy z dan± osob±, ale wygl±da³oby to co najmniej dziwnie, wiêc
 upro¶ci³em trochê ca³± sprawê. -->
 
+<p>Je¶li nie mamy nikogo na li¶cie wysy³amy pakiet:
+<p><pre>
+	#define GG_LIST_EMPTY 0x0012
+</pre></p>	
+o zerowej d³ugo¶ci.
 <p>
 Je¶li kto¶ jest, serwer odpowie pakietem zawieraj±cym jedn± lub wiêcej
 struktur <tt>gg_notify_reply</tt>:
@@ -426,13 +439,14 @@ z powodu nieobecno¶ci. Otrzymujemy je w postaci pakietu:
 	};
 </pre></p>
 Numer sekwencyjny i numer adresata s± takie same jak podczas wysy³ania,
-a stan wiadomo¶ci mo¿e byæ jednym z nastêpnyj±cych:
+a stan wiadomo¶ci mo¿e byæ jednym z nastêpuj±cych:
 <p>
 <center><table border=1 cellspacing=0 cellpadding=2>
 <tr bgcolor=silver><td><b>Etykieta</b></td><td><b>Warto¶æ</b></td><td><b>Znaczenie</b></td></tr>
 <tr><td><tt>GG_ACK_DELIVERED</tt></td><td><tt>0x0002</tt></td><td>Wiadomo¶æ dostarczono</td></tr>
 <tr><td><tt>GG_ACK_QUEUED</tt></td><td><tt>0x0003</tt></td><td>Wiadomo¶æ zakolejkowano</td></tr>
-<tt><td><tt>GG_ACK_NOT_DELIVERED</tt></td><td><tt>0x0006</tt></td><td>Wiadomo¶ci nie dostarczono. Odpowied¼ ta wystêpuje tylko w przypadku wiadomo¶ci klasy <tt>GG_CLASS_CTCP</tt></td></tr>
+<tr><td><tt>GG_ACK_MBOXFULL</tt></td><td><tt>0x0004</tt></td><td>Wiadomo¶ci nie dostarczono. Skrzynka odbiorcza na serwerze jest pe³na (20 wiadomo¶ci maks). Wystêpuje tylko w trybie offline</td></tr>
+<tr><td><tt>GG_ACK_NOT_DELIVERED</tt></td><td><tt>0x0006</tt></td><td>Wiadomo¶ci nie dostarczono. Odpowied¼ ta wystêpuje tylko w przypadku wiadomo¶ci klasy <tt>GG_CLASS_CTCP</tt></td></tr>
 </table></center>
 <p>
 
@@ -504,6 +518,7 @@ Autorami powy¿szego opisu s±:
 <li>Rafa³ Florek (raf/regionet.regionet.pl): opis po³±czeñ konferencyjnych.
 <li>Igor Popik (igipop/wsfiz.edu.pl): klasy wiadomo¶ci przy odbieraniu zakolejkowanej.
 <li>Rafa³ Cyran (ajron/wp.pl): informacje o remote_port, rodzaje potwierdzeñ przy ctcp.
+<li>Piotr Mach (): ilo¶æ kontaktow, pe³na skrzynka, pusta lista, maska audio.
 </ul>
 
 <hr>
@@ -516,3 +531,4 @@ $Id$
 
 </body>
 </html>
+
