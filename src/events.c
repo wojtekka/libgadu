@@ -690,10 +690,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "-- connected\n");
 			
 			if (sess->proxy_addr && sess->proxy_port) {
-				char buf[1024];
+				char buf[100];
 
-				snprintf(buf, sizeof(buf) - 1, "CONNECT %s:%d HTTP/1.0\r\n\r\n", inet_ntoa(*((struct in_addr*) &sess->server_addr)), port);
-
+				snprintf(buf, sizeof(buf) - 5, "CONNECT %s:%d HTTP/1.0", inet_ntoa(*((struct in_addr*) &sess->server_addr)), sess->port);
+				gg_debug(GG_DEBUG_MISC, "// \"%s\"\n", buf);
+				strcat(buf, "\r\n\r\n");
 				if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
 					gg_debug(GG_DEBUG_MISC, "-- can't send proxy request\n");
 					close(sess->fd);
@@ -701,7 +702,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					goto fail_connecting;
 				}
 			}
-			
+
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
@@ -718,6 +719,27 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			unsigned char *password = sess->password;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_KEY\n");
+
+			/* XXX bardzo, bardzo, bardzo g³upi pomys³ na pozbycie siê tekstu wrzucanego przez proxy. */
+			if (sess->proxy_addr && sess->proxy_port) {
+				char buf[100];
+
+				strcpy(buf, "");
+				gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+				gg_chomp(buf);
+				gg_debug(GG_DEBUG_MISC, "// \"%s\"\n", buf);
+				
+				while (strcmp(buf, "")) {
+					gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+					gg_chomp(buf);
+					gg_debug(GG_DEBUG_MISC, "// \"%s\"\n", buf);
+				}
+
+				/* XXX niech czeka jeszcze raz w tej samej fazie. g³upio, ale dzia³a. */
+				sess->proxy_port = 0;
+				
+				break;
+			}
 
 			if (!(h = gg_recv_packet(sess))) {
 				gg_debug(GG_DEBUG_MISC, "-- gg_recv_packet() failed. errno = %d (%s)\n", errno, strerror(errno));

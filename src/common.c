@@ -206,8 +206,6 @@ char *gg_read_line(int sock, char *buf, int length)
 {
 	int ret;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_read_line(...);\n");
-	
 	for (; length > 1; buf++, length--) {
 		do {
 			if ((ret = read(sock, buf, 1)) < 1 && errno != EINTR) {
