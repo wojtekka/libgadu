@@ -332,18 +332,16 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct gg_dcc_big_packet big;
 		int size, tmp, res, res_size;
 		char buf[1024], ack[] = "UDAG";
+
+		struct gg_dcc_file_info_packet {
+			struct gg_dcc_big_packet big;
+			struct gg_file_info file_info;
+		}
 #ifdef __GNUC__
-		struct {
-			struct gg_dcc_big_packet big;
-			struct gg_file_info file_info;
-		} __attribute__ ((packed)) file_info_packet;
-#else
-		struct {
-			struct gg_dcc_big_packet big;
-			struct gg_file_info file_info;
-		} file_info_packet;
+		__attribute__ ((packed)); 
 #endif
-		
+		struct gg_dcc_file_info_packet file_info_packet;
+
 		switch (h->state) {
 			case GG_STATE_READING_UIN_1:
 			case GG_STATE_READING_UIN_2:
