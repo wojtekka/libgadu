@@ -445,6 +445,7 @@ struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_ch
 {
 	struct gg_http *h;
 	char *form, *query, *__first, *__last, *__nick, *__email, *__city;
+	char __born[5];
 
 	if (!passwd || !request) {
 		gg_debug(GG_DEBUG_MISC, "=> change_info, NULL parameter\n");
@@ -458,6 +459,11 @@ struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_ch
 	__email = gg_urlencode(request->email);
 	__city = gg_urlencode(request->city);
 	
+	if (request->born)
+		snprintf(__born, sizeof(__born), "%d", request->born);
+	else
+		strcpy(__born, "");
+	
 	if (!__first || !__last || !__nick || !__email || !__city) {
 		free(__first);
 		free(__last);
@@ -470,8 +476,8 @@ struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_ch
 		return NULL;
 	}
 	
-	form = gg_saprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
-	uin, passwd, __first, __last, __nick, __email, request->born, request->gender, __city);
+	form = gg_saprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%s&Gender=%d&City=%s&Phone=",
+	uin, passwd, __first, __last, __nick, __email, __born, request->gender, __city);
 
 	free(__first);
 	free(__last);
