@@ -495,7 +495,7 @@ pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>.
 <div class="c">
 <pre>#define GG_ADD_NOTIFY 0x000d
 	
-struct gg_add {
+struct gg_add_notify {
 	int uin;	<i>/* numerek */</i>
 	char type;	<i>/* rodzaj u¿ytkownika */</i>
 };</pre>
@@ -508,7 +508,7 @@ By usun±æ z listy kontaktów, wysy³a siê podobny pakiet:
 <div class="c">
 <pre>#define GG_REMOVE_NOTIFY 0x000e
 	
-struct gg_add {
+struct gg_remove_notify {
 	int uin;	<i>/* numerek */</i>
 	char type;	<i>/* rodzaj u¿ytkownika */</i>
 };</pre>
