@@ -299,9 +299,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 		if (ioctl(fd, FIONBIO, &one) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() can't set nonblocking (%s)\n", strerror(errno));
-			free(e);
 			close(fd);
-			return NULL;
+			e->type = GG_EVENT_DCC_ERROR;
+			e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
+			return e;
 		}
 
 		if (!(c = (void*) calloc(1, sizeof(*c)))) {
