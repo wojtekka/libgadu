@@ -453,7 +453,8 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 #define gg_read(fd, buf, size) \
 { \
 	int tmp = read(fd, buf, size); \
-	if (tmp < size) { \
+	\
+	if (tmp < (int) size) { \
 		if (tmp == -1) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else if (tmp == 0) { \
@@ -473,7 +474,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	int tmp; \
 	gg_dcc_debug_data("write", fd, buf, size); \
 	tmp = write(fd, buf, size); \
-	if (tmp < size) { \
+	if (tmp < (int) size) { \
 		if (tmp == -1) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else { \
