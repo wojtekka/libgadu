@@ -145,7 +145,7 @@ char *gg_get_line(char **ptr)
  * gg_connect()
  *
  * ³±czy siê z serwerem. pierwszy argument jest typu (void *), ¿eby nie
- * musieæ niczego inkludowaæ w libgg.h i nie psuæ jaki¶ g³upich zale¿no¶ci
+ * musieæ niczego inkludowaæ w libgadu.h i nie psuæ jaki¶ g³upich zale¿no¶ci
  * na dziwnych systemach.
  *
  *  - addr - adres serwera (struct in_addr *),
