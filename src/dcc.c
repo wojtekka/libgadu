@@ -469,6 +469,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->state = GG_STATE_READING_FILE_HEADER;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
+
+				h->offset = 0;
 				
 				return e;
 				
@@ -484,6 +486,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 
 				big.type = fix32(big.type);
+				h->chunk_size = fix32(big.dunno1);
+				h->chunk_offset = 0;
 
 #if 0
 				if (big.type != 0x0002) {	/* XXX */
@@ -498,8 +502,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->state = GG_STATE_GETTING_FILE;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
-
-				h->offset = 0;
 			 	
 				return e;
 
@@ -742,8 +744,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_GETTING_FILE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_GETTING_FILE\n");
 				
-				size = read(h->fd, buf, sizeof(buf));
+				if ((tmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
+					tmp = sizeof(buf);
+				
+				size = read(h->fd, buf, tmp);
 
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, read()=%d\n", h->offset, h->file_info.size, size);
+				
 				/* b³±d */
 				if (size == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed. (%s)\n", strerror(errno));
@@ -755,7 +762,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 
 				/* koniec? */
-				if (size == 0 ) {
+				if (size == 0) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() reached eof\n");
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_EOF;
@@ -774,10 +781,23 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				h->offset += size;
 				
-				if (h->offset == h->file_info.size)
+				if (h->offset >= h->file_info.size) {
 					e->type = GG_EVENT_DCC_DONE;
+					return e;
+				}
+
+				h->chunk_offset += size;
 				
-				h->timeout = GG_DCC_TIMEOUT_SEND;
+				if (h->chunk_offset >= h->chunk_size) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() chunk finished\n");
+					h->state = GG_STATE_READING_FILE_HEADER;
+					h->timeout = GG_DEFAULT_TIMEOUT;
+				} else {
+					h->state = GG_STATE_GETTING_FILE;
+					h->timeout = GG_DCC_TIMEOUT_SEND;
+				}
+				
+				h->check = GG_CHECK_READ;
 
 				return e;
 				
