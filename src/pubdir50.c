@@ -69,7 +69,7 @@ int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, const char 
 	char *dupfield, *dupvalue;
 	int i;
 
-//	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_add_n(%p, %d, \"%s\", \"%s\");\n", req, num, field, value);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_add_n(%p, %d, \"%s\", \"%s\");\n", req, num, field, value);
 
 	if (!(dupvalue = strdup(value))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_add_n() out of memory\n");
