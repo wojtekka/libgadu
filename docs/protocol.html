@@ -157,7 +157,7 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 <p>
 <center><table border=1 cellspacing=0 cellpadding=2>
 <tr bgcolor=silver><td><b>Warto¶æ<b></td><td><b>Wersje klientów</b></td></tr>
-<tr><td><tt>0x18</tt></td><td>4.9.3 beta</td></tr>
+<tr><td><tt>0x18</tt></td><td>4.9.3</td></tr>
 <tr><td><tt>0x17</tt></td><td>4.9.2</td></tr>
 <tr><td><tt>0x16</tt></td><td>4.9.1</td></tr>
 <tr><td><tt>0x15</tt></td><td>4.8.9</td></tr>
@@ -186,6 +186,23 @@ Je¶li wszystko siê powiedzie, dostaniemy w odpowiedzi pakiet typu:
 o zerowej d³ugo¶ci, lub w przypadku b³êdu pakiet:
 <p><p><pre>
       #define GG_LOGIN_FAILED 0x0009
+</pre></p>
+Od wersji 4.9.3 (protokó³ 0x18), mo¿liwe jest równie¿ wykorzystanie
+przekierowania portów. Je¶li chcemy wykorzystaæ, nale¿y zamiast
+pakietu GG_LOGIN wys³aæ nastêpuj±cy:
+<p><p><pre>
+	#define GG_LOGIN_EXT 0x0013
+
+	struct gg_login_ext {
+		int uin;		<i>/* numer klienta */</i>
+		int hash;		<i>/* hash has³a */</i>
+		int status;		<i>/* pocz±tkowy stan */</i>
+		int version;		<i>/* wersja klienta */</i>
+		int local_ip;		<i>/* mój adres ip */</i>
+		short local_port;	<i>/* port, na którym s³ucham */</i>
+		int external_ip;	<i>/* zewnêtrzny adres ip */</i>
+		short external_port;	<i>/* zewnêtrzny port */</i>
+	};
 </pre></p>
 		
 <hr>
@@ -343,7 +360,7 @@ znamy:
 <tr><td><tt>GG_CLASS_MSG</tt></td><td><tt>0x0004</tt></td><td>Wiadomo¶æ ma siê pojawiæ w osobnym okienku</td></tr>
 <tr><td><tt>GG_CLASS_CHAT</tt></td><td><tt>0x0008</tt></td><td>Wiadomo¶æ jest czê¶ci± tocz±cej siê rozmowy i zostanie wy¶wietlona w istniej±cym okienku</td></tr>
 <tr><td><tt>GG_CLASS_CTCP</tt></td><td><tt>0x0010</tt></td><td>Wiadomo¶æ jest przeznaczona dla klienta Gadu-Gadu i nie powinna byæ wy¶wietlona u¿ytkownikowi.</td></tr>
-<tr><td><tt>GG_CLASS_UNKNOWN_1</tt></td><td><tt>0x0020</tt></td><td>Bit o nieznanym znaczeniu, lecz wystêpuj±cy do¶æ czêsto w naturalnych warunkach.</td></tr>
+<tr><td><tt>GG_CLASS_ACK</tt></td><td><tt>0x0020</tt></td><td>Klient ¿yczy sobie potwierdzenia wiadomo¶ci.</td></tr>
 </table></center>
 <p>
 D³ugo¶æ tre¶ci wiadomo¶ci nie powinna przekraczaæ 2000 znaków.
@@ -510,15 +527,16 @@ Opis znajduje siê w pliku <a href="dcc-protocol.txt">dcc-protocol.txt</a>.
 <p>
 Autorami powy¿szego opisu s±:
 <ul>
-<li>Wojtek Kaniewski (wojtekka/irc.pl): pierwsza wersja opisu, poprawki, utrzymanie wszystkiego w porz±dku.
-<li>Robert J. Wo¼ny (speedy/atman.pl): opis nowo¶ci w protokole GG 4.6, poprawki.
-<li>Tomasz Jarzynka (tomee/cpi.pl): badanie timeoutów.
-<li>Adam Ludwikowski (adam.ludwikowski/wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomo¶ci, powody nieobecno¶ci.
-<li>Marek Kozina (klith/hybrid.art.pl): czas otrzymania wiadomo¶ci.
-<li>Rafa³ Florek (raf/regionet.regionet.pl): opis po³±czeñ konferencyjnych.
-<li>Igor Popik (igipop/wsfiz.edu.pl): klasy wiadomo¶ci przy odbieraniu zakolejkowanej.
-<li>Rafa³ Cyran (ajron/wp.pl): informacje o remote_port, rodzaje potwierdzeñ przy ctcp.
-<li>Piotr Mach (pm/gadu-gadu.com): ilo¶æ kontaktow, pe³na skrzynka, pusta lista, maska audio, us³ugi http.
+<li>Wojtek Kaniewski (wojtekka%irc.pl): pierwsza wersja opisu, poprawki, utrzymanie wszystkiego w porz±dku.
+<li>Robert J. Wo¼ny (speedy%atman.pl): opis nowo¶ci w protokole GG 4.6, poprawki.
+<li>Tomasz Jarzynka (tomee%cpi.pl): badanie timeoutów.
+<li>Adam Ludwikowski (adam.ludwikowski%wp.pl): wiele poprawek, wersje klientów, rozszerzone wiadomo¶ci, powody nieobecno¶ci.
+<li>Marek Kozina (klith%hybrid.art.pl): czas otrzymania wiadomo¶ci.
+<li>Rafa³ Florek (raf%regionet.regionet.pl): opis po³±czeñ konferencyjnych.
+<li>Igor Popik (igipop%wsfiz.edu.pl): klasy wiadomo¶ci przy odbieraniu zakolejkowanej.
+<li>Rafa³ Cyran (ajron%wp.pl): informacje o remote_port, rodzaje potwierdzeñ przy ctcp, GG_LOGIN_EXT.
+<li>Piotr Mach (pm%gadu-gadu.com): ilo¶æ kontaktow, pe³na skrzynka, pusta lista, maska audio, us³ugi HTTP, GG_LOGIN_EXT.
+<li>Adam Czy¶ciak (acc%interia.pl): potwierdzenie wiadomo¶ci GG_CLASS_ACK.
 </ul>
 
 <hr>
