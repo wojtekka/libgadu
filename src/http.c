@@ -190,7 +190,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, resolving done\n");
 
-		if (read(h->fd, &a, sizeof(a)) < sizeof(a) || a.s_addr == INADDR_NONE) {
+		if (read(h->fd, &a, sizeof(a)) < (signed)sizeof(a) || a.s_addr == INADDR_NONE) {
 			gg_debug(GG_DEBUG_MISC, "=> http, resolver thread failed\n");
 			gg_http_error(GG_ERROR_RESOLVING);
 		}
@@ -240,7 +240,7 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_SENDING_QUERY) {
-		int res;
+		unsigned int res;
 
 		if ((res = write(h->fd, h->query, strlen(h->query))) < 1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, write() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
@@ -308,7 +308,8 @@ int gg_http_watch_fd(struct gg_http *h)
 		h->header[h->header_size] = 0;
 
 		if ((tmp = strstr(h->header, "\r\n\r\n")) || (tmp = strstr(h->header, "\n\n"))) {
-			int sep_len = (*tmp == '\r') ? 4 : 2, left;
+			int sep_len = (*tmp == '\r') ? 4 : 2;
+			unsigned int left;
 			char *line;
 
 			left = h->header_size - ((long)(tmp) - (long)(h->header) + sep_len);
@@ -359,8 +360,10 @@ int gg_http_watch_fd(struct gg_http *h)
 				gg_http_error(GG_ERROR_READING);
 			}
 
-			if (left)
+			if (left) {
 				memcpy(h->body, tmp + sep_len, left);
+				h->body_done = left;
+			}
 
 			h->body[left] = 0;
 
@@ -374,7 +377,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 	if (h->state == GG_STATE_READING_DATA) {
 		char buf[1024];
-		int res;
+		unsigned int res;
 
 		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading body failed (errno=%d)\n", errno);
@@ -386,13 +389,13 @@ int gg_http_watch_fd(struct gg_http *h)
 		}
 
 		if (!res) {
-			if (strlen(h->body) >= h->body_size) {
+			if (h->body_done >= h->body_size) {
 				gg_debug(GG_DEBUG_MISC, "=> http, we're done, closing socket\n");
 				h->state = GG_STATE_PARSING;
 				close(h->fd);
 				h->fd = -1;
 			} else {
-				gg_debug(GG_DEBUG_MISC, "=> http, connection closed while reading (have %d, need %d)\n", strlen(h->body), h->body_size);
+				gg_debug(GG_DEBUG_MISC, "=> http, connection closed while reading (have %d, need %d)\n", h->body_done, h->body_size);
 				if (h->body) {
 					free(h->body);
 					h->body = NULL;
@@ -405,26 +408,27 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes of body\n", res);
 
-		if (strlen(h->body) + res > h->body_size) {
+		if (h->body_done + res > h->body_size) {
 			char *tmp;
 
-			gg_debug(GG_DEBUG_MISC, "=> http, too much data (%d bytes, %d needed), enlarging buffer\n", strlen(h->body) + res, h->body_size);
+			gg_debug(GG_DEBUG_MISC, "=> http, too much data (%d bytes, %d needed), enlarging buffer\n", h->body_done + res, h->body_size);
 
-			if (!(tmp = realloc(h->body, strlen(h->body) + res + 1))) {
-				gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for data (%d needed)\n", strlen(h->body) + res + 1);
+			if (!(tmp = realloc(h->body, h->body_done + res + 1))) {
+				gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for data (%d needed)\n", h->body_done + res + 1);
 				free(h->body);
 				h->body = NULL;
 				gg_http_error(GG_ERROR_READING);
 			}
 
 			h->body = tmp;
-			h->body_size = strlen(h->body) + res;
+			h->body_size = h->body_done + res;
 		}
 
-		h->body[strlen(h->body) + res] = 0;
-		memcpy(h->body + strlen(h->body), buf, res);
+		h->body[h->body_done + res] = 0;
+		memcpy(h->body + h->body_done, buf, res);
+		h->body_done += res;
 
-		gg_debug(GG_DEBUG_MISC, "=> strlen(body)=%d, body_size=%d\n", strlen(h->body), h->body_size);
+		gg_debug(GG_DEBUG_MISC, "=> body_done=%d, body_size=%d\n", h->body_done, h->body_size);
 
 		return 0;
 	}
@@ -462,13 +466,11 @@ void gg_http_stop(struct gg_http *h)
 }
 
 /*
- * gg_http_free()
+ * gg_http_free_fields() // funkcja wewnêtrzna
  *
- * próbuje zamkn±æ po³±czenie i zwalnia pamiêæ po nim.
- *
- *  - h - struktura, któr± nale¿y zlikwidowaæ
+ * zwalnia pola struct gg_http, ale nie zwalnia samej struktury.
  */
-void gg_http_free(struct gg_http *h)
+void gg_http_free_fields(struct gg_http *h)
 {
 	if (!h)
 		return;
@@ -489,7 +491,18 @@ void gg_http_free(struct gg_http *h)
 		free(h->header);
 		h->header = NULL;
 	}
+}
 
+/*
+ * gg_http_free()
+ *
+ * próbuje zamkn±æ po³±czenie i zwalnia pamiêæ po nim.
+ *
+ *  - h - struktura, któr± nale¿y zlikwidowaæ
+ */
+void gg_http_free(struct gg_http *h)
+{
+	gg_http_free_fields(h);
 	free(h);
 }
 

@@ -345,7 +345,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_NOTIFY_REPLY60:
 		{
 			struct gg_notify_reply60 *n = (void*) p;
-			int length = h->length, i = 0;
+			unsigned int length = h->length, i = 0;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
 
@@ -504,19 +504,30 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			if (h->length < 1)
 				break;
 
-			e->type = GG_EVENT_USERLIST;
-			e->event.userlist.type = p[0];
-			e->event.userlist.reply = NULL;
-
 			if (h->length > 1) {
-				if (!(e->event.userlist.reply = malloc(h->length))) {
+				char *tmp, len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
+				
+				gg_debug(GG_DEBUG_MISC, "userlist_reply=%p, len=%d\n", sess->userlist_reply, len);
+				
+				if (!(tmp = realloc(sess->userlist_reply, len + h->length))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for userlist reply\n");
+					free(sess->userlist_reply);
+					sess->userlist_reply = NULL;
 					goto fail;
 				}
 
-				e->event.userlist.reply[h->length - 1] = 0;
-				memcpy(e->event.userlist.reply, p + 1, h->length - 1);
+				sess->userlist_reply = tmp;
+				sess->userlist_reply[len + h->length - 1] = 0;
+				memcpy(sess->userlist_reply + len, p + 1, h->length - 1);
 			}
+
+			if (e->type == GG_USERLIST_GET_MORE_REPLY)
+				break;
+
+			e->type = GG_EVENT_USERLIST;
+			e->event.userlist.type = p[0];
+			e->event.userlist.reply = sess->userlist_reply;
+			sess->userlist_reply = NULL;
 
 			break;
 		}
@@ -574,7 +585,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_RESOLVING\n");
 
-			if (read(sess->fd, &addr, sizeof(addr)) < sizeof(addr) || addr.s_addr == INADDR_NONE) {
+			if (read(sess->fd, &addr, sizeof(addr)) < (signed)sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() resolving failed\n");
 
 				close(sess->fd);
@@ -707,7 +718,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* zapytanie jest krótkie, wiêc zawsze zmie¶ci siê
 			 * do bufora gniazda. je¶li write() zwróci mniej,
 			 * sta³o siê co¶ z³ego. */
-			if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
+			if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
 
 				e->type = GG_EVENT_CONN_FAILED;
@@ -941,14 +952,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				/* wysy³amy zapytanie. jest ono na tyle krótkie,
 				 * ¿e musi siê zmie¶ciæ w buforze gniazda. je¶li
 				 * write() zawiedzie, sta³o siê co¶ z³ego. */
-				if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
+				if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
 					goto fail_connecting;
 				}
 
 				if (auth) {
 					gg_debug(GG_DEBUG_MISC, "//   %s", auth);
-					if (write(sess->fd, auth, strlen(auth)) < strlen(auth)) {
+					if (write(sess->fd, auth, strlen(auth)) < (signed)strlen(auth)) {
 						gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
 						goto fail_connecting;
 					}

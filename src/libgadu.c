@@ -144,16 +144,6 @@ uint16_t gg_fix16(uint16_t x)
  */
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 {
-#if 0
-	unsigned int hash;
-
-	for (hash = 1; *password; password++)
-		hash *= (*password) + 1;
-	hash *= seed;
-
-	return hash;
-#endif
-
 	unsigned int x, y, z;
 
 	y = seed;
@@ -533,7 +523,7 @@ void *gg_recv_packet(struct gg_session *sess)
 	sess->recv_left = 0;
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		int i;
+		unsigned int i;
 
 		gg_debug(GG_DEBUG_DUMP, "// gg_recv_packet()", h.type);
 		for (i = 0; i < sizeof(h) + h.length; i++) 
@@ -617,7 +607,7 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->length = gg_fix32(tmp_length);
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-                int i;
+                unsigned int i;
 		
                 gg_debug(GG_DEBUG_DUMP, "// gg_send_packet()", gg_fix32(h->type));
                 for (i = 0; i < sizeof(struct gg_header) + gg_fix32(h->length); i++)
@@ -1482,15 +1472,18 @@ int gg_userlist_request(struct gg_session *sess, char type, const char *request)
 	len = strlen(request);
 
 	while (len > 2047) {
+		if (type == GG_USERLIST_PUT)
+			type = GG_USERLIST_PUT_MORE;
+
 		if (gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, 2047, NULL) == -1)
 			return -1;
-
-		if (type == GG_USERLIST_PUT)
-			type = GG_USERLIST_PUT2;
 
 		request += 2047;
 		len -= 2047;
 	}
+
+	if (type == GG_USERLIST_PUT_MORE)
+		type = GG_USERLIST_PUT;
 		
 	return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
 }

@@ -385,9 +385,9 @@ char *gg_urlencode(const char *str)
  */
 int gg_http_hash(const char *format, ...)
 {
-	unsigned int a, c;
+	unsigned int a, c, i, j;
 	va_list ap;
-	int b = -1, i, j;
+	int b = -1;
 
 	va_start(ap, format);
 

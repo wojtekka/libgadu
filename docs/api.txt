@@ -2,7 +2,7 @@
 // (c) copyright 2001-2003 by wojtek kaniewski <wojtekka@irc.pl>
 //			      robert j. wozny <speedy@ziew.org>
 
-// tekst poprawiany ostatnio 2003-03-18
+// tekst poprawiany ostatnio 2003-09-29
 
 ka¿da sesja jest opisywana przez ,,struct gg_session''. biblioteka mo¿e
 w ramach jednego procesu/w±tku obs³ugiwaæ tyle sesji, na ile pozwol±
@@ -113,9 +113,19 @@ funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 			/* tutaj sprawdzanie tablicy e->event.notify */
 			break;
 
+		case GG_EVENT_NOTIFY60:
+			printf("oto ludzie, którzy siê pojawili: ");
+			/* tutaj sprawdzanie tablicy e->event.notify60 */
+			break;
+
 		case GG_EVENT_STATUS:
 			printf("kto¶ %d zmieni³ stan\n", e->event.status.uin);
 			/* nowy stan w e->event.status.status */
+			break;
+
+		case GG_EVENT_STATUS60:
+			printf("kto¶ %d zmieni³ stan\n", e->event.status60.uin);
+			/* nowy stan w e->event.status60.status */
 			break;
 
 		case GG_EVENT_ACK:
@@ -128,6 +138,11 @@ funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 
 		case GG_EVENT_PUBDIR50_REPLY:
 			printf("znalaz³o kogo¶\n");
+			/* opisane ni¿ej */
+			break;
+
+		case GG_EVENT_USERLIST:
+			printf("wys³ano lub odebrano listê z serwera\n");
 			/* opisane ni¿ej */
 			break;
 	}
@@ -175,9 +190,6 @@ podobnie do ,,gg_session'':
 
 je¶li chcemy zmieniæ has³o, wywo³ujemy funkcjê ,,gg_change_passwd3()''
 i traktujemy podobnie wynikowe ,,gg_http''.
-
-do zarz±dzania list± kontaktów na serwerze s³u¿± funkcje
-,,gg_userlist_get()'', ,,gg_userlsit_put()'' i ,,gg_userlist_remove()''.
 
 ***
 
@@ -279,6 +291,25 @@ funkcje, mamy pewno¶æ, ¿e bez wzglêdu na zmiany API/ABI mamy to samo.
 dodatkowo, je¶li dojd± jakie¶ opcje wyszukiwania, nie trzeba w bibliotece
 niczego zmieniaæ -- ¿adnych struktur, itd. po prostu odwo³ujemy siê do
 kolejnego pola przez gg_pubdir50_add() i gg_pubdir50_get().
+
+***
+
+OBS£UGA LISTY KONTAKTÓW GG 6.0
+
+od wersji 6.0 import i eksport listy kontaktów jest zawarty w sesji klienta,
+nie wymaga osobnego po³±czenia http. aby wys³aæ listê kontaktów, wywo³ujemy:
+
+	gg_userlist_request(sesja, GG_USERLIST_PUT, lista_kontaktów);
+
+w odpowiedzi dostaniemy od serwera zdarzenie GG_EVENT_USERLIST z polem
+,,type'' równym GG_USERLIST_PUT_REPLY.
+
+je¶li chcemy pobraæ listê kontaktów z serwera, wywo³ujemy:
+
+	gg_userlist_request(sesja, GG_USERLIST_GET, NULL);
+
+i oczekujemy zdarzenia GG_EVENT_USERLIST z ,,type'' GG_USERLIST_GET_REPLY.
+zawarto¶æ listy kontaktów znajdziemy w polu ,,reply''.
 
 ***
 

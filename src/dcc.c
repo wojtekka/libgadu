@@ -435,7 +435,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	packet.type = 0x03; /* XXX */
 	packet.length = gg_fix32(length);
 
-	if (write(d->fd, &packet, sizeof(packet)) < sizeof(packet)) {
+	if (write(d->fd, &packet, sizeof(packet)) < (signed)sizeof(packet)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
 		return -1;
 	}
@@ -565,6 +565,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct gg_dcc_small_packet small;
 		struct gg_dcc_big_packet big;
 		int size, tmp, res, res_size = sizeof(res);
+		unsigned int utmp;
 		char buf[1024], ack[] = "UDAG";
 
 		struct gg_dcc_file_info_packet {
@@ -1047,13 +1048,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_FILE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE\n");
 				
-				if ((tmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
-					tmp = sizeof(buf);
+				if ((utmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
+					utmp = sizeof(buf);
 				
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() offset=%d, size=%d\n", h->offset, h->file_info.size);
 				lseek(h->file_fd, h->offset, SEEK_SET);
 
-				size = read(h->file_fd, buf, tmp);
+				size = read(h->file_fd, buf, utmp);
 
 				/* b³±d */
 				if (size == -1) {
@@ -1120,10 +1121,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_GETTING_FILE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_GETTING_FILE\n");
 				
-				if ((tmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
-					tmp = sizeof(buf);
+				if ((utmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
+					utmp = sizeof(buf);
 				
-				size = read(h->fd, buf, tmp);
+				size = read(h->fd, buf, utmp);
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, read()=%d\n", h->offset, h->file_info.size, size);
 				

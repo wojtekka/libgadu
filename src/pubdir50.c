@@ -438,7 +438,7 @@ int gg_pubdir50_type(gg_pubdir50_t res)
  */
 uin_t gg_pubdir50_next(gg_pubdir50_t res)
 {
-	return (!res) ? -1 : res->next;
+	return (!res) ? (unsigned) -1 : res->next;
 }
 
 /*
@@ -452,7 +452,7 @@ uin_t gg_pubdir50_next(gg_pubdir50_t res)
  */
 uint32_t gg_pubdir50_seq(gg_pubdir50_t res)
 {
-	return (!res) ? -1 : res->seq;
+	return (!res) ? (unsigned) -1 : res->seq;
 }
 
 /*
