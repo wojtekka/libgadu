@@ -317,7 +317,7 @@ struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_re
 
 	free(form);
 
-	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmpubreg2.asp", query))) {
+	if (!(h = gg_http_connect(GG_PUBDIR_HOST, GG_PUBDIR_PORT, async, "POST", "/appsvc/fmpubreg2.asp", query))) {
 		gg_debug(GG_DEBUG_MISC, "=> change_info, gg_http_connect() failed mysteriously\n");
                 free(query);
 		return NULL;
