@@ -196,6 +196,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		if (h->async && (getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed\n");
+			close(h->fd);
 			gg_http_error(GG_ERROR_CONNECTING);
 		}
 

@@ -170,6 +170,7 @@ int gg_connect(void *addr, int port, int async)
 	if (async) {
 		if (ioctl(sock, FIONBIO, &one) == -1) {
 			gg_debug(GG_DEBUG_MISC, "-- ioctl() failed. errno = %d (%s)\n", errno, strerror(errno));
+			close(sock);
 			return -1;
 		}
 	}
@@ -181,6 +182,7 @@ int gg_connect(void *addr, int port, int async)
 	if (connect(sock, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
 		if (errno && (!async || errno != EINPROGRESS)) {
 			gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+			close(sock);
 			return -1;
 		}
 		gg_debug(GG_DEBUG_MISC, "-- connect() in progress\n");

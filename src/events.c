@@ -405,17 +405,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
 				gg_debug(GG_DEBUG_MISC, "-- http connection failed, errno = %d (%s), trying direct connection\n", res, strerror(res));
+				close(sess->fd);
 
 				if ((sess->fd = gg_connect(addr, GG_DEFAULT_PORT, sess->async)) == -1) {
-				    gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
-				    if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
-					gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
+					if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
+						gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
 
-					e->type = GG_EVENT_CONN_FAILED;
-					e->event.failure = GG_FAILURE_CONNECTING;
-					sess->state = GG_STATE_IDLE;
-					break;
-				    }
+						e->type = GG_EVENT_CONN_FAILED;
+						e->event.failure = GG_FAILURE_CONNECTING;
+						sess->state = GG_STATE_IDLE;
+						break;
+					}
 				}
 
 				sess->state = GG_STATE_CONNECTING_GG;
@@ -597,13 +598,15 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
 
 				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
+				close(sess->fd);
+
 				if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
-				    gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
 				    
-				    e->type = GG_EVENT_CONN_FAILED;
-				    e->event.failure = GG_FAILURE_CONNECTING;
-				    sess->state = GG_STATE_IDLE;
-				    break;
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					sess->state = GG_STATE_IDLE;
+					break;
 				}
 			}
 

@@ -473,7 +473,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 				memcpy((char*) &a, he->h_addr, sizeof(a));
 		}
 
-		if (!(sess->fd = gg_connect(&a, port, 0)) == -1) {
+		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "-- connection failed\n");
 			free(sess);
 			return NULL;
