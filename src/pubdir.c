@@ -230,6 +230,19 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 	return h;
 }
 
+
+struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modify, int async);
+{
+	struct gg_http *h;
+
+	h->type = GG_SESSION_CHANGE;
+
+	if (!async)
+		gg_pubdir_watch_fd(h);
+
+	return h;
+}
+
 /*
  * gg_pubdir_watch_fd()
  *
