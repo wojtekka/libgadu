@@ -89,7 +89,7 @@ uint32_t gg_fix32(uint32_t x)
 }
 
 /*
- * gg_fix32()
+ * gg_fix16()
  *
  * zamienia kolejno¶æ bajtów w liczbie 16-bitowej tak, by odpowiada³a
  * kolejno¶ci bajtów w protokole GG. ze wzglêdu na LE-owo¶æ serwera,
@@ -119,7 +119,7 @@ uint16_t gg_fix16(uint16_t x)
  *  - password - has³o do hashowania,
  *  - seed - warto¶æ podana przez serwer.
  *
- * zwraca hash.
+ * hash.
  */
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 {
@@ -167,7 +167,7 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
  *  - pid - gdzie wrzuciæ pid dzieciaka,
  *  - hostname - nazwa hosta do zresolvowania.
  *
- * 0 je¶li uda³o siê odpaliæ proces lub -1 w przypadku b³êdu.
+ * 0, -1.
  */
 int gg_resolve(int *fd, int *pid, const char *hostname)
 {
@@ -220,7 +220,7 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
  *
  *  - sock - po³±czone gniazdo.
  *
- * w przypadku b³êdu zwraca NULL, kod b³êdu w errno.
+ * w przypadku b³êdu NULL, kod b³êdu w errno.
  */
 void *gg_recv_packet(struct gg_session *sess)
 {
@@ -333,9 +333,8 @@ void *gg_recv_packet(struct gg_session *sess)
  *  - ...
  *  - NULL - koñcowym parametr (konieczny!)
  *
- * je¶li posz³o dobrze, zwraca 0. w przypadku b³êdu -1. je¶li errno=ENOMEM,
- * zabrak³o pamiêci. inaczej by³ b³±d przy wysy³aniu pakietu. dla errno=0
- * nie wys³ano ca³ego pakietu.
+ * 0, -1. je¶li errno == ENOMEM, zabrak³o pamiêci. inaczej by³ b³±d przy
+ * wysy³aniu pakietu. dla errno == 0 nie wys³ano ca³ego pakietu.
  */
 int gg_send_packet(int sock, int type, ...)
 {
@@ -435,7 +434,7 @@ static int gg_session_callback(struct gg_session *s)
  *  - info - struktura opisuj±ca pocz±tkowy stan. wymagane pola: uin,
  *    password.
  *
- * w przypadku b³êdu zwraca NULL, je¶li idzie dobrze (async) albo posz³o
+ * w przypadku b³êdu NULL, je¶li idzie dobrze (async) albo posz³o
  * dobrze (sync), zwróci wska¼nik do zaalokowanej struktury `gg_session'.
  */
 struct gg_session *gg_login(const struct gg_login_params *p)
@@ -565,8 +564,6 @@ fail:
  * próbuje zamkn±æ po³±czenia i zwalnia pamiêæ zajmowan± przez sesjê.
  *
  *  - sess - opis sesji.
- *
- * brak.
  */
 void gg_free_session(struct gg_session *sess)
 {
@@ -592,7 +589,7 @@ void gg_free_session(struct gg_session *sess)
  *  - sess - opis sesji,
  *  - status - nowy status u¿ytkownika.
  *
- * 0 je¶li w porz±dku, -1 je¶li b³±d.
+ * 0, -1.
  */
 int gg_change_status(struct gg_session *sess, int status)
 {
@@ -626,7 +623,7 @@ int gg_change_status(struct gg_session *sess, int status)
  *  - status - nowy status u¿ytkownika,
  *  - descr - opis statusu.
  *
- * 0 je¶li w porz±dku, -1 je¶li b³±d.
+ * 0, -1.
  */
 int gg_change_status_descr(struct gg_session *sess, int status, const char *descr)
 {
@@ -657,8 +654,6 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
  * wylogowuje u¿ytkownika i zamyka po³±czenie, ale nie zwalnia pamiêci.
  *
  *  - sess - opis sesji.
- *
- * brak.
  */
 void gg_logoff(struct gg_session *sess)
 {
@@ -829,7 +824,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
  *
  *  - sess - opis sesji.
  *
- * 0 je¶li siê powiod³o, -1 je¶li wyst±pi³ b³±d.
+ * 0, -1.
  */
 int gg_ping(struct gg_session *sess)
 {
@@ -858,7 +853,7 @@ int gg_ping(struct gg_session *sess)
  *  - userlist - wska¼nik do tablicy numerów,
  *  - count - ilo¶æ numerków.
  *
- * je¶li uda³o siê, zwraca 0. je¶li b³±d, dostajemy -1.
+ * 0, -1.
  */
 int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
 {
@@ -905,7 +900,7 @@ int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
  *  - sess - identyfikator sesji,
  *  - uin - numer.
  *
- * je¶li uda³o siê wys³aæ, daje 0. inaczej -1.
+ * 0, -1.
  */
 int gg_add_notify(struct gg_session *sess, uin_t uin)
 {
@@ -937,7 +932,7 @@ int gg_add_notify(struct gg_session *sess, uin_t uin)
  *  - sess - id sesji,
  *  - uin - numerek.
  *
- * zwraca -1 je¶li by³ b³±d, 0 je¶li siê uda³o wys³aæ pakiet.
+ * 0, -1.
  */
 int gg_remove_notify(struct gg_session *sess, uin_t uin)
 {

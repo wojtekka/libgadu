@@ -53,8 +53,6 @@ FILE *gg_debug_file = NULL;
  *
  *  - level - poziom wiadomo¶ci,
  *  - format... - tre¶æ wiadomo¶ci (kompatybilna z printf).
- *
- * brak.
  */
 void gg_debug(int level, const char *format, ...)
 {
@@ -76,7 +74,7 @@ void gg_debug(int level, const char *format, ...)
  * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
  * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
  *
- *  - format, ... - parametry takie same jak w innych funkcjach *printf()
+ *  - format... - tre¶æ taka sama jak w innych funkcjach *printf()
  *
  * zaalokowany bufor, który nale¿y pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
