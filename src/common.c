@@ -614,7 +614,7 @@ char *gg_base64_encode(const char *buf)
 	if (!res)
 		return NULL;
 	
-	while (j < len) {
+	while (j <= len) {
 		switch (i % 4) {
 			case 0:
 				k = (buf[j] & 252) >> 2;
