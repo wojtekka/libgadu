@@ -32,13 +32,13 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
       if test -f $incl/openssl/ssl.h; then
         AC_MSG_RESULT($incl/openssl/ssl.h)
 	ldflags_old="$LDFLAGS"
-	LDFLAGS="$lib -lcrypto -lssl"
+	LDFLAGS="$lib -lssl -lcrypto"
 	save_LIBS="$LIBS"
-	LIBS="-lcrypto -lssl $LIBS"
+	LIBS="-lssl -lcrypto $LIBS"
 	AC_CHECK_LIB(ssl, RSA_new, [
 	  AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
 	  have_openssl=yes
-	  OPENSSL_LIBS="$lib -lcrypto -lssl"
+	  OPENSSL_LIBS="$lib -lssl -lcrypto"
 	  if test "x$incl" != "x/usr/include"; then
     	    OPENSSL_INCLUDES="-I$incl"
 	  fi
