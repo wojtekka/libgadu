@@ -1110,7 +1110,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				 * SSL i SSL_CTX. */
 
 				if (sess->ssl) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
 					goto fail_connecting;
 				}
 #endif
