@@ -32,6 +32,9 @@
 #ifndef _AIX
 #  include <string.h>
 #endif
+#ifdef sun
+#  include <sys/filio.h>
+#endif
 #include <stdarg.h>
 #include <ctype.h>
 #include "libgadu.h"
