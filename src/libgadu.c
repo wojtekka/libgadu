@@ -97,6 +97,54 @@ unsigned short fix16(unsigned short x)
 #endif
 }
 
+/* 
+ * gg_login_hash() // funkcja wewnêtrzna
+ * 
+ * liczy hash z has³a i danego seeda. póki co, nie ma wersji, która liczy
+ * poprawnie na maszynach bigendianowych.
+ * 
+ *  - password - has³o do hashowania,
+ *  - seed - warto¶æ podana przez serwer.
+ *
+ * zwraca hash.
+ */
+static unsigned int gg_login_hash(unsigned char *password, unsigned int seed)
+{
+	unsigned int hash;
+	
+#if 1 || defined(GG_OLD_LOGIN_HASH) || defined(WORDS_BIGENDIAN)
+	for (hash = 1; *password; password++)
+		hash *= (*password) + 1;
+	hash *= seed;
+
+	return hash;
+#else
+	unsigned int x, y, z;
+
+	hash = seed;
+
+	for (x = 0; *password; password++) {
+		x = (x & 0xffffff00) | *password;
+		hash ^= x;
+		hash += x;
+		x <<= 8;
+		hash ^= x;
+		x <<= 8;
+		hash -= x;
+		x <<= 8;
+		hash ^= x;
+
+		for (y = hash & 0x1f; y; y--) {
+			if ((hash & 0x80000000))
+				hash = (hash << 1) | 1;
+			else
+				hash <<= 1;
+		}
+	}
+#endif
+	return hash;
+}
+
 /*
  * gg_resolve() // funkcja wewnêtrzna
  *
@@ -1262,9 +1310,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			w = (void*) h + sizeof(struct gg_header);
 			w->key = fix32(w->key);
 
-			for (hash = 1; *password; password++)
-				hash *= (*password) + 1;
-			hash *= w->key;
+			hash = gg_login_hash(password, w->key);
 	
 			gg_debug(GG_DEBUG_DUMP, "%%%% klucz serwera %.4x, hash has³a %.8x\n", w->key, hash);
 	
