@@ -514,7 +514,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					goto fail;
 				}
 
-				e->event.userlist.reply[h->length] = 0;
+				e->event.userlist.reply[h->length - 1] = 0;
 				memcpy(e->event.userlist.reply, p + 1, h->length - 1);
 			}
 
