@@ -345,6 +345,8 @@ cleanup:
 
 	free(tmp);
 
+	errno = new_errno;
+
 	return -1;
 }
 
