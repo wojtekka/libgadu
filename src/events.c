@@ -34,6 +34,9 @@
 #include <time.h>
 #include "compat.h"
 #include "libgadu.h"
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#  include <pthread.h>
+#endif
 
 /*
  * gg_event_free()
@@ -419,10 +422,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			close(sess->fd);
 
-#ifndef HAVE_PTHREAD
+#ifndef __GG_LIBGADU_HAVE_PTHREAD
 			waitpid(sess->pid, NULL, 0);
 #else
-			pthread_cancel(sess->resolver);
+			if (sess->resolver) {
+				pthread_cancel(*((pthread_t*) sess->resolver));
+				free(sess->resolver);
+				sess->resolver = NULL;
+			}
 #endif
 
 			/* je¶li jeste¶my w resolverze i mamy ustawiony port

@@ -37,6 +37,9 @@
 #endif
 #include "compat.h"
 #include "libgadu.h"
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#  include <pthread.h>
+#endif
 
 int gg_debug_level = 0;
 
@@ -218,7 +221,7 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 	return 0;
 }
 
-#ifdef HAVE_PTHREAD
+#ifdef __GG_LIBGADU_HAVE_PTHREAD
 
 struct gg_resolve_pthread_data {
 	char *hostname;
@@ -262,42 +265,58 @@ static void *gg_resolve_pthread_thread(void *arg)
  * znaczy, ¿e mo¿na wczytaæ struct in_addr. je¶li nie znajdzie, zwraca
  * INADDR_NONE.
  *
- *  - c - sesja
+ *  - fd - wska¼nik do zmiennej przechowuj±cej desktyptor resolvera
+ *  - resolver - wska¼nik do wska¼nika resolvera
  *  - hostname - nazwa hosta do zresolvowania
  *
  * 0, -1.
  */
-int gg_resolve_pthread(struct gg_common *c, const char *hostname)
+int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 {
 	struct gg_resolve_pthread_data *d;
+	pthread_t *tmp;
 	int pipes[2];
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve_pthread(%p, \"%s\");\n", c, hostname);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve_pthread(%p, %p, \"%s\");\n", fd, resolver, hostname);
 	
-	if (!c || !hostname) {
+	if (!resolver || !fd || !hostname) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() invalid arguments\n");
 		errno = EFAULT;
 		return -1;
 	}
 
+	if (!(tmp = malloc(sizeof(pthread_t)))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory for pthread id\n");
+		return -1;
+	}
+	
 	if (pipe(pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		free(tmp);
 		return -1;
 	}
 
 	if (!(d = malloc(sizeof(*d))) || !(d->hostname = strdup(hostname))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
+		free(tmp);
 		return -1;
 	}
 
 	d->fd = pipes[1];
 
-	if (pthread_create(&c->resolver, NULL, gg_resolve_pthread_thread, d) == -1) {
+	if (pthread_create(tmp, NULL, gg_resolve_pthread_thread, d) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_phread() unable to create thread\n");
+		close(pipes[0]);
+		close(pipes[1]);
+		free(tmp);
 		return -1;
 	}
 
-	c->fd = pipes[0];
+	gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() %p\n", tmp);
+
+	*resolver = tmp;
+
+	*fd = pipes[0];
 
 	return 0;
 }
@@ -649,10 +668,10 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 	
 	if (!sess->server_addr || gg_proxy_enabled) {
-#ifndef HAVE_PTHREAD
+#ifndef __GG_LIBGADU_HAVE_PTHREAD
 		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
 #else
-		if (gg_resolve_pthread((struct gg_common*) sess, hostname)) {
+		if (gg_resolve_pthread(&sess->fd, &sess->resolver, hostname)) {
 #endif
 			gg_debug(GG_DEBUG_MISC, "// gg_login() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
 			goto fail;
@@ -692,6 +711,9 @@ void gg_free_session(struct gg_session *sess)
 	
 	if (sess->client_version)
 		free(sess->client_version);
+
+	if (sess->resolver)
+		free(sess->resolver);
 
 	free(sess);
 }
