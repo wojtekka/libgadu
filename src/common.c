@@ -54,6 +54,14 @@ void gg_debug(int level, const char *format, ...)
 {
 	va_list ap;
 	
+	if (gg_debug_handler) {
+		va_start(ap, format);
+		(*gg_debug_handler)(level, format, ap);
+		va_end(ap);
+
+		return;
+	}
+	
 	if ((gg_debug_level & level)) {
 		va_start(ap, format);
 		vfprintf((gg_debug_file) ? gg_debug_file : stderr, format, ap);
