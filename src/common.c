@@ -114,7 +114,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 	}
 #else
 	{
-		char tmp[1];
+		char tmp[2];
 		
 		/* libce Solarisa przy buforze NULL zawsze zwracaj± -1, wiêc
 		 * musimy podaæ co¶ istniej±cego jako cel printf()owania. */
