@@ -1020,7 +1020,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 
 			snprintf(buf, sizeof(buf) - 1,
-				"GET /appsvc/appmsg.asp?fmnumber=%u HTTP/1.0\r\n"
+				"GET /appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
 				"Host: " GG_APPMSG_HOST "\r\n"
 				"User-Agent: Mozilla/4.7 [en] (Win98; I)\r\n"
 				"Pragma: no-cache\r\n"
