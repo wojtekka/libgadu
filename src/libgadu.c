@@ -1463,18 +1463,37 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 	if (!userlist || !count)
 		return gg_send_packet(sess, GG_LIST_EMPTY, NULL);
 	
-	if (!(n = (struct gg_notify*) malloc(sizeof(*n) * count)))
-		return -1;
-	
-	for (u = userlist, t = types, i = 0; i < count; u++, t++, i++) { 
-		n[i].uin = gg_fix32(*u);
-		n[i].dunno1 = *t;
-	}
-	
-	if (gg_send_packet(sess, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
-		res = -1;
+	while (count > 0) {
+		int part_count, packet_type;
+		
+		if (count > 400) {
+			part_count = 400;
+			packet_type = GG_NOTIFY_FIRST;
+		} else {
+			part_count = count;
+			packet_type = GG_NOTIFY_LAST;
+		}
 
-	free(n);
+		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
+			return -1;
+	
+		for (u = userlist, t = types, i = 0; i < part_count; u++, t++, i++) { 
+			n[i].uin = gg_fix32(*u);
+			n[i].dunno1 = *t;
+		}
+	
+		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
+			free(n);
+			res = -1;
+			break;
+		}
+
+		count -= part_count;
+		userlist += part_count;
+		types += part_count;
+
+		free(n);
+	}
 
 	return res;
 }
@@ -1510,20 +1529,38 @@ int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
 	}
 
 	if (!userlist || !count)
-		return 0;
+		return gg_send_packet(sess, GG_LIST_EMPTY, NULL);
 	
-	if (!(n = (struct gg_notify*) malloc(sizeof(*n) * count)))
-		return -1;
+	while (count > 0) {
+		int part_count, packet_type;
+		
+		if (count > 400) {
+			part_count = 400;
+			packet_type = GG_NOTIFY_FIRST;
+		} else {
+			part_count = count;
+			packet_type = GG_NOTIFY_LAST;
+		}
+			
+		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
+			return -1;
 	
-	for (u = userlist, i = 0; i < count; u++, i++) { 
-		n[i].uin = gg_fix32(*u);
-		n[i].dunno1 = GG_USER_NORMAL;
-	}
+		for (u = userlist, i = 0; i < part_count; u++, i++) { 
+			n[i].uin = gg_fix32(*u);
+			n[i].dunno1 = GG_USER_NORMAL;
+		}
 	
-	if (gg_send_packet(sess, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
-		res = -1;
+		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
+			res = -1;
+			free(n);
+			break;
+		}
 
-	free(n);
+		free(n);
+
+		userlist += part_count;
+		count -= part_count;
+	}
 
 	return res;
 }

@@ -391,12 +391,16 @@ zerem oraz ewentualny czas powrotu w postaci ilo¶ci sekund od 1 stycznia
 
 <p>
 Zaraz po zalogowaniu mo¿emy wys³aæ serwerowi nasz± listê kontaktów, ¿eby
-dowiedzieæ siê, czy s± w danej chwili dostêpni. Pakiet zawiera maksymalnie
-409 struktur <tt>gg_notify</tt>:
+dowiedzieæ siê, czy s± w danej chwili dostêpni. Lista kontaktów jest dzielona
+na pakiety po 400 wpisów. Pierwsze wpisy s± typu <tt>GG_NOTIFY_FIRST</tt>,
+a ostatni typu <tt>GG_NOTIFY_LAST</tt>, ¿eby serwer wiedzia³, kiedy koñczymy.
+Je¶li lista kontaktów jest mniejsza ni¿ 400 wpisów, wysy³amy oczywi¶cie tylko
+<tt>GG_NOTIFY_LAST</tt>. Pakiety te zawieraj± struktury <tt>gg_notify</tt>:
 </p>
 
 <div class="c">
-<pre>#define GG_NOTIFY 0x0010
+<pre>#define GG_NOTIFY_FIRST 0x000f
+#define GG_NOTIFY_LAST 0x0010
 	
 struct gg_notify {
 	int uin;	<i>/* numerek danej osoby */</i>
@@ -502,8 +506,8 @@ jeszcze do koñca znane.
 
 <p>
 ¯eby dodaæ kogo¶ do listy w trakcie pracy, trzeba wys³aæ ni¿ej opisany
-pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>. Dodaje
-on flagi rodzaj u¿ytkownika.
+pakiet. Jego format jest identyczny jak <tt>GG_NOTIFY_*</tt>. Dodaje
+on flagi rodzaju u¿ytkownika.
 </p>
 
 <div class="c">
@@ -1071,7 +1075,8 @@ Pakiety wysy³ane:
 <tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_LOGIN</tt></td><td>Logowanie przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_ADD_NOTIFY</tt></td><td>Dodanie do listy kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_REMOVE_NOTIFY</tt></td><td>Usuniêcie z listy kontaktów</td></tr>
-<tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_NOTIFY</tt></td><td>Wys³anie listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x000f</tt></td><td><tt>GG_NOTIFY_FIRST</tt></td><td>Pocz±tkowy fragment listy kontaktów wiêkszej ni¿ 400 wpisów</td></tr>
+<tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_NOTIFY_LAST</tt></td><td>Ostatni fragment listy kontaktów</td></tr>
 <tr class="tabf2"><td><tt>0x0013</tt></td><td><tt>GG_LOGIN_EXT</tt></td><td>Logowanie przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_PUBDIR50_REQUEST</tt></td><td>Zapytanie katalogu publicznego</td></tr>
 <tr class="tabf"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie</td></tr>
