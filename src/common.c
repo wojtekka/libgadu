@@ -35,7 +35,6 @@
 #  include <string.h>
 #endif
 #include <stdarg.h>
-#include <pwd.h>
 #include <time.h>
 #ifdef sun
   #include <sys/filio.h>
