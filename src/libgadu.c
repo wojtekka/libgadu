@@ -774,7 +774,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 		return -1;
 	}
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_to_users(..., %d, %u, \"...\");\n", msgclass, recipients_count);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_confer(..., %d, %u, \"...\");\n", msgclass, recipients_count);
 
 	r.flag = 0x01;
 	r.count = fix32(recipients_count - 1);
