@@ -46,6 +46,7 @@
 int gg_debug_level = 0;
 
 int gg_dcc_port = 0;
+unsigned long gg_dcc_ip = 0;
 
 /*
  *  zmienne opisuj±ce parametry proxy http.
@@ -1259,8 +1260,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if(!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len))
 				sess_ip = sin.sin_addr.s_addr;	
 		
-			sess->client_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
-			sess->client_port = gg_dcc_port;
+			if(gg_dcc_ip == INADDR_ANY) {
+				sess->client_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
+				sess->client_port = gg_dcc_port;
+			} else {
+				sess->client_ip = 0;
+				sess->client_port = 0;
+			};
 			
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);

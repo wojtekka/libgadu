@@ -200,7 +200,7 @@ struct gg_dcc *gg_dcc_create_socket(uin_t uin, unsigned int port)
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = INADDR_ANY;
 		sin.sin_port = htons(port);
-
+	
 		gg_debug(GG_DEBUG_MISC, "// gg_create_dcc_socket() trying port %d\n", port);
 		if (!bind(sock, (struct sockaddr*) &sin, sizeof(sin)))
 			bound = 1;
@@ -233,7 +233,8 @@ struct gg_dcc *gg_dcc_create_socket(uin_t uin, unsigned int port)
 	c->timeout = -1;
 	c->state = GG_STATE_LISTENING;
 	c->check = GG_CHECK_READ;
-
+	
+	gg_dcc_ip = INADDR_ANY;	
 	return c;
 }
 
