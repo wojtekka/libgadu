@@ -231,7 +231,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 }
 
 
-struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modify, int async);
+struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modify, int async)
 {
 	struct gg_http *h;
 
