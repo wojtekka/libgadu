@@ -68,7 +68,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 
 	gg_debug(GG_DEBUG_MISC, "-- received a message\n");
 
-	printf("packet=%p\n", h);
+	//printf("packet=%p\n", h);
 
 	for (p = (void*) r + sizeof(*r); *p; p++) {
 		if (p >= packet_end) {
@@ -78,7 +78,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 		}
 	}
 	p++;
-	printf("p=%p\npacket:end=%p\n", p, packet_end);
+	//printf("p=%p\npacket:end=%p\n", p, packet_end);
 
 	/* przeanalizuj dodatkowe opcje */
 	while (p < packet_end) {
@@ -166,7 +166,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	e->event.msg.time = fix32(r->time);
 	e->event.msg.message = strdup((void*) r + sizeof(*r));
 
-	printf("%d formats\n", e->event.msg.formats_count);
+	//printf("%d formats\n", e->event.msg.formats_count);
 
 	return 0;
 	
