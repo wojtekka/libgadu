@@ -174,6 +174,13 @@ struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *new
 	return NULL;
 }
 
+struct gg_http *gg_remind_passwd(uin_t uin, int async)
+{
+	gg_debug(GG_DEBUG_MISC, "// gg_remind_passwd() is obsolete. use gg_remind_passwd2() instead!\n");
+	errno = EINVAL;
+	return NULL;
+}
+
 struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_change_info_request *request, int async)
 {
 	gg_debug(GG_DEBUG_MISC, "// gg_change_info() is obsolete. use gg_pubdir50() instead\n");

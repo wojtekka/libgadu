@@ -504,6 +504,15 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			if (h->length < 1)
 				break;
 
+			/* je¶li odpowied¼ na eksport, wywo³aj zdarzenie tylko
+			 * gdy otrzymano wszystkie odpowiedzi */
+			if (p[0] == GG_USERLIST_PUT_REPLY || p[0] == GG_USERLIST_PUT_MORE_REPLY) {
+				if (--sess->userlist_blocks)
+					break;
+
+				p[0] = GG_USERLIST_PUT_REPLY;
+			}
+
 			if (h->length > 1) {
 				char *tmp, len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
 				
@@ -521,7 +530,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(sess->userlist_reply + len, p + 1, h->length - 1);
 			}
 
-			if (e->type == GG_USERLIST_GET_MORE_REPLY)
+			if (p[0] == GG_USERLIST_GET_MORE_REPLY)
 				break;
 
 			e->type = GG_EVENT_USERLIST;

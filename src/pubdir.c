@@ -248,7 +248,7 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 		return NULL;
 	}
 	
-	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&email=%s&tokenid=%s&tokenval=%s&code=%u", uin, __fmpwd, __pwd, __email, __tokenid, __tokenval, gg_http_hash("ss", newpasswd, email)))) {
+	if (!(form = gg_saprintf("fmnumber=%d&fmpwd=%s&pwd=%s&email=%s&tokenid=%s&tokenval=%s&code=%u", uin, __fmpwd, __pwd, __email, __tokenid, __tokenval, gg_http_hash("ss", email, newpasswd)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
@@ -306,20 +306,44 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
  *
  *  - uin - numer
  *  - async - po³±czenie asynchroniczne
+ *  - tokenid - identyfikator tokenu
+ *  - tokenval - warto¶æ tokenu
  *
  * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_remind_passwd_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_remind_passwd(uin_t uin, int async)
+struct gg_http *gg_remind_passwd2(uin_t uin, const char *tokenid, const char *tokenval, int async)
 {
 	struct gg_http *h;
-	char *form, *query;
+	char *form, *query, *__tokenid, *__tokenval;
 
-	if (!(form = gg_saprintf("userid=%d&code=%u", uin, gg_http_hash("u", uin)))) {
+	if (!tokenid || !tokenval) {
+		gg_debug(GG_DEBUG_MISC, "=> remind, NULL parameter\n");
+		errno = EINVAL;
+		return NULL;
+	}
+	
+	__tokenid = gg_urlencode(tokenid);
+	__tokenval = gg_urlencode(tokenval);
+
+	if (!__tokenid || !__tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
+		free(__tokenid);
+		free(__tokenval);
 		errno = ENOMEM;
 		return NULL;
 	}
+
+	if (!(form = gg_saprintf("userid=%d&code=%u&tokenid=%s&tokenval=%s", uin, gg_http_hash("u", uin), __tokenid, __tokenval))) {
+		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
+		errno = ENOMEM;
+		free(__tokenid);
+		free(__tokenval);
+		return NULL;
+	}
+
+	free(__tokenid);
+	free(__tokenval);
 	
 	gg_debug(GG_DEBUG_MISC, "=> remind, %s\n", form);
 
