@@ -34,7 +34,7 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
-#include "libgg.h"
+#include "libgadu.h"
 
 /*
  * gg_dcc_request()
