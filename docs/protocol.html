@@ -157,7 +157,9 @@ Pragma: no-cache</pre>
 </div>
 
 <p>
-Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersj± klienta,
+Gdzie <b>NUMER</b> jest numerem klienta, <b>WERSJA</b> jest wersj± klienta
+postaci ,,<tt>A, B, C, D</tt>'' (na przyk³ad ,,<tt>5, 0, 5, 107</tt>'' dla
+wersji 5.0.5 buildu 107),
 <b>FORMAT</b> okre¶la czy wiadomo¶æ systemowa bêdzie przesy³ana czystym
 tekstem (brak zmiennej "fmt") czy w HTMLu (jakakolwiek jej warto¶æ), a
 <b>WIADOMO¦Æ</b> jest numerem ostatnio otrzymanej wiadomo¶ci systemowej.
@@ -272,6 +274,7 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Wersje klientów</b></td></tr>
+<tr class="tabf"><td><tt>0x1b</tt></td><td>5.0.5</td></tr>
 <tr class="tabf"><td><tt>0x19</tt></td><td>5.0.3</td></tr>
 <tr class="tabf"><td><tt>0x18</tt></td><td>5.0.1, 5.0.0, 4.9.3</td></tr>
 <tr class="tabf"><td><tt>0x17</tt></td><td>4.9.2</td></tr>
@@ -389,8 +392,8 @@ Je¶li ma byæ widoczny tylko dla przyjació³, nale¿y dodaæ
 <p>
 Je¶li wybieramy stan opisowy, nale¿y do³±czyæ ci±g znaków zakoñczony
 zerem oraz ewentualny czas powrotu w postaci ilo¶ci sekund od 1 stycznia
-1970r (UTC). Maksymalna d³ugo¶æ opisu wynosi 40 znaków plus zero plus
-4 bajty na godzinê powrotu, co razem daje 45 bajtów.
+1970r (UTC). Maksymalna d³ugo¶æ opisu wynosi 70 znaków plus zero plus
+4 bajty na godzinê powrotu, co razem daje 75 bajtów.
 </p>
 
 <hr />
@@ -964,7 +967,7 @@ tylko o polu <b>ODPOWIED¬</b>. Kodowanie znaków w odpowiedzi to CP1250.
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -973,7 +976,26 @@ tylko o polu <b>ODPOWIED¬</b>. Kodowanie znaków w odpowiedzi to CP1250.
 <tr class="tabh"><td width="20%"><b>Wysy³amy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>has³o dla nowego numeru</td></tr>
 <tr class="tabf"><td><tt>email</tt></td><td>adres e-mail do przypomnienia has³a</td></tr>
+<tr class="tabf"><td><tt>qa</tt></td><td>has³o pomocnicze i odpowied¼, oddzielone znakiem tyldy ,,<tt>~</tt>''</td></tr>
 <tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt>. Algorytmu szukaj w ¼ród³ach libgadu w <tt>lib/common.c</tt></td></tr>
+</table>
+
+<p>
+Dostêpne standardowo pytania pomocnicze i ich aliasy (podawane zamiast
+tre¶ci pytania) to:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td width="20%"><b>Alias</b></td><td width="80%"><b>Pytanie</b></td></tr>
+<tr class="tabf"><td><tt>1</tt></td><td>Twoja ulubiona potrawa?</td></tr>
+<tr class="tabf"><td><tt>2</tt></td><td>Imiê/nazwisko Twojej sympatii z lat szkolnych?</td></tr>
+<tr class="tabf"><td><tt>3</tt></td><td>Imiê/nazwisko osoby, z którego dzia³e¶ w ³awce?</td></tr>
+<tr class="tabf"><td><tt>4</tt></td><td>Imiê Twojego dziadka?</td></tr>
+<tr class="tabf"><td><tt>5</tt></td><td>Imiê Twojej babci?</td></tr>
+<tr class="tabf"><td><tt>6</tt></td><td>Nazwisko panieñskie Twojej matki?</td></tr>
+<tr class="tabf"><td><tt>7</tt></td><td>Tytu³ Twojego ulubionego filmu?</td></tr>
+<tr class="tabf"><td><tt>8</tt></td><td>Ulubiony aktor?</td></tr>
+<tr class="tabf"><td><tt>9</tt></td><td>Ulubiony solista/zespó³ muzyczny?</td></tr>
 </table>
 
 <p>
@@ -981,14 +1003,14 @@ Przyk³ad:
 </p>
 
 <div class="http">
-<pre>POST /appsvc/fmregister.asp HTTP/1.0
+<pre>POST /appsvc/fmregister2.asp HTTP/1.0
 Host: register.gadu-gadu.pl
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 51
+Content-Length: 62
 Pragma: no-cache
 		
-pwd=sekret&amp;email=moj@adres.email.pl&amp;code=1104465363</pre>
+pwd=sekret&amp;email=moj@adres.email.pl&amp;qa=5~Maria&amp;code=1104465363</pre>
 </div>
 
 <p>
@@ -1011,7 +1033,7 @@ Gdzie <tt><b>UIN</b></tt> to nowy numer, który w³a¶nie otrzymali¶my.
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1021,9 +1043,9 @@ Gdzie <tt><b>UIN</b></tt> to nowy numer, który w³a¶nie otrzymali¶my.
 <tr class="tabf"><td><tt>fmnumber</tt></td><td>usuwany numer</td></tr>
 <tr class="tabf"><td><tt>fmpwd</tt></td><td>has³o</td></tr>
 <tr class="tabf"><td><tt>delete</tt></td><td>warto¶æ ,,<tt>1</tt>''</td></tr>
-<tr class="tabf"><td><tt>fmemail</tt></td><td>adres e-mail podany przy rejestracji</td></tr>
-<tr class="tabf"><td><tt>email</tt></td><td>warto¶æ ,,<tt>deletedaccount@gadu-gadu.pl</tt>''</td></tr>
-<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt></td></tr>
+<tr class="tabf"><td><tt>pwd</tt></td><td>losowa liczba</td></tr>
+<tr class="tabf"><td><tt>qa</tt></td><td>pytanie pomocnicza i odpowied¼ (patrz punkt <a href="#ch2.2">2.2</a>)</td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>pwd</tt></td></tr>
 </table>
 
 <p>
@@ -1031,15 +1053,14 @@ Przyk³ad:
 </p>
 
 <div class="http">
-<pre>POST /appsvc/fmregister.asp HTTP/1.0
+<pre>POST /appsvc/fmregister2.asp HTTP/1.0
 Host: register.gadu-gadu.pl
 Content-Type: application/x-www-form-urlencoded
 User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 126
+Content-Length: 74
 Pragma: no-cache
 		
-fmnumber=4617436&amp;fmpwd=haslo&amp;delete=1&amp;fmemail=moj@email.pl&amp;pwd=%2D700963936&amp;email=
-deletedaccount@gadu%2Dgadu.pl&amp;code=477559883</pre>
+fmnumber=4969256&amp;fmpwd=haslo&amp;delete=1&amp;pwd=%2D388046464&amp;qa=&amp;code=1483497094</pre>
 </div>
 
 <p>
@@ -1062,7 +1083,7 @@ Gdzie <tt><b>UIN</b></tt> to numer, który skasowali¶my.
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nag³ówka</b></td><td width="80%"><b>Warto¶æ</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister.asp</tt></td></tr>
+<tr class="tabf"><td><tt>¦CIE¯KA</tt></td><td><tt>/appsvc/fmregister2.asp</tt></td></tr>
 </table>
 
 <p></p>
@@ -1072,9 +1093,8 @@ Gdzie <tt><b>UIN</b></tt> to numer, który skasowali¶my.
 <tr class="tabf"><td><tt>fmnumber</tt></td><td>numer</td></tr>
 <tr class="tabf"><td><tt>fmpwd</tt></td><td>stare has³o</td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>nowe has³o</td></tr>
-<tr class="tabf"><td><tt>fmemail</tt></td><td>adres e-mail podany przy rejestracji</td></tr>
-<tr class="tabf"><td><tt>email</tt></td><td>nowy adres e-mail do przypomnienia has³a</td></tr>
-<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>email</tt> i <tt>pwd</tt></td></tr>
+<tr class="tabf"><td><tt>qa</tt></td><td>pytanie pomocnicze i odpowied¼, patrz punkt <a href="#ch2.2">2.2</a></td></tr>
+<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pola <tt>pwd</tt></td></tr>
 </table>
 
 <p>
@@ -1083,14 +1103,6 @@ Je¶li wszystko przebieg³o poprawnie, serwer odpowie:
 
 <div class="http">
 <pre>reg_success:<b>UIN</b></pre>
-</div>
-
-<p>
-Je¶li pole <tt>fmemail</tt> jest b³êdne, serwer odpowie:
-</p>
-
-<div class="http">
-<pre>bademail</pre>
 </div>
 
 <hr />
