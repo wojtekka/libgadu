@@ -337,6 +337,7 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 
 	if (!(sess = malloc(sizeof(*sess))))
 		return NULL;
+	memset(sess, 0, sizeof(*sess));
 
 	sess->uin = uin;
 	if (!(sess->password = strdup(password))) {
@@ -346,11 +347,6 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
 	sess->async = async;
-	sess->seq = 0;
-	sess->recv_left = 0;
-	sess->last_pong = 0;
-	sess->server_ip = 0;
-	sess->initial_status = 0;
         sess->type = GG_SESSION_GG;
 	
 	if (gg_http_use_proxy) {
