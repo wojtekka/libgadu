@@ -464,6 +464,162 @@ int gg_thread_socket(int thread_id, int socket)
 
 #endif /* ASSIGN_SOCKETS_TO_THREADS */
 
+static char gg_base64_charset[] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/*
+ * gg_base64_encode()
+ *
+ * zapisuje ci±g znaków w base64.
+ *
+ *  - buf - ci±g znaków.
+ *
+ * zaalokowany bufor.
+ */
+char *gg_base64_encode(const char *buf)
+{
+	char *out, *res;
+	int i = 0, j = 0, k = 0, len = strlen(buf);
+	
+	res = out = malloc((len / 3 + 1) * 4 + 2);
+
+	if (!res)
+		return NULL;
+	
+	while (j <= len) {
+		switch (i % 4) {
+			case 0:
+				k = (buf[j] & 252) >> 2;
+				break;
+			case 1:
+				if (j < len)
+					k = ((buf[j] & 3) << 4) | ((buf[j + 1] & 240) >> 4);
+				else
+					k = (buf[j] & 3) << 4;
+
+				j++;
+				break;
+			case 2:
+				if (j < len)
+					k = ((buf[j] & 15) << 2) | ((buf[j + 1] & 192) >> 6);
+				else
+					k = (buf[j] & 15) << 2;
+
+				j++;
+				break;
+			case 3:
+				k = buf[j++] & 63;
+				break;
+		}
+		*out++ = gg_base64_charset[k];
+		i++;
+	}
+
+	if (i % 4)
+		for (j = 0; j < 4 - (i % 4); j++, out++)
+			*out = '=';
+	
+	*out = 0;
+	
+	return res;
+}
+
+/*
+ * gg_base64_decode()
+ *
+ * dekoduje ci±g znaków z base64.
+ *
+ *  - buf - ci±g znaków.
+ *
+ * zaalokowany bufor.
+ */
+char *gg_base64_decode(const char *buf)
+{
+	char *res, *save, *foo, val;
+	const char *end;
+	int index = 0;
+
+	if (!buf)
+		return NULL;
+	
+	save = res = calloc(1, (strlen(buf) / 4 + 1) * 3 + 2);
+
+	if (!save)
+		return NULL;
+
+	end = buf + strlen(buf);
+
+	while (*buf && buf < end) {
+		if (*buf == '\r' || *buf == '\n') {
+			buf++;
+			continue;
+		}
+		if (!(foo = strchr(gg_base64_charset, *buf)))
+			foo = gg_base64_charset;
+		val = (int)foo - (int)gg_base64_charset;
+		buf++;
+		switch (index) {
+			case 0:
+				*res |= val << 2;
+				break;
+			case 1:
+				*res++ |= val >> 4;
+				*res |= val << 4;
+				break;
+			case 2:
+				*res++ |= val >> 2;
+				*res |= val << 6;
+				break;
+			case 3:
+				*res++ |= val;
+				break;
+		}
+		index++;
+		index %= 4;
+	}
+	*res = 0;
+	
+	return save;
+}
+
+/*
+ * gg_proxy_auth() // funkcja wewnêtrzna
+ *
+ * tworzy nag³ówek autoryzacji dla proxy.
+ * 
+ * zaalokowany tekst lub NULL, je¶li proxy nie jest w³±czone lub nie wymaga
+ * autoryzacji.
+ */
+char *gg_proxy_auth()
+{
+	char *tmp, *enc, *out;
+	
+	if (!gg_proxy_enabled || !gg_proxy_username || !gg_proxy_password)
+		return NULL;
+
+	if (!(tmp = malloc(strlen(gg_proxy_username) + strlen(gg_proxy_password) + 2)))
+		return NULL;
+
+	sprintf(tmp, "%s:%s", gg_proxy_username, gg_proxy_password);
+
+	if (!(enc = gg_base64_encode(tmp))) {
+		free(tmp);
+		return NULL;
+	}
+	
+	free(tmp);
+
+	if (!(out = malloc(strlen(enc) + 40))) {
+		free(enc);
+		return NULL;
+	}
+	
+	sprintf(out, "Proxy-Authorization: Basic %s\r\n", enc);
+
+	free(enc);
+
+	return out;
+}
 
 /*
  * Local variables:

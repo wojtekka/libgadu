@@ -67,3 +67,6 @@ Funkcje pomocnicze
 	gg_http_watch_fd
 	gg_http_stop
 	gg_http_free
+	gg_base64_encode
+	gg_base64_decode
+

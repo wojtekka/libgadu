@@ -51,6 +51,8 @@ char *gg_proxy_host = NULL;
 int gg_proxy_port = 0;
 int gg_proxy_enabled = 0;
 int gg_proxy_http_only = 0;
+char *gg_proxy_username = NULL;
+char *gg_proxy_password = NULL;
 
 #ifndef lint 
 static char rcsid[]

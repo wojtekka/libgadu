@@ -70,10 +70,16 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
         h->type = GG_SESSION_HTTP;
 
 	if (gg_proxy_enabled) {
-		h->query = gg_saprintf("%s http://%s:%d%s HTTP/1.0\r\n%s",
-				method, hostname, port, path, header);
+		char *auth = gg_proxy_auth();
+
+		h->query = gg_saprintf("%s http://%s:%d%s HTTP/1.0\r\n%s%s",
+				method, hostname, port, path, (auth) ? auth :
+				"", header);
 		hostname = gg_proxy_host;
 		h->port = port = gg_proxy_port;
+
+		if (auth)
+			free(auth);
 	} else {
 		h->query = gg_saprintf("%s %s HTTP/1.0\r\n%s",
 				method, path, header);

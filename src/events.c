@@ -723,17 +723,31 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			/* je¶li mamy proxy, wy¶lijmy zapytanie. */
 			if (sess->proxy_addr && sess->proxy_port) {
-				char buf[100];
+				char buf[100], *auth = gg_proxy_auth();
 
-				snprintf(buf, sizeof(buf) - 5, "CONNECT %s:%d HTTP/1.0", inet_ntoa(*((struct in_addr*) &sess->server_addr)), sess->port);
+				snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n", inet_ntoa(*((struct in_addr*) &sess->server_addr)), sess->port);
 
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() proxy request \"%s\"\n", buf);
-				strcat(buf, "\r\n\r\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n//   %s", buf);
 				
 				/* wysy³amy zapytanie. jest ono na tyle krótkie,
 				 * ¿e musi siê zmie¶ciæ w buforze gniazda. je¶li
 				 * write() zawiedzie, sta³o siê co¶ z³ego. */
 				if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
+					goto fail_connecting;
+				}
+
+				if (auth) {
+					gg_debug(GG_DEBUG_MISC, "//   %s", auth);
+					if (write(sess->fd, auth, strlen(auth)) < strlen(auth)) {
+						gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
+						goto fail_connecting;
+					}
+
+					free(auth);
+				}
+
+				if (write(sess->fd, "\r\n", 2) < 2) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
 					goto fail_connecting;
 				}
@@ -771,7 +785,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				while (strcmp(buf, "")) {
 					gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 					gg_chomp(buf);
-					gg_debug(GG_DEBUG_MISC, "//   %s\n", buf);
+					if (strcmp(buf, ""))
+						gg_debug(GG_DEBUG_MISC, "//   %s\n", buf);
 				}
 
 				/* XXX niech czeka jeszcze raz w tej samej
