@@ -55,27 +55,6 @@ __attribute__ ((unused))
 #endif 
 
 /*
- * gg_debug()
- *
- * wyrzuca komunikat o danym poziomie, o ile u¿ytkownik sobie tego ¿yczy.
- *
- *  - level - poziom wiadomo¶ci,
- *  - format... - tre¶æ wiadomo¶ci (printf-alike.)
- *
- * niczego nie zwraca.
- */
-void gg_debug(int level, char *format, ...)
-{
-	va_list ap;
-	
-	if ((gg_debug_level & level)) {
-		va_start(ap, format);
-		vprintf(format, ap);
-		va_end(ap);
-	}
-}
-
-/*
  * fix32() // funkcja wewnêtrzna
  *
  * dla maszyn big-endianowych zamienia kolejno¶æ bajtów w ,,long''ach.
@@ -107,83 +86,6 @@ static inline unsigned short fix16(unsigned short x)
 		(((x & (unsigned short) 0x00ffU) << 8) |
                  ((x & (unsigned short) 0xff00U) >> 8));
 #endif
-}
-
-/*
- * gg_alloc_sprintf() // funkcja wewnêtrzna
- *
- * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
- * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
- * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
- *
- *  - format, ... - parametry takie same jak w innych funkcjach *printf()
- *
- * zwraca zaalokowany buforek, który wypada³oby pó¼niej zwolniæ, lub NULL
- * je¶li nie uda³o siê wykonaæ zadania.
- */
-char *gg_alloc_sprintf(char *format, ...)
-{
-        va_list ap;
-        char *buf = NULL, *tmp;
-        int size = 0, res;
-
-        va_start(ap, format);
-
-        if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
-                size = 128;
-                do {
-                        size *= 2;
-                        if (!(tmp = realloc(buf, size))) {
-                                free(buf);
-                                return NULL;
-                        }
-                        buf = tmp;
-                        res = vsnprintf(buf, size, format, ap);
-                } while (res == size - 1);
-        } else {
-                if (!(buf = malloc(size + 1)))
-                        return NULL;
-        }
-
-        vsnprintf(buf, size + 1, format, ap);
-
-        va_end(ap);
-
-        return buf;
-}
-
-/*
- * gg_get_line() // funkcja wewnêtrzna
- * 
- * podaje kolejn± liniê z bufora tekstowego. psuje co bezpowrotnie, dziel±c
- * na kolejne stringi. zdarza siê, nie ma potrzeby pisania funkcji dubluj±cej
- * bufor ¿eby tylko mieæ nieruszone dane wej¶ciowe, skoro i tak nie bêd± nam
- * po¼niej potrzebne. obcina `\r\n'.
- * 
- *  - ptr - wska¼nik do zmiennej, która przechowuje aktualn± pozycjê
- *    w przemiatanym buforze.
- * 
- * wska¼nik do kolejnej linii tekstu lub NULL, je¶li to ju¿ koniec bufora.
- */
-char *gg_get_line(char **ptr)
-{
-        char *foo, *res;
-
-        if (!ptr || !*ptr || !strcmp(*ptr, ""))
-                return NULL;
-
-        res = *ptr;
-
-        if (!(foo = strchr(*ptr, '\n')))
-                *ptr += strlen(*ptr);
-        else {
-                *ptr = foo + 1;
-                *foo = 0;
-                if (res[strlen(res) - 1] == '\r')
-                        res[strlen(res) - 1] = 0;
-        }
-
-        return res;
 }
 
 /*
@@ -239,89 +141,6 @@ int gg_resolve(int *fd, int *pid, char *hostname)
 	*pid = res;
 
 	return 0;
-}
-
-/*
- * gg_connect() // funkcja wewnêtrzna
- *
- * ³±czy siê z serwerem. pierwszy argument jest typu (void *), ¿eby nie
- * musieæ niczego inkludowaæ w libgg.h i nie psuæ jaki¶ g³upich zale¿no¶ci
- * na dziwnych systemach.
- *
- *  - addr - adres serwera (struct in_addr *),
- *  - port - port serwera,
- *  - async - ma byæ asynchroniczne po³±czenie?
- *
- * zwraca po³±czonego socketa lub -1 w przypadku b³êdu. zobacz errno.
- */
-int gg_connect(void *addr, int port, int async)
-{
-	int sock, one = 1;
-	struct sockaddr_in sin;
-	struct in_addr *a = addr;
-
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_connect(%s, %d, %d);\n", inet_ntoa(*a), port, async);
-	
-	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "-- socket() failed. errno = %d (%s)\n", errno, strerror(errno));
-		return -1;
-	}
-
-	if (async) {
-		if (ioctl(sock, FIONBIO, &one) == -1) {
-			gg_debug(GG_DEBUG_MISC, "-- ioctl() failed. errno = %d (%s)\n", errno, strerror(errno));
-			return -1;
-		}
-	}
-
-	sin.sin_port = htons(port);
-	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = a->s_addr;
-	
-	if (connect(sock, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
-		if (errno && (!async || errno != EINPROGRESS)) {
-			gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
-			return -1;
-		}
-		gg_debug(GG_DEBUG_MISC, "-- connect() in progress\n");
-	}
-	
-	return sock;
-}
-
-/*
- * gg_read_line() // funkcja wewnêtrzna
- *
- * czyta jedn± liniê tekstu z socketa.
- *
- *  - sock - socket,
- *  - buf - wska¼nik bufora,
- *  - length - d³ugo¶æ bufora.
- *
- * olewa b³êdy. je¶li na jaki¶ trafi, potraktuje go jako koniec linii.
- */
-static void gg_read_line(int sock, char *buf, int length)
-{
-	int ret;
-
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_read_line(...);\n");
-	
-	for (; length > 1; buf++, length--) {
-		do {
-			if ((ret = read(sock, buf, 1)) == -1 && errno != EINTR) {
-				*buf = 0;
-				return;
-			}
-		} while (ret == -1 && errno == EINTR);
-
-		if (*buf == '\n') {
-			buf++;
-			break;
-		}
-	}
-
-	*buf = 0;
-	return;
 }
 
 /*
@@ -955,26 +774,6 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 	free(h);
 
 	return 0;
-}
-
-/*
- * gg_chomp() // funkcja wewnêtrzna
- *
- * ucina "\r\n" lub "\n" z koñca linii.
- *
- *  - line - ofiara operacji plastycznej.
- *
- * niczego nie zwraca.
- */
-static void gg_chomp(char *line)
-{
-	if (!line || strlen(line) < 1)
-		return;
-
-	if (line[strlen(line) - 1] == '\n')
-		line[strlen(line) - 1] = 0;
-	if (line[strlen(line) - 1] == '\r')
-		line[strlen(line) - 1] = 0;
 }
 
 /*
