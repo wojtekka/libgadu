@@ -40,18 +40,18 @@
 #ifdef sun
   #include <sys/filio.h>
 #endif
-#include "libgadu.h"
 #include "config.h"
+#include "libgadu.h"
 
 /*
- * gg_debug()
+ * gg_debug() // funkcja wewnêtrzna
  *
- * wyrzuca komunikat o danym poziomie, o ile u¿ytkownik sobie tego ¿yczy.
+ * wy¶wietla komunikat o danym poziomie, o ile u¿ytkownik sobie tego ¿yczy.
  *
  *  - level - poziom wiadomo¶ci,
  *  - format... - tre¶æ wiadomo¶ci (printf-alike.)
  *
- * niczego nie zwraca.
+ * brak.
  */
 void gg_debug(int level, const char *format, ...)
 {
@@ -65,7 +65,7 @@ void gg_debug(int level, const char *format, ...)
 }
 
 /*
- * gg_saprintf()
+ * gg_saprintf() // funkcja pomocnicza
  *
  * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
  * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
@@ -73,7 +73,7 @@ void gg_debug(int level, const char *format, ...)
  *
  *  - format, ... - parametry takie same jak w innych funkcjach *printf()
  *
- * zwraca zaalokowany buforek, który wypada³oby pó¼niej zwolniæ, lub NULL
+ * zaalokowany bufor, który nale¿y pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
  */
 char *gg_saprintf(const char *format, ...)
@@ -115,7 +115,7 @@ char *gg_saprintf(const char *format, ...)
 }
 
 /*
- * gg_get_line()
+ * gg_get_line() // funkcja pomocnicza
  * 
  * podaje kolejn± liniê z bufora tekstowego. psuje co bezpowrotnie, dziel±c
  * na kolejne stringi. zdarza siê, nie ma potrzeby pisania funkcji dubluj±cej
@@ -149,7 +149,7 @@ char *gg_get_line(char **ptr)
 }
 
 /*
- * gg_connect()
+ * gg_connect() // funkcja pomocnicza
  *
  * ³±czy siê z serwerem. pierwszy argument jest typu (void *), ¿eby nie
  * musieæ niczego inkludowaæ w libgadu.h i nie psuæ jaki¶ g³upich zale¿no¶ci
@@ -159,7 +159,7 @@ char *gg_get_line(char **ptr)
  *  - port - port serwera,
  *  - async - ma byæ asynchroniczne po³±czenie?
  *
- * zwraca po³±czonego socketa lub -1 w przypadku b³êdu. zobacz errno.
+ * deskryptor socketa lub -1 w przypadku b³êdu (kod b³êdu w zmiennej errno).
  */
 int gg_connect(void *addr, int port, int async)
 {
@@ -199,7 +199,7 @@ int gg_connect(void *addr, int port, int async)
 }
 
 /*
- * gg_read_line()
+ * gg_read_line() // funkcja pomocnicza
  *
  * czyta jedn± liniê tekstu z socketa.
  *
@@ -233,13 +233,13 @@ char *gg_read_line(int sock, char *buf, int length)
 }
 
 /*
- * gg_chomp()
+ * gg_chomp() // funkcja pomocnicza
  *
  * ucina "\r\n" lub "\n" z koñca linii.
  *
  *  - line - ofiara operacji plastycznej.
  *
- * niczego nie zwraca.
+ * brak.
  */
 void gg_chomp(char *line)
 {
@@ -261,7 +261,7 @@ void gg_chomp(char *line)
  *
  *  - str - ci±g znaków do poprawki.
  *
- * zwraca zaalokowany bufor, który wypada³oby kiedy¶ zwolniæ albo NULL
+ * zaalokowany bufor, który nale¿y pó¼niej zwolniæ albo NULL
  * w przypadku b³êdu.
  */
 char *gg_urlencode(const char *str)
@@ -297,17 +297,16 @@ char *gg_urlencode(const char *str)
 }
 
 /*
- * gg_http_hash()
+ * gg_http_hash() // funkcja wewnêtrzna
  *
  * funkcja, która liczy hash dla adresu e-mail, has³a i paru innych.
  *
- *  - format - format kolejnych parametrów,
+ *  - format - format kolejnych parametrów ('s' je¶li dany parametr jest
+ *             ci±giem znaków lub 'u' je¶li numerem GG).
  *  - ... - kolejne parametry.
  *
- * zwraca hash wykorzystywany przy rejestracji i wszelkich
- * manipulacjach w³asnego wpisu w katalogu publicznym. ,,format''
- * zawiera znaki 's' je¶li dany parametr jest ci±giem znaków lub
- * 'u' je¶li jest numerkiem gg.
+ * hash wykorzystywany przy rejestracji i wszelkich
+ * manipulacjach w³asnego wpisu w katalogu publicznym.
  */
 int gg_http_hash(const char *format, ...)
 {
@@ -339,6 +338,33 @@ int gg_http_hash(const char *format, ...)
 	}
 
 	return (b < 0 ? -b : b);
+}
+
+/*
+ * gg_gethostbyname() // funkcja pomocnicza
+ *
+ * odpowiednik gethostbyname() u¿ywaj±cy gethostbyname_r(), gdy potrzebna
+ * jest wielobie¿no¶æ.
+ *
+ *  - hostname - nazwa serwera.
+ *
+ * zaalokowany bufor, który nale¿y zwolniæ lub NULL w przypadku b³êdu.
+ */
+struct hostent *gg_gethostbyname(const char *hostname)
+{
+	/* XXX u¿yæ gethostbyname_r() */
+
+	struct hostent *hp, *hp2;
+
+	if (!(hp = gethostbyname(hostname)))
+		return NULL;
+
+	if (!(hp2 = calloc(1, sizeof(*hp))))
+		return NULL;
+
+	memcpy(hp2, hp, sizeof(*hp));
+
+	return hp2;
 }
 
 /*

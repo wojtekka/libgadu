@@ -35,17 +35,17 @@
 #  include <string.h>
 #endif
 #include <time.h>
-#include "libgadu.h"
 #include "config.h"
+#include "libgadu.h"
 
 /*
  * gg_free_event()
  *
- * zwalnia pamiêæ zajmowan± przez informacjê o zdarzeniu
+ * zwalnia pamiêæ zajmowan± przez informacjê o zdarzeniu.
  *
  *  - event - wska¼nik do informacji o zdarzeniu
  *
- * nie ma czego zwracaæ.
+ * brak.
  */
 void gg_free_event(struct gg_event *e)
 {
@@ -74,6 +74,14 @@ void gg_free_event(struct gg_event *e)
 
 /*
  * gg_handle_message() // funkcja wewnêtrzna
+ *
+ * obs³uguje pakiet z przychodz±c± wiadomo¶ci±, rozbijaj±c go na dodatkowe
+ * struktury (konferencje, kolorki) w razie potrzeby.
+ *
+ *  - h - nag³ówek pakietu,
+ *  - e - opis zdarzenia.
+ *
+ * 0 dla sukcesu, -1 dla pora¿ki.
  */
 static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 {
@@ -187,7 +195,8 @@ fail:
  *
  * patrzy na socketa, odbiera pakiet i wype³nia strukturê zdarzenia.
  *
- *  - sock - lalala, trudno zgadn±æ.
+ *  - sess - struktura opisuj±ca sesjê,
+ *  - e - opis zdarzenia.
  *
  * je¶li b³±d -1, je¶li dobrze 0.
  */
@@ -357,11 +366,11 @@ fail:
  *
  *  - sess - identyfikator sesji.
  *
- * zwraca wska¼nik do struktury gg_event, któr± trzeba zwolniæ pó¼niej
+ * wska¼nik do struktury gg_event, któr± trzeba zwolniæ pó¼niej
  * za pomoc± gg_free_event(). jesli rodzaj zdarzenia jest równy
- * GG_EVENT_NONE, nale¿y je olaæ kompletnie. je¶li zwróci³o NULL,
+ * GG_EVENT_NONE, nale¿y je zignorowaæ. je¶li zwróci³o NULL,
  * sta³o siê co¶ niedobrego -- albo brak³o pamiêci albo zerwa³o
- * po³±czenie albo co¶ takiego.
+ * po³±czenie.
  */
 struct gg_event *gg_watch_fd(struct gg_session *sess)
 {

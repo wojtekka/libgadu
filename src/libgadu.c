@@ -40,8 +40,8 @@
 #ifdef sun
   #include <sys/filio.h>
 #endif
-#include "libgadu.h"
 #include "config.h"
+#include "libgadu.h"
 
 int gg_debug_level = 0;
 
@@ -49,7 +49,7 @@ int gg_dcc_port = 0;
 unsigned long gg_dcc_ip = 0;
 
 /*
- *  zmienne opisuj±ce parametry proxy http.
+ * zmienne opisuj±ce parametry proxy http.
  */
 char *gg_proxy_host = NULL;
 int gg_proxy_port = 0;
@@ -178,10 +178,12 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 			struct hostent *he;
 		
-			if (!(he = gethostbyname(hostname)))
+			if (!(he = gg_gethostbyname(hostname)))
 				a.s_addr = INADDR_NONE;
-			else
+			else {
 				memcpy((char*) &a, he->h_addr, sizeof(a));
+				free(he);
+			}
 		}
 
 		write(pipes[1], &a, sizeof(a));
@@ -475,11 +477,13 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 				struct hostent *he;
 	
-				if (!(he = gethostbyname(hostname))) {
+				if (!(he = gg_gethostbyname(hostname))) {
 					gg_debug(GG_DEBUG_MISC, "-- host %s not found\n", hostname);
 					goto fail;
-				} else
+				} else {
 					memcpy((char*) &a, he->h_addr, sizeof(a));
+					free(he);
+				}
 			}
 		} else {
 			a.s_addr = p->server_addr;

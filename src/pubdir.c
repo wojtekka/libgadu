@@ -26,17 +26,19 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
+#include "config.h"
 #include "libgadu.h"
 
 /*
  * gg_register()
  *
- * próbuje zarejestrowaæ u¿ytkownika.
+ * rozpoczyna rejestracjê u¿ytkownika.
  *
- *  - email, password - informacja rejestracyjne,
+ *  - email - adres email klienta,
+ *  - password - has³o klienta,
  *  - async - ma byæ asynchronicznie?
  *
- * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * zaalokowana struktura `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_register(const char *email, const char *password, int async)
@@ -111,13 +113,13 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
  *
  * wysy³a ¿±danie zmiany has³a.
  *
- *  - uin - numerek,
+ *  - uin - numer,
  *  - passwd - stare has³o,
  *  - newpasswd - nowe has³o,
  *  - newemail - nowy adres e-mail,
  *  - async - ma byæ asynchronicznie?
  *
- * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * zaalokowana struktura `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async)
@@ -194,12 +196,12 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
 /*
  * gg_remind_passwd()
  *
- * wysy³a ¿±danie wys³ania has³a na adres e-mail.
+ * wysy³a ¿±danie przypomnienia has³a e-mailem.
  *
- *  - uin - numerek.
+ *  - uin - numer.
  *  - async - ma byæ asynchronicznie?
  *
- * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * zaalokowana struktura `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_remind_passwd(uin_t uin, int async)
@@ -249,17 +251,17 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 /*
  * gg_change_info()
  *
- * zmienia nasze dane w katalogu publicznym.
+ * zmienia w³asne dane w katalogu publicznym.
  *
- *  - uin - numerek.
- *  - passwd - haselko.
- *  - request - na co mamy zmienic.
+ *  - uin - numer.
+ *  - passwd - has³o.
+ *  - request - struktura opisuj±ca ¿±dane zmiany.
  *  - async - ma byæ asynchronicznie?
  *
- * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * zaalokowana struktura `gg_http', któr± po¼niej nale¿y zwolniæ
  * funkcj± gg_change_pubdir_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_request *request, int async)
+struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_change_info_request *request, int async)
 {
 	struct gg_http *h;
 	char *form, *query, *__first, *__last, *__nick, *__email, *__city;
@@ -338,10 +340,10 @@ struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_re
 /*
  * gg_pubdir_watch_fd()
  *
- * przy asynchronicznym zak³adaniu wypada³oby wywo³aæ t± funkcjê przy
- * jaki¶ zmianach na gg_http->fd.
+ * przy asynchronicznych operacjach na katalogu publicznym nale¿y wywo³ywaæ
+ * t± funkcjê przy zmianach na gg_http->fd.
  *
- *  - h - to co¶, co zwróci³a funkcja obs³ugi katalogu publicznego.
+ *  - h - struktura opisuj±ca operacjê na katalogu publicznym.
  *
  * je¶li wszystko posz³o dobrze to 0, inaczej -1. operacja bêdzie
  * zakoñczona, je¶li h->state == GG_STATE_DONE. je¶li wyst±pi jaki¶
@@ -399,11 +401,11 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 /*
  * gg_pubdir_free()
  *
- * zwalnia pamiêæ po efektach zabawy z katalogiem publicznym.
+ * zwalnia pamiêæ po efektach operacji na katalogu publicznym.
  *
- *  - h - to co¶, co nie jest ju¿ nam potrzebne.
+ *  - h - zwalniana struktura.
  *
- * nie zwraca niczego. najwy¿ej segfaultnie.
+ * brak.
  */
 void gg_pubdir_free(struct gg_http *h)
 {
@@ -428,7 +430,7 @@ void gg_pubdir_free(struct gg_http *h)
  *  - gender,
  *  - city.
  *
- * zwraca zaalokowan± strukturê lub NULL.
+ * zaalokowana struktura lub NULL.
  */
 struct gg_change_info_request *gg_change_info_request_new(const char *first_name, const char *last_name, const char *nickname, const char *email, int born, int gender, const char *city)
 {
@@ -453,9 +455,9 @@ struct gg_change_info_request *gg_change_info_request_new(const char *first_name
  *
  * zwalnia pamiêæ zajmowan± przez strukturê gg_change_info_request i jej pola.
  *
- *  - r - to co¶, co nie jest ju¿ nam potrzebne.
+ *  - r - zwalniana struktura.
  *
- * nie zwraca niczego. 
+ * brak.
  */
 void gg_change_info_request_free(struct gg_change_info_request *r)
 {

@@ -31,10 +31,11 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
+#include "config.h"
 #include "libgadu.h"
 
 /*
- * gg_http_connect()
+ * gg_http_connect() // funkcja pomocnicza
  *
  * rozpoczyna po³±czenie po http.
  *
@@ -45,8 +46,8 @@
  *  - path - ¶cie¿ka do zasobu (musi byæ poprzedzona ,,/''),
  *  - header - nag³ówek zapytania plus ewentualne dane dla POST.
  *
- * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y
- * zwolniæ funkcj± gg_free_http(), albo NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struktura `gg_http', któr± po¼niej nale¿y
+ * zwolniæ funkcj± gg_http_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_http *gg_http_connect(const char *hostname, int port, int async, const char *method, const char *path, const char *header)
 {
@@ -104,12 +105,14 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		struct hostent *he;
 		struct in_addr a;
 
-		if (!(he = gethostbyname(hostname))) {
+		if (!(he = gg_gethostbyname(hostname))) {
                         gg_debug(GG_DEBUG_MISC, "// gg_http_connect() host not found\n");
 			gg_free_http(h);
 			return NULL;
-		} else
+		} else {
 			memcpy((char*) &a, he->h_addr, sizeof(a));
+			free(he);
+		}
 
 		if (!(h->fd = gg_connect(&a, port, 0)) == -1) {
                         gg_debug(GG_DEBUG_MISC, "// gg_http_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
@@ -147,10 +150,10 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 /*
  * gg_http_watch_fd()
  *
- * przy asynchronicznej obs³uge http wypada³oby wywo³aæ t± funkcjê przy
- * jaki¶ zmianach na gg_http->fd.
+ * przy asynchronicznej obs³udze http funkcja, któr± nalezy wywo³ywaæ
+ * przy zmianach na gg_http->fd.
  *
- *  - h - to co¶, co zwróci³o gg_http_connect()
+ *  - h - struktura zwrócona przez gg_http_connect()
  *
  * je¶li wszystko posz³o dobrze to 0, inaczej -1. po³±czenie bêdzie
  * zakoñczone, je¶li h->state == GG_STATE_PARSING. je¶li wyst±pi jaki¶
@@ -379,12 +382,13 @@ int gg_http_watch_fd(struct gg_http *h)
 /*
  * gg_http_stop()
  *
- * je¶li po³±czenie jest w trakcie, przerywa.
+ * je¶li po³±czenie jest w trakcie, przerywa je.
+ * UWAGA! funkcja potencjalnie niebezpieczna, poniewa¿ mo¿e pozwalniaæ
+ * bufory i pozamykaæ sockety, kiedy co¶ wa¿nego siê dzieje. 
  *
- *  - h - to co¶, co zwróci³o gg_http().
+ *  - h - struktura zwrócona przez gg_http_connect().
  *
- * UWAGA! funkcja potencjalnie niebezpieczna, bo mo¿e pozwalniaæ bufory
- * i pozamykaæ sockety, kiedy co¶ siê dzieje. ale to ju¿ nie mój problem ;)
+ * brak.
  */
 void gg_http_stop(struct gg_http *h)
 {
@@ -404,9 +408,9 @@ void gg_http_stop(struct gg_http *h)
  *
  * próbuje zamkn±æ po³±czenie i zwalnia pamiêæ po nim.
  *
- *  - h - to co¶, co nie jest ju¿ nam potrzebne.
+ *  - h - struktura, która nie jest potrzebna.
  *
- * nie zwraca niczego. najwy¿ej segfaultnie ;)
+ * brak.
  */
 void gg_http_free(struct gg_http *h)
 {

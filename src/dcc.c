@@ -37,19 +37,20 @@
 #endif
 #include <stdarg.h>
 #include <ctype.h>
+#include "config.h"
 #include "libgadu.h"
 
 /*
  * gg_dcc_request()
  *
- * wysy³a informacjê o tym, ¿e dany delikwent powinien siê z nami po³±czyæ.
+ * wysy³a informacjê o tym, ¿e dany klient powinien siê z nami po³±czyæ.
  * wykorzystywane, kiedy druga strona, której chcemy co¶ wys³aæ jest za
  * maskarad±.
  *
- *  - sess - sesja GG,
+ *  - sess - struktura opisuj±ca sesjê GG,
  *  - uin - numerek odbiorcy.
  *
- * zwraca to samo, co gg_send_msg().
+ * to samo, co gg_send_msg().
  */
 int gg_dcc_request(struct gg_session *sess, uin_t uin)
 {
@@ -64,7 +65,7 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
  *  - d - struktura gg_dcc,
  *  - filename - nazwa pliku.
  *
- * zwraca -1 w przypadku b³êdu, 0 je¶li siê powiod³o.
+ * -1 w przypadku b³êdu, 0 je¶li siê powiod³o.
  */
 int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 {
@@ -118,14 +119,14 @@ int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 /*
  * gg_dcc_send_file()
  * 
- * inicjuje proces wysy³ania pliku do danego delikwenta.
+ * inicjuje proces wysy³ania pliku do danego klienta.
  *
- *  - ip - jego adres ip,
- *  - port - jego port dcc,
- *  - my_uin - mój numerek,
- *  - peer_uin - jego numerek,
+ *  - ip - adres ip odbiorcy,
+ *  - port - port odbiorcy,
+ *  - my_uin - w³asny numer,
+ *  - peer_uin - numer obiorcy.
  *
- * zwraca zaalokowan± strukturê gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
 {
@@ -186,10 +187,10 @@ static int gg_dcc_callback(struct gg_dcc *d)
  *
  * tworzy socketa dla bezpo¶redniej komunikacji miêdzy klientami.
  *
- *  - uin - w³asny numerek,
+ *  - uin - w³asny numer,
  *  - port - preferowany port, je¶li równy 0 lub -1, próbuje domy¶lnego.
  *
- * zwraca zaalokowan± strukturê `gg_dcc', któr± po¼niej nale¿y
+ * zaalokowana struktura `gg_dcc', któr± po¼niej nale¿y
  * zwolniæ funkcj± gg_free_dcc(), albo NULL je¶li wyst±pi³ b³±d.
  */
 struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
@@ -263,9 +264,9 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
  *
  * funkcja, któr± nale¿y wywo³aæ, gdy co¶ siê zmieni na gg_dcc->fd.
  *
- *  - c - to co¶, co zwróci³o gg_create_dcc_socket()
+ *  - c - struktura zwrócona przez gg_create_dcc_socket()
  *
- * zwraca zaalogowan± strukturê gg_event lub NULL, je¶li zabrak³o pamiêci
+ * zaalokowana struktura gg_event lub NULL, je¶li zabrak³o pamiêci
  * na ni±.
  */
 struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
@@ -864,9 +865,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
  *
  * zwalnia pamiêæ po strukturze po³±czenia dcc.
  *
- *  - c - to co¶, co nie jest ju¿ nam potrzebne.
+ *  - c - zwalniana struktura.
  *
- * nie zwraca niczego. najwy¿ej segfaultnie ;)
+ * brak.
  */
 void gg_dcc_free(struct gg_dcc *c)
 {
