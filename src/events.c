@@ -490,14 +490,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->proxy_addr && sess->proxy_port) {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
+					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg.asp?fmnumber=%u HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
 					"\r\n", sess->uin);
 			} else {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET /appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
+					"GET /appsvc/appmsg.asp?fmnumber=%u HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"

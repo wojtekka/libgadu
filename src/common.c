@@ -317,7 +317,7 @@ int gg_http_hash(const char *format, ...)
 		unsigned char *arg, buf[16];
 
 		if (format[j] == 'u') {
-			snprintf(buf, sizeof(buf), "%ld", va_arg(ap, uin_t));
+			snprintf(buf, sizeof(buf), "%d", va_arg(ap, uin_t));
 			arg = buf;
 		} else {
 			if (!(arg = va_arg(ap, unsigned char*)))
