@@ -27,8 +27,6 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
-#include <sys/time.h>
-#include <netdb.h>
 #include <errno.h>
 #ifndef _AIX
 #  include <string.h>

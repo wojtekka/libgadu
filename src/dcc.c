@@ -24,9 +24,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/wait.h>
 #include <sys/stat.h>
-#include <netdb.h>
 #include <fcntl.h>		/* XXX fixy na inne systemy */
 #include <sys/ioctl.h>		/* XXX j.w. */
 #include <errno.h>

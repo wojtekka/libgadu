@@ -26,16 +26,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <sys/wait.h>
-#include <sys/time.h>
 #include <netdb.h>
 #include <errno.h>
 #ifndef _AIX
 #  include <string.h>
 #endif
 #include <stdarg.h>
-#include <time.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif

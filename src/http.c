@@ -23,8 +23,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/wait.h>
 #include <netdb.h>
+#include <sys/wait.h>
 #include <errno.h>
 #ifndef _AIX
 #  include <string.h>
