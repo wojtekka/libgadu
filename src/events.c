@@ -1063,13 +1063,15 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			struct gg_header *h;			
 			struct gg_welcome *w;
-			struct gg_login l;
-			struct gg_login_ext lext;
+			struct gg_login60 l;
 			unsigned int hash;
 			unsigned char *password = sess->password;
 			int ret;
 			
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
+
+			memset(&l, 0, sizeof(l));
+			l.dunno2 = 0xbe;
 
 			/* XXX bardzo, bardzo, bardzo g³upi pomys³ na pozbycie
 			 * siê tekstu wrzucanego przez proxy. */
@@ -1155,17 +1157,15 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = gg_fix32(sess->protocol_version);
 			l.local_port = gg_fix16(gg_dcc_port);
+			l.image_size = sess->image_size;
 			
 			if (sess->external_addr && sess->external_port > 1023) {
-				memcpy(&lext, &l, sizeof(l));
-				lext.external_ip = sess->external_addr;
-				lext.external_port = sess->external_port;
-				gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN_EXT packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN_EXT, &lext, sizeof(lext), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
-			} else {
-				gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+				l.external_ip = sess->external_addr;
+				l.external_port = sess->external_port;
 			}
+
+			gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN60 packet\n");
+			ret = gg_send_packet(sess, GG_LOGIN60, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 
 			free(sess->initial_descr);
 			sess->initial_descr = NULL;
