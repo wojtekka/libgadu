@@ -992,7 +992,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			char buf[1024], *tmp, *host;
 			char sysmsg[1024];
 			int port = GG_DEFAULT_PORT;
-			int sysmsglen = 0;
+			int sysmsgidx = 0;
 			struct in_addr a;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
@@ -1018,13 +1018,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_chomp(buf);
 
 			if (*buf) 
-				sysmsglen = atoi(buf);
+				sysmsgidx = atoi(buf);
 						    
-			if (sysmsglen) {
+			if (sysmsgidx) {
 			    	gg_read_line(sess->fd, sysmsg, sizeof(sysmsg) - 1);
 				gg_chomp(sysmsg);
 				e->type = GG_EVENT_MSG;
-				e->event.msg.msgclass = 0;
+				e->event.msg.msgclass = sysmsgidx;
 				e->event.msg.sender = 0;
 				e->event.msg.message = strdup(sysmsg);
 			}
