@@ -701,7 +701,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE_ACK\n");
 				
 				big.type = gg_fix32(0x0006);	/* XXX */
-				big.dunno1 = 0;
+				big.dunno1 = gg_fix32(h->offset);
 				big.dunno2 = 0;
 
 				gg_write(h->fd, &big, sizeof(big));
@@ -717,8 +717,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
-				h->offset = 0;
-				
 				return e;
 				
 			case GG_STATE_SENDING_VOICE_ACK:
@@ -996,12 +994,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				gg_read(h->fd, &big, sizeof(big));
 
 				/* XXX sprawdzaæ wynik */
+				h->offset = gg_fix32(big.dunno1);
 				
 				h->state = GG_STATE_SENDING_FILE_HEADER;
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
-
-				h->offset = 0;
 
 				return e;
 

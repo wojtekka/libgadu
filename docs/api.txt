@@ -406,8 +406,10 @@ musimy zwracaæ uwagê na nastêpuj±ce zdarzenia:
    chcemy pliku, zamykamy po³±czenie w podobny sposób jak przy braku
    autoryzacji. libgadu jeszcze nie potrafi odpowiadaæ negatywnie na pro¶by
    po³±czeñ dcc. je¶li chcemy plik, otwieramy plik do zapisu i numer jego
-   deskryptora zapisujemy do gg_dcc->file_fd. dalej libgadu zajmie siê
-   transferem.
+   deskryptora zapisujemy do gg_dcc->file_fd. je¶li chcemy wznowiæ przerwany
+   transfer, otwieramy plik w trybie dopisywania i do gg_dcc->offset
+   wpisujemy ile bajtów ju¿ mamy i od którego offsetu odbieramy. dalej
+   libgadu zajmie siê transferem.
 
 5) GG_EVENT_DCC_NEED_FILE_INFO -- wcze¶niej poprosili¶my drug± stronê by
    siê z nami po³±czy³a, bo jest za maskarad±, a my chcemy wys³aæ plik.
