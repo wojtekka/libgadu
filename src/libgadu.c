@@ -1158,7 +1158,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	}
 
 	/* wytnij ¶cie¿ki, zostaw tylko nazwê pliku */
-	while ((tmp = rindex(filename, '/')) || (tmp = rindex(filename, '\\')))
+	while ((tmp = strrchr(filename, '/')) || (tmp = strrchr(filename, '\\')))
 		filename = tmp + 1;
 
 	if (strlen(filename) < 1 || strlen(filename) > 1024) {
