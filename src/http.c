@@ -166,6 +166,8 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
  */
 int gg_http_watch_fd(struct gg_http *h)
 {
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_http_watch_fd(%p);\n", h);
+
 	if (!h) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_watch_fd() invalid arguments\n");
 		errno = EINVAL;
@@ -215,18 +217,33 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, connected, sending request\n");
 
-		if ((res = write(h->fd, h->query, strlen(h->query))) < strlen(h->query)) {
+		h->state = GG_STATE_SENDING_QUERY;
+	}
+
+	if (h->state == GG_STATE_SENDING_QUERY) {
+		int res;
+
+		if ((res = write(h->fd, h->query, strlen(h->query))) < 1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, write() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
 			gg_http_error(GG_ERROR_WRITING);
 		}
 
-		gg_debug(GG_DEBUG_MISC, "=> http, request sent (len=%d)\n", strlen(h->query));
-		free(h->query);
-		h->query = NULL;
+		if (res < strlen(h->query)) {
+			gg_debug(GG_DEBUG_MISC, "=> http, partial header sent (led=%d, sent=%d)\n", strlen(h->query), res);
 
-		h->state = GG_STATE_READING_HEADER;
-		h->check = GG_CHECK_READ;
-		h->timeout = GG_DEFAULT_TIMEOUT;
+			memmove(h->query, h->query + res, strlen(h->query) - res + 1);
+			h->state = GG_STATE_SENDING_QUERY;
+			h->check = GG_CHECK_WRITE;
+			h->timeout = GG_DEFAULT_TIMEOUT;
+		} else {
+			gg_debug(GG_DEBUG_MISC, "=> http, request sent (len=%d)\n", strlen(h->query));
+			free(h->query);
+			h->query = NULL;
+
+			h->state = GG_STATE_READING_HEADER;
+			h->check = GG_CHECK_READ;
+			h->timeout = GG_DEFAULT_TIMEOUT;
+		}
 
 		return 0;
 	}
