@@ -387,7 +387,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 	
 	gg_debug(GG_DEBUG_MISC, "=> pubdir, let's parse \"%s\"\n", h->body);
 
-	if ((tmp = strstr(h->body, "success"))) {
+	if ((tmp = strstr(h->body, "success")) || (tmp = strstr(h->body, "results"))) {
 		p->success = 1;
 		if (tmp[7] == ':')
 			p->uin = strtol(tmp + 8, NULL, 0);

@@ -89,8 +89,8 @@ void gg_free_event(struct gg_event *e)
  */
 static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 {
-	struct gg_recv_msg *r = (void*) h + sizeof(struct gg_header);
-	char *p, *packet_end = (void*) r + h->length;
+	struct gg_recv_msg *r = (struct gg_recv_msg*) ((char*) h + sizeof(struct gg_header));
+	char *p, *packet_end = (char*) r + h->length;
 
 	gg_debug(GG_DEBUG_MISC, "-- received a message\n");
 
@@ -101,7 +101,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	}
 	//printf("packet=%p\n", h);
 
-	for (p = (void*) r + sizeof(*r); *p; p++) {
+	for (p = (char*) r + sizeof(*r); *p; p++) {
 		if (*p == 0x02 && p == packet_end - 1) {
 			gg_debug(GG_DEBUG_MISC, "-- received ctcp packet\n");
 			break;
@@ -193,7 +193,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 	e->event.msg.msgclass = fix32(r->msgclass);
 	e->event.msg.sender = fix32(r->sender);
 	e->event.msg.time = fix32(r->time);
-	e->event.msg.message = strdup((void*) r + sizeof(*r));
+	e->event.msg.message = strdup((char*) r + sizeof(*r));
 
 	return 0;
 	
@@ -230,7 +230,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		goto fail;
 	}
 
-	p = (void*) h + sizeof(struct gg_header);
+	p = (char*) h + sizeof(struct gg_header);
 	
 	switch (h->type) {
 		case GG_RECV_MSG:
@@ -274,7 +274,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
 					goto fail;
 				}
-				memcpy(tmp, p + sizeof(*n), count);
+				memcpy(tmp, (char*) p + sizeof(*n), count);
 				tmp[count] = 0;
 				e->event.notify_descr.descr = tmp;
 				
@@ -315,7 +315,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					int len = h->length - sizeof(*s);
 					char *buf = malloc(len + 1);
 					if (buf) {
-						memcpy(buf, p + sizeof(*s), len);
+						memcpy(buf, (char*) p + sizeof(*s), len);
 						buf[len] = 0;
 					}
 					e->event.status.descr = buf;
@@ -776,7 +776,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 	
-			w = (void*) h + sizeof(struct gg_header);
+			w = (struct gg_welcome*) ((char*) h + sizeof(struct gg_header));
 			w->key = fix32(w->key);
 
 			hash = gg_login_hash(password, w->key);

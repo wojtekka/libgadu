@@ -53,7 +53,7 @@ FILE *gg_debug_file = NULL;
  * wy¶wietla komunikat o danym poziomie, o ile u¿ytkownik sobie tego ¿yczy.
  *
  *  - level - poziom wiadomo¶ci,
- *  - format... - tre¶æ wiadomo¶ci (printf-alike.)
+ *  - format... - tre¶æ wiadomo¶ci (kompatybilna z printf).
  *
  * brak.
  */
@@ -92,7 +92,7 @@ char *gg_saprintf(const char *format, ...)
 	start = format; 
         va_start(ap, format);
 
-        if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
+	if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
                 size = 128;
                 do {
                         size *= 2;
@@ -123,7 +123,7 @@ char *gg_saprintf(const char *format, ...)
 /*
  * gg_get_line() // funkcja pomocnicza
  * 
- * podaje kolejn± liniê z bufora tekstowego. psuje co bezpowrotnie, dziel±c
+ * podaje kolejn± liniê z bufora tekstowego. niszczy go bezpowrotnie, dziel±c
  * na kolejne stringi. zdarza siê, nie ma potrzeby pisania funkcji dubluj±cej
  * bufor ¿eby tylko mieæ nieruszone dane wej¶ciowe, skoro i tak nie bêd± nam
  * po¼niej potrzebne. obcina `\r\n'.
@@ -247,7 +247,7 @@ char *gg_read_line(int sock, char *buf, int length)
  *
  * ucina "\r\n" lub "\n" z koñca linii.
  *
- *  - line - ofiara operacji plastycznej.
+ *  - line - linia do przyciêcia.
  *
  * brak.
  */
@@ -267,9 +267,9 @@ void gg_chomp(char *line)
  * gg_urlencode() // funkcja wewnêtrzna
  *
  * zamienia podany tekst na ci±g znaków do formularza http. przydaje siê
- * przy szukaniu userów z dziwnymi znaczkami.
+ * przy ró¿nych us³ugach katalogu publicznego.
  *
- *  - str - ci±g znaków do poprawki.
+ *  - str - ci±g znaków do zakodowania.
  *
  * zaalokowany bufor, który nale¿y pó¼niej zwolniæ albo NULL
  * w przypadku b³êdu.
@@ -309,14 +309,14 @@ char *gg_urlencode(const char *str)
 /*
  * gg_http_hash() // funkcja wewnêtrzna
  *
- * funkcja, która liczy hash dla adresu e-mail, has³a i paru innych.
+ * funkcja licz±ca hash dla adresu e-mail, has³a i paru innych.
  *
  *  - format - format kolejnych parametrów ('s' je¶li dany parametr jest
  *             ci±giem znaków lub 'u' je¶li numerem GG).
  *  - ... - kolejne parametry.
  *
- * hash wykorzystywany przy rejestracji i wszelkich
- * manipulacjach w³asnego wpisu w katalogu publicznym.
+ * hash wykorzystywany przy rejestracji i wszelkich manipulacjach w³asnego
+ * wpisu w katalogu publicznym.
  */
 int gg_http_hash(const char *format, ...)
 {
@@ -354,7 +354,7 @@ int gg_http_hash(const char *format, ...)
  * gg_gethostbyname() // funkcja pomocnicza
  *
  * odpowiednik gethostbyname() u¿ywaj±cy gethostbyname_r(), gdy potrzebna
- * jest wielobie¿no¶æ.
+ * jest wielobie¿no¶æ. chwilowo korzysta ze zwyk³ego gethostbyname().
  *
  *  - hostname - nazwa serwera.
  *
