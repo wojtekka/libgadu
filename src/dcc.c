@@ -336,9 +336,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct gg_dcc_file_info_packet {
 			struct gg_dcc_big_packet big;
 			struct gg_file_info file_info;
-		}
 #ifdef __GNUC__
+		}
 		__attribute__ ((packed)); 
+#else
+		};
 #endif
 		struct gg_dcc_file_info_packet file_info_packet;
 
