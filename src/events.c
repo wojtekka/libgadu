@@ -728,7 +728,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
 
 			/* je¶li wyst±pi³ b³±d podczas ³±czenia siê... */
-			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
+			if (sess->async && (sess->timeout == 0 || getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 				/* je¶li nie uda³o siê po³±czenie z proxy,
 				 * nie mamy czego próbowaæ wiêcej. */
 				if (sess->proxy_addr && sess->proxy_port) {
@@ -737,6 +737,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 
 				close(sess->fd);
+
+#ifdef ETIMEDOUT
+				if (sess->timeout == 0)
+					errno = ETIMEDOUT;
+#endif
 
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));
 
