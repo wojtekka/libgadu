@@ -1460,7 +1460,7 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 	}
 
 	if (!userlist || !count)
-		return 0;
+		return gg_send_packet(sess, GG_LIST_EMPTY, NULL);
 	
 	if (!(n = (struct gg_notify*) malloc(sizeof(*n) * count)))
 		return -1;
