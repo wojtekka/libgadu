@@ -256,6 +256,22 @@ struct gg_dcc *gg_dcc_voice_chat(unsigned long ip, unsigned short port, uin_t my
 }
 
 /*
+ * gg_dcc_set_type()
+ *
+ * po zdarzeniu GG_EVENT_DCC_CALLBACK nale¿y ustawiæ typ po³±czenia.
+ *
+ *  - d - struktura opisuj±ca po³±czenie,
+ *  - type - tym po³±czenia (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_VOICE).
+ *
+ * brak
+ */
+void gg_dcc_set_type(struct gg_dcc *d, int type)
+{
+	d->type = type;
+	d->state = (type == GG_SESSION_DCC_SEND) ? GG_STATE_SENDING_FILE_INFO : GG_STATE_SENDING_VOICE_REQUEST;
+}
+	
+/*
  * gg_dcc_callback() // funkcja wewnêtrzna
  *
  * wywo³ywana z gg_dcc->callback, odpala gg_dcc_watch_fd i ³aduje rezultat
@@ -347,11 +363,48 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 	return c;
 }
 
+/*
+ * gg_dcc_voice_send()
+ *
+ * wysy³a ramkê danych dla rozmowy g³osowej.
+ *
+ *  - d - struktura opisuj±ca po³±czenie dcc,
+ *  - buf - bufor z danymi,
+ *  - length - rozmiar ramki,
+ *
+ * je¶li siê powiod³o 0, je¶li nie -1.
+ */
+int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
+{
+	struct {
+		u_int8_t type;
+		u_int32_t length;
+	} packet;
+
+	if (!d || !buf || length < 0 || d->type != GG_SESSION_DCC_VOICE) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() invalid argument\n");
+		return -1;
+	}
+
+	packet.type = 0x03; /* XXX */
+	packet.length = fix32(length);
+
+	if (write(d->fd, &packet, sizeof(packet)) < sizeof(packet)) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
+		return -1;
+	}
+
+	if (write(d->fd, buf, length) < length) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 #define gg_read(fd, buf, size) \
 { \
 	int tmp = read(fd, buf, size); \
-	if (tmp == 0) \
-		return e; \
 	if (tmp < size) { \
 		if (tmp == -1) \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", errno, strerror(errno)); \
@@ -369,8 +422,6 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 	int tmp; \
 	gg_dcc_debug_data("write", fd, buf, size); \
 	tmp = write(fd, buf, size); \
-	if (!tmp) \
-		return e; \
 	if (tmp < size) { \
 		if (tmp == -1) \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", errno, strerror(errno)); \
@@ -399,7 +450,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
         gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_watch_fd(...);\n");
 	
-	if (!h || (h->type != GG_SESSION_DCC && h->type != GG_SESSION_DCC_SOCKET && h->type != GG_SESSION_DCC_SEND && h->type != GG_SESSION_DCC_GET)) {
+	if (!h || (h->type != GG_SESSION_DCC && h->type != GG_SESSION_DCC_SOCKET && h->type != GG_SESSION_DCC_SEND && h->type != GG_SESSION_DCC_GET && h->type != GG_SESSION_DCC_VOICE)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() invalid argument\n");
 		errno = EINVAL;
 		return NULL;
@@ -499,14 +550,14 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				gg_write(h->fd, ack, 4);
 
-				h->state = GG_STATE_READING_REQUEST;
+				h->state = GG_STATE_READING_TYPE;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
 				return e;
 
-			case GG_STATE_READING_REQUEST:
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_REQUEST\n");
+			case GG_STATE_READING_TYPE:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_TYPE\n");
 				
 				gg_read(h->fd, &small, sizeof(small));
 
@@ -514,34 +565,34 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				switch (small.type) {
 					case 0x0003:	/* XXX */
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() outgoing data\n");
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() callback\n");
 						h->type = GG_SESSION_DCC_SEND;
 						h->state = GG_STATE_SENDING_FILE_INFO;
 						h->check = GG_CHECK_WRITE;
 						h->timeout = GG_DEFAULT_TIMEOUT;
+
+						e->type = GG_EVENT_DCC_CALLBACK;
 			
-						if (h->file_fd == -1)
-							e->type = GG_EVENT_DCC_NEED_FILE_INFO;
 						break;
 
 					case 0x0002:	/* XXX */
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() incoming data\n");
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() dialin\n");
 						h->type = GG_SESSION_DCC_GET;
-						h->state = GG_STATE_READING_PRE_FILE_INFO;
+						h->state = GG_STATE_READING_REQUEST;
 						h->check = GG_CHECK_READ;
 						h->timeout = GG_DEFAULT_TIMEOUT;
 						break;
 
 					default:
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc type (%.4x) from %ld\n", small.type, h->peer_uin);
 						e->type = GG_EVENT_DCC_ERROR;
 						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 				}
 
 				return e;
 
-			case GG_STATE_READING_PRE_FILE_INFO:
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_PRE_FILE_INFO\n");
+			case GG_STATE_READING_REQUEST:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_REQUEST\n");
 				
 				gg_read(h->fd, &small, sizeof(small));
 
@@ -555,7 +606,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						h->timeout = GG_DEFAULT_TIMEOUT;
 						break;
 						
-					case 0x0003:	/* XXX */	
+					case 0x0003:	/* XXX */
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() voice chat request\n");
 						h->state = GG_STATE_SENDING_VOICE_ACK;
 						h->check = GG_CHECK_WRITE;
@@ -630,6 +681,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->state = GG_STATE_GETTING_FILE;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
+				h->established = 1;
 			 	
 				return e;
 
@@ -643,6 +695,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						h->state = GG_STATE_READING_VOICE_SIZE;
 						h->check = GG_CHECK_READ;
 						h->timeout = GG_DEFAULT_TIMEOUT;
+						h->established = 1;
 						break;
 					case 0x04:	/* XXX */
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() peer breaking connection\n");
@@ -678,7 +731,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			 	
 				return e;
 
-			case GG_STATE_READING_VOICE_DATA:
+			case GG_STATE_READING_VOICE_DATA: {
+				char *data;
+				
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_DATA\n");
 				
 				gg_read(h->fd, buf, h->chunk_size);
@@ -687,9 +742,19 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 			 	
-				/* XXX zwracaæ GG_EVENT_DCC_VOICE_FRAME */
+				if (!(data = malloc(h->chunk_size))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory for voice frame\n");
+					return NULL;
+				}
+
+				memcpy(data, buf, h->chunk_size);
+
+				e->type = GG_EVENT_DCC_VOICE_DATA;
+				e->event.dcc_voice_data.data = data;
+				e->event.dcc_voice_data.length = h->chunk_size;
 				
 				return e;
+			}
 
 			case GG_STATE_CONNECTING:
 			{
@@ -738,6 +803,19 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				return e;
 
+			case GG_STATE_SENDING_VOICE_REQUEST:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_VOICE_REQUEST\n");
+
+				small.type = fix32(0x0003);
+				
+				gg_write(h->fd, &small, sizeof(small));
+
+				h->state = GG_STATE_READING_VOICE_ACK;
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
+				
+				return e;
+			
 			case GG_STATE_SENDING_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_REQUEST\n");
 
@@ -747,7 +825,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				
 				switch (h->type) {
 					case GG_SESSION_DCC_GET:
-						h->state = GG_STATE_READING_PRE_FILE_INFO;
+						h->state = GG_STATE_READING_REQUEST;
 						h->check = GG_CHECK_READ;
 						h->timeout = GG_DEFAULT_TIMEOUT;
 						break;
@@ -772,6 +850,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			
 			case GG_STATE_SENDING_FILE_INFO:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE_INFO\n");
+
+				if (h->file_fd == -1) {
+					e->type = GG_EVENT_DCC_NEED_FILE_INFO;
+					return e;
+				}
 
 				small.type = fix32(0x0001);	/* XXX */
 				
@@ -841,6 +924,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->state = GG_STATE_SENDING_FILE;
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
+				h->established = 1;
 
 				return e;
 				

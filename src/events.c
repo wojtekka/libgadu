@@ -68,6 +68,9 @@ void gg_free_event(struct gg_event *e)
 		free(e->event.notify_descr.notify);
 		free(e->event.notify_descr.descr);
 	}
+
+	if (e->type == GG_EVENT_DCC_VOICE_DATA)
+		free(e->event.dcc_voice_data.data);
 	
 	free(e);
 }
