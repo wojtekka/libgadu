@@ -95,7 +95,11 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 	gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
 
 	if (async) {
+#ifndef HAVE_PTHREAD
 		if (gg_resolve(&h->fd, &h->pid, hostname)) {
+#else
+		if (gg_resolve_pthread((struct gg_common*) h, hostname)) {
+#endif
                         gg_debug(GG_DEBUG_MISC, "// gg_http_connect() resolver failed\n");
 			gg_http_free(h);
                         errno = ENOENT;

@@ -419,8 +419,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 			
 			close(sess->fd);
+
+#ifndef HAVE_PTHREAD
 			waitpid(sess->pid, NULL, 0);
-			
+#else
+			pthread_cancel(sess->resolver);
+#endif
+
 			/* je¶li jeste¶my w resolverze i mamy ustawiony port
 			 * proxy, znaczy, ¿e resolvowali¶my proxy. zatem
 			 * wpiszmy jego adres. */

@@ -219,6 +219,92 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 	return 0;
 }
 
+#ifdef HAVE_PTHREAD
+
+struct gg_resolve_pthread_data {
+	char *hostname;
+	int fd;
+};
+
+static void *gg_resolve_pthread_thread(void *arg)
+{
+	struct gg_resolve_pthread_data *d = arg;
+	struct in_addr a;
+
+	if ((a.s_addr = inet_addr(d->hostname)) == INADDR_NONE) {
+		struct hostent *he;
+		
+		if (!(he = gg_gethostbyname(d->hostname)))
+			a.s_addr = INADDR_NONE;
+		else {
+			memcpy((char*) &a, he->h_addr, sizeof(a));
+			free(he);
+		}
+	}
+
+	write(d->fd, &a, sizeof(a));
+	close(d->fd);
+
+	free(d->hostname);
+	d->hostname = NULL;
+
+	free(d);
+
+	pthread_exit(NULL);
+
+	return NULL;	/* ¿eby kompilator nie marudzi³ */
+}
+
+/*
+ * gg_resolve_pthread() // funkcja wewnêtrzna
+ *
+ * tworzy potok, nowy w±tek i w nim zaczyna resolvowaæ podanego hosta.
+ * zapisuje w sesji deskryptor potoku. je¶li co¶ tam bêdzie gotowego,
+ * znaczy, ¿e mo¿na wczytaæ struct in_addr. je¶li nie znajdzie, zwraca
+ * INADDR_NONE.
+ *
+ *  - c - sesja
+ *  - hostname - nazwa hosta do zresolvowania
+ *
+ * 0, -1.
+ */
+int gg_resolve_pthread(struct gg_common *c, const char *hostname)
+{
+	struct gg_resolve_pthread_data *d;
+	int pipes[2];
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve_pthread(%p, \"%s\");\n", c, hostname);
+	
+	if (!c || !hostname) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() invalid arguments\n");
+		errno = EFAULT;
+		return -1;
+	}
+
+	if (pipe(pipes) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		return -1;
+	}
+
+	if (!(d = malloc(sizeof(*d))) || !(d->hostname = strdup(hostname))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
+		return -1;
+	}
+
+	d->fd = pipes[1];
+
+	if (pthread_create(&c->resolver, NULL, gg_resolve_pthread_thread, d) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_phread() unable to create thread\n");
+		return -1;
+	}
+
+	c->fd = pipes[0];
+
+	return 0;
+}
+
+#endif
+
 /*
  * gg_recv_packet() // funkcja wewnêtrzna
  *
@@ -557,7 +643,11 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 	
 	if (!sess->server_addr || gg_proxy_enabled) {
+#ifndef HAVE_PTHREAD
 		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
+#else
+		if (gg_resolve_pthread((struct gg_common*) sess, hostname)) {
+#endif
 			gg_debug(GG_DEBUG_MISC, "// gg_login() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
 			goto fail;
 		}

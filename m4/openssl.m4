@@ -6,7 +6,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
   AC_SUBST(OPENSSL_INCLUDES)
 
   AC_ARG_WITH(openssl,
-    [[  --without-openssl         Compile without OpenSSL]], 
+    [[  --without-openssl       Compile without OpenSSL]], 
       if test "x$withval" = "xno" ; then
         without_openssl=yes
       elif test "x$withval" != "xyes" ; then
