@@ -233,7 +233,7 @@ void *gg_recv_packet(struct gg_session *sess)
 					gg_debug(GG_DEBUG_MISC, "-- errno = %d (%s)\n", errno, strerror(errno));
 				if (ret == 0)
 					gg_debug(GG_DEBUG_MISC, "-- connection broken\n");
-				if (errno != EINTR || !--tries)
+				if (!--tries || errno != EINTR)
 					return NULL;
 			}
 		}
