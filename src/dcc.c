@@ -796,7 +796,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() peer breaking connection\n");
 						/* XXX zwracaæ odpowiedni event */
 					default:
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown request (%.2f)\n", tiny.type);
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown request (%.2x)\n", tiny.type);
 						e->type = GG_EVENT_DCC_ERROR;
 						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 				}
