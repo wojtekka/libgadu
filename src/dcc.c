@@ -484,7 +484,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->state = GG_STATE_SENDING_FILE_INFO;
 					h->check = GG_CHECK_WRITE;
 					h->timeout = GG_DEFAULT_TIMEOUT;
-				
+			
 					if (h->file_fd == -1)
 						e->type = GG_EVENT_DCC_NEED_FILE_INFO;
 					return e;
@@ -635,21 +635,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				uins[0] = fix32(h->uin);
 				uins[1] = fix32(h->peer_uin);
 
-				gg_dcc_debug_data("write", h->fd, uins, sizeof(uins[0]));
+				gg_dcc_debug_data("write", h->fd, uins, sizeof(uins));
 				
-				if ((tmp = write(h->fd, uins, sizeof(uins[0]))) != sizeof(uins[0])) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() uin write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-				
-				uins[0] = fix32(h->peer_uin);
-
-				gg_dcc_debug_data("write", h->fd, uins, sizeof(uins[0]));
-				
-				if ((tmp = write(h->fd, uins, sizeof(uins[0]))) != sizeof(uins[0])) {
+				if ((tmp = write(h->fd, uins, sizeof(uins))) != sizeof(uins)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() uin write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
 
 					e->type = GG_EVENT_DCC_ERROR;
@@ -707,7 +695,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 				
 				if (h->type == GG_SESSION_DCC_GET) {
-					h->state = GG_STATE_READING_REQUEST;
+					h->state = GG_STATE_READING_PRE_FILE_INFO;
 					h->check = GG_CHECK_READ;
 					h->timeout = GG_DEFAULT_TIMEOUT;
 				} else {
