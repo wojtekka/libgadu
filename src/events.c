@@ -72,8 +72,8 @@ void gg_event_free(struct gg_event *e)
 	if (e->type == GG_EVENT_DCC_VOICE_DATA)
 		free(e->event.dcc_voice_data.data);
 
-	if (e->type == GG_EVENT_SEARCH50_REPLY)
-		gg_search50_free(e->event.search50);
+	if (e->type == GG_EVENT_PUBDIR50_SEARCH_REPLY || e->type == GG_EVENT_PUBDIR50_READ || e->type == GG_EVENT_PUBDIR50_WRITE)
+		gg_pubdir50_free(e->event.pubdir50);
 	
 	free(e);
 }
