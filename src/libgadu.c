@@ -461,7 +461,8 @@ void *gg_recv_packet(struct gg_session *sess)
 {
 	struct gg_header h;
 	char *buf = NULL;
-	int ret = 0, offset, size = 0;
+	int ret = 0;
+	unsigned int offset, size = 0;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
 	
@@ -524,7 +525,7 @@ void *gg_recv_packet(struct gg_session *sess)
 		memcpy(&h, sess->recv_buf, sizeof(h));
 	
 	/* jakie¶ sensowne limity na rozmiar pakietu */
-	if (h.length < 0 || h.length > 65535) {
+	if (h.length > 65535) {
 		gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() invalid packet length (%d)\n", h.length);
 		errno = ERANGE;
 		return NULL;
@@ -605,9 +606,9 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 {
 	struct gg_header *h;
 	char *tmp;
-	int tmp_length;
+	unsigned int tmp_length;
 	void *payload;
-	int payload_length;
+	unsigned int payload_length;
 	va_list ap;
 	int res;
 
@@ -627,11 +628,8 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	while (payload) {
 		char *tmp2;
 
-		payload_length = va_arg(ap, int);
+		payload_length = va_arg(ap, unsigned int);
 
-		if (payload_length < 0)
-			gg_debug(GG_DEBUG_MISC, "// gg_send_packet() invalid payload length (%d)\n", payload_length);
-	
 		if (!(tmp2 = realloc(tmp, tmp_length + payload_length))) {
 			gg_debug(GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
 			free(tmp);
