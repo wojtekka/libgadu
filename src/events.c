@@ -105,7 +105,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			p += sizeof(*m);
 			
 			if (p > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds (1)\n");
 				errno = EINVAL;
 				goto fail;
 			}
@@ -133,7 +133,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			void *tmp;
 			
 			if (p + 3 > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds (2)\n");
 				errno = EINVAL;
 				goto fail;
 			}
@@ -149,7 +149,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			p += 3;
 
 			if (p + *len > packet_end) {
-				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds\n");
+				gg_debug(GG_DEBUG_MISC, "-- packet out of bounds (3)\n");
 				errno = EINVAL;
 				goto fail;
 			}
