@@ -438,19 +438,26 @@ struct gg_notify {
 </div>
 
 <p>
-Gdzie pole <tt>type</tt> przyjmuje nastêpuj±ce warto¶ci:
+Gdzie pole <tt>type</tt> jest map± bitow± nastêpuj±cych warto¶ci:
 </p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Etykieta</b></td><td><b>Warto¶æ</b></td><td><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>GG_USER_OFFLINE</tt></td><td><tt>0x01</tt></td><td>U¿ytkownik, dla którego bêdziemy niedostêpni</td></tr>
-<tr class="tabf"><td><tt>GG_USER_NORMAL</tt></td><td><tt>0x03</tt></td><td>Zwyk³y u¿ytkownik dodany do listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>GG_USER_BUDDY</tt></td><td><tt>0x01</tt></td><td>Ka¿dy u¿ytkownik dodany do listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>GG_USER_FRIEND</tt></td><td><tt>0x02</tt></td><td>U¿ytkownik, dla którego jeste¶my widoczni w trybie ,,tylko dla przyjació³''</td></tr>
 <tr class="tabf"><td><tt>GG_USER_BLOCKED</tt></td><td><tt>0x04</tt></td><td>U¿ytkownik, którego wiadomo¶ci nie chcemy otrzymywaæ</td></tr>
 </table>
 
-<!-- Adam pisa³, ¿e jest to bitmapa, w której 0x01 znaczy otwarte okienko
-rozmowy z dan± osob±, ale wygl±da³oby to co najmniej dziwnie, wiêc
-upro¶ci³em trochê ca³± sprawê. -->
+<p>
+Jednak dla zachowania starego nazewnictwa sta³ych mo¿na u¿ywaæ najczê¶ciej spotykane warto¶ci to:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Etykieta</b></td><td><b>Warto¶æ</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td><tt>GG_USER_OFFLINE</tt></td><td><tt>0x01</tt></td><td>U¿ytkownik, dla którego bêdziemy niedostêpni, ale mamy go w li¶cie kontaktów</td></tr>
+<tr class="tabf"><td><tt>GG_USER_NORMAL</tt></td><td><tt>0x03</tt></td><td>Zwyk³y u¿ytkownik dodany do listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>GG_USER_BLOCKED</tt></td><td><tt>0x04</tt></td><td>U¿ytkownik, którego wiadomo¶ci nie chcemy otrzymywaæ</td></tr>
+</table>
 
 <p>
 Je¶li nie mamy nikogo na li¶cie wysy³amy pakiet:
@@ -513,7 +520,8 @@ Mo¿liwe jest równie¿ otrzymanie pakietu <tt>gg_notify_reply</tt> ze swoim w³asny
 
 <p>
 ¯eby dodaæ kogo¶ do listy w trakcie pracy, trzeba wys³aæ ni¿ej opisany
-pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>.
+pakiet. Jego format jest identyczny jak przy <tt>GG_NOTIFY</tt>. Dodaje
+on flagi rodzaj u¿ytkownika.
 </p>
 
 <div class="c">
@@ -526,7 +534,8 @@ struct gg_add_notify {
 </div>
 
 <p>
-By usun±æ z listy kontaktów, wysy³a siê podobny pakiet:
+Poni¿szy pakiet usuwa flagi rodzaj u¿ytkownika, wiêc mo¿na go wykorzystaæ
+zarówno do usuniêcia u¿ytkownika z listy kontaktów, jak i do zmiany rodzaju.
 </p>
 
 <div class="c">
@@ -1449,6 +1458,7 @@ Autorami powy¿szego opisu s±:
 	<li><b>Tomasz Chiliñski</b> (chilek%chilan.com): nowo¶ci w 5.0.2.</li>
 	<li><b>Rados³aw Nowak</b> (rano%ranosoft.com): uzupe³nienie statusu opisowego, wersja 5.0.3.</li>
 	<li><b>Walerian Soko³owski</b>: opis protoko³u bezpo¶rednich po³±czeñ.</li>
+	<li><b>Nikodem</b> (n-d%tlen.pl): flagi rodzaju u¿ytkownika.</li>
 </ul>
 
 <hr />
