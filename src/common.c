@@ -298,7 +298,7 @@ char *gg_urlencode(char *str)
  * manipulacjach w³asnego wpisu w katalogu publicznym.
  */
 
-long gg_http_hash(unsigned char *email, unsigned char *pwd)
+long gg_http_hash(unsigned char *email, unsigned char *password)
 {
   unsigned long a, c;
   long b;
@@ -312,7 +312,7 @@ long gg_http_hash(unsigned char *email, unsigned char *pwd)
   }
 
   i = 0;
-  while ((c = (long) pwd[i++]) != 0) {
+  while ((c = (long) password[i++]) != 0) {
       a = (c ^ b) + (c << 8);
       b = (a >> 24) | (a << 8);
   }
