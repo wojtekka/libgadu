@@ -831,7 +831,7 @@ void gg_logoff(struct gg_session *sess)
  * gg_send_message_ctcp()
  *
  * wysy³a wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
- * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ * sekwencyjny, który mo¿na zignorowaæ albo wykorzystaæ do potwierdzenia.
  *
  *  - sess - opis sesji
  *  - msgclass - rodzaj wiadomo¶ci
@@ -879,9 +879,31 @@ int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient,
  */
 int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message)
 {
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
+
+	return gg_send_message_richtext(sess, msgclass, recipient, message, NULL, 0);
+}
+
+/*
+ * gg_send_message_richtext()
+ *
+ * wysy³a kolorow± wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
+ * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ *
+ *  - sess - opis sesji
+ *  - msgclass - rodzaj wiadomo¶ci
+ *  - recipient - numer adresata
+ *  - message - tre¶æ wiadomo¶ci
+ *  - format - informacje o formatowaniu
+ *  - formatlen - d³ugo¶æ informacji o formatowaniu
+ *
+ * numer sekwencyjny wiadomo¶ci lub -1 w przypadku b³êdu.
+ */
+int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
+{
 	struct gg_send_msg s;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, ...);\n", sess, msgclass, recipient);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
 	if (!sess) {
 		errno = EFAULT;
@@ -900,7 +922,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 	s.msgclass = fix32(msgclass);
 	sess->seq += (rand() % 0x300) + 0x300;
 	
-	if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, NULL) == -1)
+	if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, format, formatlen, NULL) == -1)
 		return -1;
 
 	return fix32(s.seq);
@@ -922,12 +944,36 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
  */
 int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
 {
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipients_count, recipients, message);
+
+	return gg_send_message_confer_richtext(sess, msgclass, recipients_count, recipients, message, NULL, 0);
+}
+
+/*
+ * gg_send_message_confer_richtext()
+ *
+ * wysy³a kolorow± wiadomo¶æ do kilku u¿ytkownikow (konferencja). zwraca
+ * losowy numer sekwencyjny, który mo¿na zignorowaæ albo wykorzystaæ do
+ * potwierdzenia.
+ *
+ *  - sess - opis sesji
+ *  - msgclass - rodzaj wiadomo¶ci
+ *  - recipients_count - ilo¶æ adresatów
+ *  - recipients - numerki adresatów
+ *  - message - tre¶æ wiadomo¶ci
+ *  - format - informacje o formatowaniu
+ *  - formatlen - d³ugo¶æ informacji o formatowaniu
+ *
+ * numer sekwencyjny wiadomo¶ci lub -1 w przypadku b³êdu.
+ */
+int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
+{
 	struct gg_send_msg s;
 	struct gg_msg_recipients r;
 	int i, j, k;
 	uin_t *recps;
 		
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %u, ...);\n", sess, msgclass, recipients_count);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
 
 	if (!sess) {
 		errno = EFAULT;
@@ -961,7 +1007,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 		if (!i)
 			sess->seq += (rand() % 0x300) + 0x300;
 		
-		if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), NULL) == -1) {
+		if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
 			free(recps);
 			return -1;
 		}
