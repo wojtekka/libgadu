@@ -37,6 +37,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#  include <openssl/err.h>
+#  include <openssl/x509.h>
+#endif
 
 #include "compat.h"
 #include "libgadu.h"
@@ -791,12 +795,100 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 			}
 
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+			if (sess->ssl) {
+				SSL_set_fd(sess->ssl, sess->fd);
+
+				sess->state = GG_STATE_TLS_NEGOTIATION;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+
+				break;
+			}
+#endif
+
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
 
 			break;
 		}
+
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+		case GG_STATE_TLS_NEGOTIATION:
+		{
+			int res;
+			X509 *peer;
+
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
+
+			if ((res = SSL_connect(sess->ssl)) <= 0) {
+				int err = SSL_get_error(sess->ssl, res);
+
+				if (res == 0) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION disconnected during TLS negotiation\n");
+
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_TLS;
+					sess->state = GG_STATE_IDLE;
+					close(sess->fd);
+					sess->fd = -1;
+					break;
+				}
+				
+				if (err == SSL_ERROR_WANT_READ) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() wants to read\n");
+
+					sess->state = GG_STATE_TLS_NEGOTIATION;
+					sess->check = GG_CHECK_READ;
+					sess->timeout = GG_DEFAULT_TIMEOUT;
+
+					break;
+				} else if (err == SSL_ERROR_WANT_WRITE) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() wants to write\n");
+
+					sess->state = GG_STATE_TLS_NEGOTIATION;
+					sess->check = GG_CHECK_WRITE;
+					sess->timeout = GG_DEFAULT_TIMEOUT;
+
+					break;
+				} else {
+					char buf[1024];
+
+					ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION SSL_connect() bailed out: %s\n", buf);	
+ 
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_TLS;
+					sess->state = GG_STATE_IDLE;
+					close(sess->fd);
+					sess->fd = -1;
+					break;
+				}
+			}
+
+			peer = SSL_get_peer_certificate(sess->ssl);
+
+			if (!peer)
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION unable to get peer certificate!\n");
+			else {
+				char buf[1024];
+
+				X509_NAME_oneline(X509_get_subject_name(peer), buf, sizeof(buf));
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION certificate subject = \"%s\"\n", buf);
+
+				X509_NAME_oneline(X509_get_issuer_name(peer), buf, sizeof(buf));
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION certificate issuer = \"%s\"\n", buf);
+			}
+
+			sess->state = GG_STATE_READING_KEY;
+			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			break;
+		}
+#endif
 
 		case GG_STATE_READING_KEY:
 		{
@@ -900,10 +992,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				lext.external_ip = sess->external_addr;
 				lext.external_port = sess->external_port;
 				gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN_EXT packet\n");
-				ret = gg_send_packet(sess->fd, GG_LOGIN_EXT, &lext, sizeof(lext), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+				ret = gg_send_packet(sess, GG_LOGIN_EXT, &lext, sizeof(lext), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			} else {
 				gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN packet\n");
-				ret = gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+				ret = gg_send_packet(sess, GG_LOGIN, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			}
 
 			free(sess->initial_descr);

@@ -40,6 +40,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#  include <openssl/err.h>
+#endif
 
 #include "compat.h"
 #include "libgadu.h"
@@ -332,6 +335,80 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 #endif
 
 /*
+ * gg_read() // funkcja pomocnicza
+ *
+ * czyta z gniazda okre¶lon± ilo¶æ bajtów. bierze pod uwagê, czy mamy
+ * po³±czenie zwyk³e czy TLS.
+ *
+ *  - sess - sesja,
+ *  - buf - bufor,
+ *  - length - ilo¶æ bajtów,
+ *
+ * takie same warto¶ci jak read().
+ */
+int gg_read(struct gg_session *sess, char *buf, int length)
+{
+	int res;
+
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+	if (sess->ssl) {
+		int err;
+
+		res = SSL_read(sess->ssl, buf, length);
+
+		if (res < 0) {
+			err = SSL_get_error(sess->ssl, res);
+
+			if (err == SSL_ERROR_WANT_READ)
+				errno = EAGAIN;
+
+			return -1;
+		}
+	} else
+#endif
+		res = read(sess->fd, buf, length);
+
+	return res;
+}
+
+/*
+ * gg_write() // funkcja pomocnicza
+ *
+ * zapisuje do gniazda okre¶lon± ilo¶æ bajtów. bierze pod uwagê, czy mamy
+ * po³±czenie zwyk³e czy TLS.
+ *
+ *  - sess - sesja,
+ *  - buf - bufor,
+ *  - length - ilo¶æ bajtów,
+ *
+ * takie same warto¶ci jak write().
+ */
+int gg_write(struct gg_session *sess, const char *buf, int length)
+{
+	int res;
+
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+	if (sess->ssl) {
+		int err;
+
+		res = SSL_write(sess->ssl, buf, length);
+
+		if (res < 0) {
+			err = SSL_get_error(sess->ssl, res);
+
+			if (err == SSL_ERROR_WANT_WRITE)
+				errno = EAGAIN;
+
+			return -1;
+		}
+	} else
+#endif
+		res = write(sess->fd, buf, length);
+
+	return res;
+}
+
+/*
  * gg_recv_packet() // funkcja wewnêtrzna
  *
  * odbiera jeden pakiet i zwraca wska¼nik do niego. pamiêæ po nim
@@ -364,7 +441,7 @@ void *gg_recv_packet(struct gg_session *sess)
 			sess->header_done = 0;
 
 		while (sess->header_done < sizeof(h)) {
-			ret = read(sess->fd, (char*) &h + sess->header_done, sizeof(h) - sess->header_done);
+			ret = gg_read(sess, (char*) &h + sess->header_done, sizeof(h) - sess->header_done);
 
 			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv(%d,%p,%d) = %d\n", sess->fd, &h + sess->header_done, sizeof(h) - sess->header_done, ret);
 
@@ -431,7 +508,7 @@ void *gg_recv_packet(struct gg_session *sess)
 	}
 
 	while (size > 0) {
-		ret = read(sess->fd, buf + sizeof(h) + offset, size);
+		ret = gg_read(sess, buf + sizeof(h) + offset, size);
 		gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv(%d,%p,%d) = %d\n", sess->fd, buf + sizeof(h) + offset, size, ret);
 		if (ret > -1 && ret <= size) {
 			offset += ret;
@@ -484,7 +561,7 @@ void *gg_recv_packet(struct gg_session *sess)
  * zabrak³o pamiêci. inaczej by³ b³±d przy wysy³aniu pakietu. dla errno == 0
  * nie wys³ano ca³ego pakietu.
  */
-int gg_send_packet(int sock, int type, ...)
+int gg_send_packet(struct gg_session *sess, int type, ...)
 {
 	struct gg_header *h;
 	char *tmp;
@@ -494,7 +571,7 @@ int gg_send_packet(int sock, int type, ...)
 	va_list ap;
 	int res;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_packet(%d, 0x%.2x, ...)\n", sock, type);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_send_packet(%p, 0x%.2x, ...)\n", sess, type);
 
 	tmp_length = 0;
 
@@ -544,7 +621,7 @@ int gg_send_packet(int sock, int type, ...)
 	
 	tmp_length += sizeof(struct gg_header);
 	
-	if ((res = write(sock, tmp, tmp_length)) < tmp_length) {
+	if ((res = gg_write(sess, tmp, tmp_length)) < tmp_length) {
 		gg_debug(GG_DEBUG_MISC, "// gg_send_packet() write() failed. res = %d, errno = %d (%s)\n", res, errno, strerror(errno));
 		free(tmp);
 		return -1;
@@ -640,6 +717,34 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		sess->protocol_version |= GG_HAS_AUDIO_MASK;
 	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
 	sess->last_sysmsg = p->last_sysmsg;
+
+	if (p->tls) {
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+		char buf[1024];
+
+		OpenSSL_add_ssl_algorithms();
+
+		sess->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
+
+		if (!sess->ssl_ctx) {
+			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_CTX_new() failed: %s\n", buf);
+			goto fail;
+		}
+
+		SSL_CTX_set_verify(sess->ssl_ctx, SSL_VERIFY_NONE, NULL);
+
+		sess->ssl = SSL_new(sess->ssl_ctx);
+
+		if (!sess->ssl) {
+			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_new() failed: %s\n", buf);
+			goto fail;
+		}
+#else
+		gg_debug(GG_DEBUG_MISC, "// gg_login() client requested TLS but no support compiled in\n");
+#endif
+	}
 	
 	if (gg_proxy_enabled) {
 		hostname = gg_proxy_host;
@@ -763,6 +868,14 @@ void gg_free_session(struct gg_session *sess)
 	if (sess->header_buf)
 		free(sess->header_buf);
 
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+	if (sess->ssl)
+		SSL_free(sess->ssl);
+
+	if (sess->ssl_ctx)
+		SSL_CTX_free(sess->ssl_ctx);
+#endif
+
 	free(sess);
 }
 
@@ -796,7 +909,7 @@ int gg_change_status(struct gg_session *sess, int status)
 
 	sess->status = status;
 
-	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), NULL);
+	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), NULL);
 }
 
 /*
@@ -830,7 +943,7 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 
 	sess->status = status;
 
-	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), NULL);
+	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), NULL);
 }
 
 /*
@@ -869,7 +982,7 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 	newtime = gg_fix32(time);
 
 
-	return gg_send_packet(sess->fd, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), &newtime, sizeof(newtime), NULL);
+	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), &newtime, sizeof(newtime), NULL);
 }
 
 /*
@@ -888,6 +1001,11 @@ void gg_logoff(struct gg_session *sess)
 
 	if (GG_S_NA(sess->status & ~GG_STATUS_FRIENDS_MASK))
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
+
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+	if (sess->ssl)
+		SSL_shutdown(sess->ssl);
+#endif
 	
 	if (sess->fd != -1) {
 		shutdown(sess->fd, 2);
@@ -930,7 +1048,7 @@ int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient,
 	s.seq = gg_fix32(0);
 	s.msgclass = gg_fix32(msgclass);
 	
-	return gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, message_len, NULL);
+	return gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, message_len, NULL);
 }
 
 /*
@@ -991,7 +1109,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 	s.msgclass = gg_fix32(msgclass);
 	sess->seq += (rand() % 0x300) + 0x300;
 	
-	if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, format, formatlen, NULL) == -1)
+	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, format, formatlen, NULL) == -1)
 		return -1;
 
 	return gg_fix32(s.seq);
@@ -1076,7 +1194,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		if (!i)
 			sess->seq += (rand() % 0x300) + 0x300;
 		
-		if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
+		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
 			free(recps);
 			return -1;
 		}
@@ -1110,7 +1228,7 @@ int gg_ping(struct gg_session *sess)
 		return -1;
 	}
 
-	return gg_send_packet(sess->fd, GG_PING, NULL);
+	return gg_send_packet(sess, GG_PING, NULL);
 }
 
 /*
@@ -1156,7 +1274,7 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 		n[i].dunno1 = *t;
 	}
 	
-	if (gg_send_packet(sess->fd, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
+	if (gg_send_packet(sess, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
 		res = -1;
 
 	free(n);
@@ -1205,7 +1323,7 @@ int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
 		n[i].dunno1 = 3;
 	}
 	
-	if (gg_send_packet(sess->fd, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
+	if (gg_send_packet(sess, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
 		res = -1;
 
 	free(n);
@@ -1244,7 +1362,7 @@ int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type)
 	a.uin = gg_fix32(uin);
 	a.dunno1 = type;
 	
-	return gg_send_packet(sess->fd, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
+	return gg_send_packet(sess, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
 }
 
 /*
@@ -1293,7 +1411,7 @@ int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
 	a.uin = gg_fix32(uin);
 	a.dunno1 = type;
 	
-	return gg_send_packet(sess->fd, GG_REMOVE_NOTIFY, &a, sizeof(a), NULL);
+	return gg_send_packet(sess, GG_REMOVE_NOTIFY, &a, sizeof(a), NULL);
 }
 
 /*

@@ -235,7 +235,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		p += strlen(p) + 1;
 	}
 
-	if (gg_send_packet(sess->fd, GG_PUBDIR50_REQUEST, buf, size, NULL, 0) == -1)
+	if (gg_send_packet(sess, GG_PUBDIR50_REQUEST, buf, size, NULL, 0) == -1)
 		res = 0;
 
 	free(buf);
