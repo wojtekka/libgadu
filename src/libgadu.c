@@ -41,6 +41,10 @@
 
 int gg_debug_level = 0;
 
+#ifndef lint 
+ static char rcsid[] = "$Id$";
+#endif 
+
 /*
  * gg_debug()
  *
