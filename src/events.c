@@ -68,6 +68,18 @@ void gg_event_free(struct gg_event *e)
 	if (e->type == GG_EVENT_NOTIFY)
 		free(e->event.notify);
 	
+	if (e->type == GG_EVENT_NOTIFY60) {
+		int i;
+
+		for (i = 0; e->event.notify60[i].uin; i++)
+			free(e->event.notify60[i].descr);
+		
+		free(e->event.notify60);
+	}
+
+	if (e->type == GG_EVENT_STATUS60)
+		free(e->event.status60.descr);
+	
 	if (e->type == GG_EVENT_STATUS)
 		free(e->event.status.descr);
 
@@ -159,17 +171,20 @@ static void gg_image_queue_parse(struct gg_event *e, char *p, int len, struct gg
 	}
 
 	if (!q) {
-		gg_debug(GG_DEBUG_MISC, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.4x\n", sender, i->size, i->crc32);
+		gg_debug(GG_DEBUG_MISC, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.8x\n", sender, i->size, i->crc32);
 		return;
 	}
 
 	if (p[0] == 0x05) {
 		int i, ok = 0;
 		
+		len -= sizeof(struct gg_msg_image_reply);
+		p += sizeof(struct gg_msg_image_reply);
+
 		/* sprawd¼, czy mamy tekst zakoñczony \0 */
 
 		for (i = 0; i < len; i++) {
-			if (!p[0]) {
+			if (!p[i]) {
 				ok = 1;
 				break;
 			}
@@ -525,8 +540,6 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				goto fail;
 			}
 
-			gg_debug(GG_DEBUG_MISC, "// sizeof() = %d\n", sizeof(*e->event.notify60));
-
 			e->event.notify60[0].uin = 0;
 			
 			while (length >= sizeof(struct gg_notify_reply60)) {
@@ -534,7 +547,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				char *tmp;
 
 				e->event.notify60[i].uin = uin & 0x00ffffff;
-				e->event.notify60[i].status = gg_fix32(n->status);
+				e->event.notify60[i].status = n->status;
 				e->event.notify60[i].remote_ip = n->remote_ip;
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
 				e->event.notify60[i].version = n->version;
@@ -542,7 +555,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify60[i].descr = NULL;
 				e->event.notify60[i].time = 0;
 
-				if (GG_S_D(gg_fix32(n->status))) {
+				if (GG_S_D(n->status)) {
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
 
 					if (descr_len < length) {
@@ -591,16 +604,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			e->type = GG_EVENT_STATUS60;
 			e->event.status60.uin = uin & 0x00ffffff;
-			e->event.status60.status = gg_fix32(s->status);
+			e->event.status60.status = s->status;
 			e->event.status60.remote_ip = s->remote_ip;
 			e->event.status60.remote_port = gg_fix16(s->remote_port);
 			e->event.status60.version = s->version;
 			e->event.status60.image_size = s->image_size;
 			e->event.status60.descr = NULL;
 			e->event.status60.time = 0;
-
-//			if (uin & 0x10000000)
-//				e->event.status60.status |= GG_STATUS_FRIENDS_MASK;
 
 			if (uin & 0x40000000)
 				e->event.status60.version |= GG_HAS_AUDIO_MASK;

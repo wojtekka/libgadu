@@ -1083,13 +1083,16 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 	r.size = gg_fix32(size);
 	r.crc32 = gg_fix32(crc32);
 	
-	res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), dummy, 1, &r, sizeof(r), NULL);
+	res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), &dummy, 1, &r, sizeof(r), NULL);
 
 	if (!res) {
 		struct gg_image_queue *q = malloc(sizeof(*q));
+		char *buf = malloc(size);
 
 		if (!q) {
 			gg_debug(GG_DEBUG_MISC, "// gg_image_request() not enough memory for image queue\n");
+			free(q);
+			free(buf);
 			errno = ENOMEM;
 			return -1;
 		}
@@ -1099,6 +1102,7 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 		q->sender = recipient;
 		q->size = size;
 		q->crc32 = crc32;
+		q->image = buf;
 
 		if (!sess->images)
 			sess->images = q;

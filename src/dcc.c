@@ -1002,6 +1002,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
+				e->type = GG_EVENT_DCC_ACK;
+
 				return e;
 
 			case GG_STATE_READING_VOICE_ACK:
@@ -1020,6 +1022,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
+				e->type = GG_EVENT_DCC_ACK;
+				
 				return e;
 
 			case GG_STATE_SENDING_FILE_HEADER:

@@ -445,7 +445,7 @@ Je¶li kto¶ jest, serwer odpowie pakietem <tt>GG_NOTIFY_REPLY</tt> albo
 	
 struct gg_notify_reply {
 	int uin;		/* numer */
-	int status;		/* status danej osoby */
+	char status;		/* status danej osoby */
 	int remote_ip;		/* adres ip delikwenta */
 	short remote_port;	/* port, na którym s³ucha klient */
 	int version;		/* wersja klienta */
