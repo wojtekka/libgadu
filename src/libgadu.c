@@ -1068,7 +1068,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		s.recipient = gg_fix32(recipients[i]);
 		
 		for (j = 0, k = 0; j < recipients_count; j++)
-			if (recipients[j] != s.recipient) {
+			if (recipients[j] != recipients[i]) {
 				recps[k] = gg_fix32(recipients[j]);
 				k++;
 			}
