@@ -436,12 +436,25 @@ o zerowej d³ugo¶ci.
 </p>
 
 <p>
-Je¶li kto¶ jest, serwer odpowie pakietem zawieraj±cym jedn± lub wiêcej
-struktur <tt>gg_notify_reply60</tt>:
-</p>
+Je¶li kto¶ jest, serwer odpowie pakietem <tt>GG_NOTIFY_REPLY</tt> albo
+<tt>GG_NOTIFY_REPLY60</tt> zawieraj±cym jedn± lub wiêcej struktur
+<tt>gg_notify_reply60</tt>: </p>
 
 <div class="c">
-<pre>#define GG_NOTIFY_REPLY60 0x0011
+<pre>#define GG_NOTIFY_REPLY 0x000c
+	
+struct gg_notify_reply {
+	int uin;		/* numer */
+	int status;		/* status danej osoby */
+	int remote_ip;		/* adres ip delikwenta */
+	short remote_port;	/* port, na którym s³ucha klient */
+	int version;		/* wersja klienta */
+	short unknown1;		/* znowu port? */
+	char description[];	/* opis, nie musi wyst±piæ */
+	int time;		/* czas, nie musi wyst±piæ */
+};
+	
+#define GG_NOTIFY_REPLY60 0x0011
 	
 struct gg_notify_reply60 {
 	int uin;		/* numerek plus flagi w najstarszym bajcie */
@@ -514,11 +527,20 @@ struct gg_remove_notify {
 </div>
 
 <p>
-Je¶li kto¶ opu¶ci Gadu-Gadu lub zmieni stan, otrzymamy pakiet:
+Je¶li kto¶ opu¶ci Gadu-Gadu lub zmieni stan, otrzymamy jeden z pakietów:
 </p>
 
 <div class="c">
-<pre>#define GG_STATUS60 0x000f
+<pre>#define GG_STATUS 0x0002
+	
+struct gg_status {
+	int uin;	        <i>/* numer */</i>
+	int status;	        <i>/* nowy stan */</i>
+	char description[];	<i>/* opis, nie musi wyst±piæ */</i>
+	int time;		<i>/* czas, nie musi wyst±piæ */</i>
+};
+	
+#define GG_STATUS60 0x000f
 	
 struct gg_status60 {
 	int uin;	        <i>/* numer plus flagi w najstarszym bajcie */</i>
@@ -994,7 +1016,7 @@ Pakiety odbierane:
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Etykieta</b></td><td><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>0x0001</tt></td><td><tt>GG_WELCOME</tt></td><td>Liczba do wyznaczenie hashu has³a</td></tr>
-<tr class="tabf2"><td><tt>0x0002</tt></td><td><tt>GG_STATUS</tt></td><td>Zmiana stanu przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x0002</tt></td><td><tt>GG_STATUS</tt></td><td>Zmiana stanu przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x0003</tt></td><td><tt>GG_LOGIN_OK</tt></td><td>Logowanie powiod³o siê</td></tr>
 <tr class="tabf"><td><tt>0x0005</tt></td><td><tt>GG_SEND_MSG_ACK</tt></td><td>Potwierdzenie wiadomo¶ci</td></tr>
 <tr class="tabf2"><td><tt>0x0007</tt></td><td><tt>GG_PONG</tt></td><td>Pong</td></tr>
@@ -1002,7 +1024,7 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0009</tt></td><td><tt>GG_LOGIN_FAILED</tt></td><td>Logowanie nie powiod³o siê</td></tr>
 <tr class="tabf"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodz±ca wiadomo¶æ</td></tr>
 <tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_DISCONNECTING</tt></td><td>Zerwanie po³±czenia</td></tr>
-<tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_PUBDIR50_REPLY</tt></td><td>Odpowied¼ katalogu publicznego</td></tr>
 <tr class="tabf"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowied¼ listy kontaktów na serwerze</td></tr>
