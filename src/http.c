@@ -62,11 +62,11 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
                 return NULL;        
 	memset(h, 0, sizeof(*h));
 
-	if (gg_http_use_proxy) {
+	if (gg_proxy_enabled) {
 		h->query = gg_alloc_sprintf("%s http://%s:%d%s HTTP/1.0\r\n%s",
 				method, hostname, port, path, header);
-		hostname = gg_http_proxy_host;
-		port = gg_http_proxy_port;
+		hostname = gg_proxy_host;
+		port = gg_proxy_port;
 	} else {
 		h->query = gg_alloc_sprintf("%s %s HTTP/1.0\r\n%s",
 				method, path, header);

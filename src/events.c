@@ -362,7 +362,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 {
 	struct gg_event *e;
 	int res = 0;
-	int port;
+	int port = 0;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_watch_fd(...);\n");
 	
@@ -381,98 +381,109 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	switch (sess->state) {
 		case GG_STATE_RESOLVING:
 		{
-			struct in_addr a;
+			struct in_addr addr;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_RESOLVING\n");
 
-			if (read(sess->fd, &a, sizeof(a)) < sizeof(a) || a.s_addr == INADDR_NONE) {
-				gg_debug(GG_DEBUG_MISC, "-- resolving failed\n");				
-
-				errno = ENOENT;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_RESOLVING;
-				sess->state = GG_STATE_IDLE;
+			if (read(sess->fd, &addr, sizeof(addr)) < sizeof(addr) || addr.s_addr == INADDR_NONE) {
+				gg_debug(GG_DEBUG_MISC, "-- resolving failed, host not found or communication error\n");
 
 				close(sess->fd);
+				sess->fd = -1;
 
-				break;
+				goto fail_resolving;
 			}
 			
-			sess->server_ip = a.s_addr;
-
 			close(sess->fd);
-
 			waitpid(sess->pid, NULL, 0);
-
-			gg_debug(GG_DEBUG_MISC, "-- resolved, now connecting\n");
 			
-			if (gg_http_use_proxy) {
-				port = gg_http_proxy_port;
-			} else {
-				port = GG_APPMSG_PORT;
-			};
+			if (sess->proxy_port)
+				sess->proxy_addr = addr.s_addr;
 
-			if ((sess->fd = gg_connect(&a, port, sess->async)) == -1) {
-				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
+			if (sess->server_addr) {
+				/* przy bezpo¶rednim po³±czeniu resolvujemy dla proxy tylko... */
+				gg_debug(GG_DEBUG_MISC, "-- resolved, now connecting to %s:%d", inet_ntoa(addr), sess->port);
 				
-				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying direct connection\n");
-
-				if ((sess->fd = gg_connect(addr, GG_DEFAULT_PORT, sess->async)) == -1) {
-				    gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
-				    if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, sess->async)) == -1) {		
-					gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
-
-					e->type = GG_EVENT_CONN_FAILED;
-					e->event.failure = GG_FAILURE_CONNECTING;
-					sess->state = GG_STATE_IDLE;
-					break;
-				    }
+				if ((sess->fd = gg_connect(&addr, sess->proxy_port, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_connecting;
 				}
+
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
 				sess->timeout = GG_DEFAULT_TIMEOUT;
-			} else {
-				sess->state = GG_STATE_CONNECTING;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
+				break;
 			}
-				
-			break;
-		}
 
-		case GG_STATE_CONNECTING:
-		{
-			char buf[1024];
-			int res, res_size = sizeof(res);
+			sess->server_addr = sess->hub_addr = addr.s_addr;
+			port = (sess->proxy_port) ? sess->proxy_port : GG_APPMSG_PORT;
 
-			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING\n");
+			gg_debug(GG_DEBUG_MISC, "-- resolved, now connecting to %s:%d\n", inet_ntoa(addr), port);
 
-			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
-				gg_debug(GG_DEBUG_MISC, "-- http connection failed, errno = %d (%s), trying direct connection\n", res, strerror(res));
-				close(sess->fd);
 
-				if ((sess->fd = gg_connect(addr, GG_DEFAULT_PORT, sess->async)) == -1) {
-					gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
-					if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
-						gg_debug(GG_DEBUG_MISC, "-- connect() failed. errno = %d (%s)\n", errno, strerror(errno));
+			if ((sess->fd = gg_connect(&addr, port, sess->async)) == -1) {
+				if (sess->proxy_addr && sess->proxy_port) {
+					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_connecting;
+				}
 
-						e->type = GG_EVENT_CONN_FAILED;
-						e->event.failure = GG_FAILURE_CONNECTING;
-						sess->state = GG_STATE_IDLE;
-						break;
+				gg_debug(GG_DEBUG_MISC, "-- connection to hub failed (errno=%d, %s), trying direct connection.\n", errno, strerror(errno));
+				if ((sess->fd = gg_connect(&sess->hub_addr, GG_DEFAULT_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- direct connection failed (errno=%d, %s), trying https port.\n", errno, strerror(errno));
+
+					sess->port = GG_HTTPS_PORT;
+						
+					if ((sess->fd = gg_connect(&sess->hub_addr, sess->port, sess->async)) == -1) {
+						gg_debug(GG_DEBUG_MISC, "-- direct connection failed (errno=%d, %s). sorry.\n", errno, strerror(errno));
+						goto fail_connecting;
 					}
 				}
 
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
 				sess->timeout = GG_DEFAULT_TIMEOUT;
+
+				break;
+			}
+
+			sess->state = GG_STATE_CONNECTING_HUB;
+			sess->check = GG_CHECK_WRITE;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			break;
+		}
+
+		case GG_STATE_CONNECTING_HUB:
+		{
+			char buf[1024];
+			int res = 0, res_size = sizeof(res);
+
+			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING_HUB\n");
+
+			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
+				if (sess->proxy_addr && sess->proxy_port) {
+					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
+					goto fail_connecting;
+				}
+					
+				gg_debug(GG_DEBUG_MISC, "-- connection to hub failed (errno=%d, %s), trying direct connection\n", res, strerror(res));
+				close(sess->fd);
+
+				if ((sess->fd = gg_connect(&sess->hub_addr, GG_DEFAULT_PORT, sess->async)) == -1) {
+					/* przy asynchronicznych, gg_connect() zwraca -1 przy b³êdach socket(), ioctl() itd. wiêc na pewno sta³o siê co¶ z³ego. nawet nie próbujemy dalej. */
+					gg_debug(GG_DEBUG_MISC, "-- direct connection failed (errno=%d, %s), something serious\n", errno, strerror(errno));
+					goto fail_connecting;
+				}
+
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
 				break;
 			}
 			
-			gg_debug(GG_DEBUG_MISC, "-- http connection succeded, sending query\n");
+			gg_debug(GG_DEBUG_MISC, "-- connected to hub, sending query\n");
 
-			if (gg_http_use_proxy) {
+			if (sess->proxy_addr && sess->proxy_port) {
 				snprintf(buf, sizeof(buf) - 1,
 					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg.asp?fmnumber=%lu HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
@@ -493,7 +504,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
 				gg_debug(GG_DEBUG_MISC, "-- sending query failed\n");
 
-				errno = EIO;
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_WRITING;
 				sess->state = GG_STATE_IDLE;
@@ -512,7 +522,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			char buf[1024], *tmp, *host;
 			int port = GG_DEFAULT_PORT;
 			int sysmsgidx = 0, sysmsg = 0;
-			struct in_addr a;
+			struct in_addr addr;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_DATA\n");
 
@@ -521,20 +531,31 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- got http response (%s)\n", buf);
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
-				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected. moving to direct connection\n");
-				a.s_addr = sess->server_ip;
+				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected, trying direct connection\n");
 
-				if ((sess->fd = gg_connect(&a, GG_DEFAULT_PORT, sess->async)) == -1) {
-					gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
-					if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, sess->async)) == -1) {
+				if (sess->proxy_addr && sess->proxy_port) {
+					if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
+						gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
+						goto fail_connecting;
+					}
+
+					sess->state = GG_STATE_CONNECTING_GG;
+					sess->check = GG_CHECK_WRITE;
+					sess->timeout = GG_DEFAULT_TIMEOUT;
+					break;
+				}
+				
+				if ((sess->fd = gg_connect(&sess->hub_addr, GG_DEFAULT_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- direct connection failed (errno=%d, %s), trying https connection\n", errno, strerror(errno));
+
+					sess->port = GG_HTTPS_PORT;
+					
+					if ((sess->fd = gg_connect(&sess->hub_addr, sess->port, sess->async)) == -1) {
 						gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
-
-						e->type = GG_EVENT_CONN_FAILED;
-						e->event.failure = GG_FAILURE_CONNECTING;
-						sess->state = GG_STATE_IDLE;
-						break;
+						goto fail_connecting;
 					}
 				}
+				
 				sess->state = GG_STATE_CONNECTING_GG;
 				sess->check = GG_CHECK_WRITE;
 				sess->timeout = GG_DEFAULT_TIMEOUT;
@@ -611,18 +632,28 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				*tmp = 0;
 				port = atoi(tmp+1);
 			}
-			a.s_addr = inet_addr(host);
-			sess->server_ip = a.s_addr;
 
-			if ((sess->fd = gg_connect(&a, port, sess->async)) == -1) {
-				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
-				if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, sess->async)) == -1) {
-				    gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
+			addr.s_addr = inet_addr(host);
+			sess->server_addr = addr.s_addr;
 
-				    e->type = GG_EVENT_CONN_FAILED;
-				    e->event.failure = GG_FAILURE_CONNECTING;
-				    sess->state = GG_STATE_IDLE;
-				    break;
+			if (sess->proxy_addr && sess->proxy_port) {
+				if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_connecting;
+				}
+				
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+				break;
+			}
+
+			if ((sess->fd = gg_connect(&addr, port, sess->async)) == -1) {
+				gg_debug(GG_DEBUG_MISC, "-- connection failed (errno=%d, %s), trying https connection\n", errno, strerror(errno));
+				sess->port = GG_HTTPS_PORT;
+				if ((sess->fd = gg_connect(&addr, GG_HTTPS_PORT, sess->async)) == -1) {
+					gg_debug(GG_DEBUG_MISC, "-- connection failed (errno=%d, %s). so long, cruel world!\n", errno, strerror(errno));
+					goto fail_connecting;
 				}
 			}
 
@@ -640,22 +671,36 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_CONNECTING_GG\n");
 
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				struct in_addr *addr = (struct in_addr*) &sess->server_ip;
+				if (sess->proxy_addr && sess->proxy_port) {
+					gg_debug(GG_DEBUG_MISC, "-- connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
+					goto fail_connecting;
+				}
 
-				gg_debug(GG_DEBUG_MISC, "-- connection failed, trying https connection\n");
+				gg_debug(GG_DEBUG_MISC, "-- connection failed (errno=%d, %s), trying https connection\n", res, strerror(res));
 				close(sess->fd);
 
-				if ((sess->fd = gg_connect(addr, GG_HTTPS_PORT, sess->async)) == -1) {
+				sess->port = GG_HTTPS_PORT;
+
+				if ((sess->fd = gg_connect(&sess->server_addr, sess->port, sess->async)) == -1) {
 					gg_debug(GG_DEBUG_MISC, "-- connection failed, errno = %d (%s)\n", errno, strerror(errno));
-				    
-					e->type = GG_EVENT_CONN_FAILED;
-					e->event.failure = GG_FAILURE_CONNECTING;
-					sess->state = GG_STATE_IDLE;
-					break;
+					goto fail_connecting;
 				}
 			}
 
 			gg_debug(GG_DEBUG_MISC, "-- connected\n");
+			
+			if (sess->proxy_addr && sess->proxy_port) {
+				char buf[1024];
+
+				snprintf(buf, sizeof(buf) - 1, "CONNECT %s:%d HTTP/1.0\r\n\r\n", inet_ntoa(*((struct in_addr*) &sess->server_addr)), port);
+
+				if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
+					gg_debug(GG_DEBUG_MISC, "-- can't send proxy request\n");
+					close(sess->fd);
+					sess->fd = -1;
+					goto fail_connecting;
+				}
+			}
 			
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
@@ -671,9 +716,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_login l;
 			unsigned int hash;
 			unsigned char *password = sess->password;
-			struct sockaddr_in sin;
-			int sin_len = sizeof(sin);
-			unsigned long sess_ip = 0;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_KEY\n");
 
@@ -711,23 +753,25 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			free(sess->password);
 			sess->password = NULL;
 			
-			if(!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len))
+#if 0
+			if (!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len))
 				sess_ip = sin.sin_addr.s_addr;	
-		
-			if(gg_dcc_ip == INADDR_ANY) {
-				sess->client_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
+
+			if (gg_dcc_ip) {
+				sess->client_addr = (sess_ip) ? (sess_ip) : INADDR_NONE;
 				sess->client_port = gg_dcc_port;
 			} else {
 				sess->client_ip = 0;
 				sess->client_port = 0;
 			};
+#endif
 			
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(GG_CLIENT_VERSION);
-			l.local_ip = sess->client_ip;
-			l.local_port = fix16(sess->client_port);
+			l.local_ip = gg_dcc_ip;
+			l.local_port = fix16(gg_dcc_port);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
 
@@ -809,12 +853,25 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		}
 	}
 
+done:
 	if (res == -1) {
 		free(e);
 		e = NULL;
 	}
 
 	return e;
+	
+fail_connecting:
+	e->type = GG_EVENT_CONN_FAILED;
+	e->event.failure = GG_FAILURE_CONNECTING;
+	sess->state = GG_STATE_IDLE;
+	goto done;
+
+fail_resolving:
+	e->type = GG_EVENT_CONN_FAILED;
+	e->event.failure = GG_FAILURE_RESOLVING;
+	sess->state = GG_STATE_IDLE;
+	goto done;
 }
 
 /*

@@ -3,7 +3,7 @@
 /*
  *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>,
  *                          Robert J. Wo¼ny <speedy@ziew.org>,
- *                          Arkadiusz Mi¶kiewicz <misiek@pld.ORG.PL>
+ *                          Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License Version 2 as
@@ -51,9 +51,9 @@ unsigned long gg_dcc_ip = 0;
 /*
  *  zmienne opisuj±ce parametry proxy http.
  */
-char *gg_http_proxy_host = NULL;
-int gg_http_proxy_port = 0;
-int gg_http_use_proxy = 0;
+char *gg_proxy_host = NULL;
+int gg_proxy_port = 0;
+int gg_proxy_enabled = 0;
 
 #ifndef lint 
 static char rcsid[]
@@ -412,9 +412,8 @@ static int gg_session_callback(struct gg_session *s)
  * rozpoczyna procedurê ³±czenia siê z serwerem. resztê obs³guje siê przez
  * gg_watch_fd.
  *
- *  - uin - numerek usera,
- *  - password - jego hase³ko,
- *  - async - ma byæ asynchronicznie?
+ *  - info - struktura opisuj±ca pocz±tkowy stan. wymagane pola: uin,
+ *    password.
  *
  * UWAGA! program musi obs³u¿yæ SIGCHLD, je¶li ³±czy siê asynchronicznie,
  * ¿eby zrobiæ pogrzeb zmar³emu procesowi resolvera.
@@ -422,61 +421,73 @@ static int gg_session_callback(struct gg_session *s)
  * w przypadku b³êdu zwraca NULL, je¶li idzie dobrze (async) albo posz³o
  * dobrze (sync), zwróci wska¼nik do zaalokowanej struktury `gg_session'.
  */
-struct gg_session *gg_login(uin_t uin, const char *password, int async)
+struct gg_session *gg_login(const struct gg_login_params *p)
 {
-	struct gg_session *sess;
+	struct gg_session *sess = NULL;
 	char *hostname;
 	int port;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%u, \"...\", %d);\n", uin, async);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(uin=%u, async=%d, ...);\n", p->uin, p->async);
 
-	if (!(sess = malloc(sizeof(*sess))))
-		return NULL;
+	if (!(sess = malloc(sizeof(*sess)))) {
+		gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+		goto fail;
+	}
+
 	memset(sess, 0, sizeof(*sess));
 
-	sess->uin = uin;
-	if (!(sess->password = strdup(password))) {
-		free(sess);
-		return NULL;
+	if (!p->password || !p->uin) {
+		gg_debug(GG_DEBUG_MISC, "-- invalid arguments (!password || !uin)\n");
+		errno = EINVAL;
+		goto fail;
 	}
+
+	if (!(sess->password = strdup(p->password))) {
+		gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
+		goto fail;
+	}
+
+	sess->uin = p->uin;
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
 	sess->timeout = GG_DEFAULT_TIMEOUT;
-	sess->async = async;
+	sess->async = p->async;
         sess->type = GG_SESSION_GG;
+	sess->initial_status = p->status;
+	sess->callback = gg_session_callback;
+	sess->destroy = gg_free_session;
+	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
+	sess->server_addr = p->server_addr;
 	
-	if (gg_http_use_proxy) {
-		hostname = gg_http_proxy_host;
-		port = gg_http_proxy_port;
+	if (gg_proxy_enabled) {
+		hostname = gg_proxy_host;
+		sess->proxy_port = port = gg_proxy_port;
 	} else {
 		hostname = GG_APPMSG_HOST;
 		port = GG_APPMSG_PORT;
 	};
 
-	if (async) {
-		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
-			gg_debug(GG_DEBUG_MISC, "-- resolving failed\n");
-			free(sess);
-			return NULL;
-		}
-	} else {
+	if (!p->async) {
 		struct in_addr a;
 
-		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-			struct hostent *he;
+		if (!p->server_addr || !p->server_port) {
+			if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
+				struct hostent *he;
 	
-			if (!(he = gethostbyname(hostname))) {
-				gg_debug(GG_DEBUG_MISC, "-- host %s not found\n", hostname);
-				free(sess);
-				return NULL;
-			} else
-				memcpy((char*) &a, he->h_addr, sizeof(a));
+				if (!(he = gethostbyname(hostname))) {
+					gg_debug(GG_DEBUG_MISC, "-- host %s not found\n", hostname);
+					goto fail;
+				} else
+					memcpy((char*) &a, he->h_addr, sizeof(a));
+			}
+		} else {
+			a.s_addr = p->server_addr;
+			port = p->server_port;
 		}
 
 		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "-- connection failed\n");
-			free(sess);
-			return NULL;
+			goto fail;
 		}
 
 		sess->state = GG_STATE_CONNECTING;
@@ -486,26 +497,41 @@ struct gg_session *gg_login(uin_t uin, const char *password, int async)
 
 			if (!(e = gg_watch_fd(sess))) {
 				gg_debug(GG_DEBUG_MISC, "-- some nasty error in gg_watch_fd()\n");
-				free(sess);
-				return NULL;
+				goto fail;
 			}
 
 			if (e->type == GG_EVENT_CONN_FAILED) {
 				errno = EACCES;
 				gg_debug(GG_DEBUG_MISC, "-- could not login\n");
 				gg_free_event(e);
-				free(sess);
-				return NULL;
+				goto fail;
 			}
 
 			gg_free_event(e);
 		}
+
+		return sess;
+	}
+	
+	if (!sess->server_addr || gg_proxy_enabled) {
+		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
+			gg_debug(GG_DEBUG_MISC, "-- resolving failed (errno=%d, %s), something serious\n", errno, strerror(errno));
+			goto fail;
+		}
+	} else {
+		if ((sess->fd = gg_connect(&sess->server_addr, sess->port, sess->async)) == -1) {
+			gg_debug(GG_DEBUG_MISC, "-- direct connection failed (errno=%d, %s)\n", errno, strerror(errno));
+			goto fail;
+		}
+		sess->state = GG_STATE_CONNECTING_GG;
+		sess->check = GG_CHECK_WRITE;
 	}
 
-	sess->callback = gg_session_callback;
-	sess->destroy = gg_free_session;
-	
 	return sess;
+
+fail:
+	free(sess);
+	return NULL;
 }
 
 /* 
