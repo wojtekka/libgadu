@@ -47,14 +47,19 @@ int gg_debug_level = 0;
 int gg_dcc_port = 0;
 char *gg_dcc_ip = NULL;
 
-#ifndef lint 
+/*
+ *  zmienne opisuj±ce parametry proxy http.
+ */
+char *gg_http_proxy_host = NULL;
+int gg_http_proxy_port = 0;
+int gg_http_use_proxy = 0;
 
+#ifndef lint 
 static char rcsid[]
 #ifdef __GNUC__
 __attribute__ ((unused))
 #endif
 = "$Id$";
-
 #endif 
 
 /*

@@ -34,13 +34,6 @@
 #include "libgg.h"
 
 /*
- * zmienne opisuj±ce parametry proxy http.
- */
-char *gg_http_proxy_host = NULL;
-int gg_http_proxy_port = 0;
-int gg_http_use_proxy = 0;
-
-/*
  * gg_http_connect()
  *
  * rozpoczyna po³±czenie po http.
