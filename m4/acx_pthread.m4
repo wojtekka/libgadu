@@ -158,6 +158,39 @@ if test "x$acx_pthread_ok" = xyes; then
                 AC_MSG_WARN([we do not know how to create joinable pthreads])
         fi
 
+	# detect GCC inconsistency with -shared on some arches
+	AC_MSG_CHECKING([if -pthread is sufficient with -shared])
+	save_CFLAGS="$CFLAGS"
+	save_LIBS="$LIBS"
+	CFLAGS="-shared -Wl,-z,defs $CFLAGS"
+	ok="no"
+        AC_TRY_LINK([#include <pthread.h>],
+                    [pthread_t th; pthread_join(th, 0);
+                     pthread_attr_init(0); pthread_cleanup_push(0, 0);
+                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ],
+                    [ok=yes])
+	if test "x$ok" = xyes; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+		AC_MSG_CHECKING([if -lpthread fixes that])
+		LIBS="-lpthread $LIBS"
+        	AC_TRY_LINK([#include <pthread.h>],
+                    [pthread_t th; pthread_join(th, 0);
+                     pthread_attr_init(0); pthread_cleanup_push(0, 0);
+                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ],
+                    [ok=yes])
+		if test "x$ok" = xyes; then
+			AC_MSG_RESULT([yes])
+			PTHREAD_LIBS="-lpthread $PTHREAD_LIBS"
+		else
+			AC_MSG_RESULT([no])
+			acx_pthread_ok=no
+		fi
+	fi
+        CFLAGS="$save_CFLAGS"
+	LIBS="$save_LIBS"
+
         AC_MSG_CHECKING([if more special flags are required for pthreads])
         flag=no
 	case "$UNAME_SYSTEM" in 
