@@ -395,7 +395,7 @@ void gg_http_stop(struct gg_http *h)
 }
 
 /*
- * gg_free_http()
+ * gg_http_free()
  *
  * próbuje zamkn±æ po³±czenie i zwalnia pamiêæ po nim.
  *

@@ -45,6 +45,7 @@ struct gg_http *gg_register(char *email, char *password, int async)
 	char *__pwd, *__email, *form, *query;
 
 	if (!email | !password) {
+		gg_debug(GG_DEBUG_MISC, "=> register, NULL parameter\n");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -96,6 +97,9 @@ struct gg_http *gg_register(char *email, char *password, int async)
 
 	free(query);
 
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
+	
 	if (!async)
 		gg_pubdir_watch_fd(h);
 	
@@ -121,6 +125,12 @@ struct gg_http *gg_change_passwd(uin_t uin, char *passwd, char *newpasswd, char 
 	struct gg_http *h;
 	char *form, *query, *__fmpwd, *__pwd, *__email;
 
+	if (!passwd || !newpasswd || !newemail) {
+		gg_debug(GG_DEBUG_MISC, "=> change, NULL parameter\n");
+		errno = EINVAL;
+		return NULL;
+	}
+	
 	__fmpwd = gg_urlencode(passwd);
 	__pwd = gg_urlencode(newpasswd);
 	__email = gg_urlencode(newemail);
@@ -171,6 +181,9 @@ struct gg_http *gg_change_passwd(uin_t uin, char *passwd, char *newpasswd, char 
 	h->type = GG_SESSION_PASSWD;
 
 	free(query);
+
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
 
 	if (!async)
 		gg_pubdir_watch_fd(h);
@@ -224,6 +237,9 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 
 	free(query);
 
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
+
 	if (!async)
 		gg_pubdir_watch_fd(h);
 
@@ -231,32 +247,37 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 }
 
 /*
- * gg_change_pubdir()
+ * gg_change_info()
  *
  * zmienia nasze dane w katalogu publicznym.
  *
  *  - uin - numerek.
  *  - passwd - haselko.
- *  - modify - na co mamy zmienic.
+ *  - request - na co mamy zmienic.
  *  - async - ma byæ asynchronicznie?
  *
  * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
- * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ * funkcj± gg_change_pubdir_free(), albo NULL je¶li wyst±pi³ b³±d.
  */
-
-struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modify, int async)
+struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_request *request, int async)
 {
 	struct gg_http *h;
 	char *form, *query;
 
+	if (!passwd || !request) {
+		gg_debug(GG_DEBUG_MISC, "=> change_info, NULL parameter\n");
+		errno = EINVAL;
+		return NULL;
+	}
+
 	if (!(form = gg_alloc_sprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
-	uin, passwd, modify->first_name, modify->last_name, modify->nickname, modify->email, modify->born, modify->gender, modify->city))) {
-		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+	uin, passwd, request->first_name, request->last_name, request->nickname, request->email, request->born, request->gender, request->city))) {
+		gg_debug(GG_DEBUG_MISC, "=> change_info, not enough memory for form fields\n");
 		errno = ENOMEM;
 		return NULL;
 	}
 	
-	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
+	gg_debug(GG_DEBUG_MISC, "=> change_info, %s\n", form);
 
         query = gg_alloc_sprintf(
 		"Host: " GG_PUBDIR_HOST "\r\n"
@@ -271,13 +292,16 @@ struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modi
 	free(form);
 
 	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmpubreg2.asp", query))) {
-		gg_debug(GG_DEBUG_MISC, "=> search, gg_http_connect() failed mysteriously\n");
+		gg_debug(GG_DEBUG_MISC, "=> change_info, gg_http_connect() failed mysteriously\n");
                 free(query);
 		return NULL;
 	}
 
 	h->type = GG_SESSION_CHANGE;
 
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
+	
 	if (!async)
 		gg_pubdir_watch_fd(h);
 
@@ -347,7 +371,7 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 }
 
 /*
- * gg_free_pubdir()
+ * gg_pubdir_free()
  *
  * zwalnia pamiêæ po efektach zabawy z katalogiem publicznym.
  *
@@ -355,36 +379,70 @@ int gg_pubdir_watch_fd(struct gg_http *h)
  *
  * nie zwraca niczego. najwy¿ej segfaultnie.
  */
-void gg_free_pubdir(struct gg_http *h)
+void gg_pubdir_free(struct gg_http *h)
 {
 	if (!h)
 		return;
 	
 	free(h->data);
-	gg_free_http(h);
+	gg_http_free(h);
 }
 
 /*
- * gg_free_modify()
+ * gg_change_info_request_new()
  *
- * zwalnia pamiêæ zajmowan± przez strukturê gg_modify i jej pola.
+ * alokuje pamiêæ tworzy strukturê gg_change_info_request do u¿ycia jako
+ * parametr gg_change_info().
+ * 
+ *  - first_name,
+ *  - last_name,
+ *  - nickname,
+ *  - email,
+ *  - born,
+ *  - gender,
+ *  - city.
  *
- *  - m - to co¶, co nie jest ju¿ nam potrzebne.
+ * zwraca zaalokowan± strukturê lub NULL.
+ */
+struct gg_change_info_request *gg_change_info_request_new(char *first_name, char *last_name, char *nickname, char *email, int born, int gender, char *city)
+{
+	struct gg_change_info_request *r = calloc(1, sizeof(struct gg_change_info_request));
+
+	if (!r)
+		return NULL;
+
+	r->first_name = strdup((first_name) ? first_name : "");
+	r->last_name = strdup((last_name) ? last_name : "");
+	r->nickname = strdup((nickname) ? nickname : "");
+	r->email = strdup((email) ? email : "");
+	r->city = strdup((city) ? city : "");
+	r->born = born;
+	r->gender = gender;
+
+	return r;
+}
+
+/*
+ * gg_change_info_request_free()
+ *
+ * zwalnia pamiêæ zajmowan± przez strukturê gg_change_info_request i jej pola.
+ *
+ *  - r - to co¶, co nie jest ju¿ nam potrzebne.
  *
  * nie zwraca niczego. 
  */
-void gg_free_modify(struct gg_modify *m)
+void gg_change_info_request_free(struct gg_change_info_request *r)
 {
-	if (!m)
+	if (!r)
 		return;
 
-	free(m->first_name);
-	free(m->last_name);
-	free(m->nickname);
-	free(m->email);
-	free(m->city);
+	free(r->first_name);
+	free(r->last_name);
+	free(r->nickname);
+	free(r->email);
+	free(r->city);
 	
-	free(m);
+	free(r);
 }
 
 /*

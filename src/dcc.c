@@ -164,7 +164,22 @@ struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_
 }
 
 /*
- * gg_dcc_create_socket()
+ * gg_dcc_callback() // funkcja wewnêtrzna
+ *
+ * wywo³ywana z gg_dcc->callback, odpala gg_dcc_watch_fd i ³aduje rezultat
+ * do gg_dcc->event.
+ */
+static int gg_dcc_callback(struct gg_dcc *d)
+{
+	struct gg_event *e = gg_dcc_watch_fd(d);
+
+	d->event = e;
+
+	return (e != NULL) ? 0 : -1;
+}
+
+/*
+ * gg_dcc_socket_create()
  *
  * tworzy socketa dla bezpo¶redniej komunikacji miêdzy klientami.
  *
@@ -174,7 +189,7 @@ struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_
  * zwraca zaalokowan± strukturê `gg_dcc', któr± po¼niej nale¿y
  * zwolniæ funkcj± gg_free_dcc(), albo NULL je¶li wyst±pi³ b³±d.
  */
-struct gg_dcc *gg_dcc_create_socket(uin_t uin, unsigned int port)
+struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 {
 	struct gg_dcc *c;
 	struct sockaddr_in sin;
@@ -233,6 +248,8 @@ struct gg_dcc *gg_dcc_create_socket(uin_t uin, unsigned int port)
 	c->timeout = -1;
 	c->state = GG_STATE_LISTENING;
 	c->check = GG_CHECK_READ;
+	c->callback = gg_dcc_callback;
+	c->destroy = gg_dcc_free;
 	
 	gg_dcc_ip = INADDR_ANY;	
 	return c;
@@ -251,6 +268,7 @@ struct gg_dcc *gg_dcc_create_socket(uin_t uin, unsigned int port)
 struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 {
 	struct gg_event *e;
+	int foo;
 
         gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_watch_fd(...);\n");
 	
@@ -510,8 +528,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_CONNECTING:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_CONNECTING\n");
 				
-				if (getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connection failed (%s)\n", strerror(res));
+				res = 0;
+				if ((foo = getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size)) || res) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() connection failed (fd=%d,errno=%d(%s),foo=%d,res=%d(%s))\n", h->fd, errno, strerror(errno), foo, res, strerror(res));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 					return e;
@@ -826,7 +845,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 
 /*
- * gg_free_dcc()
+ * gg_dcc_free()
  *
  * zwalnia pamiêæ po strukturze po³±czenia dcc.
  *
@@ -834,7 +853,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
  *
  * nie zwraca niczego. najwy¿ej segfaultnie ;)
  */
-void gg_free_dcc(struct gg_dcc *c)
+void gg_dcc_free(struct gg_dcc *c)
 {
         gg_debug(GG_DEBUG_FUNCTION, "** gg_free_dcc(...);\n");
 	
