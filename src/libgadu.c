@@ -4,6 +4,7 @@
  *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>,
  *                          Robert J. Wo¼ny <speedy@ziew.org>,
  *                          Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
+ *                          Tomasz Chiliñski <chilek@chilan.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -762,7 +763,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 	struct gg_send_msg s;
 	struct gg_msg_recipients r;
 	int i, j, k;
-	uin_t recps[32];
+	uin_t *recps;
 		
 	if (!sess) {
 		errno = EFAULT;
@@ -784,6 +785,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 	s.seq = fix32(sess->seq);
 	s.msgclass = fix32(msgclass);
 
+	recps = malloc(sizeof(uin_t) * recipients_count);
 	for (i = 0; i < recipients_count; i++) {
 	 
 		s.recipient = fix32(recipients[i]);
@@ -798,10 +800,13 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 			sess->seq += (rand() % 0x300) + 0x300;
 		
 		if (gg_send_packet(sess->fd, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1,
-			&r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), NULL) == -1)
+			&r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), NULL) == -1) {
+			free(recps);
 			return -1;
+			}
 		}
-		
+	free(recps);
+	
 	return fix32(s.seq);
 }
 
