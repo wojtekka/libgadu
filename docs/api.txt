@@ -76,6 +76,7 @@ funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 
 	switch (e->type) {
 		case GG_EVENT_NONE:
+		case GG_EVENT_PONG:
 			/* olewamy */
 			break;
 

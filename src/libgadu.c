@@ -822,6 +822,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 	if (h->type == GG_PONG) {
 		gg_debug(GG_DEBUG_MISC, "-- received a pong\n");
 
+		e->type = GG_EVENT_PONG;
 		sess->last_pong = time(NULL);
 	}
 
