@@ -312,7 +312,7 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 
 	d->fd = pipes[1];
 
-	if (pthread_create(tmp, NULL, gg_resolve_pthread_thread, d) == -1) {
+	if (pthread_create(tmp, NULL, gg_resolve_pthread_thread, d)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_phread() unable to create thread\n");
 		close(pipes[0]);
 		close(pipes[1]);
