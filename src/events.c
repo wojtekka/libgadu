@@ -81,6 +81,9 @@ void gg_event_free(struct gg_event *e)
 
 	if (e->type == GG_EVENT_PUBDIR50_SEARCH_REPLY || e->type == GG_EVENT_PUBDIR50_READ || e->type == GG_EVENT_PUBDIR50_WRITE)
 		gg_pubdir50_free(e->event.pubdir50);
+
+	if (e->type == GG_EVENT_USERLIST)
+		free(e->event.userlist.reply);
 	
 	free(e);
 }
@@ -494,6 +497,30 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_USERLIST_REPLY:
+		{
+			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist reply\n");
+
+			if (h->length < 1)
+				break;
+
+			e->type = GG_EVENT_USERLIST;
+			e->event.userlist.type = p[0];
+			e->event.userlist.reply = NULL;
+
+			if (h->length > 1) {
+				if (!(e->event.userlist.reply = malloc(h->length))) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for userlist reply\n");
+					goto fail;
+				}
+
+				e->event.userlist.reply[h->length] = 0;
+				memcpy(e->event.userlist.reply, p + 1, h->length - 1);
+			}
+
+			break;
+		}
+
 		default:
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received unknown packet 0x%.2x\n", h->type);
 	}
@@ -867,6 +894,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 
 				close(sess->fd);
+				sess->fd = -1;
 
 #ifdef ETIMEDOUT
 				if (sess->timeout == 0)

@@ -904,6 +904,9 @@ void gg_free_session(struct gg_session *sess)
 	}
 #endif
 
+	if (sess->fd != -1)
+		close(sess->fd);
+
 	free(sess);
 }
 
@@ -1455,6 +1458,22 @@ int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
 int gg_remove_notify(struct gg_session *sess, uin_t uin)
 {
 	return gg_remove_notify_ex(sess, uin, 3);
+}
+
+/*
+ * gg_userlist_request()
+ *
+ * wysy³a ¿±danie/zapytanie listy kontaktów na serwerze.
+ *
+ *  - sess - identyfikator sesji
+ *  - type - rodzaj zapytania/¿±dania
+ *  - request - tre¶æ zapytania/¿±dania (mo¿e byæ NULL)
+ *
+ * 0, -1
+ */
+int gg_userlist_request(struct gg_session *sess, char type, const char *request)
+{
+	return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, (request) ? strlen(request) : 0, NULL);
 }
 
 /*
