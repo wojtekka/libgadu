@@ -515,6 +515,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			port = p->server_port;
 		}
 
+		sess->hub_addr = a.s_addr;
+
 		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "-- connection failed\n");
 			goto fail;
