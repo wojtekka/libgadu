@@ -131,6 +131,9 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 		}
 	}
 
+	h->callback = gg_http_watch_fd;
+	h->destroy = gg_free_http;
+	
 	return h;
 }
 
@@ -394,16 +397,18 @@ void gg_http_stop(struct gg_http *h)
 /*
  * gg_free_http()
  *
- * zwalnia pamiêæ po po³±czeniu.
+ * próbuje zamkn±æ po³±czenie i zwalnia pamiêæ po nim.
  *
  *  - h - to co¶, co nie jest ju¿ nam potrzebne.
  *
  * nie zwraca niczego. najwy¿ej segfaultnie ;)
  */
-void gg_free_http(struct gg_http *h)
+void gg_http_free(struct gg_http *h)
 {
 	if (!h)
 		return;
+
+	gg_http_stop(h);
 
 	free(h->header);
 	free(h->query);

@@ -393,12 +393,27 @@ static int gg_send_packet(int sock, int type, ...)
 	return 0;
 }
 
+/*
+ * gg_session_callback() // funkcja wewnêtrzna
+ *
+ * wywo³ywany z gg_session->callback, wykonuje gg_watch_fd() i pakuje
+ * do gg_session->event jego wynik.
+ */
+static int gg_session_callback(struct gg_session *s)
+{
+	if (!s) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return ((s->event = gg_watch_fd(s)) != NULL) ? 0 : -1;
+}
 
 /*
  * gg_login()
  *
  * rozpoczyna procedurê ³±czenia siê z serwerem. resztê obs³guje siê przez
- * gg_watch_event.
+ * gg_watch_fd.
  *
  *  - uin - numerek usera,
  *  - password - jego hase³ko,
@@ -490,13 +505,16 @@ struct gg_session *gg_login(uin_t uin, char *password, int async)
 		}
 	}
 
+	sess->callback = gg_session_callback;
+	sess->destroy = gg_free_session;
+	
 	return sess;
 }
 
 /* 
  * gg_free_session()
  *
- * zwalnia pamiêæ zajmowan± przez opis sesji.
+ * próbuje zamkn±æ po³±czenia i zwalnia pamiêæ zajmowan± przez sesjê.
  *
  *  - sess - opis sesji.
  *
@@ -506,6 +524,8 @@ void gg_free_session(struct gg_session *sess)
 {
 	if (!sess)
 		return;
+
+	/* XXX dopisaæ zwalnianie i zamykanie wszystkiego, bo mog³o zostaæ */
 
 	free(sess->password);
 	free(sess);
