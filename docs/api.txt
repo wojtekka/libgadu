@@ -231,7 +231,13 @@ wyników wyszukiwania wygl±da nastêpuj±co:
                         "Urodzony: %s\nMiejscowo¶æ: %s\n", uin,
                         first, nick, born, city);
 
-                switch ((status) ? atoi(status) : -1) {
+/*
+  status w wynikach wyszukiwania w przypadku ,,tylko dla znajomych''
+  jest oznaczony innym bitem ni¿ GG_STATUS_FRIENDS_MASK.
+ */
+#define GG_SEARCH_FRIENDS_MASK	0x0080
+
+                switch ((status) ? (atoi(status) & ~GG_SEARCH_FRIENDS_MASK) : -1) {
                         case GG_STATUS_AVAIL:
                                 printf("Dostêpny\n");
                                 break;
