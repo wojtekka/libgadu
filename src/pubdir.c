@@ -262,7 +262,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_request *request, int async)
 {
 	struct gg_http *h;
-	char *form, *query;
+	char *form, *query, *__first, *__last, *__nick, *__email, *__city;
 
 	if (!passwd || !request) {
 		gg_debug(GG_DEBUG_MISC, "=> change_info, NULL parameter\n");
@@ -270,8 +270,34 @@ struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_re
 		return NULL;
 	}
 
-	if (!(form = gg_alloc_sprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
-	uin, passwd, request->first_name, request->last_name, request->nickname, request->email, request->born, request->gender, request->city))) {
+	__first = gg_urlencode(request->first_name);
+	__last = gg_urlencode(request->last_name);
+	__nick = gg_urlencode(request->nickname);
+	__email = gg_urlencode(request->email);
+	__city = gg_urlencode(request->city);
+	
+	if (!__first || !__last || !__nick || !__email || !__city) {
+		free(__first);
+		free(__last);
+		free(__nick);
+		free(__email);
+		free(__city);
+
+		gg_debug(GG_DEBUG_MISC, "=> change_info, not enough memory for form fields\n");
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	form = gg_alloc_sprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
+	uin, passwd, __first, __last, __nick, __email, request->born, request->gender, __city);
+
+	free(__first);
+	free(__last);
+	free(__nick);
+	free(__email);
+	free(__city);
+
+	if (!form) {
 		gg_debug(GG_DEBUG_MISC, "=> change_info, not enough memory for form fields\n");
 		errno = ENOMEM;
 		return NULL;
