@@ -40,7 +40,7 @@
 #ifdef sun
   #include <sys/filio.h>
 #endif
-#include "libgg.h"
+#include "libgadu.h"
 #include "config.h"
 
 int gg_debug_level = 0;
