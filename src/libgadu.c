@@ -176,11 +176,13 @@ static void *gg_recv_packet(struct gg_session *sess)
 	}
 
 	if (sess->recv_left < 1) {
+		int tries = 10;
+		
 		while (ret != sizeof(h)) {
 			ret = read(sess->fd, &h, sizeof(h));
 			gg_debug(GG_DEBUG_MISC, "-- header recv(..., %d) = %d\n", sizeof(h), ret);
 			if (ret < sizeof(h)) {
-				if (errno != EINTR) {
+				if (errno != EINTR || !--tries) {
 					gg_debug(GG_DEBUG_MISC, "-- errno = %d (%s)\n", errno, strerror(errno));
 					return NULL;
 				}
