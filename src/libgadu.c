@@ -642,9 +642,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		}
 
 		if (p->server_addr && p->server_port)
-			sess->state = GG_STATE_CONNECTING_HUB;
-		else
 			sess->state = GG_STATE_CONNECTING_GG;
+		else
+			sess->state = GG_STATE_CONNECTING_HUB;
 
 		while (sess->state != GG_STATE_CONNECTED) {
 			struct gg_event *e;
