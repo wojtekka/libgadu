@@ -421,7 +421,23 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 		}
 	} else
 #endif
-		res = write(sess->fd, buf, length);
+	{
+		int written = 0;
+		
+		while (written < length) {
+			res = write(sess->fd, buf + written, length - written);
+
+			if (res == -1) {
+				if (errno == EAGAIN)
+					continue;
+				else
+					break;
+			} else {
+				written += res;
+				res = written;
+			}
+		}
+	}
 
 	return res;
 }

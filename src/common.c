@@ -694,7 +694,7 @@ static int gg_crc32_initialized = 0;
  */
 static void gg_crc32_make_table()
 {
-	uint32_t h = 0;
+	uint32_t h = 1;
 	int i, j;
 
 	memset(gg_crc32_table, 0, sizeof(gg_crc32_table));
