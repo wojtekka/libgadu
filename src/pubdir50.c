@@ -117,6 +117,31 @@ int gg_pubdir50_add(gg_pubdir50_t req, const char *field, const char *value)
 }
 
 /*
+ * gg_pubdir50_seq_set()
+ *
+ * ustawia numer sekwencyjny zapytania.
+ *
+ *  - req - zapytanie,
+ *  - seq - nowy numer sekwencyjny.
+ *
+ * 0/-1.
+ */
+int gg_pubdir50_seq_set(gg_pubdir50_t req, uint32_t seq)
+{
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_seq_set(%p, %d);\n", req, seq);
+	
+	if (!req) {
+		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50() invalid arguments\n");
+		errno = EFAULT;
+		return -1;
+	}
+
+	req->seq = seq;
+
+	return 0;
+}
+
+/*
  * gg_pubdir50_free()
  *
  * zwalnia pamiêæ po zapytaniu lub rezultacie szukania u¿ytkownika.
@@ -186,7 +211,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 	r = (struct gg_pubdir50_request*) buf;
 	res = time(NULL);
 	r->type = req->type;
-	r->seq = fix32(time(NULL));
+	r->seq = (req->seq) ? fix32(req->seq) : fix32(time(NULL));
 
 	for (i = 0, p = buf + 5; i < req->entries_count; i++) {
 		if (req->entries[i].num)
