@@ -398,14 +398,14 @@ void *gg_recv_packet(struct gg_session *sess)
 			}
 
 			sess->header_done += ret;
+
 		}
 
 		h.type = gg_fix32(h.type);
 		h.length = gg_fix32(h.length);
-	} else {
+	} else
 		memcpy(&h, sess->recv_buf, sizeof(h));
-	}
-
+	
 	/* jakie¶ sensowne limity na rozmiar pakietu */
 	if (h.length < 0 || h.length > 65535) {
 		gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() invalid packet length (%d)\n", h.length);

@@ -202,6 +202,8 @@ while(<F>) {
 		print H "<div class=\"desc\">\n$body\n</div>\n";
 
 		if ($type eq "enum") {
+			push @enums, $name;
+
 			print H "<div class=\"header\">Warto¶ci:</div>\n";
 			print H "<div class=\"params\">\n<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
 			while (<F>) {
@@ -215,19 +217,78 @@ while(<F>) {
 		}
 
 		if ($type eq "struct") {
+			push @structs, $name;
+
 			print H "<div class=\"header\">Pola struktury:</div>\n";
-			print H "<div class=\"params\">\n<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
+
+			$table_open = 0;
+
 			while (<F>) {
 				chomp;
+
 				if (/^(\t|        )gg_common_head/) {
+					print H "<div class=\"params\">\n";
+					print H "<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
 					print H $common;
+
+					$table_open = 1;
 				}
-				if (/^(\t|        )([a-z].*)\/\* (.*) \*\// && $1 !~ /gg_session_common/) {
-					print H "<tr><td class=\"paramname\">$2</td><td class=\"paramdescr\">$3</td></tr>\n";
+
+				if (/^(\t|        ){2}struct.*\/\* @([^ ]*) (.*) \*\//) {
+					if ($table_open) {
+						print H "</table>\n</div>\n";
+						$table_open = 0;
+					}
+
+					print H "<div class=\"header\">Pola struktury <tt>$union.$2</tt> ($3):</div>\n";
 				}
+
+				if (/^(\t|        ){2}} && $table_open/) {
+					print H "</table>\n</div>\n";
+					$table_open = 0;
+				}
+
+				if (/^(\t|        )union.*\/\* @([^ ]*) .*/) {
+					$union = $2;
+
+					if ($table_open) {
+						print H "</table>\n</div>\n";
+						$table_open = 0;
+					}
+
+					print H "<div class=\"header\">Pola unii <tt>$2</tt>:</div>\n";
+				}
+
+				if (/^(\t|        ){2}} && $table_open/) {
+					print H "</table>\n</div>\n";
+					$table_open = 0;
+				}
+
+				if (/^(\t|        ){1,3}([a-z].*)\/\* (.*) \*\// && $1 !~ /gg_session_common/) {
+					$name = $2;
+					$desc = $3;
+
+					if ($name !~ /^(struct|union) \{/) {
+						if ($table_open == 0) {
+							print H "<div class=\"params\">\n";
+							print H "<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
+							$table_open = 1;
+						}
+
+						print H "<tr><td class=\"paramname\">$name</td><td class=\"paramdescr\">$desc</td></tr>\n";
+					}
+				}
+
 				last if (/^}/);
 			}
-			print H "</table>\n</div>\n";
+
+			if ($table_open) {
+				print H "</table>\n</div>\n";
+			}
+		}
+
+		if ($type eq "typedef") {
+			push @typedefs, $name;
 		}
 	}
 }
@@ -241,6 +302,33 @@ open(H, ">index.html");
 print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"style.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
 
 $first = 1;
+
+print H "<div class=\"funcgroup\">Typy danych</div>\n";
+print H "<div class=\"indexdecl\">\n";
+
+foreach $i (sort @typedefs) {
+	print H "<span class=\"index_typedef\">typedef</span> <a href=\"types.html#typedef_$i\"><b>$i</b></a>;<br>\n";
+}
+
+print H "</div>\n\n";
+
+print H "<div class=\"funcgroup\">Struktury</div>\n";
+print H "<div class=\"indexdecl\">\n";
+
+foreach $i (sort @structs) {
+	print H "<span class=\"index_struct\">struct</span> <a href=\"types.html#struct_$i\"><b>$i</b></a>;<br>\n";
+}
+
+print H "</div>\n\n";
+
+print H "<div class=\"funcgroup\">Typy wyliczeniowe</div>\n";
+print H "<div class=\"indexdecl\">\n";
+
+foreach $i (sort @enums) {
+	print H "<span class=\"index_enum\">enum</span> <a href=\"types.html#enum_$i\"><b>$i</b></a>;<br>\n";
+}
+
+print H "</div>\n\n";
 
 while(<F>) {
 	chomp;

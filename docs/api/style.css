@@ -1,0 +1,121 @@
+BODY {
+	background-color: white;
+	color: black;
+}
+
+.function {
+	font: 16pt tahoma, verdana, arial, helvetica;
+	background-color: #c0d0e0;
+	border-bottom: 2px solid #8090a0;
+	border-right: 2px solid #8090a0;
+	margin-top: 2em;
+	padding: 0.2em;
+}
+
+.header {
+	font: bold tahoma, verdana, arial, helvetica;
+	margin-top: 0.7em;
+}
+
+.desc {
+	font: normal tahoma, verdana, arial, helvetica;
+	margin-left: 3em;
+}
+
+TABLE.params {
+	background-color: #8090a0;
+	margin-left: 3em;
+	margin-right: 3em;
+}
+
+.decl {
+	font: normal 12pt courier new, courier, monospaced;
+	margin-left: 3em;
+}
+
+.paramname {
+	font: normal 12pt courier new, courier, monospaced;
+	padding: 0em 0.5em;
+	background-color: #f0f8ff;
+}
+
+.paramdescr {
+	font: normal tahoma, verdana, arial, helvetica;
+	padding: 0em 0.5em;
+	background-color: #f0f8ff;
+}
+
+.result {
+	font: normal tahoma, verdana, arial, helvetica;
+	margin-left: 3em;
+}
+
+.ctype {
+	color: green;
+}
+
+.ggtype {
+	color: blue;
+}
+
+.cdirective {
+	color: magenta;
+}
+
+.structlink {
+	color: blue;
+}
+
+.funcgroup {
+	font: 14pt tahoma, verdana, arial, helvetica;
+	background-color: #c0d0e0;
+	border-bottom: 2px solid #8090a0;
+	border-right: 2px solid #8090a0;
+	padding: 0.2em;
+	margin-bottom: 0.2em;
+}
+
+.indexdecl {
+	font: normal 12pt courier, courier new, monospaced;
+/*	margin-left: 3em; */
+	margin-bottom: 2em;
+}
+
+.typedef {
+	font: 14pt tahoma, verdana, arial, helvetica;
+	background-color: #c0d0e0;
+	border-bottom: 2px solid #8090a0;
+	border-right: 2px solid #8090a0;
+	margin-top: 2em;
+	padding: 0.2em;
+}
+
+.index_typedef {
+	color: green;
+}
+
+.enum {
+	font: 14pt tahoma, verdana, arial, helvetica;
+	background-color: #c0e0d0;
+	border-bottom: 2px solid #80a090;
+	border-right: 2px solid #80a090;
+	margin-top: 2em;
+	padding: 0.2em;
+}
+
+.index_enum {
+	color: magenta;
+}
+
+.struct {
+	font: 14pt tahoma, verdana, arial, helvetica;
+	background-color: #e0c0d0;
+	border-bottom: 2px solid #a08090;
+	border-right: 2px solid #a08090;
+	margin-top: 2em;
+	padding: 0.2em;
+}
+
+.index_struct {
+	color: blue;
+}
