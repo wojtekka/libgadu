@@ -7,3 +7,4 @@ libgadu.pc
 libgadu-config.h
 *.lo
 .depend
+libgadu.la
