@@ -230,10 +230,51 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 	return h;
 }
 
+/*
+ * gg_change_pubdir()
+ *
+ * zmienia nasze dane w katalogu publicznym.
+ *
+ *  - uin - numerek.
+ *  - passwd - haselko.
+ *  - modify - na co mamy zmienic.
+ *  - async - ma byæ asynchronicznie?
+ *
+ * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ */
 
 struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modify, int async)
 {
 	struct gg_http *h;
+	char *form, *query;
+
+	if (!(form = gg_alloc_sprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
+	uin, passwd, modify->first_name, modify->last_name, modify->nickname, modify->email, modify->born, modify->gender, modify->city))) {
+		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
+
+        query = gg_alloc_sprintf(
+		"Host: " GG_PUBDIR_HOST "\r\n"
+                "Content-Type: application/x-www-form-urlencoded\r\n"
+                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
+                "Content-Length: %d\r\n"
+                "Pragma: no-cache\r\n"
+                "\r\n"
+                "%s",
+                strlen(form), form);
+
+	free(form);
+
+	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmpubreg2.asp", query))) {
+		gg_debug(GG_DEBUG_MISC, "=> search, gg_http_connect() failed mysteriously\n");
+                free(query);
+		return NULL;
+	}
 
 	h->type = GG_SESSION_CHANGE;
 
@@ -241,6 +282,7 @@ struct gg_http *gg_change_pubdir(uin_t uin, char *passwd, struct gg_modify *modi
 		gg_pubdir_watch_fd(h);
 
 	return h;
+
 }
 
 /*
