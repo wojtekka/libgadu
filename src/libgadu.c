@@ -110,8 +110,8 @@ static inline unsigned short fix16(unsigned short x)
  * gg_alloc_sprintf() // funkcja wewnêtrzna
  *
  * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
- * miejsce na dane. jak znam ¿ycie, ze wzglêdu na ró¿nice miêdzy funkcjami
- * vsnprintf() na ró¿nych platformach, nie bêdzie dzia³a³o ;)
+ * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
+ * vsnprintf() zgodn± z C99, jak i na wcze¶niejszych.
  *
  *  - format, ... - parametry takie same jak w innych funkcjach *printf()
  *
@@ -120,23 +120,33 @@ static inline unsigned short fix16(unsigned short x)
  */
 char *gg_alloc_sprintf(char *format, ...)
 {
-	va_list ap;
-	char *buf = NULL;
-	int size;
+        va_list ap;
+        char *buf = NULL, *tmp;
+        int size = 0, res;
 
-	va_start(ap, format);
+        va_start(ap, format);
 
-	if ((size = vsprintf(buf, format, ap)) < 0)
-		return NULL;
+        if ((size = vsnprintf(buf, 0, format, ap)) < 1) {
+                size = 128;
+                do {
+                        size *= 2;
+                        if (!(tmp = realloc(buf, size))) {
+                                free(buf);
+                                return NULL;
+                        }
+                        buf = tmp;
+                        res = vsnprintf(buf, size, format, ap);
+                } while (res == size - 1);
+        } else {
+                if (!(buf = malloc(size + 1)))
+                        return NULL;
+        }
 
-	if (!(buf = malloc(size + 1)))
-		return NULL;
+        vsnprintf(buf, size + 1, format, ap);
 
-	vsnprintf(buf, size + 1, format, ap);
+        va_end(ap);
 
-	va_end(ap);
-
-	return buf;
+        return buf;
 }
 
 /*
