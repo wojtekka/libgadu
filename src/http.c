@@ -69,14 +69,16 @@ struct gg_http *gg_http_connect(char *hostname, int port, int async, char *metho
 	memset(h, 0, sizeof(*h));
 
 	if (gg_http_proxy_host && gg_http_proxy_port) {
-		h->query = gg_alloc_sprintf("%s http://%s:%d%s HTTP/1.1\r\n%s",
+		h->query = gg_alloc_sprintf("%s http://%s:%d%s HTTP/1.0\r\n%s",
 				method, hostname, port, path, header);
 		hostname = gg_http_proxy_host;
 		port = gg_http_proxy_port;
 	} else {
-		h->query = gg_alloc_sprintf("%s %s HTTP/1.1\r\n%s",
+		h->query = gg_alloc_sprintf("%s %s HTTP/1.0\r\n%s",
 				method, path, header);
 	}
+
+        gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
 
 	if (!h->query) {
 		free(h);
@@ -258,6 +260,8 @@ int gg_http_watch_fd(struct gg_http *h)
 
 			gg_debug(GG_DEBUG_MISC, "=> http, got all header (%d bytes, %d left)\n", h->header_size - left, left);
 
+			gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-HEADER-----\n%s\n=> -----END-HTTP-HEADER-----\n", h->header);
+#if 0
 			/* HTTP/1.1 200 OK */
 			if (strlen(h->header) < 16 || strncmp(h->header + 9, "200", 3)) {
 				gg_debug(GG_DEBUG_MISC, h->header);
@@ -267,7 +271,7 @@ int gg_http_watch_fd(struct gg_http *h)
 				close(h->fd);
 				GET_LOST(GG_FAILURE_404);
 			}
-
+#endif
 			h->data_size = 0;
 			line = h->header;
 			*tmp = 0;
