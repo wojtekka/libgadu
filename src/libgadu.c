@@ -926,6 +926,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					"\r\n", sess->uin);
 			};
 
+    			gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", buf);
+	 
 			if (write(sess->fd, buf, strlen(buf)) < strlen(buf)) {
 				gg_debug(GG_DEBUG_MISC, "-- sending query failed\n");
 
@@ -954,7 +956,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_chomp(buf);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- got http response (%s)\n", buf);
-	
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
 				gg_debug(GG_DEBUG_MISC, "-- but that's not what we've expected\n");
 
@@ -974,8 +975,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			close(sess->fd);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- received http data (%s)\n", buf);
-
+						
 			tmp = buf;
+			
 			while (*tmp && *tmp != ' ')
 				tmp++;
 			while (*tmp && *tmp == ' ')
