@@ -740,7 +740,7 @@ fail:
  * funkcja, któr± nale¿y wywo³aæ, gdy co¶ siê stanie z obserwowanym
  * deskryptorem. zwraca klientowi informacjê o tym, co siê dzieje.
  *
- *  - sess - identyfikator sesji
+ *  - sess - opis sesji
  *
  * wska¼nik do struktury gg_event, któr± trzeba zwolniæ pó¼niej
  * za pomoc± gg_event_free(). jesli rodzaj zdarzenia jest równy
@@ -772,22 +772,21 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_RESOLVING:
 		{
 			struct in_addr addr;
+			int failed = 0;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_RESOLVING\n");
 
 			if (read(sess->fd, &addr, sizeof(addr)) < (signed)sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() resolving failed\n");
-
-				close(sess->fd);
-				sess->fd = -1;
-
-				goto fail_resolving;
+				failed = 1;
 			}
 			
 			close(sess->fd);
+			sess->fd = -1;
 
 #ifndef __GG_LIBGADU_HAVE_PTHREAD
 			waitpid(sess->pid, NULL, 0);
+			sess->pid = -1;
 #else
 			if (sess->resolver) {
 				pthread_cancel(*((pthread_t*) sess->resolver));
@@ -795,6 +794,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->resolver = NULL;
 			}
 #endif
+
+			if (failed)
+				goto fail_resolving;
 
 			/* je¶li jeste¶my w resolverze i mamy ustawiony port
 			 * proxy, znaczy, ¿e resolvowali¶my proxy. zatem
