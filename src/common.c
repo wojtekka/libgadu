@@ -328,13 +328,17 @@ char *gg_read_line(int sock, char *buf, int length)
  */
 void gg_chomp(char *line)
 {
-	if (!line || strlen(line) < 1)
+	int len;
+	
+	if (!line)
 		return;
 
-	if (line[strlen(line) - 1] == '\n')
-		line[strlen(line) - 1] = 0;
-	if (line[strlen(line) - 1] == '\r')
-		line[strlen(line) - 1] = 0;
+	len = strlen(line);
+	
+	if (len > 0 && line[len - 1] == '\n')
+		line[--len] = 0;
+	if (len > 0 && line[len - 1] == '\r')
+		line[--len] = 0;
 }
 
 /*
@@ -354,8 +358,8 @@ char *gg_urlencode(const char *str)
 	const char *p;
 	int size = 0;
 
-	if (!str && !(str = strdup("")))
-		return NULL;
+	if (!str)
+		str = "";
 
 	for (p = str; *p; p++, size++) {
 		if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == ' ') || (*p == '@') || (*p == '.') || (*p == '-'))
