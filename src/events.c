@@ -139,7 +139,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			}
 
 			len = (unsigned short*) (p + 1);
-			gg_debug(GG_DEBUG_MISC, "-- p = %p, packetend = %p, len = %d\n", p, packet_end, len);
+			gg_debug(GG_DEBUG_MISC, "-- p = %p, packetend = %p, len = %d\n", p, packet_end, *len);
 
 			if (!(tmp = malloc(*len))) {
 				gg_debug(GG_DEBUG_MISC, "-- not enough memory\n");
@@ -159,8 +159,10 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e)
 			e->event.msg.formats = tmp;
 			e->event.msg.formats_length = *len;
 
-		} else				/* nieznana opcja */
+		} else {				/* nieznana opcja */
+			gg_debug(GG_DEBUG_MISC, "-- unknown option 0x%.2x\n", *p);
 			p = packet_end;
+		}
 	}
 
 	e->type = GG_EVENT_MSG;
