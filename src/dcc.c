@@ -63,7 +63,7 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, int s
 	gg_debug(GG_DEBUG_MISC, "\n");
 }
 #else
-#define gg_dcc_debug_data(a,b,c,d) { }
+#define gg_dcc_debug_data(a,b,c,d) do { } while (0)
 #endif
 
 /*
