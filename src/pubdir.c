@@ -103,6 +103,60 @@ struct gg_http *gg_register(char *email, char *password, int async)
 }
 
 /*
+ * gg_remind_passwd()
+ *
+ * wysy³a ¿±danie wys³ania has³a na adres e-mail.
+ *
+ *  - uin - numerek.
+ *  - async - ma byæ asynchronicznie?
+ *
+ * zwraca zaalokowan± strukturê `gg_http', któr± po¼niej nale¿y zwolniæ
+ * funkcj± gg_free_register(), albo NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_http *gg_remind_passwd(uin_t uin, int async)
+{
+	struct gg_http *h;
+	char *form, *query, uin_str[16];
+
+	snprintf(uin_str, sizeof(uin_str), "%ld", uin);
+	
+	if (!(form = gg_alloc_sprintf("userid=%d&code=%u", uin, gg_http_hash(uin_str, NULL)))) {
+		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
+		errno = ENOMEM;
+		return NULL;
+	}
+	
+	gg_debug(GG_DEBUG_MISC, "=> remind, %s\n", form);
+
+        query = gg_alloc_sprintf(
+		"Host: " GG_REMIND_HOST "\r\n"
+                "Content-Type: application/x-www-form-urlencoded\r\n"
+                "User-Agent: " GG_HTTP_USERAGENT "\r\n"
+                "Content-Length: %d\r\n"
+                "Pragma: no-cache\r\n"
+                "\r\n"
+                "%s",
+                strlen(form), form);
+
+	free(form);
+
+	if (!(h = gg_http_connect(GG_REMIND_HOST, GG_REMIND_PORT, async, "POST", "/appsvc/fmsendpwd.asp", query))) {
+		gg_debug(GG_DEBUG_MISC, "=> remind, gg_http_connect() failed mysteriously\n");
+                free(query);
+		return NULL;
+	}
+
+	h->type = GG_SESSION_REMIND;
+
+	free(query);
+
+	if (!async)
+		gg_pubdir_watch_fd(h);
+
+	return h;
+}
+
+/*
  * gg_pubdir_watch_fd()
  *
  * przy asynchronicznym zak³adaniu wypada³oby wywo³aæ t± funkcjê przy
@@ -117,6 +171,7 @@ struct gg_http *gg_register(char *email, char *password, int async)
 int gg_pubdir_watch_fd(struct gg_http *h)
 {
 	struct gg_pubdir *p;
+	char *tmp;
 
 	if (!h) {
 		errno = EINVAL;
@@ -151,13 +206,13 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 	
 	gg_debug(GG_DEBUG_MISC, "=> pubdir, let's parse \"%s\"\n", h->body);
 
-	if (strncasecmp(h->body, "reg_success:", 12))
-		gg_debug(GG_DEBUG_MISC, "=> pubdir, error.\n");
-	else {
-		p->uin = strtol(h->body + 12, NULL, 0);
+	if ((tmp = strstr(h->body, "success"))) {
 		p->success = 1;
+		if (tmp[7] == ':')
+			p->uin = strtol(tmp + 8, NULL, 0);
 		gg_debug(GG_DEBUG_MISC, "=> pubdir, success (uin=%ld)\n", p->uin);
-	}
+	} else
+		gg_debug(GG_DEBUG_MISC, "=> pubdir, error.\n");
 
 	return 0;
 }
@@ -165,13 +220,13 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 /*
  * gg_free_register()
  *
- * zwalnia pamiêæ po efektach rejestracji.
+ * zwalnia pamiêæ po efektach zabawy z katalogiem publicznym.
  *
  *  - h - to co¶, co nie jest ju¿ nam potrzebne.
  *
  * nie zwraca niczego. najwy¿ej segfaultnie.
  */
-void gg_free_register(struct gg_http *h)
+void gg_free_pubdir(struct gg_http *h)
 {
 	if (!h)
 		return;
