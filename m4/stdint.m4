@@ -45,16 +45,17 @@ AC_DEFUN([AC_NEED_STDINT_H],
 /* ISO C 9X: 7.18 Integer types <stdint.h> */
 
 #define __int8_t_defined
-typedef   signed char    int8_t;
 typedef unsigned char   uint8_t;
-typedef   signed short  int16_t;
 typedef unsigned short uint16_t;
-typedef   signed int    int32_t;
 typedef unsigned int   uint32_t;
+
+#ifndef __CYGWIN__
+typedef   signed char    int8_t;
+typedef   signed short  int16_t;
+typedef   signed int    int32_t;
+#endif
 
 #endif /* __AC_STDINT_H */
 EOF
   fi
 ])
-
-
