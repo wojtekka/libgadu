@@ -9,8 +9,11 @@ Funkcje dotycz±ce po³±czenia z serwerem Gadu-Gadu
 	gg_send_message_confer
 	gg_ping
 	gg_notify
+	gg_notify_ex
 	gg_add_notify
+	gg_add_notify_ex
 	gg_remove_notify
+	gg_remove_notify_ex
 	gg_logoff
 	gg_free_session
 

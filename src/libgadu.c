@@ -852,6 +852,57 @@ int gg_ping(struct gg_session *sess)
 }
 
 /*
+ * gg_notify_ex()
+ *
+ * wysy³a serwerowi listê kontaktów (wraz z odpowiadaj±cymi im typami userów),
+ * dziêki czemu wie, czyj stan nas interesuje.
+ *
+ *  - sess - identyfikator sesji
+ *  - userlist - wska¼nik do tablicy numerów
+ *  - types - wska¼nik do tablicy typów u¿ytkowników
+ *  - count - ilo¶æ numerków
+ *
+ * 0, -1.
+ */
+int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int count)
+{
+	struct gg_notify *n;
+	uin_t *u;
+	char *t;
+	int i, res = 0;
+
+	if (!sess) {
+		errno = EFAULT;
+		return -1;
+	}
+	
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_notify(..., %d);\n", count);
+	
+	if (!userlist || !count)
+		return 0;
+	
+	if (!(n = (struct gg_notify*) malloc(sizeof(*n) * count)))
+		return -1;
+	
+	for (u = userlist, t = types, i = 0; i < count; u++, t++, i++) { 
+		n[i].uin = fix32(*u);
+		n[i].dunno1 = *t;
+	}
+	
+	if (gg_send_packet(sess->fd, GG_NOTIFY, n, sizeof(*n) * count, NULL) == -1)
+		res = -1;
+
+	free(n);
+
+	return res;
+}
+
+/*
  * gg_notify()
  *
  * wysy³a serwerowi listê kontaktów, dziêki czemu wie, czyj stan nas
@@ -901,16 +952,18 @@ int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
 }
 
 /*
- * gg_add_notify()
+ * gg_add_notify_ex()
  *
  * dodaje do listy kontaktów dany numer w trakcie po³±czenia.
+ * dodawanemu u¿ytkownikowi okre¶lamy jego typ (patrz protocol.html)
  *
  *  - sess - identyfikator sesji
  *  - uin - numer
+ *  - type - typ
  *
  * 0, -1.
  */
-int gg_add_notify(struct gg_session *sess, uin_t uin)
+int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type)
 {
 	struct gg_add_remove a;
 
@@ -924,12 +977,61 @@ int gg_add_notify(struct gg_session *sess, uin_t uin)
 		return -1;
 	}
 	
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_add_notify(..., %u);\n", uin);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_add_notify_ex(..., %u, %hhu);\n", uin, type);
 	
 	a.uin = fix32(uin);
-	a.dunno1 = 3;
+	a.dunno1 = type;
 	
 	return gg_send_packet(sess->fd, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
+}
+
+/*
+ * gg_add_notify()
+ *
+ * dodaje do listy kontaktów dany numer w trakcie po³±czenia.
+ *
+ *  - sess - identyfikator sesji
+ *  - uin - numer
+ *
+ * 0, -1.
+ */
+int gg_add_notify(struct gg_session *sess, uin_t uin)
+{
+	return gg_add_notify_ex(sess, uin, 3);
+}
+
+/*
+ * gg_remove_notify_ex()
+ *
+ * usuwa z listy kontaktów w trakcie po³±czenia
+ * usuwanemu u¿ytkownikowi okre¶lamy jego typ (patrz protocol.html)
+ *
+ *  - sess - identyfikator sesji
+ *  - uin - numer
+ *  - type - typ
+ *
+ * 0, -1.
+ */
+int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
+{
+	struct gg_add_remove a;
+
+	if (!sess) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_remove_notify_ex(..., %u, %hhu);\n", uin, type);
+	
+	a.uin = fix32(uin);
+	a.dunno1 = type;
+	
+	return gg_send_packet(sess->fd, GG_REMOVE_NOTIFY, &a, sizeof(a), NULL);
 }
 
 /*
@@ -944,24 +1046,7 @@ int gg_add_notify(struct gg_session *sess, uin_t uin)
  */
 int gg_remove_notify(struct gg_session *sess, uin_t uin)
 {
-	struct gg_add_remove a;
-
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_remove_notify(..., %u);\n", uin);
-	
-	a.uin = fix32(uin);
-	a.dunno1 = 3;
-	
-	return gg_send_packet(sess->fd, GG_REMOVE_NOTIFY, &a, sizeof(a), NULL);
+	return gg_remove_notify_ex(sess, uin, 3);
 }
 
 /*
