@@ -892,6 +892,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_DISCONNECTING:
 		{
 			gg_debug(GG_DEBUG_MISC, "-- received disconnection warning\n");
+			e->type = GG_EVENT_DISCONNECT;
 			break;
 		}
 
