@@ -237,6 +237,25 @@ struct gg_dcc *gg_dcc_send_file(unsigned long ip, unsigned short port, uin_t my_
 }
 
 /*
+ * gg_dcc_voice_chat()
+ * 
+ * próbuje nawi±zaæ po³±czenie g³osowe.
+ *
+ *  - ip - adres ip odbiorcy,
+ *  - port - port odbiorcy,
+ *  - my_uin - w³asny numer,
+ *  - peer_uin - numer obiorcy.
+ *
+ * zaalokowana struktura gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_dcc *gg_dcc_voice_chat(unsigned long ip, unsigned short port, uin_t my_uin, uin_t peer_uin)
+{
+	gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_chat() handing over to gg_dcc_transfer()\n");
+
+	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_VOICE);
+}
+
+/*
  * gg_dcc_callback() // funkcja wewnêtrzna
  *
  * wywo³ywana z gg_dcc->callback, odpala gg_dcc_watch_fd i ³aduje rezultat
@@ -328,6 +347,41 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, unsigned int port)
 	return c;
 }
 
+#define gg_read(fd, buf, size) \
+{ \
+	int tmp = read(fd, buf, size); \
+	if (tmp == 0) \
+		return e; \
+	if (tmp < size) { \
+		if (tmp == -1) \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", errno, strerror(errno)); \
+		else \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d bytes, %d needed)\n", tmp, size); \
+		e->type = GG_EVENT_DCC_ERROR; \
+		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
+		return e; \
+	} \
+	gg_dcc_debug_data("read", fd, buf, size); \
+} 
+
+#define gg_write(fd, buf, size) \
+{ \
+	int tmp; \
+	gg_dcc_debug_data("write", fd, buf, size); \
+	tmp = write(fd, buf, size); \
+	if (!tmp) \
+		return e; \
+	if (tmp < size) { \
+		if (tmp == -1) \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", errno, strerror(errno)); \
+		else \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d needed, %d done)\n", size, tmp); \
+		e->type = GG_EVENT_DCC_ERROR; \
+		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
+		return e; \
+	} \
+}
+
 /*
  * gg_dcc_watch_fd()
  *
@@ -398,10 +452,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 		return e;
 	} else {
+		struct gg_dcc_tiny_packet tiny;
 		struct gg_dcc_small_packet small;
 		struct gg_dcc_big_packet big;
 		int size, tmp, res, res_size;
-		char buf[4096], ack[] = "UDAG";
+		char buf[1024], ack[] = "UDAG";
 
 		struct gg_dcc_file_info_packet {
 			struct gg_dcc_big_packet big;
@@ -416,47 +471,33 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 		switch (h->state) {
 			case GG_STATE_READING_UIN_1:
-			case GG_STATE_READING_UIN_2:
+			case GG_STATE_READING_UIN_2: {
+				uin_t uin;
+
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_READING_UIN_%d\n", (h->state == GG_STATE_READING_UIN_1) ? 1 : 2);
 				
-				if ((res = read(h->fd, &tmp, sizeof(tmp))) != sizeof(tmp)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", (res == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &tmp, res);
+				gg_read(h->fd, &uin, sizeof(uin));
 
 				if (h->state == GG_STATE_READING_UIN_1) {
 					h->state = GG_STATE_READING_UIN_2;
 					h->check = GG_CHECK_READ;
 					h->timeout = GG_DEFAULT_TIMEOUT;
-					h->peer_uin = tmp;
+					h->peer_uin = uin;
 				} else {
 					h->state = GG_STATE_SENDING_ACK;
 					h->check = GG_CHECK_WRITE;
 					h->timeout = GG_DEFAULT_TIMEOUT;
-					h->uin = tmp;
+					h->uin = uin;
 					e->type = GG_EVENT_DCC_CLIENT_ACCEPT;
 				}
 
 				return e;
+			}
 
 			case GG_STATE_SENDING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_SENDING_ACK\n");
 
-				gg_dcc_debug_data("write", h->fd, ack, 4);
-
-				if ((res = write(h->fd, ack, 4)) != 4) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", res, (res == -1) ? strerror(errno) : "<sizeof");
-					
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					
-					return e;
-				}
+				gg_write(h->fd, ack, 4);
 
 				h->state = GG_STATE_READING_REQUEST;
 				h->check = GG_CHECK_READ;
@@ -467,86 +508,73 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_REQUEST\n");
 				
-				if ((tmp = read(h->fd, &small, sizeof(small))) != sizeof(small)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &small, tmp);
+				gg_read(h->fd, &small, sizeof(small));
 
 				small.type = fix32(small.type);
 
-				if (small.type == 0x0003) {	/* XXX */
-					h->type = GG_SESSION_DCC_SEND;
-					h->state = GG_STATE_SENDING_FILE_INFO;
-					h->check = GG_CHECK_WRITE;
-					h->timeout = GG_DEFAULT_TIMEOUT;
+				switch (small.type) {
+					case 0x0003:	/* XXX */
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() outgoing data\n");
+						h->type = GG_SESSION_DCC_SEND;
+						h->state = GG_STATE_SENDING_FILE_INFO;
+						h->check = GG_CHECK_WRITE;
+						h->timeout = GG_DEFAULT_TIMEOUT;
 			
-					if (h->file_fd == -1)
-						e->type = GG_EVENT_DCC_NEED_FILE_INFO;
-					return e;
+						if (h->file_fd == -1)
+							e->type = GG_EVENT_DCC_NEED_FILE_INFO;
+						break;
+
+					case 0x0002:	/* XXX */
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() incoming data\n");
+						h->type = GG_SESSION_DCC_GET;
+						h->state = GG_STATE_READING_PRE_FILE_INFO;
+						h->check = GG_CHECK_READ;
+						h->timeout = GG_DEFAULT_TIMEOUT;
+						break;
+
+					default:
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
+						e->type = GG_EVENT_DCC_ERROR;
+						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 				}
 
-				if (small.type == 0x0002) {
-					h->type = GG_SESSION_DCC_GET;
-					h->state = GG_STATE_READING_PRE_FILE_INFO;
-					h->check = GG_CHECK_READ;
-					h->timeout = GG_DEFAULT_TIMEOUT;
-
-					return e;
-				}
-					
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
-
-				e->type = GG_EVENT_DCC_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-				
 				return e;
 
 			case GG_STATE_READING_PRE_FILE_INFO:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_PRE_FILE_INFO\n");
 				
-				if ((tmp = read(h->fd, &small, sizeof(small))) != sizeof(small)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &small, tmp);
+				gg_read(h->fd, &small, sizeof(small));
 
 				small.type = fix32(small.type);
 
-				if (small.type != 0x0001) {	/* XXX */
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					
-					return e;
+				switch (small.type) {
+					case 0x0001:	/* XXX */
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() file transfer request\n");
+						h->state = GG_STATE_READING_FILE_INFO;
+						h->check = GG_CHECK_READ;
+						h->timeout = GG_DEFAULT_TIMEOUT;
+						break;
+						
+					case 0x0003:	/* XXX */	
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() voice chat request\n");
+						h->state = GG_STATE_SENDING_VOICE_ACK;
+						h->check = GG_CHECK_WRITE;
+						h->timeout = GG_DCC_TIMEOUT_VOICE_ACK;
+						e->type = GG_EVENT_DCC_NEED_VOICE_ACK;
+						break;
+						
+					default:
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
+						e->type = GG_EVENT_DCC_ERROR;
+						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 				}
-				
-				h->state = GG_STATE_READING_FILE_INFO;
-				h->check = GG_CHECK_READ;
-				h->timeout = GG_DEFAULT_TIMEOUT;
-			 	
+		 	
 				return e;
 
 			case GG_STATE_READING_FILE_INFO:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_INFO\n");
 				
-				if ((tmp = read(h->fd, &file_info_packet, sizeof(file_info_packet))) != sizeof(file_info_packet)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &file_info_packet, tmp);
+				gg_read(h->fd, &file_info_packet, sizeof(file_info_packet));
 
 				memcpy(&h->file_info, &file_info_packet.file_info, sizeof(h->file_info));
 
@@ -565,17 +593,24 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				big.dunno1 = 0;
 				big.dunno2 = 0;
 
-				gg_dcc_debug_data("write", h->fd, &big, sizeof(big));
-						
-				if ((tmp = write(h->fd, &big, sizeof(big))) != sizeof(big)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
+				gg_write(h->fd, &big, sizeof(big));
 
 				h->state = GG_STATE_READING_FILE_HEADER;
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
+
+				h->offset = 0;
+				
+				return e;
+				
+			case GG_STATE_SENDING_VOICE_ACK:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_VOICE_ACK\n");
+				
+				tiny.type = 0x01;	/* XXX */
+
+				gg_write(h->fd, &tiny, sizeof(tiny));
+
+				h->state = GG_STATE_READING_VOICE_HEADER;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 
@@ -586,34 +621,74 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_HEADER\n");
 				
-				if ((tmp = read(h->fd, &big, sizeof(big))) != sizeof(big)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &big, tmp);
+				gg_read(h->fd, &big, sizeof(big));
 
 				big.type = fix32(big.type);
 				h->chunk_size = fix32(big.dunno1);
 				h->chunk_offset = 0;
 
-#if 0
-				if (big.type != 0x0002) {	/* XXX */
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", big.type, h->peer_uin);
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					
-					return e;
-				}
-#endif
-
 				h->state = GG_STATE_GETTING_FILE;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
 			 	
+				return e;
+
+			case GG_STATE_READING_VOICE_HEADER:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_HEADER\n");
+				
+				gg_read(h->fd, &tiny, sizeof(tiny));
+
+				switch (tiny.type) {
+					case 0x03:	/* XXX */
+						h->state = GG_STATE_READING_VOICE_SIZE;
+						h->check = GG_CHECK_READ;
+						h->timeout = GG_DEFAULT_TIMEOUT;
+						break;
+					case 0x04:	/* XXX */
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() peer breaking connection\n");
+						/* XXX zwracaæ odpowiedni event */
+					default:
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown request (%.2f)\n", tiny.type);
+						e->type = GG_EVENT_DCC_ERROR;
+						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
+				}
+			 	
+				return e;
+
+			case GG_STATE_READING_VOICE_SIZE:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_SIZE\n");
+				
+				gg_read(h->fd, &small, sizeof(small));
+
+				small.type = fix32(small.type);
+
+				if (small.type < 16 || small.type > sizeof(buf)) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() invalid voice frame size (%d)\n", small.type);
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_NET;
+					
+					return e;
+				}
+
+				h->chunk_size = small.type;
+
+				h->state = GG_STATE_READING_VOICE_DATA;
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
+			 	
+				return e;
+
+			case GG_STATE_READING_VOICE_DATA:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_DATA\n");
+				
+				gg_read(h->fd, buf, h->chunk_size);
+
+				h->state = GG_STATE_READING_VOICE_HEADER;
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
+			 	
+				/* XXX zwracaæ GG_EVENT_DCC_VOICE_FRAME */
+				
 				return e;
 
 			case GG_STATE_CONNECTING:
@@ -635,16 +710,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				uins[0] = fix32(h->uin);
 				uins[1] = fix32(h->peer_uin);
 
-				gg_dcc_debug_data("write", h->fd, uins, sizeof(uins));
+				gg_write(h->fd, uins, sizeof(uins));
 				
-				if ((tmp = write(h->fd, uins, sizeof(uins))) != sizeof(uins)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() uin write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
 				h->state = GG_STATE_READING_ACK;
 				h->check = GG_CHECK_READ;
 				h->timeout = GG_DEFAULT_TIMEOUT;
@@ -655,15 +722,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_ACK\n");
 				
-				if ((tmp = read(h->fd, buf, 4)) != 4) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, buf, tmp);
+				gg_read(h->fd, buf, 4);
 
 				if (strncmp(buf, ack, 4)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() did't get ack\n");
@@ -684,27 +743,29 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				small.type = (h->type == GG_SESSION_DCC_GET) ? fix32(0x0003) : fix32(0x0002);	/* XXX */
 				
-				gg_dcc_debug_data("write", h->fd, &small, sizeof(small));
+				gg_write(h->fd, &small, sizeof(small));
 				
-				if ((tmp = write(h->fd, &small, sizeof(small))) != sizeof(small)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", (tmp == -1) ? strerror(errno) : "<sizeof");
+				switch (h->type) {
+					case GG_SESSION_DCC_GET:
+						h->state = GG_STATE_READING_PRE_FILE_INFO;
+						h->check = GG_CHECK_READ;
+						h->timeout = GG_DEFAULT_TIMEOUT;
+						break;
 
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-				
-				if (h->type == GG_SESSION_DCC_GET) {
-					h->state = GG_STATE_READING_PRE_FILE_INFO;
-					h->check = GG_CHECK_READ;
-					h->timeout = GG_DEFAULT_TIMEOUT;
-				} else {
-					h->state = GG_STATE_SENDING_FILE_INFO;
-					h->check = GG_CHECK_WRITE;
-					h->timeout = GG_DEFAULT_TIMEOUT;
+					case GG_SESSION_DCC_SEND:
+						h->state = GG_STATE_SENDING_FILE_INFO;
+						h->check = GG_CHECK_WRITE;
+						h->timeout = GG_DEFAULT_TIMEOUT;
 
-					if (h->file_fd == -1)
-						e->type = GG_EVENT_DCC_NEED_FILE_INFO;
+						if (h->file_fd == -1)
+							e->type = GG_EVENT_DCC_NEED_FILE_INFO;
+						break;
+						
+					case GG_SESSION_DCC_VOICE:
+						h->state = GG_STATE_SENDING_VOICE_REQUEST;
+						h->check = GG_CHECK_WRITE;
+						h->timeout = GG_DEFAULT_TIMEOUT;
+						break;
 				}
 
 				return e;
@@ -714,32 +775,15 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				small.type = fix32(0x0001);	/* XXX */
 				
-				gg_dcc_debug_data("write", h->fd, &small, sizeof(small));
-				
-				if ((tmp = write(h->fd, &small, sizeof(small))) != sizeof(small)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() header1 write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
+				gg_write(h->fd, &small, sizeof(small));
 
 				file_info_packet.big.type = fix32(0x0003);	/* XXX */
 				file_info_packet.big.dunno1 = 0;
 				file_info_packet.big.dunno2 = 0;
 
-//				memcpy(&file_info_packet.big, &big, sizeof(big));
 				memcpy(&file_info_packet.file_info, &h->file_info, sizeof(h->file_info));
 				
-				gg_dcc_debug_data("write", h->fd, &file_info_packet, sizeof(file_info_packet));
-				
-				if ((tmp = write(h->fd, &file_info_packet, sizeof(file_info_packet))) != sizeof(file_info_packet)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
+				gg_write(h->fd, &file_info_packet, sizeof(file_info_packet));
 
 				h->state = GG_STATE_READING_FILE_ACK;
 				h->check = GG_CHECK_READ;
@@ -750,30 +794,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_ACK\n");
 				
-				if ((tmp = read(h->fd, &big, sizeof(big))) != sizeof(big)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
+				gg_read(h->fd, &big, sizeof(big));
 
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-
-				gg_dcc_debug_data("read", h->fd, &big, tmp);
-
-				big.type = fix32(big.type);
+				/* XXX sprawdzaæ wynik */
 				
-/* XXX zbadaæ dlaczego */
-
-#if 0
-				if (small.type != GG_DCC_GIMME_FILE) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc request (%.4x) from %ld\n", small.type, h->peer_uin);
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
-#endif
-
 				h->state = GG_STATE_SENDING_FILE_HEADER;
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
@@ -782,27 +806,37 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				return e;
 
+			case GG_STATE_READING_VOICE_ACK:
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_ACK\n");
+				
+				gg_read(h->fd, &tiny, sizeof(tiny));
+
+				if (tiny.type != 0x01) {
+					gg_debug(GG_DEBUG_MISC, "// invalid reply (%.2x), connection refused\n", tiny.type);
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_REFUSED;
+					return e;
+				}
+
+				h->state = GG_STATE_READING_VOICE_HEADER;
+				h->check = GG_CHECK_READ;
+				h->timeout = GG_DEFAULT_TIMEOUT;
+
+				return e;
+
 			case GG_STATE_SENDING_FILE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE_HEADER\n");
 				
-				if ((h->chunk_size = h->file_info.size - h->offset) > 4096)	/* XXX */
+				if ((h->chunk_size = h->file_info.size - h->offset) > 4096)
 					h->chunk_size = 4096;
 
 				h->chunk_offset = 0;
 				
 				big.type = fix32(0x0002);	/* XXX */
-				big.dunno1 = fix32(h->chunk_size);	/* XXX dlaczego? */
+				big.dunno1 = fix32(h->chunk_size);
 				big.dunno2 = 0;
 				
-				gg_dcc_debug_data("write", h->fd, &big, sizeof(big));
-
-				if ((tmp = write(h->fd, &big, sizeof(big))) != sizeof(big)) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d:%s)\n", tmp, (tmp == -1) ? strerror(errno) : "<sizeof");
-
-					e->type = GG_EVENT_DCC_ERROR;
-					e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
-					return e;
-				}
+				gg_write(h->fd, &big, sizeof(big));
 
 				h->state = GG_STATE_SENDING_FILE;
 				h->check = GG_CHECK_WRITE;
@@ -955,6 +989,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 	return e;
 }
 
+#undef gg_read
+#undef gg_write
 
 /*
  * gg_dcc_free()
