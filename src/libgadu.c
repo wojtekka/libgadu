@@ -1291,6 +1291,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				gg_debug(GG_DEBUG_MISC, "-- login succeded\n");
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;
+				free(h);
 				break;
 			}
 
@@ -1306,6 +1307,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			e->type = GG_EVENT_CONN_FAILED;
 			sess->state = GG_STATE_IDLE;
 			close(sess->fd);
+			free(h);
 
 			break;
 		}
