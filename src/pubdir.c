@@ -61,7 +61,7 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
 		return NULL;
 	}
 
-	form = gg_alloc_sprintf("pwd=%s&email=%s&code=%u", __pwd, __email,
+	form = gg_saprintf("pwd=%s&email=%s&code=%u", __pwd, __email,
 			gg_http_hash("ss", email, password));
 
 	free(__pwd);
@@ -75,7 +75,7 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
 
 	gg_debug(GG_DEBUG_MISC, "=> register, %s\n", form);
 
-	query = gg_alloc_sprintf(
+	query = gg_saprintf(
 		"Host: " GG_REGISTER_HOST "\r\n"
 		"Content-Type: application/x-www-form-urlencoded\r\n"
 		"User-Agent: " GG_HTTP_USERAGENT "\r\n"
@@ -144,7 +144,7 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
 		return NULL;
 	}
 	
-	if (!(form = gg_alloc_sprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("ss", newemail, newpasswd)))) {
+	if (!(form = gg_saprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("ss", newemail, newpasswd)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);
@@ -160,7 +160,7 @@ struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newp
 	
 	gg_debug(GG_DEBUG_MISC, "=> change, %s\n", form);
 
-        query = gg_alloc_sprintf(
+        query = gg_saprintf(
 		"Host: " GG_REGISTER_HOST "\r\n"
                 "Content-Type: application/x-www-form-urlencoded\r\n"
                 "User-Agent: " GG_HTTP_USERAGENT "\r\n"
@@ -207,7 +207,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 	struct gg_http *h;
 	char *form, *query;
 
-	if (!(form = gg_alloc_sprintf("userid=%d&code=%u", uin, gg_http_hash("u", uin)))) {
+	if (!(form = gg_saprintf("userid=%d&code=%u", uin, gg_http_hash("u", uin)))) {
 		gg_debug(GG_DEBUG_MISC, "=> remind, not enough memory for form fields\n");
 		errno = ENOMEM;
 		return NULL;
@@ -215,7 +215,7 @@ struct gg_http *gg_remind_passwd(uin_t uin, int async)
 	
 	gg_debug(GG_DEBUG_MISC, "=> remind, %s\n", form);
 
-        query = gg_alloc_sprintf(
+        query = gg_saprintf(
 		"Host: " GG_REMIND_HOST "\r\n"
                 "Content-Type: application/x-www-form-urlencoded\r\n"
                 "User-Agent: " GG_HTTP_USERAGENT "\r\n"
@@ -288,7 +288,7 @@ struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_re
 		return NULL;
 	}
 	
-	form = gg_alloc_sprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
+	form = gg_saprintf("FmNum=%d&Pass=%s&FirstName=%s&LastName=%s&NickName=%s&Email=%s&BirthYear=%d&Gender=%d&City=%s&Phone=",
 	uin, passwd, __first, __last, __nick, __email, request->born, request->gender, __city);
 
 	free(__first);
@@ -305,7 +305,7 @@ struct gg_http *gg_change_info(uin_t uin, char *passwd, struct gg_change_info_re
 	
 	gg_debug(GG_DEBUG_MISC, "=> change_info, %s\n", form);
 
-        query = gg_alloc_sprintf(
+        query = gg_saprintf(
 		"Host: " GG_PUBDIR_HOST "\r\n"
                 "Content-Type: application/x-www-form-urlencoded\r\n"
                 "User-Agent: " GG_HTTP_USERAGENT "\r\n"

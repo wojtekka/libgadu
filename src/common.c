@@ -65,7 +65,7 @@ void gg_debug(int level, const char *format, ...)
 }
 
 /*
- * gg_alloc_sprintf()
+ * gg_saprintf()
  *
  * robi dok³adnie to samo, co sprintf(), tyle ¿e alokuje sobie wcze¶niej
  * miejsce na dane. powinno dzia³aæ na tych maszynach, które maj± funkcjê
@@ -76,7 +76,7 @@ void gg_debug(int level, const char *format, ...)
  * zwraca zaalokowany buforek, który wypada³oby pó¼niej zwolniæ, lub NULL
  * je¶li nie uda³o siê wykonaæ zadania.
  */
-char *gg_alloc_sprintf(const char *format, ...)
+char *gg_saprintf(const char *format, ...)
 {
         va_list ap;
         char *buf = NULL, *tmp;
