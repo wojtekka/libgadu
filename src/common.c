@@ -53,13 +53,14 @@ FILE *gg_debug_file = NULL;
 void gg_debug(int level, const char *format, ...)
 {
 	va_list ap;
+	int old_errno = errno;
 	
 	if (gg_debug_handler) {
 		va_start(ap, format);
 		(*gg_debug_handler)(level, format, ap);
 		va_end(ap);
 
-		return;
+		goto cleanup;
 	}
 	
 	if ((gg_debug_level & level)) {
@@ -67,6 +68,9 @@ void gg_debug(int level, const char *format, ...)
 		vfprintf((gg_debug_file) ? gg_debug_file : stderr, format, ap);
 		va_end(ap);
 	}
+
+cleanup:
+	errno = old_errno;
 }
 
 #endif
