@@ -489,9 +489,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		case GG_STATE_CONNECTING_HUB:
 		{
-			char buf[1024];
+			char buf[1024], *client;
 			int res = 0, res_size = sizeof(res);
-			char *client;
+			const char *host, *appmsg;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
 
@@ -530,22 +530,25 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				goto fail_connecting;
 			}
 
-			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
-				snprintf(buf, sizeof(buf) - 1,
-					"GET http://" GG_APPMSG_HOST "/appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
-					"Host: " GG_APPMSG_HOST "\r\n"
-					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
-					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin, client, sess->last_sysmsg);
-			} else {
-				snprintf(buf, sizeof(buf) - 1,
-					"GET /appsvc/appmsg2.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
-					"Host: " GG_APPMSG_HOST "\r\n"
-					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
-					"Pragma: no-cache\r\n"
-					"\r\n", sess->uin, client, sess->last_sysmsg);
-			};
+			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port)
+				host = "http://" GG_APPMSG_HOST;
+			else
+				host = "";
 
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+			if (sess->ssl)
+				appmsg = "appmsg3.asp";
+			else
+#endif
+				appmsg = "appmsg2.asp";
+
+			snprintf(buf, sizeof(buf) - 1,
+				"GET %s/appsvc/%s?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
+				"Host: " GG_APPMSG_HOST "\r\n"
+				"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+				"Pragma: no-cache\r\n"
+				"\r\n", host, appmsg, sess->uin, client, sess->last_sysmsg);
+			
 			free(client);
 
 			/* zwolnij pamiêæ po wersji klienta. */
@@ -745,6 +748,19 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 #ifdef ETIMEDOUT
 				if (sess->timeout == 0)
 					errno = ETIMEDOUT;
+#endif
+
+#ifdef __GG_LIBGADU_HAVE_OPENSSL
+				/* je¶li logujemy siê po TLS, nie próbujemy
+				 * siê ³±czyæ ju¿ z niczym innym w przypadku
+				 * b³êdu. nie do¶æ, ¿e nie ma sensu, to i
+				 * trzebaby siê bawiæ w tworzenie na nowo
+				 * SSL i SSL_CTX. */
+
+				if (sess->ssl) {
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_connecting;
+				}
 #endif
 
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));

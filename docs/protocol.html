@@ -115,6 +115,11 @@ Pola, który znaczenie jest nieznane, lub nie do koñca jasne, oznaczono
 przedrostkiem <tt>unknown</tt>.
 </p>
 
+<p>
+Mo¿liwe jest po³±czenie za po¶rednictwem protoko³u TLSv1. Szczegó³y znajduj±
+siê w poni¿szym opisie.
+</p>
+
 <hr />
 
 <a name="ch1.2"></a>
@@ -186,6 +191,21 @@ Je¶li pierwsza liczba nie jest równa zero, zaraz po nag³ówku znajduje siê
 wiadomo¶æ systemowa, lub je¶li linia zaczyna siê od znaku ,,<tt>@</tt>'',
 adres strony, któr± nale¿y otworzyæ w przegl±darce.
 </p>
+
+<p>
+Je¶li klient chce siê ³±czyæ za pomoc± protoko³u TLSv1, wysy³a zapytanie
+do innego skryptu (,,<tt>appmsg3.asp</tt>'') i otrzymuje w odpowiedzi adres
+serwera oraz port 443. Protokó³ jest identyczny, z tym wyj±tkiem, ¿e ca³a
+transmisja jest szyfrowana. Dobrym zwyczajem jest równie¿ sprawdzane
+autentyczno¶ci certyfikatu, by unikn±æ ataków typu man-in-the-middle.
+</p>
+
+<div class="http">
+<pre>GET /appsvc/appmsg3.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMO¦Æ</b>
+Host: appmsg.gadu-gadu.pl
+User-Agent: <b>PRZEGL¡DARKA</b>
+Pragma: no-cache</pre>
+</div>
 
 <hr />
 
@@ -274,6 +294,7 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Wersje klientów</b></td></tr>
+<td class="tabf"><td><tt>0x1c</tt></td><td>5.7 beta</td></tr>
 <tr class="tabf"><td><tt>0x1b</tt></td><td>5.0.5</td></tr>
 <tr class="tabf"><td><tt>0x19</tt></td><td>5.0.3</td></tr>
 <tr class="tabf"><td><tt>0x18</tt></td><td>5.0.1, 5.0.0, 4.9.3</td></tr>
