@@ -582,12 +582,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->state = GG_STATE_READING_UIN_2;
 					h->check = GG_CHECK_READ;
 					h->timeout = GG_DEFAULT_TIMEOUT;
-					h->peer_uin = uin;
+					h->peer_uin = gg_fix32(uin);
 				} else {
 					h->state = GG_STATE_SENDING_ACK;
 					h->check = GG_CHECK_WRITE;
 					h->timeout = GG_DEFAULT_TIMEOUT;
-					h->uin = uin;
+					h->uin = gg_fix32(uin);
 					e->type = GG_EVENT_DCC_CLIENT_ACCEPT;
 				}
 
@@ -681,6 +681,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				gg_read(h->fd, &file_info_packet, sizeof(file_info_packet));
 
 				memcpy(&h->file_info, &file_info_packet.file_info, sizeof(h->file_info));
+		
+				h->file_info.mode = gg_fix32(h->file_info.mode);
+				h->file_info.size = gg_fix32(h->file_info.size);
 
 				h->state = GG_STATE_SENDING_FILE_ACK;
 				h->check = GG_CHECK_WRITE;
@@ -761,7 +764,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					e->event.dcc_error = GG_ERROR_DCC_REFUSED;
 					return e;
 				}
-				
 
 				h->state = GG_STATE_GETTING_FILE;
 				h->check = GG_CHECK_READ;
@@ -964,6 +966,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				file_info_packet.big.dunno2 = 0;
 
 				memcpy(&file_info_packet.file_info, &h->file_info, sizeof(h->file_info));
+
+				/* zostaj± teraz u nas, wiêc odwracamy z powrotem */
+				h->file_info.size = gg_fix32(h->file_info.size);
+				h->file_info.mode = gg_fix32(h->file_info.mode);
 				
 				gg_write(h->fd, &file_info_packet, sizeof(file_info_packet));
 
