@@ -55,6 +55,8 @@ void gg_free_event(struct gg_event *e)
 		free(e->event.msg.message);
 	if (e->type == GG_EVENT_NOTIFY)
 		free(e->event.notify);
+	if (e->type == GG_EVENT_STATUS)
+		free(e->event.status.descr);
 	if (e->type == GG_EVENT_NOTIFY_DESCR) {
 		free(e->event.notify_descr.notify);
 		free(e->event.notify_descr.descr);
