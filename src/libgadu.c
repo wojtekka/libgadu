@@ -707,7 +707,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->initial_status = p->status;
 	sess->callback = gg_session_callback;
 	sess->destroy = gg_free_session;
-	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;
+	sess->port = (p->server_port) ? p->server_port : ((gg_proxy_enabled) ? GG_HTTPS_PORT : GG_DEFAULT_PORT);
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
@@ -790,6 +790,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		}
 
 		sess->hub_addr = a.s_addr;
+
+		if (gg_proxy_enabled)
+			sess->proxy_addr = a.s_addr;
 
 		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));

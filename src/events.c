@@ -837,7 +837,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		case GG_STATE_CONNECTING_HUB:
 		{
-			char buf[1024], *client;
+			char buf[1024], *client, *auth;
 			int res = 0, res_size = sizeof(res);
 			const char *host, *appmsg;
 
@@ -890,12 +890,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 #endif
 				appmsg = "appmsg2.asp";
 
+			auth = gg_proxy_auth();
+
 			snprintf(buf, sizeof(buf) - 1,
 				"GET %s/appsvc/%s?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
 				"Host: " GG_APPMSG_HOST "\r\n"
 				"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 				"Pragma: no-cache\r\n"
-				"\r\n", host, appmsg, sess->uin, client, sess->last_sysmsg);
+				"%s" 
+				"\r\n", host, appmsg, sess->uin, client, sess->last_sysmsg, (auth) ? auth : "");
+
+			if (auth)
+				free(auth);
 			
 			free(client);
 
