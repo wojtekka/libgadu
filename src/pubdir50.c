@@ -29,7 +29,7 @@
 /*
  * gg_pubdir50_new()
  *
- * tworzy now± zmienn± typu gg_search_t.
+ * tworzy now± zmienn± typu gg_pubdir50_t.
  *
  * zaalokowana zmienna lub NULL w przypadku braku pamiêci.
  */

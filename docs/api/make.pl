@@ -6,7 +6,7 @@
 
 open(H, ">ref.functions.html");
 
-print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n";
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
 
 for $i (glob("../../lib/*.c")) {
 	open(F, $i);
@@ -70,7 +70,7 @@ for $i (glob("../../lib/*.c")) {
 				$p_descr{$last_p} = "";
 				$last_p = $1;
 			} else {
-				$p_descr{$last_p} .= "$_ ";
+				$p_descr{$last_p} .= " $_ ";
 			}
 
 			# czytaj następną linię.
@@ -123,21 +123,22 @@ for $i (glob("../../lib/*.c")) {
 			}
 		}
 
-		print H "<a name=\"$name\">\n";
-		print H "<div class=func>\n$name\n</div>\n";
-		print H "<div class=header>\nDziałanie:\n</div>\n";
-		print H "<div class=desc>\n$descr\n</div>\n";
+		print H "\n\n";
+		print H "<a name=\"$name\"></a>\n";
+		print H "<div class=\"func\">$name</div>\n";
+		print H "<div class=\"header\">Działanie:</div>\n";
+		print H "<div class=\"desc\">$descr</div>\n";
 
 		$decl = declarize($decl);
 
 		$functions{$name} = declarize2($decl);
 
-		print H "<div class=header>\nDeklaracja:\n</div>\n";
-		print H "<div class=decl>\n$decl;\n</div>\n";
+		print H "<div class=\"header\">Deklaracja:</div>\n";
+		print H "<div class=\"decl\">$decl;</div>\n";
 
 		if (%p_descr) {
-			print H "<div class=header>\nParametry:\n</div>\n";
-			print H "<div class=params>\n<table cellspacing=1 border=0 class=params>\n";
+			print H "<div class=\"header\">Parametry:</div>\n";
+			print H "<div class=\"params\">\n<table cellspacing=\"1\" border=\"0\" class=\"params\">\n";
 			
 			foreach $i (sort keys %p_descr) {
 				$name = $i;
@@ -145,26 +146,26 @@ for $i (glob("../../lib/*.c")) {
 				$name2 = $name;
 				$name2 =~ s/\.\.\.$//;
 				$type = colorize($p_type{$name2});
-				print H "<tr><td class=paramname>$type<i>$name</i></td><td class=paramdescr>" . $p_descr{$i} . "</td></tr>\n";
+				print H "<tr><td class=\"paramname\">$type<i>$name</i></td><td class=\"paramdescr\">" . $p_descr{$i} . "</td></tr>\n";
 			}
+			print H "</table>\n</div>\n";
 		}
 
-		print H "</table>\n</div>\n";
-		print H "<div class=header>\nZwracana wartość:\n</div>\n";
-		print H "<div class=result>\n$result\n</div>\n";
+		print H "<div class=\"header\">Zwracana wartość:</div>\n";
+		print H "<div class=\"result\">$result</div>\n";
 	}
 
 	close(F);
 	
 }
 
-print H "</body>\n</html>\n";
+print H "</td></tr></table>\n</body>\n</html>\n";
 close(H);
 
 open(F, "functions.txt");
 
 open(H, ">ref.html");
-print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n";
+print H "<html>\n<head>\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=iso-8859-2\">\n<link rel=stylesheet href=\"ref.css\" type=\"text/css\">\n</head>\n<body>\n<center>\n<table border=\"0\" width=\"600\"><tr><td>\n";
 
 $first = 1;
 
@@ -241,7 +242,8 @@ sub colorize($)
 	}
 
 	$known[0] = "struct gg_[0-9a-z_]+";
-	$known[1] = "uin_t";
+	$known[1] = "gg_[0-9a-z_]+_t";
+	$known[2] = "uin_t";
 	foreach $i (@known) {
 		$type = $i;
 		$type =~ s/ /_/g;

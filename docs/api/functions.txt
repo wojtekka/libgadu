@@ -1,4 +1,4 @@
-Funkcje dotycz±ce po³±czenia z serwerem Gadu-Gadu
+Funkcje dotycz±ce po³±czenia z serwerem
 	gg_login
 	gg_watch_fd
 	gg_event_free
@@ -19,7 +19,6 @@ Funkcje dotycz±ce po³±czenia z serwerem Gadu-Gadu
 
 Funkcje obs³ugi katalogu publicznego
 	gg_register
-	gg_change_passwd
 	gg_change_passwd2
 	gg_remind_passwd
 	gg_change_info
@@ -29,12 +28,17 @@ Funkcje obs³ugi katalogu publicznego
 	gg_change_info_request_new
 	gg_change_info_request_free
 
-Funkcje przeszukiwania katalogu publicznego
-	gg_search
-	gg_search_watch_fd
-	gg_search_free
-	gg_search_request_mode*
-	gg_search_request_free
+Funkcje obs³ugi katalogu publicznego GG 5.0
+	gg_pubdir50_new
+	gg_pubdir50_add
+	gg_pubdir50_seq_set
+	gg_pubdir50
+	gg_pubdir50_get
+	gg_pubdir50_count
+	gg_pubdir50_type
+	gg_pubdir50_next
+	gg_pubdir50_seq
+	gg_pubdir50_free
 
 Funkcje obs³ugi list kontaktów na serwerze
 	gg_userlist_get

@@ -68,6 +68,10 @@ __attribute__ ((unused))
  * gg_libgadu_version()
  *
  * zwraca wersjê libgadu.
+ *
+ *  - brak
+ *
+ * wersja libgadu.
  */
 const char *gg_libgadu_version()
 {
@@ -549,7 +553,7 @@ static int gg_session_callback(struct gg_session *s)
  * UWAGA! program musi obs³u¿yæ SIGCHLD, je¶li ³±czy siê asynchronicznie,
  * ¿eby poprawnie zamkn±æ proces resolvera.
  *
- *  - p - struktura opisuj±ca pocz±tkowy stan. wymagane pola: uin,
+ *  - p - struktura opisuj±ca pocz±tkowy stan. wymagane pola: uin, 
  *    password
  *
  * w przypadku b³êdu NULL, je¶li idzie dobrze (async) albo posz³o
@@ -889,7 +893,7 @@ int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient,
  * gg_send_message()
  *
  * wysy³a wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
- * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ * sekwencyjny, który mo¿na zignorowaæ albo wykorzystaæ do potwierdzenia.
  *
  *  - sess - opis sesji
  *  - msgclass - rodzaj wiadomo¶ci
@@ -909,7 +913,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
  * gg_send_message_richtext()
  *
  * wysy³a kolorow± wiadomo¶æ do innego u¿ytkownika. zwraca losowy numer
- * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ * sekwencyjny, który mo¿na zignorowaæ albo wykorzystaæ do potwierdzenia.
  *
  *  - sess - opis sesji
  *  - msgclass - rodzaj wiadomo¶ci
@@ -953,7 +957,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
  * gg_send_message_confer()
  *
  * wysy³a wiadomo¶æ do kilku u¿ytkownikow (konferencja). zwraca losowy numer
- * sekwencyjny, który mo¿na olaæ albo wykorzystaæ do potwierdzenia.
+ * sekwencyjny, który mo¿na zignorowaæ albo wykorzystaæ do potwierdzenia.
  *
  *  - sess - opis sesji
  *  - msgclass - rodzaj wiadomo¶ci
@@ -1217,7 +1221,7 @@ int gg_add_notify(struct gg_session *sess, uin_t uin)
 /*
  * gg_remove_notify_ex()
  *
- * usuwa z listy kontaktów w trakcie po³±czenia
+ * usuwa z listy kontaktów w trakcie po³±czenia.
  * usuwanemu u¿ytkownikowi okre¶lamy jego typ (patrz protocol.html)
  *
  *  - sess - identyfikator sesji
@@ -1251,7 +1255,7 @@ int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
 /*
  * gg_remove_notify()
  *
- * usuwa z listy kontaktów w trakcie po³±czenia
+ * usuwa z listy kontaktów w trakcie po³±czenia.
  *
  *  - sess - identyfikator sesji
  *  - uin - numer

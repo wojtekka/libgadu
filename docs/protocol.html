@@ -11,7 +11,8 @@ BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
 .example { font-family: monospace; padding: 0.7em; background-color: #c0f0f0; border: 1px solid #80a0a0; }
-PRE { padding: 0px; margin: 0px; }
+PRE { margin: 0px; }
+H1, H2, H3 { margin-top: 0px; }
 </style>
 <title>Protokó³ Gadu-Gadu</title>
 </head>
@@ -32,8 +33,7 @@ PRE { padding: 0px; margin: 0px; }
 
 <h2>Spis tre¶ci</h2>
 
-<ol start="0">
-	<li><a href="#ch0">Informacje wstêpne</a></li>
+<ol>
 	<li><a href="#ch1">Protokó³ Gadu-Gadu</a><br>
 		1.1.&nbsp;&nbsp;<a href="#ch1.1">Format pakietów</a><br>
 		1.2.&nbsp;&nbsp;<a href="#ch1.2">Zanim siê po³±czymy</a><br>
@@ -63,7 +63,7 @@ PRE { padding: 0px; margin: 0px; }
 <hr />
 
 <a name="ch0"></a>
-<h2>0. Informacje wstêpne</h2>
+<h2>Informacje wstêpne</h2>
 
 <p>
 Opis protoko³u u¿ywanego przez Gadu-Gadu bazuje na do¶wiadczeniach
@@ -71,6 +71,11 @@ przeprowadzonych przez autorów oraz informacjach nadsy³anych przez
 u¿ytkowników. ¯aden klient Gadu-Gadu nie zosta³ skrzywdzony podczas
 badañ. Reverse-engineering opiera³ siê g³ównie na analizie pakietów
 przesy³anych miêdzy klientem a serwerem.
+</p>
+
+<p>
+Najnowsza wersja opisu protoko³u znajduje siê pod adresem
+<a href="http://dev.null.pl/ekg/docs/protocol.html">http://dev.null.pl/ekg/docs/protocol.html</a>.
 </p>
 
 <hr />
@@ -1266,11 +1271,126 @@ Je¶li siê uda³o, serwer odpowie:
 <hr />
 
 <a name="ch3"></a>
-<h2>3. Bezpo¶rednie po³±czenie</h2>
+<h2>3. Bezpo¶rednie po³±czenia</h2>
 
-<p>
-Opis znajduje siê w pliku <a href="dcc-protocol.txt">dcc-protocol.txt</a>.
-</p>
+<pre>Author: Walerian Soko³owski (C) Copyright 2002
+You a free to change it in every way you want.
+
+----- (0) disclaimer ------------------------------
+Opisujê tu protokó³ przesy³ania plików w miêdzy klientami G*du-G*du.
+Informacjê czerpa³em ze ¼róde³ gglib w której¶ z wersji
+oraz z do¶wiadczeñ przeprowadzanych w³asnorêcznie. W tym celu nic nie 
+desasemblowa³em i nie reingenerowa³em.
+
+----- 1) zamiast wstêpu ------------------------------------------------------
+Protokó³ jest pewn± implementacj± czê¶ci powszechnie znanego DCC 
+opisanego w którym¶ z RFC. 
+
+Obowi±zuj± naturalne dla GG ustalenia, a wiêc sizeof(int) = 4 oraz transmisja
+jest intel endian. 
+
+----- 2) nawi±zanie po³±czenia ------------------------------------------------
+Klient ³±cz±c siê z serwerem GG wysy³a swój adres IP i port, na którym
+nas³uchuje (patrz opis gg_login). Gdy który¶ z kontaktów staje siê 
+dostêpny (w³a¶nie siê po³±czyli¶my lub on w³a¶nie zmieni³ stan) 
+otrzymujemu powiadomienie o tym w paczce typu GG_NOTIFY_REPLY, 
+która zawiera jego adresek IP i port, na którym on nas³uchuje (patrz
+opis gg_notify_reply). Tak wiêc w najprostszej sytuacji, gdy nie dziel±
+nas ¿adne firewalle strona wysy³aj±ca ma adres odbiorcy.
+ 
+Je¶li odbiorca znajduje siê za firewallem, a nadawca nie, to nadawca
+mo¿e poprosiæ odbiorcê o nawi±zanie po³±czenia wysy³aj±c do niego
+komunikat typu 0x0010 (GG_CLASS_CTCP) o zawarto¶ci 0x02. W taki sposób
+na czas nawi±zania po³±czenia nadawca i odbiorca zamieniaj± siê rolami.
+I do koñca punktu bêdê ich nazywaæ wg. pe³nionych ról.
+
+A wiêc nadawca nawi±zuje po³±czenie TCP z adresem odbiorcy i wysy³a
+swój UIN i UIN odbiorcy:
+
+	struct {
+		int uin1; /* mój numerek  */
+		int uin2; /* jego numerek */
+	};
+
+Odbiorca potwierdzaj±c nawi±zanie po³±czenia z klientem GG wysy³a 4 bajty:
+ 
+	struct {
+		char [] "UDAG";
+	};
+
+Je¶li nadawca ma wysy³aæ plik, to wysy³a 0x0002:
+ 
+	#define GG_DCC_CATCH_FILE 0x0002
+
+Je¶li to odbiorca ma wysy³aæ, to nadawca wysy³a 0x0003:
+	
+	#define GG_DCC_WANT_FILE 0x0003
+
+Po tym wszystkim uwa¿a siê po³±czenie za nawi±zane.
+
+----- 3) transmisja pliku: strona nadawcy -------------------------------------
+Nadawca wysy³a  po kolei:
+
+	#define GG_DCC_HAVE_FILE     0x0001
+	#define GG_DCC_HAVE_FILEINFO 0x0003
+	int dunno1; /* 0 */
+	int dunno2; /* 0 */
+	file_info_struct finfo;
+
+Podejrzewam, ¿e dunno2:dunno1 jest pozycj± w pliku, od której nadawca 
+chce wysy³aæ plik, ale nie uda³o mi siê zasymulowaæ sytuacji, w której 
+by³yby u¿ywane.
+
+	struct file_info_struct {
+        	int mode;                  /* dwFileAttributes */
+        	int ctime[2];              /* ftCreationTime */
+        	int atime[2];              /* ftLastAccessTime */
+        	int mtime[2];              /* ftLastWriteTime */
+		int size_hdw;              /* górne 4 bajty d³ugo¶ci pliku */
+		int size_ldw;              /* dolne 4 bajty d³ugo¶ci pliku */
+		int reserved1;             /* 0 */
+		int reserved2;             /* 0 */
+		char file_name[276];       /* tablica zaczynaj±ca siê od nazwy 
+					      pliku, wype³niona zerami */
+	};
+
+Dalej nadawca czeka na akceptacjê odbiorcy, czyli nastêpuj±c± strukturkê:
+	
+	struct {
+		int type;      /* 0x0006 GG_DCC_GIMME_FILE */
+		int start;     /* od której pozycji zacz±æ przesy³anie */
+		int dunno;     /* 0 */
+	};
+
+Teraz mo¿emy zacz±æ przesy³anie pliku. Plik przesy³amy w paczkach d³ugo¶ci 
+ustalonej przez nadawcê. Przed ka¿d± paczk± z danymi nadawca wysy³a nag³ówek
+paczki:
+	struct {
+		int type;       /* 0x0003 GG_DCC_FILEHEADER, je¶li paczka nie 
+				   jest ostatnia. 0x0002 GG_DCC_LAST_FILEHEADER
+				   wpp. */
+		int chunk_size; /* rozmiar paczki */
+		int dunno;      /* 0 */
+	};
+
+Po wys³aniu ostatniej paczki zamykamy po³±czenie. Plik zosta³ przes³any.
+
+----- 4) transmisja pliku: strona odbiorcy ------------------------------------
+Zachowanie odbiorcy jest symetryczne:
+1. odbiera kolejno 
+	GG_DCC_HAVE_FILE
+	GG_DCC_HAVE_FILEINFO
+	int dunno1;
+	int dunno2;
+	file_info_struct finfo;
+
+2. je¶li u¿ytkownik zgodzi siê odebraæ plik, to wysy³amy struktrê jakiej
+odbiorca siê spodziewa.
+
+3. otrzymujemy nag³ówek paczki i paczkê z danymi zadeklarowanej d³ugo¶ci
+4. je¶li nag³ówek by³ typu GG_DCC_LAST_FILEHEADER to otrzymali¶my ca³o¶æ, 
+wiêc zamykamy po³±czenie. Je¶li nie, to wracamy do kroku 3.
+</pre>
 
 <hr />
 
@@ -1296,6 +1416,7 @@ Autorami powy¿szego opisu s±:
 	<li><b>Pawe³ Piwowar</b> (alfapawel%go2.pl): format czasu.</li>
 	<li><b>Tomasz Chiliñski</b> (chilek%chilan.com): nowo¶ci w 5.0.2.</li>
 	<li><b>Rados³aw Nowak</b> (rano%ranosoft.com): uzupe³nienie statusu opisowego, wersja 5.0.3.</li>
+	<li><b>Walerian Soko³owski</b>: opis protoko³u bezpo¶rednich po³±czeñ.</li>
 </ul>
 
 <hr />

@@ -608,7 +608,7 @@ void gg_pubdir_free(struct gg_http *h)
  * 
  *  - first_name - imiê
  *  - last_name - nazwisko
- *  - nickname - pseudownim
+ *  - nickname - pseudonim
  *  - email - adres e-mail
  *  - born - data urodzenia
  *  - gender - p³eæ (GG_GENDER_UNKNOWN, GG_GENDER_MALE, GG_GENDER_FEMALE)
