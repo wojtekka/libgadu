@@ -134,7 +134,7 @@ struct gg_http *gg_change_passwd(uin_t uin, char *passwd, char *newpasswd, char 
 		return NULL;
 	}
 	
-	if (!(form = gg_alloc_sprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("usss", uin, passwd, newpasswd, newemail)))) {
+	if (!(form = gg_alloc_sprintf("fmnumber=%ld&fmpwd=%s&pwd=%s&email=%s&code=%u", uin, __fmpwd, __pwd, __email, gg_http_hash("ss", newemail, newpasswd)))) {
 		gg_debug(GG_DEBUG_MISC, "=> change, not enough memory for form fields\n");
 		free(__fmpwd);
 		free(__pwd);

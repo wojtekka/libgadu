@@ -644,15 +644,21 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				}
 #endif
 
-//				h->state = GG_STATE_SENDING_FILE_HEADER;
-				h->state = GG_STATE_SENDING_FILE;
+				h->state = GG_STATE_SENDING_FILE_HEADER;
 				h->check = GG_CHECK_WRITE;
 				h->timeout = GG_DEFAULT_TIMEOUT;
+
+				h->offset = 0;
 
 				return e;
 
 			case GG_STATE_SENDING_FILE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE_HEADER\n");
+				
+				if ((h->chunk_size = h->file_info.size - h->offset) > 4096)	/* XXX */
+					h->chunk_size = 4096;
+
+				h->chunk_offset = 0;
 				
 				big.type = fix32(0x0002);	/* XXX */
 				big.dunno1 = fix32(h->file_info.size);	/* XXX dlaczego? */
@@ -675,19 +681,13 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_FILE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_SENDING_FILE\n");
 				
+				if ((tmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
+					tmp = sizeof(buf);
+				
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() offset=%d, size=%d\n", h->offset, h->file_info.size);
 				lseek(h->file_fd, h->offset, SEEK_SET);
 
-				if (h->offset)
-					size = read(h->file_fd, buf, sizeof(buf));
-				else {
-					big.type = fix32(0x0002);	/* XXX */
-					big.dunno1 = fix32(h->file_info.size);	/* XXX dlaczego? */
-					big.dunno2 = 0;
-		
-					memcpy(buf, &big, sizeof(big));
-					size = read(h->file_fd, buf + sizeof(big), sizeof(buf) - sizeof(big));
-				}	
+				size = read(h->file_fd, buf, tmp);
 
 				/* b³±d */
 				if (size == -1) {
@@ -720,10 +720,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					}
 				}
 
-				if (h->offset)
-					tmp = write(h->fd, buf, size);
-				else
-					tmp = write(h->fd, buf, size + sizeof(big));
+				tmp = write(h->fd, buf, size);
 
 				if (tmp == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
@@ -734,10 +731,23 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				h->offset += size;
 				
-				if (h->offset == h->file_info.size)
+				if (h->offset >= h->file_info.size) {
 					e->type = GG_EVENT_DCC_DONE;
+					return e;
+				}
 				
-				h->timeout = GG_DCC_TIMEOUT_SEND;
+				h->chunk_offset += size;
+				
+				if (h->chunk_offset >= h->chunk_size) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() chunk finished\n");
+					h->state = GG_STATE_SENDING_FILE_HEADER;
+					h->timeout = GG_DEFAULT_TIMEOUT;
+				} else {
+					h->state = GG_STATE_SENDING_FILE;
+					h->timeout = GG_DCC_TIMEOUT_SEND;
+				}
+				
+				h->check = GG_CHECK_READ;
 
 				return e;
 				
@@ -794,7 +804,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					h->timeout = GG_DEFAULT_TIMEOUT;
 				} else {
 					h->state = GG_STATE_GETTING_FILE;
-					h->timeout = GG_DCC_TIMEOUT_SEND;
+					h->timeout = GG_DCC_TIMEOUT_GET;
 				}
 				
 				h->check = GG_CHECK_READ;
