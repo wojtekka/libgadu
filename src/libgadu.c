@@ -1215,6 +1215,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_login l;
 			unsigned int hash;
 			char *password = sess->password;
+			struct sockaddr_in sin;
+			int sin_len = sizeof(sin);
+			unsigned long sess_ip = 0;
 
 			gg_debug(GG_DEBUG_MISC, "== GG_STATE_READING_KEY\n");
 
@@ -1253,12 +1256,17 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			free(sess->password);
 			sess->password = NULL;
-	
+			
+			if(!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len))
+				sess_ip = sin.sin_addr.s_addr;	
+		
+			sess->client_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
+			
 			l.uin = fix32(sess->uin);
 			l.hash = fix32(hash);
 			l.status = fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = fix32(GG_CLIENT_VERSION);
-			l.local_ip = (gg_dcc_ip) ? inet_addr(gg_dcc_ip) : INADDR_NONE;
+			l.local_ip = (sess_ip) ? (sess_ip) : INADDR_NONE;
 			l.local_port = fix16(gg_dcc_port);
 	
 			gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
