@@ -475,6 +475,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->async = p->async;
         sess->type = GG_SESSION_GG;
 	sess->initial_status = p->status;
+	sess->initial_descr = p->status_descr;
 	sess->callback = gg_session_callback;
 	sess->destroy = gg_free_session;
 	sess->port = (p->server_port) ? p->server_port : GG_DEFAULT_PORT;

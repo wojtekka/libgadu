@@ -811,10 +811,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				lext.external_ip = sess->external_addr;
 				lext.external_port = sess->external_port;
 				gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN_EXT packet\n");
-				ret = gg_send_packet(sess->fd, GG_LOGIN_EXT, &lext, sizeof(lext), NULL);
+				ret = gg_send_packet(sess->fd, GG_LOGIN_EXT, &lext, sizeof(lext), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			} else {
 				gg_debug(GG_DEBUG_TRAFFIC, "-- sending GG_LOGIN packet\n");
-				ret = gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), NULL);			    
+				ret = gg_send_packet(sess->fd, GG_LOGIN, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			}
 
 			if (ret == -1) {

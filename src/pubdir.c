@@ -2,6 +2,7 @@
 
 /*
  *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *                          Dawid Jarosz <dawjar@poczta.onet.pl>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -96,6 +97,95 @@ struct gg_http *gg_register(const char *email, const char *password, int async)
 	}
 
 	h->type = GG_SESSION_REGISTER;
+
+	free(query);
+
+	h->callback = gg_pubdir_watch_fd;
+	h->destroy = gg_pubdir_free;
+	
+	if (!async)
+		gg_pubdir_watch_fd(h);
+	
+	return h;
+}
+
+/*
+ * gg_unregister()
+ *
+ * usuwa konto u¿ytkownika z serwera.
+ *
+ *  - uin - numerek GG
+ *  - password - has³o klienta
+ *  - email - adres e-mail klienta
+ *  - async - po³±czenie asynchroniczne
+ *
+ * zaalokowana struct gg_http, któr± po¼niej nale¿y zwolniæ
+ * funkcj± gg_free_pubdir(), albo NULL je¶li wyst±pi³ b³±d.
+ */
+struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email, int async)
+{
+	struct gg_http *h;
+	char *__fmemail, *__fmpwd, *__email, *__pwd, *form, *query;
+	const char *email0 = "deletedaccount@gadu-gadu.pl";
+
+	if (!password || !email) {
+		gg_debug(GG_DEBUG_MISC, "=> unregister, NULL parameter\n");
+		errno = EINVAL;
+		return NULL;
+	}
+    
+	__pwd = gg_saprintf("%ld", random());
+	__fmpwd = gg_urlencode(password);
+	__fmemail = gg_urlencode(email);
+	__email = gg_urlencode(email0);
+
+	if (!__fmpwd || !__fmemail || !__pwd || !__email) {
+		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for form fields\n");
+		free(__pwd);
+		free(__fmpwd);
+		free(__fmemail);
+		free(__email);
+                errno = ENOMEM;
+		return NULL;
+	}
+
+	form = gg_saprintf("fmnumber=%ld&fmpwd=%s&delete=1&fmemail=%s&"
+			"pwd=%s&email=%s&code=%u",
+			uin, __fmpwd, __fmemail, __pwd, __email,
+			gg_http_hash("ss", email0, __pwd));
+
+	free(__fmpwd);
+	free(__fmemail);
+	free(__pwd);
+	free(__email);
+
+	if (!form) {
+		gg_debug(GG_DEBUG_MISC, "=> unregister, not enough memory for form query\n");
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	gg_debug(GG_DEBUG_MISC, "=> unregister, %s\n", form);
+
+	query = gg_saprintf(
+		"Host: " GG_REGISTER_HOST "\r\n"
+		"Content-Type: application/x-www-form-urlencoded\r\n"
+		"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+		"Content-Length: %d\r\n"
+		"Pragma: no-cache\r\n"
+		"\r\n"
+		"%s",
+		strlen(form), form);
+
+	free(form);
+
+	if (!(h = gg_http_connect(GG_REGISTER_HOST, GG_REGISTER_PORT, async, "POST", "/appsvc/fmregister.asp", query))) {
+		gg_debug(GG_DEBUG_MISC, "=> unregister, gg_http_connect() failed mysteriously\n");
+		free(query);
+		return NULL;
+	}
+
+	h->type = GG_SESSION_UNREGISTER;
 
 	free(query);
 
