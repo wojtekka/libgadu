@@ -75,7 +75,7 @@ wracaj±c do obs³ugi deskryptorów -- je¶li klient zauwa¿y, ¿e co¶ siê
 zmieni³o na podanym sockecie, powinien wywo³aæ ,,gg_watch_fd()'',
 która wszystkim siê zajmie. zwraca ona wska¼nik do zaalokowanej
 struktury opisuj±cej zdarzenie. po obejrzeniu nale¿y zwolniæ j± za
-pomoc± ,,gg_free_event()''. w powy¿szym przyk³adzie jest wywo³ywana
+pomoc± ,,gg_event_free()''. w powy¿szym przyk³adzie jest wywo³ywana
 funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 
 	struct gg_event *e;
@@ -127,7 +127,7 @@ funkcja ,,my_handle_event()'', która mo¿e wygl±daæ tak:
 			break;
 	}
 
-	gg_free_event(e);
+	gg_event_free(e);
 
 przy okazji wiadomo, co oznacza który event. czê¶æ z nich mo¿na ignorowaæ,
 je¶li robi siê okrojonego klienta, np. commandline'owego wysy³aj±cego
