@@ -313,8 +313,8 @@ int gg_http_watch_fd(struct gg_http *h)
 				}
 
 				memcpy(h->body, tmp + sep_len, left);
-				h->body[left] = 0;
 			}
+			h->body[left] = 0;
 
 			if (left && left == h->body_size) {
 				gg_debug(GG_DEBUG_MISC, "=> http, wow, we got header and body in one shot\n");
