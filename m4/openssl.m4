@@ -19,6 +19,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
     for i in $with_arg \
     		/usr/include: \
 		/usr/local/include:"-L/usr/local/lib" \
+		/usr/local/ssl/include:"-L/usr/local/ssl/lib" \
 		/usr/pkg/include:"-L/usr/pkg/lib" \
 		/usr/contrib/include:"-L/usr/contrib/lib" \
 		/usr/freeware/include:"-L/usr/freeware/lib32" \
