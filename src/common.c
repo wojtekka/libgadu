@@ -84,7 +84,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 
 	start = format; 
 
-#ifndef HAVE_C99_VSNPRINTF
+#ifndef __GG_LIBGADU_HAVE_C99_VSNPRINTF
 	{
 		int res;
 		char *tmp;
