@@ -663,6 +663,7 @@ okre¶lonej polem <tt>length</tt>:
 	short position;	<i>/* pozycja atrybutu w tek¶cie */</i>
 	char font;	<i>/* atrybuty czcionki */</i>
 	char rgb[3];	<i>/* kolor czcionki, nie musi wyst±piæ */</i>
+	struct gg_msg_richtext_image image; <i>/* nie musi wyst±piæ */</i>
 };</pre>
 </div>
 
@@ -679,10 +680,74 @@ nastêpuj±ce znaczenie:
 <tr class="tabf"><td><tt>GG_FONT_ITALIC</tt></td><td><tt>0x02</tt></td><td>Kursywa</td></tr>
 <tr class="tabf"><td><tt>GG_FONT_UNDERLINE</tt></td><td><tt>0x04</tt></td><td>Podkre¶lenie</td></tr>
 <tr class="tabf"><td><tt>GG_FONT_COLOR</tt></td><td><tt>0x08</tt></td><td>Kolorowy tekst. Tylko w tym wypadku struktura <tt>gg_msg_richtext_format</tt> zawiera pole <tt>rgb[]</tt> bêd±ce opisem trzech sk³adowych koloru, kolejno czerwonej, zielonej i niebieskiej.</td></tr>
+<tr class="tabf"><td><tt>GG_FONT_IMAGE</tt></td><td><tt>0x80</tt></td><td>Obrazek. Tylko w tym wypadku struktura <tt>gg_msg_richtext_format</tt> zawiera pole <tt>image</tt>.</td></tr>
 </table>
 
 <p>
-Dla przyk³adu, by przes³aæ tekst ,,ala <b>ma</b> kota'', nale¿y do³±czyæ do
+Je¶li wiadomo¶æ zawiera obrazek, przesy³ana jest jego suma kontrolna CRC32
+i rozmiar. Dziêki temu nie trzeba za ka¿dym razem wysy³aæ ka¿dego obrazka --
+klienty je zachowuj±. Struktura <tt>gg_msg_richtext_image</tt> opisuj±ca
+obrazek umieszczony w wiadomo¶ci wygl±da nastêpuj±co:
+</p>
+
+<div class="c">
+<pre>struct gg_msg_richtext_image {
+	short unknown1;	<i>/* 0x0190 */</i>
+	long size;	<i>/* rozmiar obrazka */</i>
+	long crc32;	<i>/* suma kontrolna obrazka */</i>
+};</pre>
+</div>
+
+<p>
+Gdy klient nie pamiêta obrazka o podanych parametrach, wysy³a pust± wiadomo¶æ
+o klasie <tt>GG_CLASS_MSG</tt> z do³±czon± struktur±
+<tt>gg_msg_image_request</tt>:
+</p>
+
+<div class="c">
+<pre>struct gg_msg_image_request {
+	char flag;	<i>/* 0x04 */</i>
+	int size;	<i>/* rozmiar */</i>
+	int crc32;	<i>/* suma kontrolna */</i>
+};</pre>
+</div>
+
+<p>
+Przyk³adowa tre¶æ wiadomo¶ci z pro¶b± o wys³anie obrazka o d³ugo¶ci 258 bajtów
+i sumie kontrolnej 0x12345678 to:
+</p>
+
+<div class="example">
+<pre>00 04 02 01 00 00 78 56 34 12</pre>
+</div>
+
+<p>
+W odpowiedzi, drugi klient wysy³a obrazek za pomoc± wiadomo¶ci o zerowej
+d³ugo¶ci (nale¿y pamiêtaæ o koñcz±cym bajcie o warto¶ci 0x00) z do³±czon±
+struktur± <tt>gg_msg_image_reply</tt>:
+</p>
+
+<div class="c">
+<pre>struct gg_msg_image_reply {
+	char flag;      	<i>/* 0x05 lub 0x06 */</i>
+	int size;       	<i>/* rozmiar */</i>
+	int crc32;      	<i>/* suma kontrolna */</i>
+	char filename[];	<i>/* nazwa pliku, nie musi wyst±piæ */</i>
+	char image[];		<i>/* zawarto¶æ obrazka */</i>
+};</pre>
+</div>
+
+<p>
+Je¶li d³ugo¶æ struktury <tt>gg_msg_image_reply</tt> jest d³u¿sza ni¿ 1909
+bajtów, tre¶æ obrazka jest dzielona na kilka pakietów nie przeraczaj±cych
+1909 bajtów. Pierwszy pakiet ma pole <tt>flag</tt> równe 0x05 i ma wype³nione
+pole <tt>filename</tt>, a w kolejnych pole <tt>flag</tt> jest równe 0x06
+i pole <tt>filename</tt> w ogóle nie wystêpuje (nawet bajt zakoñczenia ci±gu
+znaków).
+</p>
+
+<p>
+Przyk³adowo, by przes³aæ tekst ,,ala <b>ma</b> kota'', nale¿y do³±czyæ do
 wiadomo¶ci nastêpuj±c± sekwencjê bajtów:
 </p>
 
