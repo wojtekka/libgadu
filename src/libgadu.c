@@ -743,7 +743,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->check = GG_CHECK_READ;
 	sess->timeout = GG_DEFAULT_TIMEOUT;
 	sess->async = p->async;
-        sess->type = GG_SESSION_GG;
+	sess->type = GG_SESSION_GG;
 	sess->initial_status = p->status;
 	sess->callback = gg_session_callback;
 	sess->destroy = gg_free_session;
@@ -1336,6 +1336,11 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 		errno = EFAULT;
 		return -1;
 	}
+
+	if (!message) {
+		errno = EINVAL;
+		return -1;
+	}
 	
 	if (sess->state != GG_STATE_CONNECTED) {
 		errno = ENOTCONN;
@@ -1404,6 +1409,11 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 	if (!sess) {
 		errno = EFAULT;
+		return -1;
+	}
+
+	if (!message) {
+		errno = EINVAL;
 		return -1;
 	}
 	
