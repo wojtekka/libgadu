@@ -385,7 +385,7 @@ const char *gg_pubdir50_get(gg_pubdir50_t res, int num, const char *field)
 
 	if (!res || num < 0 || !field) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_get() invalid arguments\n");
-		errno = EFAULT;
+		errno = EINVAL;
 		return NULL;
 	}
 
