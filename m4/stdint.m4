@@ -32,6 +32,8 @@ AC_DEFUN([AC_NEED_STDINT_H],
     
     dnl let's make newer autoconf versions happy.
     stdint_h_foobar=define
+
+    m4_pattern_allow([^__AC_STDINT_H$])
     
     cat > $ac_stdint_h << EOF
 #ifndef __AC_STDINT_H
