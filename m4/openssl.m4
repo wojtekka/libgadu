@@ -20,6 +20,7 @@ AC_DEFUN(AC_CHECK_OPENSSL,[
       OPENSSL_LIBS=$($PKGCONFIG --libs openssl)
       OPENSSL_INCLUDES=$($PKGCONFIG --cflags openssl)
       if test "x$OPENSSL_LIBS" != "x" -o "x$OPENSSL_INCLUDES" != "x"; then
+	AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
 	AC_MSG_RESULT([yes])
         without_openssl=yes
 	have_openssl=yes
