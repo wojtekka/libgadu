@@ -45,6 +45,8 @@
 
 #ifndef GG_DEBUG_DISABLE
 
+FILE *gg_debug_file = NULL;
+
 /*
  * gg_debug() // funkcja wewnêtrzna
  *
@@ -61,7 +63,7 @@ void gg_debug(int level, const char *format, ...)
 	
 	if ((gg_debug_level & level)) {
 		va_start(ap, format);
-		vprintf(format, ap);
+		vfprintf((gg_debug_file) ? gg_debug_file : stderr, format, ap);
 		va_end(ap);
 	}
 }
