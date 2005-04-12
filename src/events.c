@@ -778,7 +778,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	struct gg_event *e;
 	int res = 0;
 	int port = 0;
-	int errno2;
+	int errno2 = 0;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_watch_fd(%p);\n", sess);
 	
@@ -822,8 +822,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 #endif
 
-			if (failed)
-			{
+			if (failed) {
 				errno = errno2;
 				goto fail_resolving;
 			}
@@ -1380,7 +1379,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			free(sess->password);
 			sess->password = NULL;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() gg_dcc_ip = %s\n", inet_ntoa(*((struct in_addr*) &gg_dcc_ip)));
+			{
+				struct in_addr dcc_ip;
+				dcc_ip.s_addr = gg_dcc_ip;
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() gg_dcc_ip = %s\n", inet_ntoa(dcc_ip));
+			}
 			
 			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
 				struct sockaddr_in sin;

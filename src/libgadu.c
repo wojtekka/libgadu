@@ -408,7 +408,7 @@ int gg_read(struct gg_session *sess, char *buf, int length)
  */
 int gg_write(struct gg_session *sess, const char *buf, int length)
 {
-	int res;
+	int res = 0;
 
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
 	if (sess->ssl) {
@@ -1202,7 +1202,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	struct gg_send_msg s;
 	const char *tmp;
 	char buf[1910];
-	int res;
+	int res = -1;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_image_reply(%p, %d, \"%s\", %p, %d);\n", sess, recipient, filename, image, size);
 
