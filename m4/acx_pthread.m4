@@ -164,7 +164,7 @@ if test "x$acx_pthread_ok" = xyes; then
 	save_LIBS="$LIBS"
 	# This forces link-time symbol resolution, so that the linking checks
 	# with -shared actually have any value
-	CFLAGS="-shared -Wl,-z,defs $CFLAGS"
+	CFLAGS="-shared -fPIC -Wl,-z,defs $CFLAGS"
 	ok="no"
         AC_TRY_LINK([#include <pthread.h>],
                     [pthread_t th; pthread_join(th, 0);
