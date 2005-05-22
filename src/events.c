@@ -167,7 +167,7 @@ int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int fr
  *  - e - opis zdarzenia
  *  - 
  */
-static void gg_image_queue_parse(struct gg_event *e, char *p, int len, struct gg_session *sess, uin_t sender)
+static void gg_image_queue_parse(struct gg_event *e, char *p, unsigned int len, struct gg_session *sess, uin_t sender)
 {
 	struct gg_msg_image_reply *i = (void*) p;
 	struct gg_image_queue *q, *qq;
@@ -394,7 +394,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 					goto malformed;
 				}
 
-				gg_image_queue_parse(e, p, (int)(packet_end - p), sess, gg_fix32(r->sender));
+				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, gg_fix32(r->sender));
 
 				return 0;
 			}
@@ -471,7 +471,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_NOTIFY_REPLY:
 		{
 			struct gg_notify_reply *n = (void*) p;
-			int count, i;
+			unsigned int count, i;
 			char *tmp;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
@@ -720,7 +720,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			if (h->length > 1) {
 				char *tmp;
-				int len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
+				unsigned int len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
 				
 				gg_debug(GG_DEBUG_MISC, "userlist_reply=%p, len=%d\n", sess->userlist_reply, len);
 				

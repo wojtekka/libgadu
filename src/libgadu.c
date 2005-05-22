@@ -455,7 +455,9 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
  *
  *  - sess - opis sesji
  *
- * w przypadku b³êdu NULL, kod b³êdu w errno.
+ * w przypadku b³êdu NULL, kod b³êdu w errno. nale¿y zwróciæ uwagê, ¿e gdy
+ * po³±czenie jest nieblokuj±ce, a kod b³êdu wynosi EAGAIN, nie uda³o siê
+ * odczytaæ ca³ego pakietu i nie nale¿y tego traktowaæ jako b³±d.
  */
 void *gg_recv_packet(struct gg_session *sess)
 {
@@ -551,6 +553,11 @@ void *gg_recv_packet(struct gg_session *sess)
 	while (size > 0) {
 		ret = gg_read(sess, buf + sizeof(h) + offset, size);
 		gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv(%d,%p,%d) = %d\n", sess->fd, buf + sizeof(h) + offset, size, ret);
+		if (!ret) {
+			errno = 0;
+			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed: connection broken\n");
+			return NULL;
+		}
 		if (ret > -1 && ret <= size) {
 			offset += ret;
 			size -= ret;

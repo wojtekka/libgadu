@@ -294,11 +294,15 @@ int gg_connect(void *addr, int port, int async)
  *  - buf - wska¼nik do bufora
  *  - length - d³ugo¶æ bufora
  *
- * je¶li trafi na b³±d odczytu, zwraca NULL. inaczej zwraca buf.
+ * je¶li trafi na b³±d odczytu lub podano nieprawid³owe parametry, zwraca NULL.
+ * inaczej zwraca buf.
  */
 char *gg_read_line(int sock, char *buf, int length)
 {
 	int ret;
+
+	if (!buf || length < 0)
+		return NULL;
 
 	for (; length > 1; buf++, length--) {
 		do {
@@ -360,7 +364,7 @@ char *gg_urlencode(const char *str)
 {
 	char *q, *buf, hex[] = "0123456789abcdef";
 	const char *p;
-	int size = 0;
+	unsigned int size = 0;
 
 	if (!str)
 		str = "";
@@ -412,13 +416,13 @@ int gg_http_hash(const char *format, ...)
 	va_start(ap, format);
 
 	for (j = 0; j < strlen(format); j++) {
-		unsigned char *arg, buf[16];
+		char *arg, buf[16];
 
 		if (format[j] == 'u') {
 			snprintf(buf, sizeof(buf), "%d", va_arg(ap, uin_t));
 			arg = buf;
 		} else {
-			if (!(arg = va_arg(ap, unsigned char*)))
+			if (!(arg = va_arg(ap, char*)))
 				arg = "";
 		}	
 
@@ -613,7 +617,7 @@ static char gg_base64_charset[] =
 char *gg_base64_encode(const char *buf)
 {
 	char *out, *res;
-	int i = 0, j = 0, k = 0, len = strlen(buf);
+	unsigned int i = 0, j = 0, k = 0, len = strlen(buf);
 	
 	res = out = malloc((len / 3 + 1) * 4 + 2);
 
@@ -671,7 +675,7 @@ char *gg_base64_decode(const char *buf)
 {
 	char *res, *save, *foo, val;
 	const char *end;
-	int index = 0;
+	unsigned int index = 0;
 
 	if (!buf)
 		return NULL;
@@ -765,7 +769,7 @@ static int gg_crc32_initialized = 0;
 static void gg_crc32_make_table()
 {
 	uint32_t h = 1;
-	int i, j;
+	unsigned int i, j;
 
 	memset(gg_crc32_table, 0, sizeof(gg_crc32_table));
 
@@ -794,6 +798,9 @@ uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
 {
 	if (!gg_crc32_initialized)
 		gg_crc32_make_table();
+
+	if (!buf || len < 0)
+		return crc;
 
 	crc ^= 0xffffffffL;
 
