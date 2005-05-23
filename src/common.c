@@ -427,7 +427,7 @@ int gg_http_hash(const char *format, ...)
 		}	
 
 		i = 0;
-		while ((c = (int) arg[i++]) != 0) {
+		while ((c = (unsigned char) arg[i++]) != 0) {
 			a = (c ^ b) + (c << 8);
 			b = (a >> 24) | (a << 8);
 		}
