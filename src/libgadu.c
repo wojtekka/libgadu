@@ -488,7 +488,7 @@ void *gg_recv_packet(struct gg_session *sess)
 			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv(%d,%p,%d) = %d\n", sess->fd, &h + sess->header_done, sizeof(h) - sess->header_done, ret);
 
 			if (!ret) {
-				errno = 0;
+				errno = ECONNRESET;
 				gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: connection broken\n");
 				return NULL;
 			}
@@ -554,15 +554,19 @@ void *gg_recv_packet(struct gg_session *sess)
 		ret = gg_read(sess, buf + sizeof(h) + offset, size);
 		gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv(%d,%p,%d) = %d\n", sess->fd, buf + sizeof(h) + offset, size, ret);
 		if (!ret) {
-			errno = 0;
 			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed: connection broken\n");
+			errno = ECONNRESET;
 			return NULL;
 		}
 		if (ret > -1 && ret <= size) {
 			offset += ret;
 			size -= ret;
 		} else if (ret == -1) {	
+			int errno2 = errno;
+
 			gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed (errno=%d, %s)\n", errno, strerror(errno));
+			errno = errno2;
+
 			if (errno == EAGAIN) {
 				gg_debug(GG_DEBUG_MISC, "// gg_recv_packet() %d bytes received, %d left\n", offset, size);
 				sess->recv_buf = buf;
