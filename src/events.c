@@ -645,6 +645,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			if (uin & 0x40000000)
 				e->event.status60.version |= GG_HAS_AUDIO_MASK;
+			if (uin & 0x08000000)
+				e->event.status60.version |= GG_ERA_OMNIX_MASK;
 
 			if (h->length > sizeof(*s)) {
 				int len = h->length - sizeof(*s);

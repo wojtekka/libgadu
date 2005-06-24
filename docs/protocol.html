@@ -301,7 +301,9 @@ Liczba oznaczaj±ca wersjê mo¿e byæ jedn± z poni¿szych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Warto¶æ</b></td><td><b>Wersje klientów</b></td></tr>
-<tr class="tabf"><td><tt>0x24</tt></td><td>6.1 (build 156)</td></tr>
+<tr class="tabf"><td><tt>0x24</tt></td><td>6.1 (build 155)</td></tr>
+<tr class="tabf"><td><tt>0x22</tt></td><td>6.0 (build 140)</td></tr>
+<tr class="tabf"><td><tt>0x21</tt></td><td>6.0 (build 133)</td></tr>
 <tr class="tabf"><td><tt>0x20</tt></td><td>6.0</td></tr>
 <tr class="tabf"><td><tt>0x1e</tt></td><td>5.7 beta (build 121)</td></tr>
 <tr class="tabf"><td><tt>0x1c</tt></td><td>5.7 beta</td></tr>
@@ -332,6 +334,14 @@ do wersji dodawana jest warto¶æ:
 
 <div class="c">
 <pre>#define GG_HAS_AUDIO_MASK 0x40000000</pre>
+</div>
+
+<p>
+Je¶li osoba korzysta z bramki Era Omnix, do wersji dodawana jest warto¶æ:
+</p>
+
+<div class="c">
+<pre>#define GG_ERA_OMNIX_MASK 0x04000000</pre>
 </div>
 
 <p>
@@ -504,6 +514,7 @@ W najstarszym bajcie pola <tt>uin</tt> mog± znajdowaæ siê nastêpuj±ce flagi:
 <tr class="tabf"><td><tt>GG_UINFLAG_UNKNOWN1</tt></td><td><tt>0x10</tt></td><td>Nieznane</td></tr>
 <tr class="tabf"><td><tt>GG_UINFLAG_UNKNOWN2</tt></td><td><tt>0x20</tt></td><td>Flaga spotykana, gdy u¿ytkownik staje siê niedostêpny</td></tr>
 <tr class="tabf"><td><tt>GG_UINFLAG_VOICE</tt></td><td><tt>0x40</tt></td><td>U¿ytkownik mo¿e prowadziæ rozmowy g³osowe</td></tr>
+<tr class="tabf"><td><tt>GG_UINFLAG_ERA_OMNIX</tt></td><td><tt>0x80</tt></td><td>U¿ytkownik ³±czy siê przez bramkê Era Omnix</td></tr>
 </table>
 
 <p><tt>remote_port</tt> poza zwyk³ym
