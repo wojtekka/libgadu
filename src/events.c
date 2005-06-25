@@ -586,6 +586,11 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify60[i].descr = NULL;
 				e->event.notify60[i].time = 0;
 
+				if (uin & 0x40000000)
+					e->event.notify60[i].version |= GG_HAS_AUDIO_MASK;
+				if (uin & 0x08000000)
+					e->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
+
 				if (GG_S_D(n->status)) {
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
 
