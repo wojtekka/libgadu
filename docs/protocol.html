@@ -116,7 +116,7 @@ U¿ywaj±c architektur innych ni¿ i386, nale¿y zwróciæ szczególn± uwagê na
 rozmiar typów zmiennych i kolejno¶æ znaków. Poza tym, wiêkszo¶æ dostêpnych
 obecnie kompilatorów domy¶lnie wyrównuje zmienne do rozmiaru s³owa danej
 architektury, wiêc nale¿y wy³±czyæ t± funkcjê. W przypadku gcc bêdzie to
-<tt>__attribute__ ((packed))</tt> zaraz za deklaracj± ka¿dej struktury. a dla
+<tt>__attribute__ ((packed))</tt> zaraz za deklaracj± ka¿dej struktury, a dla
 Microsoft Visual C++ powinno pomóc:
 </p>
 
@@ -270,7 +270,7 @@ Hash has³a mo¿na obliczyæ nastêpuj±c± funkcj± jêzyka C:
 </p>
 
 <div class="example">
-<pre>int gg_login_hash(char *password, int seed)
+<pre>int gg_login_hash(unsigned char *password, unsigned int seed)
 {
 	unsigned int x, y, z;
 
@@ -678,7 +678,7 @@ Na przyk³ad, by wys³aæ do dwóch osób, nale¿y wys³aæ pakiet:
 
 <p>
 Od wersji 4.8.1 mo¿liwe jest równie¿ dodawanie do wiadomo¶ci ró¿nych
-atrybutów tekstu jak pogrubienie czy kolory. Niezbêdne jest do³±czenie
+atrybutów tekstu, jak pogrubienie czy kolory. Niezbêdne jest do³±czenie
 nastêpuj±cej struktury:
 </p>
 
