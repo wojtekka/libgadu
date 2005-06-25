@@ -578,11 +578,11 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				char *tmp;
 
 				e->event.notify60[i].uin = uin & 0x00ffffff;
-				e->event.notify60[i].status = n->status;
-				e->event.notify60[i].remote_ip = n->remote_ip;
+				e->event.notify60[i].status = gg_fix32(n->status);
+				e->event.notify60[i].remote_ip = gg_fix32(n->remote_ip);
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
-				e->event.notify60[i].version = n->version;
-				e->event.notify60[i].image_size = n->image_size;
+				e->event.notify60[i].version = gg_fix32(n->version);
+				e->event.notify60[i].image_size = gg_fix32(n->image_size);
 				e->event.notify60[i].descr = NULL;
 				e->event.notify60[i].time = 0;
 
@@ -640,11 +640,11 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			e->type = GG_EVENT_STATUS60;
 			e->event.status60.uin = uin & 0x00ffffff;
-			e->event.status60.status = s->status;
-			e->event.status60.remote_ip = s->remote_ip;
+			e->event.status60.status = gg_fix32(s->status);
+			e->event.status60.remote_ip = gg_fix32(s->remote_ip);
 			e->event.status60.remote_port = gg_fix16(s->remote_port);
-			e->event.status60.version = s->version;
-			e->event.status60.image_size = s->image_size;
+			e->event.status60.version = gg_fix32(s->version);
+			e->event.status60.image_size = gg_fix32(s->image_size);
 			e->event.status60.descr = NULL;
 			e->event.status60.time = 0;
 
@@ -1086,7 +1086,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if ((tmp = strchr(host, ':'))) {
 				*tmp = 0;
-				port = atoi(tmp+1);
+				port = atoi(tmp + 1);
 			}
 
 			addr.s_addr = inet_addr(host);
@@ -1420,7 +1420,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = gg_fix32(sess->protocol_version);
 			l.local_port = gg_fix16(gg_dcc_port);
-			l.image_size = sess->image_size;
+			l.image_size = gg_fix32(sess->image_size);
 			
 			if (sess->external_addr && sess->external_port > 1023) {
 				l.external_ip = sess->external_addr;
