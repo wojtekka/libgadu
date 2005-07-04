@@ -172,8 +172,7 @@ static void gg_image_queue_parse(struct gg_event *e, char *p, unsigned int len, 
 	struct gg_msg_image_reply *i = (void*) p;
 	struct gg_image_queue *q, *qq;
 
-	if (!p || !sess || !e)
-	{
+	if (!p || !sess || !e) {
 		errno = EFAULT;
 		return;
 	}
@@ -398,6 +397,8 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 					goto malformed;
 				}
 
+				rep->size = gg_fix32(rep->size);
+				rep->crc32 = gg_fix32(rep->crc32);
 				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, gg_fix32(r->sender));
 
 				return 0;
@@ -497,6 +498,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
 				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
 				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
+				e->event.notify_descr.notify[0].remote_ip = gg_fix32(e->event.notify_descr.notify[0].remote_ip);
 				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
 
 				count = h->length - sizeof(*n);
@@ -523,7 +525,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				for (i = 0; i < count; i++) {
 					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
 					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
-					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);		
+					e->event.notify[i].remote_ip = gg_fix32(e->event.notify[i].remote_ip);
+					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
 				}
 			}
 
@@ -581,8 +584,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify60[i].status = gg_fix32(n->status);
 				e->event.notify60[i].remote_ip = gg_fix32(n->remote_ip);
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
-				e->event.notify60[i].version = gg_fix32(n->version);
-				e->event.notify60[i].image_size = gg_fix32(n->image_size);
+				e->event.notify60[i].version = n->version;
+				e->event.notify60[i].image_size = n->image_size;
 				e->event.notify60[i].descr = NULL;
 				e->event.notify60[i].time = 0;
 
@@ -643,8 +646,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			e->event.status60.status = gg_fix32(s->status);
 			e->event.status60.remote_ip = gg_fix32(s->remote_ip);
 			e->event.status60.remote_port = gg_fix16(s->remote_port);
-			e->event.status60.version = gg_fix32(s->version);
-			e->event.status60.image_size = gg_fix32(s->image_size);
+			e->event.status60.version = s->version;
+			e->event.status60.image_size = s->image_size;
 			e->event.status60.descr = NULL;
 			e->event.status60.time = 0;
 
@@ -1420,11 +1423,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = gg_fix32(sess->protocol_version);
 			l.local_port = gg_fix16(gg_dcc_port);
-			l.image_size = gg_fix32(sess->image_size);
+			l.image_size = sess->image_size;
 			
 			if (sess->external_addr && sess->external_port > 1023) {
-				l.external_ip = sess->external_addr;
-				l.external_port = sess->external_port;
+				l.external_ip = gg_fix32(sess->external_addr);
+				l.external_port = gg_fix16(sess->external_port);
 			}
 
 			gg_debug(GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN60 packet\n");
