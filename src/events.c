@@ -581,7 +581,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				char *tmp;
 
 				e->event.notify60[i].uin = uin & 0x00ffffff;
-				e->event.notify60[i].status = gg_fix32(n->status);
+				e->event.notify60[i].status = n->status;
 				e->event.notify60[i].remote_ip = gg_fix32(n->remote_ip);
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
 				e->event.notify60[i].version = n->version;
@@ -643,7 +643,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			e->type = GG_EVENT_STATUS60;
 			e->event.status60.uin = uin & 0x00ffffff;
-			e->event.status60.status = gg_fix32(s->status);
+			e->event.status60.status = s->status;
 			e->event.status60.remote_ip = gg_fix32(s->remote_ip);
 			e->event.status60.remote_port = gg_fix16(s->remote_port);
 			e->event.status60.version = s->version;
