@@ -498,7 +498,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
 				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
 				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
-				e->event.notify_descr.notify[0].remote_ip = gg_fix32(e->event.notify_descr.notify[0].remote_ip);
+				e->event.notify_descr.notify[0].remote_ip = e->event.notify_descr.notify[0].remote_ip;
 				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
 
 				count = h->length - sizeof(*n);
@@ -525,7 +525,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				for (i = 0; i < count; i++) {
 					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
 					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
-					e->event.notify[i].remote_ip = gg_fix32(e->event.notify[i].remote_ip);
+					e->event.notify[i].remote_ip = e->event.notify[i].remote_ip;
 					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
 				}
 			}
@@ -582,7 +582,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 				e->event.notify60[i].uin = uin & 0x00ffffff;
 				e->event.notify60[i].status = n->status;
-				e->event.notify60[i].remote_ip = gg_fix32(n->remote_ip);
+				e->event.notify60[i].remote_ip = n->remote_ip;
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
 				e->event.notify60[i].version = n->version;
 				e->event.notify60[i].image_size = n->image_size;
@@ -644,7 +644,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			e->type = GG_EVENT_STATUS60;
 			e->event.status60.uin = uin & 0x00ffffff;
 			e->event.status60.status = s->status;
-			e->event.status60.remote_ip = gg_fix32(s->remote_ip);
+			e->event.status60.remote_ip = s->remote_ip;
 			e->event.status60.remote_port = gg_fix16(s->remote_port);
 			e->event.status60.version = s->version;
 			e->event.status60.image_size = s->image_size;
@@ -1426,7 +1426,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			l.image_size = sess->image_size;
 			
 			if (sess->external_addr && sess->external_port > 1023) {
-				l.external_ip = gg_fix32(sess->external_addr);
+				l.external_ip = sess->external_addr;
 				l.external_port = gg_fix16(sess->external_port);
 			}
 
