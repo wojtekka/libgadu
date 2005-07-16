@@ -1446,7 +1446,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		return -1;
 	}
 
-	if (!message || recipients_count <= 0 || !recipients) {
+	if (!message || recipients_count <= 0 || recipients_count > 0xffff || !recipients) {
 		errno = EINVAL;
 		return -1;
 	}

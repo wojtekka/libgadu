@@ -301,7 +301,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 
 				count = gg_fix32(m->count);
 
-				if (p + count * sizeof(uin_t) > packet_end) {
+				if (p + count * sizeof(uin_t) > packet_end || p + count * sizeof(uin_t) < p || count > 0xffff) {
 					gg_debug(GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1.5)\n");
 					goto malformed;
 				}
