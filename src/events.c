@@ -383,9 +383,11 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 
 				if (p + sizeof(struct gg_msg_image_reply) == packet_end) {
 
+					/* pusta odpowied¼ - klient po drugiej stronie nie ma ¿±danego obrazka */
+
 					e->type = GG_EVENT_IMAGE_REPLY;
 					e->event.image_reply.sender = gg_fix32(r->sender);
-					e->event.image_reply.size = gg_fix32(rep->size);
+					e->event.image_reply.size = 0;
 					e->event.image_reply.crc32 = gg_fix32(rep->crc32);
 					return 0;
 

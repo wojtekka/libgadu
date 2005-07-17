@@ -769,7 +769,7 @@ struktur± <tt>gg_msg_image_reply</tt>:
 	int size;       	<i>/* rozmiar */</i>
 	int crc32;      	<i>/* suma kontrolna */</i>
 	char filename[];	<i>/* nazwa pliku, nie musi wyst±piæ */</i>
-	char image[];		<i>/* zawarto¶æ obrazka */</i>
+	char image[];		<i>/* zawarto¶æ obrazka, nie musi wyst±piæ */</i>
 };</pre>
 </div>
 
@@ -780,6 +780,11 @@ bajtów, tre¶æ obrazka jest dzielona na kilka pakietów nie przekraczaj±cych
 pole <tt>filename</tt>, a w kolejnych pole <tt>flag</tt> jest równe 0x06
 i pole <tt>filename</tt> w ogóle nie wystêpuje (nawet bajt zakoñczenia ci±gu
 znaków).
+</p>
+
+<p>
+Je¶li otrzymamy pakiet bez pola <tt>filename</tt> oraz <tt>image</tt>, oznacza
+to, ¿e klient nie posiada ¿±danego obrazka.
 </p>
 
 <p>
