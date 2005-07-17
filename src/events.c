@@ -387,8 +387,6 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 					e->event.image_reply.sender = gg_fix32(r->sender);
 					e->event.image_reply.size = gg_fix32(rep->size);
 					e->event.image_reply.crc32 = gg_fix32(rep->crc32);
-					e->event.image_reply.filename = strdup("");
-					e->event.image_reply.image = strdup("");
 					return 0;
 
 				} else if (p + sizeof(struct gg_msg_image_reply) + 1 > packet_end) {
