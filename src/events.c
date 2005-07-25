@@ -500,7 +500,6 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
 				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
 				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
-				e->event.notify_descr.notify[0].remote_ip = e->event.notify_descr.notify[0].remote_ip;
 				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
 
 				count = h->length - sizeof(*n);
@@ -527,7 +526,6 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				for (i = 0; i < count; i++) {
 					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
 					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
-					e->event.notify[i].remote_ip = e->event.notify[i].remote_ip;
 					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
 				}
 			}
