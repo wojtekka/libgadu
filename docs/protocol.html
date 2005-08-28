@@ -1305,7 +1305,7 @@ http://register.gadu-gadu.pl/appsvc/tokenpic.asp</pre></div>
 
 <p>
 Mo¿emy teraz pobraæ metod± GET z podanej ¶cie¿ki obrazek z tokenem, doklejaj±c
-do ¶cie¿ki parametr <tt><b>tokenid</b></tt> o warto¶ci bed±cej identyfikatorem
+do ¶cie¿ki parametr <tt><b>tokenid</b></tt> o warto¶ci bêd±cej identyfikatorem
 uzyskanym przed chwil±. Adres obrazka z warto¶ci± tokenu dla powy¿szego
 przyk³adu to:
 </p>
@@ -1570,7 +1570,7 @@ kierunek transmisji jest ju¿ okre¶lony.
 <h3>3.2. Przesy³anie plików</h3>
 
 <p>
-Aby powiadomo¶æ o chêci przes³ania pliku, nale¿y wys³aæ nastêpuj±ce pakiety.
+Aby powiadomiæ o chêci przes³ania pliku, nale¿y wys³aæ nastêpuj±ce pakiety.
 Pierwszy okre¶la rodzaj po³±czenia, drugi zawiera szczegó³y dotycz±ce pliku.
 </p>
 
@@ -1660,7 +1660,7 @@ otrzymania pakietu typu <tt>GG_DCC_SEND_DATA_LAST</tt>, implementacji.
 <h3>3.3. Rozmowy g³osowe</h3>
 
 <p>
-Aby powiadomo¶æ o chêci rozmowy g³osowej nale¿y wys³aæ pakiet:
+Aby powiadomiæ o chêci rozmowy g³osowej nale¿y wys³aæ pakiet:
 </p>
 
 <div class="c">
@@ -1754,7 +1754,7 @@ by³yby u¿ywane.
 					      pliku, wype³niona zerami */
 	};
 
-Dalej nadawca czeka na akceptacjê odbiorcy, czyli nastêpuj±c± strukturkê:
+Dalej nadawca czeka na akceptacjê odbiorcy, czyli nastêpuj±c± strukturê:
 	
 	struct {
 		int type;      /* 0x0006 GG_DCC_GIMME_FILE */
@@ -1784,7 +1784,7 @@ Zachowanie odbiorcy jest symetryczne:
 	int unknown2;
 	file_info_struct finfo;
 
-2. je¶li u¿ytkownik zgodzi siê odebraæ plik, to wysy³amy struktrê jakiej
+2. je¶li u¿ytkownik zgodzi siê odebraæ plik, to wysy³amy strukturê jakiej
 odbiorca siê spodziewa.
 
 3. otrzymujemy nag³ówek paczki i paczkê z danymi zadeklarowanej d³ugo¶ci
