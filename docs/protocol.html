@@ -354,7 +354,17 @@ Je¶li autoryzacja siê powiedzie, dostaniemy w odpowiedzi pakiet:
 </div>
 
 <p>
-o zerowej d³ugo¶ci, lub w przypadku b³êdu pakiet:
+o zerowej d³ugo¶ci lub pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_NEED_EMAIL 0x14</pre>
+</div>
+
+<p>
+gdy numer i has³o siê zgadzaj±, ale serwer chce nas poinformowaæ, ¿e
+powinni¶my uzupe³niæ adres e-mail w katalogu publicznym. W przypadku
+b³êdu autoryzacji otrzymamy:
 </p>
 
 <div class="c">
@@ -1174,6 +1184,7 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowied¼ listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0011</tt></td><td><tt>GG_NOTIFY_REPLY60</tt></td><td>Stan listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_NEED_EMAIL</tt></td><td>Logowanie powiod³o siê, ale powinni¶my uzupe³niæ adres e-mail w katalogu publicznym</td></tr>
 </table>
 
 <hr />

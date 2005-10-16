@@ -1471,7 +1471,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 	
-			if (h->type == GG_LOGIN_OK) {
+			if (h->type == GG_LOGIN_OK || h->type == GG_NEED_EMAIL) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;
@@ -1484,10 +1484,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (h->type == GG_LOGIN_FAILED) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() login failed\n");
 				e->event.failure = GG_FAILURE_PASSWORD;
-				errno = EACCES;
-			} else if (h->type == GG_NEED_EMAIL) {
-				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() email change needed\n");
-				e->event.failure = GG_FAILURE_NEED_EMAIL;
 				errno = EACCES;
 			} else {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() invalid packet\n");
