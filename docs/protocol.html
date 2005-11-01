@@ -111,14 +111,13 @@ znaków CP1250 (windows-1250). Linie koñcz± siê znakami <tt>\r\n</tt>.
 
 <p>
 Przy opisie struktur, za³o¿ono, ¿e <tt>char</tt> ma rozmiar 1 bajtu,
-<tt>short</tt> 2 bajtów, <tt>int</tt> 4 bajtów, <tt>long long</tt> 8 bajtów.
-U¿ywaj±c architektur innych ni¿ i386, nale¿y zwróciæ szczególn± uwagê na
-rozmiar typów zmiennych i kolejno¶æ bajtów. Poza tym, wiêkszo¶æ dostêpnych
-obecnie kompilatorów domy¶lnie wyrównuje zmienne do rozmiaru s³owa danej
-architektury, wiêc nale¿y wy³±czyæ t± funkcjê. W przypadku gcc bêdzie to
-<tt>__attribute__ ((packed))</tt> zaraz za deklaracj± ka¿dej struktury, a dla
-Microsoft Visual C++ powinno pomóc:
-</p>
+<tt>short</tt> 2 bajtów, <tt>int</tt> 4 bajtów, <tt>long long</tt> 8 bajtów,
+wszystkie bez znaku. U¿ywaj±c architektur innych ni¿ i386, nale¿y zwróciæ
+szczególn± uwagê na rozmiar typów zmiennych i kolejno¶æ bajtów. Poza tym,
+wiêkszo¶æ dostêpnych obecnie kompilatorów domy¶lnie wyrównuje zmienne do
+rozmiaru s³owa danej architektury, wiêc nale¿y wy³±czyæ t± funkcjê. W przypadku
+gcc bêdzie to <tt>__attribute__ ((packed))</tt> zaraz za deklaracj± ka¿dej
+struktury, a dla Microsoft Visual C++ powinno pomóc: </p>
 
 <div class="c">
 <pre>#pragma pack(push, 1)
