@@ -163,6 +163,7 @@ if test "x$acx_pthread_ok" = xyes; then
         AC_MSG_CHECKING([if more special flags are required for pthreads])
         flag=no
 	case "$UNAME_SYSTEM" in 
+		*GNU/kFreeBSD*) flag=no;;
                 *AIX* | *FreeBSD*)     flag="-D_THREAD_SAFE";;
                 *SunOS* | *OSF* | *HP-UX*) flag="-D_REENTRANT";;
         esac
