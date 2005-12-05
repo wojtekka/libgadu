@@ -62,7 +62,7 @@ gg_pubdir50_t gg_pubdir50_new(int type)
  *
  * 0/-1
  */
-int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, const char *value)
+static int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, const char *value)
 {
 	struct gg_pubdir50_entry *tmp = NULL, *entry;
 	char *dupfield, *dupvalue;

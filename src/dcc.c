@@ -92,7 +92,7 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
  *  - unix - czas w postaci unixowej
  *  - filetime - czas w postaci windowsowej
  */
-void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
+static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 {
 #ifdef __GG_LIBGADU_HAVE_LONG_LONG
 	unsigned long long tmp;
