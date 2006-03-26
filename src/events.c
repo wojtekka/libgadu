@@ -1,9 +1,10 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2003 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Wo¼ny <speedy@ziew.org>
  *                          Arkadiusz Mi¶kiewicz <arekm@pld-linux.org>
+ *                          Adam Wysocki <gophi@ekg.apcoh.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -1484,6 +1485,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (h->type == GG_LOGIN_FAILED) {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() login failed\n");
 				e->event.failure = GG_FAILURE_PASSWORD;
+				errno = EACCES;
+			} else if (h->type == GG_DISCONNECTING) {
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() too many incorrect password attempts\n");
+				e->event.failure = GG_FAILURE_INTRUDER;
 				errno = EACCES;
 			} else {
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() invalid packet\n");
