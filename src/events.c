@@ -1093,6 +1093,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				port = atoi(tmp + 1);
 			}
 
+			if (!strcmp(host, "notoperating")) {
+				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
+				sess->fd = -1;
+				goto fail_unavailable;
+			}
+
 			addr.s_addr = inet_addr(host);
 			sess->server_addr = addr.s_addr;
 
@@ -1550,6 +1556,12 @@ fail_connecting:
 fail_resolving:
 	e->type = GG_EVENT_CONN_FAILED;
 	e->event.failure = GG_FAILURE_RESOLVING;
+	sess->state = GG_STATE_IDLE;
+	goto done;
+
+fail_unavailable:
+	e->type = GG_EVENT_CONN_FAILED;
+	e->event.failure = GG_FAILURE_UNAVAILABLE;
 	sess->state = GG_STATE_IDLE;
 	goto done;
 }
