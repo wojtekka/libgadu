@@ -1,10 +1,11 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2003 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Wo¼ny <speedy@ziew.org>
  *                          Arkadiusz Mi¶kiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliñski <chilek@chilan.com>
+ *                          Adam Wysocki <gophi@ekg.apcoh.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -208,6 +209,8 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 	}
 
 	if (!res) {
+		close(pipes[0]);
+
 		if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 			struct in_addr *hn;
 		
