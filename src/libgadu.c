@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 #ifdef __GG_LIBGADU_HAVE_OPENSSL
 #  include <openssl/err.h>
@@ -954,8 +955,10 @@ void gg_free_session(struct gg_session *sess)
 		sess->resolver = NULL;
 	}
 #else
-	if (sess->pid != -1)
+	if (sess->pid != -1) {
+		kill(sess->pid, SIGTERM);
 		waitpid(sess->pid, NULL, WNOHANG);
+	}
 #endif
 
 	if (sess->fd != -1)
@@ -1102,6 +1105,7 @@ void gg_logoff(struct gg_session *sess)
 	}
 #else
 	if (sess->pid != -1) {
+		kill(sess->pid, SIGTERM);
 		waitpid(sess->pid, NULL, WNOHANG);
 		sess->pid = -1;
 	}
