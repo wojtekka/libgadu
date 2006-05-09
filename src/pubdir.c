@@ -1,8 +1,9 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Dawid Jarosz <dawjar@poczta.onet.pl>
+ *                          Adam Wysocki <gophi@ekg.apcoh.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -447,7 +448,11 @@ int gg_pubdir_watch_fd(struct gg_http *h)
 	
 	gg_debug(GG_DEBUG_MISC, "=> pubdir, let's parse \"%s\"\n", h->body);
 
-	if ((tmp = strstr(h->body, "success")) || (tmp = strstr(h->body, "results"))) {
+	if ((tmp = strstr(h->body, "Tokens okregisterreply_packet.reg.dwUserId="))) {
+		p->success = 1;
+		p->uin = strtol(tmp + sizeof("Tokens okregisterreply_packet.reg.dwUserId=") - 1, NULL, 0);
+		gg_debug(GG_DEBUG_MISC, "=> pubdir, success (okregisterreply, uin=%d)\n", p->uin);
+	} else if ((tmp = strstr(h->body, "success")) || (tmp = strstr(h->body, "results"))) {
 		p->success = 1;
 		if (tmp[7] == ':')
 			p->uin = strtol(tmp + 8, NULL, 0);
