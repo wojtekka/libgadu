@@ -355,11 +355,14 @@ Je¶li autoryzacja siê powiedzie, dostaniemy w odpowiedzi pakiet:
 </div>
 
 <p>
-o zerowej d³ugo¶ci lub pakiet:
+o d³ugo¶ci równej 0 lub 1 (dla wersji klienta powy¿ej 6.0 (build 140) 
+w pakiecie bêdzie znajdowa³o siê jednobajtowe pole o warto¶ci 0x1F, 
+którego przeznaczenie nie jest jeszcze poznane). Mo¿emy tak¿e dostaæ 
+pakiet:
 </p>
 
 <div class="c">
-<pre>#define GG_NEED_EMAIL 0x14</pre>
+<pre>#define GG_NEED_EMAIL 0x0014</pre>
 </div>
 
 <p>
@@ -1856,7 +1859,10 @@ napisz na listê dyskusyjn±
 	<li><b>Walerian Soko³owski</b>: pierwsza wersja opisu protoko³u
 	bezpo¶rednich po³±czeñ.</li>
 	<li><b>Nikodem</b> (n-d%tlen.pl): flagi rodzaju u¿ytkownika.</li>
-	<li><b>Adam Wysocki</b> (gophi%ekg.apcoh.org): poprawki dotycz±ce GG_DISCONNECTING.</li>
+	<li><b>Adam Wysocki</b> (gophi%ekg.apcoh.org): poprawki, utrzymanie 
+	wszystkiego w porz±dku.</li>
+	<li><b>Marcin Krupowicz</b> (marcin.krupowicz%gmail.com): informacja na 
+	temat tego, ¿e pakiet GG_LOGIN_OK nie zawsze jest zerowej d³ugo¶ci.</li>
 </ul>
 
 <hr />
