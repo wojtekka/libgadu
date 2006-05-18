@@ -1,8 +1,9 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2002 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Tomasz Chiliñski <chilek@chilan.com>
+ *                          Adam Wysocki <gophi@ekg.apcoh.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -874,6 +875,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				if (!(h->voice_buf = malloc(h->chunk_size))) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() out of memory for voice frame\n");
+					free(e);
 					return NULL;
 				}
 

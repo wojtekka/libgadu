@@ -1211,6 +1211,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				 * write() zawiedzie, sta³o siê co¶ z³ego. */
 				if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
+					if (auth)
+						free(auth);
 					goto fail_connecting;
 				}
 
@@ -1218,6 +1220,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					gg_debug(GG_DEBUG_MISC, "//   %s", auth);
 					if (write(sess->fd, auth, strlen(auth)) < (signed)strlen(auth)) {
 						gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
+						free(auth);
 						goto fail_connecting;
 					}
 
