@@ -1,3 +1,0 @@
-foobar:
-	./make.pl
-
