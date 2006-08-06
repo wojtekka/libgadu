@@ -3,9 +3,9 @@
 
 aclocal -I m4
 autoheader
+libtoolize --copy --force
+automake --add-missing --copy --force --foreign
 autoconf
-automake --add-missing
-libtoolize --force
 
 test x$NOCONFIGURE = x && ./configure $*
 

@@ -3,9 +3,6 @@
 Makefile
 Makefile.in
 so_locations
-libgadu.pc
-libgadu-config.h
-libgadu-config.h.in
 *.lo
 .depend
 libgadu.la

@@ -1,9 +1,37 @@
 #!/bin/sh
 # $Id$
 
-make clean
-rm -rf config.* autom4te.cache Makefile.in Makefile COPYING INSTALL aclocal.m4 libtool 
-rm -rf ltmain.sh depcomp install-sh missing mkinstalldirs stamp* configure confdefs.h ltconfig
-rm -rf src/Makefile src/Makefile.in src/libgadu-config.h src/libgadu-config.h.in
-rm -rf src/.deps
-rm -rf src/libgadu-stdint.h stdint.h src/libgadu.pc
+test -f Makefile && make clean
+
+rm -rf \
+	aclocal.m4 \
+	autom4te.cache \
+	compile \
+	confdefs.h \
+	config.* \
+	configure \
+	depcomp \
+	install-sh \
+	INSTALL \
+	libtool \
+	ltconfig \
+	ltmain.sh \
+	Makefile \
+	Makefile.in \
+	missing \
+	mkinstalldirs \
+	stamp* \
+	stdint.h \
+	src/Makefile \
+	src/Makefile.in \
+	src/.deps \
+	src/.libs \
+	include/Makefile \
+	include/Makefile.in \
+	include/libgadu-config.h \
+	include/libgadu-stdint.h \
+	include/stamp* \
+	pkgconfig/Makefile \
+	pkgconfig/Makefile.in \
+	pkgconfig/libgadu.pc \
+	pkgconfig/stamp*
