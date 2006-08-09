@@ -180,7 +180,7 @@ je¶li chcemy siê wylogowaæ, wywo³ujemy ,,gg_logoff()'' i potem zwalniamy
 pamiêæ zwi±zan± z sesj± funkcj± ,,gg_free_session()''.
 
 je¶li chcemy przypomnieæ swoje has³o, wywo³ujemy funkcjê
-,,gg_remind_passwd2()'', a wynikow± struktujê ,,gg_http'' traktujemy
+,,gg_remind_passwd2()'', a wynikow± strukturê ,,gg_http'' traktujemy
 podobnie do ,,gg_session'':
  - sprawdzamy ->fd i ->check,
  - wywo³ujemy ,,gg_remind_passwd_watch_fd()'', gdy co¶ siê dzieje. funkcja
