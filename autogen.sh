@@ -1,11 +1,11 @@
 #!/bin/sh
 # $Id$
 
-aclocal -I m4
-autoheader
-libtoolize --copy --force
-automake --add-missing --copy --force --foreign
-autoconf
+echo aclocal && aclocal -I m4
+echo autoheader && autoheader
+echo libtoolize && libtoolize --copy --force
+echo automake && automake --add-missing --copy --force --foreign
+echo autoconf && autoconf
 
-test x$NOCONFIGURE = x && ./configure $*
+test x$NOCONFIGURE = x && echo configure && ./configure $*
 

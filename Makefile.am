@@ -1,3 +1,3 @@
-SUBDIRS = src include pkgconfig
+SUBDIRS = include src pkgconfig
 
 libtool:	$(LIBTOOL_DEPS)

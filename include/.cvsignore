@@ -1,4 +1,4 @@
 Makefile
 Makefile.in
-libgadu-config.h
-stamp-h1
+libgadu.h
+stamp-h*

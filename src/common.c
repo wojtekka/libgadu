@@ -95,12 +95,12 @@ char *gg_vsaprintf(const char *format, va_list ap)
 	const char *start;
 	char *buf = NULL;
 	
-#ifdef __GG_LIBGADU_HAVE_VA_COPY
+#ifdef GG_CONFIG_HAVE_VA_COPY
 	va_list aq;
 
 	va_copy(aq, ap);
 #else
-#  ifdef __GG_LIBGADU_HAVE___VA_COPY
+#  ifdef GG_CONFIG_HAVE___VA_COPY
 	va_list aq;
 
 	__va_copy(aq, ap);
@@ -109,7 +109,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 
 	start = format; 
 
-#ifndef __GG_LIBGADU_HAVE_C99_VSNPRINTF
+#ifndef GG_CONFIG_HAVE_C99_VSNPRINTF
 	{
 		int res;
 		char *tmp;
@@ -139,11 +139,11 @@ char *gg_vsaprintf(const char *format, va_list ap)
 
 	format = start;
 	
-#ifdef __GG_LIBGADU_HAVE_VA_COPY
+#ifdef GG_CONFIG_HAVE_VA_COPY
 	vsnprintf(buf, size + 1, format, aq);
 	va_end(aq);
 #else
-#  ifdef __GG_LIBGADU_HAVE___VA_COPY
+#  ifdef GG_CONFIG_HAVE___VA_COPY
 	vsnprintf(buf, size + 1, format, aq);
 	va_end(aq);
 #  else

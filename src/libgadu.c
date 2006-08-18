@@ -31,11 +31,12 @@
 #  include <sys/filio.h>
 #endif
 
-#include "libgadu-config.h"
+#include "compat.h"
+#include "libgadu.h"
 
 #include <errno.h>
 #include <netdb.h>
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
 #include <stdarg.h>
@@ -44,13 +45,10 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/rand.h>
 #endif
-
-#include "compat.h"
-#include "libgadu.h"
 
 int gg_debug_level = 0;
 void (*gg_debug_handler)(int level, const char *format, va_list ap) = NULL;
@@ -104,7 +102,7 @@ const char *gg_libgadu_version()
  */
 uint32_t gg_fix32(uint32_t x)
 {
-#ifndef __GG_LIBGADU_BIGENDIAN
+#ifndef GG_CONFIG_BIGENDIAN
 	return x;
 #else
 	return (uint32_t)
@@ -128,7 +126,7 @@ uint32_t gg_fix32(uint32_t x)
  */
 uint16_t gg_fix16(uint16_t x)
 {
-#ifndef __GG_LIBGADU_BIGENDIAN
+#ifndef GG_CONFIG_BIGENDIAN
 	return x;
 #else
 	return (uint16_t)
@@ -236,7 +234,7 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 	return 0;
 }
 
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 
 struct gg_resolve_pthread_data {
 	char *hostname;
@@ -377,7 +375,7 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 {
 	int res;
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl) {
 		int err;
 
@@ -414,7 +412,7 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 {
 	int res = 0;
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl) {
 		int err;
 
@@ -777,7 +775,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->pid = -1;
 
 	if (p->tls == 1) {
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 		char buf[1024];
 
 		OpenSSL_add_ssl_algorithms();
@@ -883,7 +881,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 	
 	if (!sess->server_addr || gg_proxy_enabled) {
-#ifndef __GG_LIBGADU_HAVE_PTHREAD
+#ifndef GG_CONFIG_HAVE_PTHREAD
 		if (gg_resolve(&sess->fd, &sess->pid, hostname)) {
 #else
 		if (gg_resolve_pthread(&sess->fd, &sess->resolver, hostname)) {
@@ -940,7 +938,7 @@ void gg_free_session(struct gg_session *sess)
 	if (sess->header_buf)
 		free(sess->header_buf);
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
 		SSL_free(sess->ssl);
 
@@ -948,7 +946,7 @@ void gg_free_session(struct gg_session *sess)
 		SSL_CTX_free(sess->ssl_ctx);
 #endif
 
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	if (sess->resolver) {
 		pthread_cancel(*((pthread_t*) sess->resolver));
 		free(sess->resolver);
@@ -1092,12 +1090,12 @@ void gg_logoff(struct gg_session *sess)
 	if (GG_S_NA(sess->status & ~GG_STATUS_FRIENDS_MASK))
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
 		SSL_shutdown(sess->ssl);
 #endif
 
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	if (sess->resolver) {
 		pthread_cancel(*((pthread_t*) sess->resolver));
 		free(sess->resolver);

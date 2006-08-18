@@ -24,12 +24,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "libgadu-config.h"
+#include "compat.h"
+#include "libgadu.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
 #include <stdarg.h>
@@ -37,9 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "compat.h"
-#include "libgadu.h"
 
 /*
  * gg_http_connect() // funkcja pomocnicza
@@ -101,7 +99,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 	gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
 
 	if (async) {
-#ifndef __GG_LIBGADU_HAVE_PTHREAD
+#ifndef GG_CONFIG_HAVE_PTHREAD
 		if (gg_resolve(&h->fd, &h->pid, hostname)) {
 #else
 		if (gg_resolve_pthread(&h->fd, &h->resolver, hostname)) {
@@ -198,7 +196,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		close(h->fd);
 		h->fd = -1;
 
-#ifndef __GG_LIBGADU_HAVE_PTHREAD
+#ifndef GG_CONFIG_HAVE_PTHREAD
 		waitpid(h->pid, NULL, 0);
 #else
 		if (h->resolver) {

@@ -28,10 +28,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "libgadu-config.h"
+#include "compat.h"
+#include "libgadu.h"
 
 #include <errno.h>
-#ifdef __GG_LIBGADU_HAVE_PTHREAD
+#ifdef GG_CONFIG_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
 #include <stdio.h>
@@ -39,13 +40,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/x509.h>
 #endif
-
-#include "compat.h"
-#include "libgadu.h"
 
 /*
  * gg_event_free()
@@ -829,7 +827,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			close(sess->fd);
 			sess->fd = -1;
 
-#ifndef __GG_LIBGADU_HAVE_PTHREAD
+#ifndef GG_CONFIG_HAVE_PTHREAD
 			waitpid(sess->pid, NULL, 0);
 			sess->pid = -1;
 #else
@@ -930,7 +928,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			else
 				host = "";
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 			if (sess->ssl)
 				appmsg = "appmsg3.asp";
 			else
@@ -1163,7 +1161,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					errno = ETIMEDOUT;
 #endif
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 				/* je¶li logujemy siê po TLS, nie próbujemy
 				 * siê ³±czyæ ju¿ z niczym innym w przypadku
 				 * b³êdu. nie do¶æ, ¿e nie ma sensu, to i
@@ -1233,7 +1231,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 			}
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 			if (sess->ssl) {
 				SSL_set_fd(sess->ssl, sess->fd);
 
@@ -1252,7 +1250,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			break;
 		}
 
-#ifdef __GG_LIBGADU_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 		case GG_STATE_TLS_NEGOTIATION:
 		{
 			int res;

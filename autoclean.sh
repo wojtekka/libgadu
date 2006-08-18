@@ -1,8 +1,6 @@
 #!/bin/sh
 # $Id$
 
-test -f Makefile && make clean
-
 rm -rf \
 	aclocal.m4 \
 	autom4te.cache \
@@ -26,10 +24,12 @@ rm -rf \
 	src/Makefile.in \
 	src/.deps \
 	src/.libs \
+	src/*.o \
+	src/*.lo \
+	src/*.la \
 	include/Makefile \
 	include/Makefile.in \
-	include/libgadu-config.h \
-	include/libgadu-stdint.h \
+	include/libgadu.h \
 	include/stamp* \
 	pkgconfig/Makefile \
 	pkgconfig/Makefile.in \

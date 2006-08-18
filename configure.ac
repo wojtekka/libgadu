@@ -5,7 +5,7 @@ AM_INIT_AUTOMAKE(libgadu, 1.7.0)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS(config.h include/libgadu.h)
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -14,63 +14,47 @@ AC_PROG_LN_S
 AC_C_CONST
 AC_PROG_LIBTOOL
 
-AC_SUBST(LIBGADU_STDINT_H)
 AC_SUBST(REQUIRES)
-
-dnl
-dnl  W³±czamy ostrze¿enia dla gcc.
-dnl
 
 if test "$GCC"; then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-dnl
-dnl  Tworzymy osobny plik include/libgadu-config.h niezale¿ny od autoconfa
-dnl  z w³asn± przestrzeni± nazw (__GG_LIBGADU), ¿eby móc go spokojnie
-dnl  w³±czyæ w <libgadu.h> 
-dnl
-
-AC_DEFUN([AC_LIBGADU_DEFINE],
-[
-	sed 's/#undef __GG_LIBGADU_$1/#define __GG_LIBGADU_$1/' < include/libgadu-config.h > include/libgadu-config.h-
-	mv -f include/libgadu-config.h- include/libgadu-config.h
-])
-
-AC_DEFUN([AC_LIBGADU_UNDEF],
-[
-	sed 's/#undef __GG_LIBGADU_$1.*/\/* & *\//' < include/libgadu-config.h > include/libgadu-config.h-
-	mv -f include/libgadu-config.h- include/libgadu-config.h
-])
-
-echo "/* Generated automatically by configure. Do not edit. */" > include/libgadu-config.h
-cat include/libgadu-config.h.in >> include/libgadu-config.h
-
-dnl
-dnl  Najpierw sprawdzamy te opcje, które s± wspólne dla libgadu i ekg.
-dnl
-
 AC_C_BIGENDIAN
 
 if test "x$ac_cv_c_bigendian" = "xyes"; then
-	AC_LIBGADU_DEFINE([BIGENDIAN])
+	AC_DEFINE([GG_CONFIG_BIGENDIAN], [], [Defined if libgadu was compiled for bigendian machine.])
 fi
 
 AC_NEED_STDINT_H
 
-if test "x$STDINT_H" = "x"; then
-	cp stdint.h lib/libgadu-stdint.h
-	AC_DEFINE([LIBGADU_STDINT_H], [], [Define if libgadu-stdint.h is needed])
+if test "x$STDINT_H" = "xstdint.h"; then
+	AC_DEFINE([GG_CONFIG_HAVE_STDINT_H], [], [Defined if uintX_t types are defined in <stdint.h>.])
 fi
 
-sed "s/#include <stdint.h>/#include <$STDINT_H>/" < include/libgadu-config.h > include/libgadu-config.h-
-mv -f include/libgadu-config.h- include/libgadu-config.h
+if test "x$STDINT_H" = "xinttypes.h"; then
+	AC_DEFINE([GG_CONFIG_HAVE_INTTYPES_H], [], [Defined if uintX_t types are defined in <inttypes.h>.])
+fi
+
+if test "x$STDINT_H" = "xsys/inttypes.h"; then
+	AC_DEFINE([GG_CONFIG_HAVE_SYS_INTTYPES_H], [], [Defined if uintX_t types are defined in <sys/inttypes.h>.])
+fi
+
+if test "x$STDINT_H" = "xsys/int_types.h"; then
+	AC_DEFINE([GG_CONFIG_HAVE_SYS_INT_TYPES_H], [], [Defined if uintX_t types are defined in <sys/int_types.h>.])
+fi
+
+if test "x$STDINT_H" = "xsys/types.h"; then
+	AC_DEFINE([GG_CONFIG_HAVE_SYS_TYPES_H], [], [Defined if uintX_t types are defined in <sys/types.h>.])
+fi
 
 dnl SunOS
+
 AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
 AC_CHECK_LIB(socket, socket, LIBS="$LIBS -lsocket")
 
 dnl BeOS
+
 AC_ARG_WITH(bind,
 	[  --without-bind          Disable linking with libbind when found])
 
@@ -79,16 +63,14 @@ if test "x$with_bind" != "xno"; then
 fi
 
 dnl threadsafe
-AC_CHECK_FUNCS([gethostbyname_r], [AC_LIBGADU_DEFINE([HAVE_GETHOSTBYNAME_R])])
 
-dnl inet_pton
-AC_CHECK_FUNCS(inet_pton)
+AC_CHECK_FUNCS([gethostbyname_r], [AC_DEFINE([GG_CONFIG_HAVE_GETHOSTBYNAME_R], [], [Defined if this machine has gethostbyname_r().])])
 
 AC_MSG_CHECKING([for va_copy])
 AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; va_copy(a, b);], 
 [
 	AC_MSG_RESULT([yes])
-	AC_DEFINE([HAVE_VA_COPY], [], [Define if you have va_copy()])
+	AC_DEFINE([GG_CONFIG_HAVE_VA_COPY], [], [Defined if this machine has va_copy().])
 ], [
 	AC_MSG_RESULT([no])
 ])
@@ -97,7 +79,7 @@ AC_MSG_CHECKING([for __va_copy])
 AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);], 
 [
 	AC_MSG_RESULT([yes])
-	AC_DEFINE([HAVE___VA_COPY], [], [Define if you have __va_copy()])
+	AC_DEFINE([GG_CONFIG_HAVE___VA_COPY], [], [Defined if this machine has __va_copy().])
 ], [
 	AC_MSG_RESULT([no])
 ])
@@ -118,7 +100,7 @@ AC_ARG_WITH(c99-vsnprintf,
 	[  --with-c99-vsnprintf    Target system has C99-compatible vsnprintf()])
 
 if test "x$with_c99_vsnprintf" = "xyes"; then
-	AC_LIBGADU_DEFINE([HAVE_C99_VSNPRINTF])
+	AC_DEFINE([GG_CONFIG_HAVE_C99_VSNPRINTF], [], [Defined if this machine has C99-compiliant vsnprintf().])
 fi
 
 if test "x$with_c99_vsnprintf" = "x"; then
@@ -133,7 +115,7 @@ if test "x$with_c99_vsnprintf" = "x"; then
 		}
 	], [
 		AC_MSG_RESULT([yes])
-		AC_DEFINE([HAVE_C99_VSNPRINTF], [], [Define if you have C99-compatible vsnprintf()])
+		AC_DEFINE([GG_CONFIG_HAVE_C99_VSNPRINTF], [], [Defined if this machine has C99-compiliant vsnprintf().])
 	], [
 		AC_MSG_RESULT([no])
 	])
@@ -164,7 +146,7 @@ if test "x$with_pthread" = "xyes"; then
 		CC="$PTHREAD_CC"
 		have_pthread=yes
 
-		AC_DEFINE([HAVE_PTHREAD], [], [Define if you want threaded resolver])
+		AC_DEFINE([GG_CONFIG_HAVE_PTHREAD], [], [Defined if libgadu was compiled and linked with pthread support.])
 	], [
 		AC_MSG_ERROR([Your system is not supporting pthreads])
 	], [$pthreads_shared_skip])
@@ -182,7 +164,7 @@ AC_TRY_COMPILE([],
 	unsigned long long b = 1LL;
 ], [
 	AC_MSG_RESULT([yes])
-	AC_LIBGADU_DEFINE([HAVE_LONG_LONG])
+	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
 ])
 
 dnl
@@ -199,7 +181,7 @@ if test "x$have_openssl" = "xyes"; then
 		LIBS="$LIBS $OPENSSL_LIBS"
 		CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 		REQUIRES="$REQUIRES openssl"
-		AC_LIBGADU_DEFINE([HAVE_OPENSSL])
+		AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
 	fi
 fi
 

@@ -95,14 +95,14 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
  */
 static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 {
-#ifdef __GG_LIBGADU_HAVE_LONG_LONG
+#ifdef GG_CONFIG_HAVE_LONG_LONG
 	unsigned long long tmp;
 
 	tmp = ut;
 	tmp += 11644473600LL;
 	tmp *= 10000000LL;
 
-#ifndef __GG_LIBGADU_BIGENDIAN
+#ifndef GG_CONFIG_BIGENDIAN
 	ft[0] = (uint32_t) tmp;
 	ft[1] = (uint32_t) (tmp >> 32);
 #else
