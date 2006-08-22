@@ -173,16 +173,11 @@ dnl
 
 AC_CHECK_OPENSSL
 
-AC_ARG_ENABLE(libgadu-openssl,
-	[  --enable-libgadu-openssl Enable libgadu OpenSSL support])
-
 if test "x$have_openssl" = "xyes"; then
-	if test "x$enable_libgadu_openssl"; then
-		LIBS="$LIBS $OPENSSL_LIBS"
-		CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
-		REQUIRES="$REQUIRES openssl"
-		AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
-	fi
+	LIBS="$LIBS $OPENSSL_LIBS"
+	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+	REQUIRES="$REQUIRES openssl"
+	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
 fi
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc])
