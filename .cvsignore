@@ -16,3 +16,5 @@ Makefile.in
 missing
 mkinstalldirs
 stamp*
+*.tar.gz
+*.tar.bz2
