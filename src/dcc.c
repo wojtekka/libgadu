@@ -82,7 +82,7 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsig
  */
 int gg_dcc_request(struct gg_session *sess, uin_t uin)
 {
-	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, "\002", 1);
+	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, (unsigned char*) "\002", 1);
 }
 
 /* 
@@ -226,7 +226,7 @@ int gg_dcc_fill_file_info2(struct gg_dcc *d, const char *filename, const char *l
 	}
 	
 	gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() short name \"%s\", dos name \"%s\"\n", name, d->file_info.short_filename);
-	strncpy(d->file_info.filename, name, sizeof(d->file_info.filename) - 1);
+	strncpy((char*) d->file_info.filename, name, sizeof(d->file_info.filename) - 1);
 
 	return 0;
 }
@@ -567,7 +567,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 	if (h->type == GG_SESSION_DCC_SOCKET) {
 		struct sockaddr_in sin;
 		struct gg_dcc *c;
-		int fd, sin_len = sizeof(sin), one = 1;
+		int fd, one = 1;
+		unsigned int sin_len = sizeof(sin);
 		
 		if ((fd = accept(h->fd, (struct sockaddr*) &sin, &sin_len)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() can't accept() new connection (errno=%d, %s)\n", errno, strerror(errno));
@@ -613,8 +614,8 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct gg_dcc_tiny_packet tiny;
 		struct gg_dcc_small_packet small;
 		struct gg_dcc_big_packet big;
-		int size, tmp, res, res_size = sizeof(res);
-		unsigned int utmp;
+		int size, tmp, res;
+		unsigned int utmp, res_size = sizeof(res);
 		char buf[1024], ack[] = "UDAG";
 
 		struct gg_dcc_file_info_packet {
@@ -906,7 +907,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				if (h->chunk_offset >= h->chunk_size) {
 					e->type = GG_EVENT_DCC_VOICE_DATA;
-					e->event.dcc_voice_data.data = h->voice_buf;
+					e->event.dcc_voice_data.data = (unsigned char*) h->voice_buf;
 					e->event.dcc_voice_data.length = h->chunk_size;
 					h->state = GG_STATE_READING_VOICE_HEADER;
 					h->voice_buf = NULL;

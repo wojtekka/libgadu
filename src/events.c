@@ -417,7 +417,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	e->event.msg.msgclass = gg_fix32(r->msgclass);
 	e->event.msg.sender = gg_fix32(r->sender);
 	e->event.msg.time = gg_fix32(r->time);
-	e->event.msg.message = strdup((char*) r + sizeof(*r));
+	e->event.msg.message = (unsigned char*) strdup((char*) r + sizeof(*r));
 
 	return 0;
 
@@ -883,7 +883,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_CONNECTING_HUB:
 		{
 			char buf[1024], *client, *auth;
-			int res = 0, res_size = sizeof(res);
+			int res = 0;
+			unsigned int res_size = sizeof(res);
 			const char *host, *appmsg;
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
@@ -1067,7 +1068,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				e->type = GG_EVENT_MSG;
 				e->event.msg.msgclass = atoi(buf);
 				e->event.msg.sender = 0;
-				e->event.msg.message = sysmsg_buf;
+				e->event.msg.message = (unsigned char*) sysmsg_buf;
 			}
 	
 			close(sess->fd);
@@ -1140,7 +1141,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		case GG_STATE_CONNECTING_GG:
 		{
-			int res = 0, res_size = sizeof(res);
+			int res = 0;
+			unsigned int res_size = sizeof(res);
 
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
 
@@ -1334,7 +1336,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_welcome *w;
 			struct gg_login60 l;
 			unsigned int hash;
-			unsigned char *password = sess->password;
+			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
 			
 			gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
@@ -1412,7 +1414,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			
 			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
 				struct sockaddr_in sin;
-				int sin_len = sizeof(sin);
+				unsigned int sin_len = sizeof(sin);
 
 				gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() detecting address\n");
 

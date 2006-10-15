@@ -1257,7 +1257,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 
 	r->flag = 0x05;
 	r->size = gg_fix32(size);
-	r->crc32 = gg_fix32(gg_crc32(0, image, size));
+	r->crc32 = gg_fix32(gg_crc32(0, (unsigned char*) image, size));
 
 	while (size > 0) {
 		int buflen, chunklen;
@@ -1388,7 +1388,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 	s.msgclass = gg_fix32(msgclass);
 	sess->seq += (rand() % 0x300) + 0x300;
 	
-	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, format, formatlen, NULL) == -1)
+	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
 		return -1;
 
 	return gg_fix32(s.seq);
@@ -1481,7 +1481,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		if (!i)
 			sess->seq += (rand() % 0x300) + 0x300;
 		
-		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen(message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
+		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
 			free(recps);
 			return -1;
 		}
