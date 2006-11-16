@@ -919,6 +919,7 @@ extern int gg_debug_level;	/* poziom debugowania. mapa bitowa sta³ych GG_DEBUG_*
  * zainteresowany, niech da znaæ na ekg-devel.
  */
 extern void (*gg_debug_handler)(int level, const char *format, va_list ap);
+extern void (*gg_debug_handler_session)(struct gg_session *sess, int level, const char *format, va_list ap);
 
 /*
  * mo¿na podaæ plik, do którego bêd± zapisywane teksty z gg_debug().
@@ -933,8 +934,10 @@ extern FILE *gg_debug_file;
 
 #ifdef GG_DEBUG_DISABLE
 #define gg_debug(x, y...) do { } while(0)
+#define gg_debug_session(z, x, y...) do { } while(0)
 #else
 void gg_debug(int level, const char *format, ...);
+void gg_debug_session(struct gg_session *sess, int level, const char *format, ...);
 #endif
 
 const char *gg_libgadu_version(void);

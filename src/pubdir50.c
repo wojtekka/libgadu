@@ -191,16 +191,16 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 	char *buf, *p;
 	struct gg_pubdir50_request *r;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50(%p, %p);\n", sess, req);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_pubdir50(%p, %p);\n", sess, req);
 	
 	if (!sess || !req) {
-		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50() invalid arguments\n");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_pubdir50() invalid arguments\n");
 		errno = EFAULT;
 		return 0;
 	}
 
 	if (sess->state != GG_STATE_CONNECTED) {
-		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50() not connected\n");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_pubdir50() not connected\n");
 		errno = ENOTCONN;
 		return 0;
 	}
@@ -215,7 +215,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 	}
 
 	if (!(buf = malloc(size))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50() out of memory (%d bytes)\n", size);
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_pubdir50() out of memory (%d bytes)\n", size);
 		return 0;
 	}
 
