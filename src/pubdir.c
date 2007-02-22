@@ -628,6 +628,8 @@ int gg_token_watch_fd(struct gg_http *h)
 		free(path);
 		free(url);
 
+		gg_http_free_fields(h);
+
 		memcpy(h, h2, sizeof(struct gg_http));
 		free(h2);
 
