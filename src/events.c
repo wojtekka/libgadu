@@ -1334,8 +1334,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			struct gg_header *h;			
 			struct gg_welcome *w;
-			struct gg_login60 l;
-			unsigned int hash;
+			struct gg_login70 l;
 			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
 			
@@ -1397,9 +1396,34 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			w = (struct gg_welcome*) ((char*) h + sizeof(struct gg_header));
 			w->key = gg_fix32(w->key);
 
-			hash = gg_login_hash(password, w->key);
-	
-			gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> hash %.8x\n", w->key, hash);
+			l.hash_type = sess->hash_type;
+
+			switch (sess->hash_type) {
+				case GG_LOGIN_HASH_GG32:
+				{
+					unsigned int hash;
+
+					hash = gg_login_hash(password, w->key);
+					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
+					memcpy(l.hash, &hash, sizeof(hash));
+
+					break;
+				}
+
+				case GG_LOGIN_HASH_SHA1:
+				{
+					char tmp[41];
+					int i;
+
+					gg_login_hash_sha1((char*) password, w->key, l.hash);
+					for (i = 0; i < 40; i += 2)
+						snprintf(tmp + i, sizeof(tmp) - i, "%02x", l.hash[i / 2]);
+
+					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> SHA1 hash: %s\n", w->key, tmp);
+
+					break;
+				}
+			}
 	
 			free(h);
 
@@ -1429,19 +1453,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.local_ip = gg_dcc_ip;
 		
 			l.uin = gg_fix32(sess->uin);
-			l.hash = gg_fix32(hash);
 			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 			l.version = gg_fix32(sess->protocol_version);
 			l.local_port = gg_fix16(gg_dcc_port);
 			l.image_size = sess->image_size;
 			
 			if (sess->external_addr && sess->external_port > 1023) {
-				l.external_ip = sess->external_addr;
-				l.external_port = gg_fix16(sess->external_port);
+				l.local_ip = sess->external_addr;
+				l.local_port = gg_fix16(sess->external_port);
 			}
 
-			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN60 packet\n");
-			ret = gg_send_packet(sess, GG_LOGIN60, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
+			ret = gg_send_packet(sess, GG_LOGIN70, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 
 			free(sess->initial_descr);
 			sess->initial_descr = NULL;

@@ -752,6 +752,12 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		goto fail;
 	}
 
+	if (p->hash_type < 0 || p->hash_type > GG_LOGIN_HASH_SHA1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unknown hash type (%d)\n", p->hash_type);
+		errno = EFAULT;
+		goto fail;
+	}
+
 	sess->uin = p->uin;
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
@@ -824,6 +830,11 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		hostname = GG_APPMSG_HOST;
 		port = GG_APPMSG_PORT;
 	}
+
+	if (p->hash_type)
+		sess->hash_type = p->hash_type;
+	else
+		sess->hash_type = GG_LOGIN_HASH_SHA1;
 
 	if (!p->async) {
 		struct in_addr a;
