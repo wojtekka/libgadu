@@ -20,7 +20,7 @@
 
 #include "libgadu.h"
 
-#ifdef ___GG_CONFIG_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_OPENSSL
 
 #include <openssl/sha.h>
 
@@ -54,9 +54,9 @@ typedef struct {
     unsigned char buffer[64];
 } SHA_CTX;
 
-static void SHA1_Transform(unsigned long state[5], unsigned char buffer[64]);
+static void SHA1_Transform(unsigned long state[5], const unsigned char buffer[64]);
 static void SHA1_Init(SHA_CTX* context);
-static void SHA1_Update(SHA_CTX* context, unsigned char* data, unsigned int len);
+static void SHA1_Update(SHA_CTX* context, const unsigned char* data, unsigned int len);
 static void SHA1_Final(unsigned char digest[20], SHA_CTX* context);
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
@@ -82,7 +82,7 @@ static void SHA1_Final(unsigned char digest[20], SHA_CTX* context);
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 
-static void SHA1_Transform(unsigned long state[5], unsigned char buffer[64])
+static void SHA1_Transform(unsigned long state[5], const unsigned char buffer[64])
 {
 unsigned long a, b, c, d, e;
 typedef union {
@@ -147,7 +147,7 @@ static void SHA1_Init(SHA_CTX* context)
 
 /* Run your data through this. */
 
-static void SHA1_Update(SHA_CTX* context, unsigned char* data, unsigned int len)
+static void SHA1_Update(SHA_CTX* context, const unsigned char* data, unsigned int len)
 {
 unsigned int i, j;
 
@@ -214,7 +214,7 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 	SHA_CTX ctx;
 	
 	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, password, strlen(password));
+	SHA1_Update(&ctx, (const unsigned char*) password, strlen(password));
 	seed = gg_fix32(seed);
 	SHA1_Update(&ctx, (uint8_t*) &seed, 4);
 	
