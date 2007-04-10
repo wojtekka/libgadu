@@ -63,7 +63,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		errno = EFAULT;
 		return NULL;
 	}
-	
+
 	if (!(h = malloc(sizeof(*h))))
 		return NULL;
 	memset(h, 0, sizeof(*h));
@@ -95,7 +95,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		errno = ENOMEM;
 		return NULL;
 	}
-	
+
 	gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
 
 	if (async) {
@@ -150,7 +150,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 
 	h->callback = gg_http_watch_fd;
 	h->destroy = gg_http_free;
-	
+
 	return h;
 }
 
@@ -330,7 +330,7 @@ int gg_http_watch_fd(struct gg_http *h)
 			h->body_size = 0;
 			line = h->header;
 			*tmp = 0;
-                        
+
 			gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-HEADER-----\n%s\n=> -----END-HTTP-HEADER-----\n", h->header);
 
 			while (line) {
@@ -433,7 +433,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		return 0;
 	}
-	
+
 	if (h->fd != -1)
 		close(h->fd);
 
@@ -450,7 +450,7 @@ int gg_http_watch_fd(struct gg_http *h)
  * gg_http_stop()
  *
  * je¶li po³±czenie jest w trakcie, przerywa je. nie zwalnia h->data.
- * 
+ *
  *  - h - struktura opisuj±ca po³±czenie
  */
 void gg_http_stop(struct gg_http *h)
@@ -485,7 +485,7 @@ void gg_http_free_fields(struct gg_http *h)
 		free(h->query);
 		h->query = NULL;
 	}
-	
+
 	if (h->header) {
 		free(h->header);
 		h->header = NULL;
