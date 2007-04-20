@@ -832,8 +832,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			sess->pid = -1;
 #else
 			if (sess->resolver) {
-				pthread_cancel(*((pthread_t*) sess->resolver));
-				free(sess->resolver);
+				gg_resolve_pthread_cleanup(sess->resolver, 0);
 				sess->resolver = NULL;
 			}
 #endif
