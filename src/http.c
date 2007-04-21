@@ -472,7 +472,7 @@ void gg_http_stop(struct gg_http *h)
 	}
 #else
 	if (h->pid != -1) {
-		kill(h->pid, SIGTERM);
+		kill(h->pid, SIGKILL);
 		waitpid(h->pid, NULL, 0);
 		h->pid = -1;
 	}
