@@ -213,8 +213,6 @@ struct gg_session {
 	int userlist_blocks;	/* na ile kawa³ków podzielono listê kontaktów */
 
 	struct gg_image_queue *images;	/* aktualnie wczytywane obrazki */
-
-	int hash_type;		/* rodzaj hasha has³a u¿ywanego przy logowaniu */
 };
 
 /*
@@ -427,9 +425,8 @@ struct gg_login_params {
 	int tls;			/* czy ³±czymy po TLS? */
 	int image_size;			/* maksymalny rozmiar obrazka w KiB */
 	int era_omnix;			/* czy udawaæ klienta era omnix? */
-	int hash_type;			/* rodzaj hasha */
 
-	char dummy[5 * sizeof(int)];	/* miejsce na kolejnych 5 zmiennych,
+	char dummy[6 * sizeof(int)];	/* miejsce na kolejnych 6 zmiennych,
 					 * ¿eby z dodaniem parametru nie
 					 * zmienia³ siê rozmiar struktury */
 };
@@ -1004,7 +1001,6 @@ int gg_write(struct gg_session *sess, const char *buf, int length);
 void *gg_recv_packet(struct gg_session *sess);
 int gg_send_packet(struct gg_session *sess, int type, ...);
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed);
-void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result);
 uint32_t gg_fix32(uint32_t x);
 uint16_t gg_fix16(uint16_t x);
 #define fix16 gg_fix16
@@ -1084,26 +1080,6 @@ struct gg_login60 {
 	uint16_t local_port;		/* port, na którym s³ucham */
 	uint32_t external_ip;		/* zewnêtrzny adres ip */
 	uint16_t external_port;		/* zewnêtrzny port */
-	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
-	uint8_t dunno2;			/* 0xbe */
-} GG_PACKED;
-
-#define GG_LOGIN70 0x19
-
-#define GG_LOGIN_HASH_GG32 0x01
-#define GG_LOGIN_HASH_SHA1 0x02
-
-struct gg_login70 {
-	uint32_t uin;			/* mój numerek */
-	uint8_t hash_type;		/* rodzaj hashowania has³a */
-	uint8_t hash[64];		/* hash has³a dope³niony zerami */
-	uint32_t status;		/* status na dzieñ dobry */
-	uint32_t version;		/* moja wersja klienta */
-	uint8_t dunno1;			/* 0x00 */
-	uint32_t local_ip;		/* mój adres ip */
-	uint16_t local_port;		/* port, na którym s³ucham */
-	uint32_t external_ip;		/* zewnêtrzny adres ip (???) */
-	uint16_t external_port;		/* zewnêtrzny port (???) */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno2;			/* 0xbe */
 } GG_PACKED;
