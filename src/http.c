@@ -33,6 +33,7 @@
 #ifdef GG_CONFIG_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
