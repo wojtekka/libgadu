@@ -984,7 +984,7 @@ void gg_free_session(struct gg_session *sess)
 	}
 #else
 	if (sess->pid != -1) {
-		kill(sess->pid, SIGTERM);
+		kill(sess->pid, SIGKILL);
 		waitpid(sess->pid, NULL, WNOHANG);
 	}
 #endif
@@ -1132,7 +1132,7 @@ void gg_logoff(struct gg_session *sess)
 	}
 #else
 	if (sess->pid != -1) {
-		kill(sess->pid, SIGTERM);
+		kill(sess->pid, SIGKILL);
 		waitpid(sess->pid, NULL, WNOHANG);
 		sess->pid = -1;
 	}
