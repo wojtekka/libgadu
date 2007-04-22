@@ -606,10 +606,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 						e->event.notify60[i].descr[descr_len] = 0;
 
 						/* XXX czas */
+
+						length -= sizeof(struct gg_notify_reply60) + descr_len + 1;
+						n = (void*) ((char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
+					} else {
+						length = 0;
 					}
 
-					length -= sizeof(struct gg_notify_reply60) + descr_len + 1;
-					n = (void*) ((char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
 				} else {
 					length -= sizeof(struct gg_notify_reply60);
 					n = (void*) ((char*) n + sizeof(struct gg_notify_reply60));
