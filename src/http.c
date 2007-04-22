@@ -33,6 +33,7 @@
 #ifdef GG_CONFIG_HAVE_PTHREAD
 #  include <pthread.h>
 #endif
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -200,8 +201,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		waitpid(h->pid, NULL, 0);
 #else
 		if (h->resolver) {
-			pthread_cancel(*((pthread_t *) h->resolver));
-			free(h->resolver);
+			gg_resolve_pthread_cleanup(h->resolver, 0);
 			h->resolver = NULL;
 		}
 #endif
@@ -461,9 +461,23 @@ void gg_http_stop(struct gg_http *h)
 	if (h->state == GG_STATE_ERROR || h->state == GG_STATE_DONE)
 		return;
 
-	if (h->fd != -1)
+	if (h->fd != -1) {
 		close(h->fd);
-	h->fd = -1;
+		h->fd = -1;
+	}
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	if (h->resolver) {
+		gg_resolve_pthread_cleanup(h->resolver, 0);
+		h->resolver = NULL;
+	}
+#else
+	if (h->pid != -1) {
+		kill(h->pid, SIGKILL);
+		waitpid(h->pid, NULL, 0);
+		h->pid = -1;
+	}
+#endif
 }
 
 /*

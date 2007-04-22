@@ -238,10 +238,45 @@ int gg_resolve(int *fd, int *pid, const char *hostname)
 #ifdef GG_CONFIG_HAVE_PTHREAD
 
 struct gg_resolve_pthread_data {
+	pthread_t thread;
 	char *hostname;
-	int fd;
+	int rfd;
+	int wfd;
 };
 
+/*
+ * gg_resolve_pthread_cleanup() // funkcja wewnêtrzna
+ *
+ * sprz±ta po w±tku resolvera.
+ *
+ *  - arg - wska¼nik na strukturê gg_resolve_pthread_data,
+ *  - kill - czy zabiæ w±tek resolvera i posprz±taæ po nim?
+ */
+void gg_resolve_pthread_cleanup(void *arg, int kill)
+{
+	struct gg_resolve_pthread_data *data = arg;
+
+	if (kill) {
+		pthread_cancel(data->thread);
+		pthread_join(data->thread, NULL);
+	}
+
+	free(data->hostname);
+	data->hostname = NULL;
+
+	if (data->wfd != -1) {
+		close(data->wfd);
+		data->wfd = -1;
+	}
+
+	free(data);
+}
+
+/*
+ * gg_resolve_pthread_thread() // funkcja wewnêtrzna
+ *
+ * w±tek resolvera.
+ */
 static void *gg_resolve_pthread_thread(void *arg)
 {
 	struct gg_resolve_pthread_data *d = arg;
@@ -260,13 +295,7 @@ static void *gg_resolve_pthread_thread(void *arg)
 		}
 	}
 
-	write(d->fd, &a, sizeof(a));
-	close(d->fd);
-
-	free(d->hostname);
-	d->hostname = NULL;
-
-	free(d);
+	write(d->wfd, &a, sizeof(a));
 
 	pthread_exit(NULL);
 
@@ -289,8 +318,7 @@ static void *gg_resolve_pthread_thread(void *arg)
  */
 int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 {
-	struct gg_resolve_pthread_data *d = NULL;
-	pthread_t *tmp;
+	struct gg_resolve_pthread_data *data = NULL;
 	int pipes[2], new_errno;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolve_pthread(%p, %p, \"%s\");\n", fd, resolver, hostname);
@@ -301,57 +329,48 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 		return -1;
 	}
 
-	if (!(tmp = malloc(sizeof(pthread_t)))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory for pthread id\n");
+	if (!(data = malloc(sizeof(struct gg_resolve_pthread_data)))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory for resolver data\n");
 		return -1;
 	}
 
 	if (pipe(pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
-		free(tmp);
+		free(data);
 		return -1;
 	}
 
-	if (!(d = malloc(sizeof(*d)))) {
+	if (!(data->hostname = strdup(hostname))) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
 		new_errno = errno;
 		goto cleanup;
 	}
 
-	d->hostname = NULL;
+	data->rfd = pipes[0];
+	data->wfd = pipes[1];
 
-	if (!(d->hostname = strdup(hostname))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() out of memory\n");
-		new_errno = errno;
-		goto cleanup;
-	}
-
-	d->fd = pipes[1];
-
-	if (pthread_create(tmp, NULL, gg_resolve_pthread_thread, d)) {
+	if (pthread_create(&data->thread, NULL, gg_resolve_pthread_thread, data)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolve_phread() unable to create thread\n");
 		new_errno = errno;
 		goto cleanup;
 	}
 
-	gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() %p\n", tmp);
+	gg_debug(GG_DEBUG_MISC, "// gg_resolve_pthread() %p\n", data);
 
-	*resolver = tmp;
+	*resolver = data;
 
 	*fd = pipes[0];
 
 	return 0;
 
 cleanup:
-	if (d) {
-		free(d->hostname);
-		free(d);
+	if (data) {
+		free(data->hostname);
+		free(data);
 	}
 
 	close(pipes[0]);
 	close(pipes[1]);
-
-	free(tmp);
 
 	errno = new_errno;
 
@@ -752,12 +771,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		goto fail;
 	}
 
-	if (p->hash_type < 0 || p->hash_type > GG_LOGIN_HASH_SHA1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unknown hash type (%d)\n", p->hash_type);
-		errno = EFAULT;
-		goto fail;
-	}
-
 	sess->uin = p->uin;
 	sess->state = GG_STATE_RESOLVING;
 	sess->check = GG_CHECK_READ;
@@ -830,11 +843,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		hostname = GG_APPMSG_HOST;
 		port = GG_APPMSG_PORT;
 	}
-
-	if (p->hash_type)
-		sess->hash_type = p->hash_type;
-	else
-		sess->hash_type = GG_LOGIN_HASH_SHA1;
 
 	if (!p->async) {
 		struct in_addr a;
@@ -960,13 +968,12 @@ void gg_free_session(struct gg_session *sess)
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	if (sess->resolver) {
-		pthread_cancel(*((pthread_t*) sess->resolver));
-		free(sess->resolver);
+		gg_resolve_pthread_cleanup(sess->resolver, 1);
 		sess->resolver = NULL;
 	}
 #else
 	if (sess->pid != -1) {
-		kill(sess->pid, SIGTERM);
+		kill(sess->pid, SIGKILL);
 		waitpid(sess->pid, NULL, WNOHANG);
 	}
 #endif
@@ -1109,13 +1116,12 @@ void gg_logoff(struct gg_session *sess)
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	if (sess->resolver) {
-		pthread_cancel(*((pthread_t*) sess->resolver));
-		free(sess->resolver);
+		gg_resolve_pthread_cleanup(sess->resolver, 1);
 		sess->resolver = NULL;
 	}
 #else
 	if (sess->pid != -1) {
-		kill(sess->pid, SIGTERM);
+		kill(sess->pid, SIGKILL);
 		waitpid(sess->pid, NULL, WNOHANG);
 		sess->pid = -1;
 	}
