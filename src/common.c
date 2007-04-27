@@ -233,9 +233,12 @@ char *gg_get_line(char **ptr)
 	if (!(foo = strchr(*ptr, '\n')))
 		*ptr += strlen(*ptr);
 	else {
-		size_t len = strlen(res);
+		size_t len;
 		*ptr = foo + 1;
 		*foo = 0;
+
+		len = strlen(res);
+
 		if (len > 1 && res[len - 1] == '\r')
 			res[len - 1] = 0;
 	}
