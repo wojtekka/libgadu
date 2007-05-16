@@ -1152,21 +1152,28 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				tmp = write(h->fd, buf, size);
 
-				if (tmp == -1) {
+				if ((tmp == -1 && errno != EAGAIN)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
 				}
 
-				h->offset += size;
+				if (tmp == 0) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (connection reset)\n");
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_NET;
+					return e;
+				}
+
+				h->offset += tmp;
 
 				if (h->offset >= h->file_info.size) {
 					e->type = GG_EVENT_DCC_DONE;
 					return e;
 				}
 
-				h->chunk_offset += size;
+				h->chunk_offset += tmp;
 
 				if (h->chunk_offset >= h->chunk_size) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() chunk finished\n");
