@@ -15,6 +15,7 @@ AC_C_CONST
 AC_PROG_LIBTOOL
 
 AC_SUBST(REQUIRES)
+AC_SUBST(INCLUDES)
 
 if test "$GCC"; then
 	CFLAGS="$CFLAGS -Wall"
@@ -143,6 +144,7 @@ if test "x$with_pthread" = "xyes"; then
 
 		LIBS="$PTHREAD_LIBS $LIBS"
 		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+		INCLUDES="$INCLUDES $PTHREAD_CFLAGS"
 		CC="$PTHREAD_CC"
 		have_pthread=yes
 
@@ -176,6 +178,7 @@ AC_CHECK_OPENSSL
 if test "x$have_openssl" = "xyes"; then
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
 	REQUIRES="$REQUIRES openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
 fi

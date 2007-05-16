@@ -8,5 +8,5 @@ Version: @VERSION@
 Description: libgadu
 Requires: @REQUIRES@
 Libs: -L${libdir} -lgadu @LIBS@
-Cflags: -I${includedir} @CFLAGS@
+Cflags: -I${includedir} @INCLUDES@
 
