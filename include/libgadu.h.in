@@ -215,6 +215,9 @@ struct gg_session {
 	struct gg_image_queue *images;	/* aktualnie wczytywane obrazki */
 
 	int hash_type;		/* rodzaj hasha has³a u¿ywanego przy logowaniu */
+
+	char *send_buf;		/* bufor z danymi do wys³ania */
+	int send_left;		/* ile jeszcze trzeba wys³aæ */
 };
 
 /*

@@ -449,20 +449,47 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 	} else
 #endif
 	{
-		int written = 0;
+		if (!sess->async) {
+			int written = 0;
 
-		while (written < length) {
-			res = write(sess->fd, buf + written, length - written);
+			while (written < length) {
+				res = write(sess->fd, buf + written, length - written);
 
-			if (res == -1) {
-				if (errno == EAGAIN)
-					continue;
-				else
+				if (res == -1 && errno != EINTR)
 					break;
-			} else {
+
 				written += res;
 				res = written;
 			}
+		} else {
+			if (!sess->send_buf)
+				res = write(sess->fd, buf, length);
+			else
+				res = 0;
+
+			if (res == -1 && errno == EAGAIN)
+				res = 0;
+
+			if (res == -1)
+				return res;
+
+			if (res < length) {
+				char *tmp;
+
+				if (!(tmp = realloc(sess->send_buf, sess->send_left + length - res))) {
+					errno = ENOMEM;
+					return -1;
+				}
+
+				sess->send_buf = tmp;
+
+				memcpy(sess->send_buf + sess->send_left, buf, length - res);
+
+				sess->send_left += length - res;
+
+				return 0;
+			}
+
 		}
 	}
 
@@ -530,6 +557,8 @@ void *gg_recv_packet(struct gg_session *sess)
 					}
 
 					memcpy(sess->header_buf, &h, sess->header_done);
+
+					errno = EAGAIN;
 
 					return NULL;
 				}
@@ -693,13 +722,21 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 		gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
 	}
 
-	if ((res = gg_write(sess, tmp, tmp_length)) < tmp_length) {
+	res = gg_write(sess, tmp, tmp_length);
+
+	free(tmp);
+
+	if (res == -1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() write() failed. res = %d, errno = %d (%s)\n", res, errno, strerror(errno));
-		free(tmp);
 		return -1;
 	}
 
-	free(tmp);
+	if (res == 0 && sess->async)
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() partial write(), %d sent, %d left\n", res, tmp_length - res);
+
+	if (sess->send_buf)
+		sess->check |= GG_CHECK_WRITE;
+
 	return 0;
 }
 
@@ -995,6 +1032,9 @@ void gg_free_session(struct gg_session *sess)
 	while (sess->images)
 		gg_image_queue_remove(sess, sess->images, 1);
 
+	if (sess->send_buf)
+		free(sess->send_buf);
+
 	free(sess);
 }
 
@@ -1142,6 +1182,12 @@ void gg_logoff(struct gg_session *sess)
 		shutdown(sess->fd, SHUT_RDWR);
 		close(sess->fd);
 		sess->fd = -1;
+	}
+
+	if (sess->send_buf) {
+		free(sess->send_buf);
+		sess->send_buf = NULL;
+		sess->send_left = 0;
 	}
 }
 

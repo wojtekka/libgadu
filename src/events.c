@@ -938,6 +938,33 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	e->type = GG_EVENT_NONE;
 
+	if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
+
+		res = write(sess->fd, sess->send_buf, sess->send_left);
+
+		if (res == -1 && res != EAGAIN) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
+
+			if (sess->state == GG_STATE_READING_REPLY)
+				goto fail_connecting;
+			else
+				goto done;
+		}
+
+		if (res == sess->send_left) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent all queued data\n");
+			free(sess->send_buf);
+			sess->send_buf = NULL;
+			sess->send_left = 0;
+		} else {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent %d bytes of queued data, %d bytes left\n", res, sess->send_left - res);
+
+			memmove(sess->send_buf, sess->send_buf + res, sess->send_left - res);
+			sess->send_left -= res;
+		}
+	}
+
 	switch (sess->state) {
 		case GG_STATE_RESOLVING:
 		{
@@ -1496,6 +1523,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			/* czytaj pierwszy pakiet. */
 			if (!(h = gg_recv_packet(sess))) {
+				if (errno == EAGAIN) {
+					sess->check = GG_CHECK_READ;
+					break;
+				}
+
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() didn't receive packet (errno=%d, %s)\n", errno, strerror(errno));
 
 				e->type = GG_EVENT_CONN_FAILED;
@@ -1609,6 +1641,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 
 			sess->state = GG_STATE_READING_REPLY;
+			sess->check = GG_CHECK_READ;
 
 			break;
 		}
@@ -1620,6 +1653,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
 
 			if (!(h = gg_recv_packet(sess))) {
+				if (errno == EAGAIN) {
+					sess->check = GG_CHECK_READ;
+					break;
+				}
+
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() didn't receive packet (errno=%d, %s)\n", errno, strerror(errno));
 				e->type = GG_EVENT_CONN_FAILED;
 				e->event.failure = GG_FAILURE_READING;
@@ -1635,6 +1673,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;
+				sess->check = GG_CHECK_READ;
 				sess->timeout = -1;
 				sess->status = (sess->initial_status) ? sess->initial_status : GG_STATUS_AVAIL;
 				free(h);
@@ -1682,6 +1721,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				} else
 					res = -1;
 			}
+
+			sess->check = GG_CHECK_READ;
+
 			break;
 		}
 	}
@@ -1690,6 +1732,9 @@ done:
 	if (res == -1) {
 		free(e);
 		e = NULL;
+	} else {
+		if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED))
+			sess->check |= GG_CHECK_WRITE;
 	}
 
 	return e;
