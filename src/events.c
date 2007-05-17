@@ -943,7 +943,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		res = write(sess->fd, sess->send_buf, sess->send_left);
 
-		if (res == -1 && res != EAGAIN) {
+		if (res == -1 && errno != EAGAIN) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
 
 			if (sess->state == GG_STATE_READING_REPLY)
@@ -957,7 +957,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			free(sess->send_buf);
 			sess->send_buf = NULL;
 			sess->send_left = 0;
-		} else {
+		} else if (res > 0) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent %d bytes of queued data, %d bytes left\n", res, sess->send_left - res);
 
 			memmove(sess->send_buf, sess->send_buf + res, sess->send_left - res);
