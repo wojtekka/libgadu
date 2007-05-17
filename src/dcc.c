@@ -1152,7 +1152,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				tmp = write(h->fd, buf, size);
 
-				if ((tmp == -1 && errno != EAGAIN)) {
+				if (tmp == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
