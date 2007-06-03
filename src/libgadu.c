@@ -993,6 +993,8 @@ fail:
  */
 void gg_free_session(struct gg_session *sess)
 {
+	struct gg_dcc7 *dcc;
+
 	if (!sess)
 		return;
 
@@ -1039,6 +1041,9 @@ void gg_free_session(struct gg_session *sess)
 	if (sess->send_buf)
 		free(sess->send_buf);
 
+	for (dcc = sess->dcc7_list; dcc; dcc = dcc->next)
+		dcc->sess = NULL;
+
 	free(sess);
 }
 
@@ -1067,6 +1072,11 @@ int gg_change_status(struct gg_session *sess, int status)
 		errno = ENOTCONN;
 		return -1;
 	}
+
+	// dodaj flagê obs³ugi po³±czeñ g³osowych zgodn± z GG 7.x
+	
+	if ((sess->protocol_version & 0xff) >= 0x2a && (sess->protocol_version & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+		status |= 0x20000;
 
 	p.status = gg_fix32(status);
 

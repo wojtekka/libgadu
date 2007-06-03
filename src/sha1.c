@@ -18,6 +18,9 @@
  *  USA.
  */
 
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "libgadu.h"
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
@@ -201,13 +204,11 @@ unsigned char finalcount[8];
 #endif /* GG_CONFIG_HAVE_OPENSSL */
 
 /**
- * gg_login_hash_sha1()
+ * Liczy skrót SHA1 z ziarna i hasła.
  *
- * liczy hash z hasla i danego seeda, korzystajac z SHA1
- *
- *  - password - haslo do hashowania
- *  - seed - wartosc podana przez serwer
- *  - result - przynajmniej 20 znakowy bufor ktory otrzyma hash
+ * \param password Hasło
+ * \param seed Ziarno
+ * \param result Bufor na wynik funkcji skrótu (20 bajtów)
  */
 void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 {
@@ -219,5 +220,39 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 	SHA1_Update(&ctx, (uint8_t*) &seed, 4);
 	
 	SHA1_Final(result, &ctx);
+}
+
+/**
+ * \brief Liczy skrót SHA1 z pliku.
+ *
+ * \param fd Deskryptor pliku
+ *
+ * \return 0 lub -1
+ */
+int gg_file_hash_sha1(int fd, uint8_t *result)
+{
+	unsigned char buf[4096];
+	SHA_CTX ctx;
+	off_t pos;
+	int res;
+
+	if ((pos = lseek(fd, 0, SEEK_CUR)) == (off_t) -1)
+		return -1;
+
+	SHA1_Init(&ctx);
+
+	while ((res = read(fd, buf, sizeof(buf))) > 0)
+		SHA1_Update(&ctx, buf, res);
+
+	if (res == -1)
+		return -1;
+
+	SHA1_Final(result, &ctx);
+
+	if (lseek(fd, pos, SEEK_SET) == (off_t) -1)
+		return -1;
+
+	return 0;
+
 }
 

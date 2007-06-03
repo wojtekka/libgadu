@@ -891,6 +891,71 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_DCC7_ID_REPLY:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 id packet\n");
+
+			if (h->length < sizeof(struct gg_dcc7_id_reply))
+				break;
+
+			if (gg_dcc7_handle_id(sess, e, p, h->length) == -1)
+				goto fail;
+
+			break;
+		}
+
+		case GG_DCC7_ACCEPT:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 accept\n");
+
+			if (h->length < sizeof(struct gg_dcc7_accept))
+				break;
+
+			if (gg_dcc7_handle_accept(sess, e, p, h->length) == -1)
+				goto fail;
+
+			break;
+		}
+
+		case GG_DCC7_NEW:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 request\n");
+
+			if (h->length < sizeof(struct gg_dcc7_new))
+				break;
+
+			if (gg_dcc7_handle_new(sess, e, p, h->length) == -1)
+				goto fail;
+
+			break;
+		}
+
+		case GG_DCC7_REJECT:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 reject\n");
+
+			if (h->length < sizeof(struct gg_dcc7_reject))
+				break;
+
+			if (gg_dcc7_handle_reject(sess, e, p, h->length) == -1)
+				goto fail;
+
+			break;
+		}
+
+		case GG_DCC7_INFO:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 info\n");
+
+			if (h->length < sizeof(struct gg_dcc7_info))
+				break;
+
+			if (gg_dcc7_handle_info(sess, e, p, h->length) == -1)
+				goto fail;
+
+			break;
+		}
+
 		default:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received unknown packet 0x%.2x\n", h->type);
 	}
@@ -1589,12 +1654,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			free(sess->password);
 			sess->password = NULL;
 
-			{
-				struct in_addr dcc_ip;
-				dcc_ip.s_addr = gg_dcc_ip;
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() gg_dcc_ip = %s\n", inet_ntoa(dcc_ip));
-			}
-
 			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
 				struct sockaddr_in sin;
 				unsigned int sin_len = sizeof(sin);
@@ -1610,6 +1669,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				}
 			} else
 				l.local_ip = gg_dcc_ip;
+
+			sess->client_addr = l.local_ip;
 
 			l.uin = gg_fix32(sess->uin);
 			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
