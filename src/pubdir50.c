@@ -219,11 +219,14 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		return 0;
 	}
 
+	if (!req->seq)
+		req->seq = time(NULL);
+
+	res = req->seq;
+
 	r = (struct gg_pubdir50_request*) buf;
-	res = time(NULL);
 	r->type = req->type;
-	r->seq = (req->seq) ? gg_fix32(req->seq) : gg_fix32(time(NULL));
-	req->seq = gg_fix32(r->seq);
+	r->seq = gg_fix32(req->seq);
 
 	for (i = 0, p = buf + 5; i < req->entries_count; i++) {
 		if (req->entries[i].num)
