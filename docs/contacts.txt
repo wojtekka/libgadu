@@ -1,0 +1,6 @@
+/**
+
+\defgroup contacts Lista kontaktów
+\ingroup session
+
+*/

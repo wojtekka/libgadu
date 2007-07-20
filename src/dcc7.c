@@ -2,7 +2,7 @@
 
 /*
  *  (C) Copyright 2001-2007 Wojtek Kaniewski <wojtekka@irc.pl>
- *                          Tomasz Chili�ski <chilek@chilan.com>
+ *                          Tomasz Chiliński <chilek@chilan.com>
  *                          Adam Wysocki <gophi@ekg.chmurka.net>
  *  
  *  Thanks to Jakub Zawadzki <darkjames@darkjames.ath.cx>
@@ -22,6 +22,12 @@
  *  USA.
  */
 
+/**
+ * \file dcc7.c
+ *
+ * \brief Obsługa połączeń bezpośrednich od wersji Gadu-Gadu 7.x
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -31,6 +37,7 @@
 #ifdef sun
 #  include <sys/filio.h>
 #endif
+#include <time.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -44,6 +51,14 @@
 #include "compat.h"
 #include "libgadu.h"
 
+/**
+ * \internal Dodaje połączenie bezpośrednie do sesji.
+ *
+ * \param sess Struktura sesji
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 static int gg_dcc7_session_add(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
 	if (!sess || !dcc || dcc->next) {
@@ -57,6 +72,14 @@ static int gg_dcc7_session_add(struct gg_session *sess, struct gg_dcc7 *dcc)
 	return 0;
 }
 
+/**
+ * \internal Usuwa połączenie bezpośrednie z sesji.
+ *
+ * \param sess Struktura sesji
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 static int gg_dcc7_session_remove(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
 	struct gg_dcc7 *tmp;
@@ -84,6 +107,14 @@ static int gg_dcc7_session_remove(struct gg_session *sess, struct gg_dcc7 *dcc)
 	return -1;
 }
 
+/**
+ * \internal Zwraca strukturę połączenia o danym identyfikatorze.
+ *
+ * \param sess Struktura sesji
+ * \param id Identyfikator połączenia
+ *
+ * \return Struktura połączenia lub \c NULL jeśli nie znaleziono
+ */
 static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_t id)
 {
 	struct gg_dcc7 *tmp;
@@ -96,12 +127,16 @@ static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_
 	return NULL;
 }
 
+/**
+ * \internal Nawiązuje połączenie bezpośrednie
+ *
+ * \param sess Struktura sesji
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 static int gg_dcc7_connect(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
-#ifdef SO_SNDTIMEO
-	struct timeval tv;
-#endif
-
 	if (!sess || !dcc) {
 		errno = EINVAL;
 		return -1;
@@ -114,21 +149,21 @@ static int gg_dcc7_connect(struct gg_session *sess, struct gg_dcc7 *dcc)
 
 	dcc->state = GG_STATE_CONNECTING;
 	dcc->check = GG_CHECK_WRITE;
-	dcc->timeout = GG_DEFAULT_TIMEOUT;
-
-	// XXX to pewnie nie zadzia�a, zrobi� software'owy timeout
-
-#ifdef SO_SNDTIMEO
-	tv.tv_sec = GG_DCC7_TIMEOUT_CONNECT;
-	tv.tv_usec = 0;
-
-	setsockopt(dcc->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-#endif
+	dcc->timeout = GG_DCC7_TIMEOUT_CONNECT;
+	dcc->soft_timeout = 1;
 
 	return 0;
 }
 
-static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
+/**
+ * \internal Tworzy gniazdo nasłuchujące dla połączenia bezpośredniego
+ *
+ * \param dcc Struktura połączenia
+ * \param port Preferowany port (jeśli równy 0 lub -1, próbuje się domyślnego)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 {
 	struct sockaddr_in sin;
 	int fd, bound = 0;
@@ -139,11 +174,11 @@ static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
 	}
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_socket() can't create socket (%s)\n", strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() can't create socket (%s)\n", strerror(errno));
 		return -1;
 	}
 
-	// XXX losowa� porty?
+	// XXX losować porty?
 	
 	if (!port)
 		port = GG_DEFAULT_DCC_PORT;
@@ -153,12 +188,12 @@ static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
 		sin.sin_addr.s_addr = INADDR_ANY;
 		sin.sin_port = htons(port);
 
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_socket() trying port %d\n", port);
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() trying port %d\n", port);
 		if (!bind(fd, (struct sockaddr*) &sin, sizeof(sin)))
 			bound = 1;
 		else {
 			if (++port == 65535) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_socket() no free port found\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() no free port found\n");
 				close(fd);
 				errno = ENOENT;
 				return -1;
@@ -168,7 +203,7 @@ static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
 
 	if (listen(fd, 1)) {
 		int errsv = errno;
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_socket() unable to listen (%s)\n", strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() unable to listen (%s)\n", strerror(errno));
 		close(fd);
 		errno = errsv;
 		return -1;
@@ -176,7 +211,6 @@ static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
 
 	dcc->fd = fd;
 	dcc->local_port = port;
-	dcc->type = GG_SESSION_DCC7_SOCKET;
 	
 	dcc->state = GG_STATE_LISTENING;
 	dcc->check = GG_CHECK_READ;
@@ -185,6 +219,14 @@ static int gg_dcc7_socket(struct gg_dcc7 *dcc, uint16_t port)
 	return 0;
 }
 
+/**
+ * \internal Wysyła do serwera żądanie nadania identyfikatora sesji
+ *
+ * \param sess Struktura sesji
+ * \param type Rodzaj połączenia (\c GG_DCC7_TYPE_FILE lub \c GG_DCC7_TYPE_VOICE)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 static int gg_dcc7_request_id(struct gg_session *sess, uint32_t type)
 {
 	struct gg_dcc7_id_request pkt;
@@ -210,6 +252,46 @@ static int gg_dcc7_request_id(struct gg_session *sess, uint32_t type)
 	return gg_send_packet(sess, GG_DCC7_ID_REQUEST, &pkt, sizeof(pkt), NULL);
 }
 
+/**
+ * \internal Tworzy gniazdo nasłuchujące i wysyła jego parametry
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
+{
+	struct gg_dcc7_info pkt;
+
+	// XXX dać możliwość konfiguracji?
+	
+	dcc->local_addr = dcc->sess->client_addr;
+
+	if (gg_dcc7_listen(dcc, 0) == -1)
+		return -1;
+
+	memset(&pkt, 0, sizeof(pkt));
+	pkt.uin = gg_fix32(dcc->peer_uin);
+	pkt.type = GG_DCC7_TYPE_P2P;
+	pkt.id = dcc->cid;
+	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), dcc->local_port);
+
+	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
+}
+
+/**
+ * Rozpoczyna wysyłanie pliku.
+ *
+ * \param sess Struktura sesji
+ * \param rcpt Numer odbiorcy
+ * \param filename Nazwa pliku w lokalnym systemie plików
+ * \param filename1250 Nazwa pliku w kodowaniu CP-1250
+ * \param hash Skrót SHA-1 pliku (lub \c NULL jeśli ma być wyznaczony)
+ *
+ * \return Struktura \c gg_dcc7 lub \c NULL w przypadku błędu
+ *
+ * \ingroup dcc7
+ */
 struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const char *filename, const char *filename1250, const char *hash)
 {
 	struct gg_dcc7 *dcc = NULL;
@@ -293,40 +375,46 @@ fail:
 	return NULL;
 }
 
+/**
+ * Potwierdza chęć odebrania pliku.
+ *
+ * \param dcc Struktura połączenia
+ * \param offset Początkowy offset przy wznawianiu przesyłania pliku
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup dcc7
+ */
 int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset)
 {
-	struct gg_dcc7_accept pkt1;
-	struct gg_dcc7_info pkt2;
+	struct gg_dcc7_accept pkt;
 
 	if (!dcc->sess) {
 		errno = EFAULT;
 		return -1;
 	}
 
-	// XXX da� mo�liwo�� konfiguracji?
-	
-	dcc->local_addr = dcc->sess->client_addr;
+	memset(&pkt, 0, sizeof(pkt));
+	pkt.uin = gg_fix32(dcc->peer_uin);
+	pkt.id = dcc->cid;
+	pkt.offset = gg_fix32(offset);
 
-	if (gg_dcc7_socket(dcc, 0) == -1)
+	if (gg_send_packet(dcc->sess, GG_DCC7_ACCEPT, &pkt, sizeof(pkt), NULL) == -1)
 		return -1;
 
-	memset(&pkt1, 0, sizeof(pkt1));
-	pkt1.uin = gg_fix32(dcc->peer_uin);
-	pkt1.id = dcc->cid;
-	pkt1.offset = gg_fix32(offset);
-
-	if (gg_send_packet(dcc->sess, GG_DCC7_ACCEPT, &pkt1, sizeof(pkt1), NULL) == -1)
-		return -1;
-
-	memset(&pkt2, 0, sizeof(pkt2));
-	pkt2.uin = gg_fix32(dcc->peer_uin);
-	pkt2.type = GG_DCC7_TYPE_P2P;
-	pkt2.id = dcc->cid;
-	snprintf((char*) pkt2.info, sizeof(pkt2.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), dcc->local_port);
-
-	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt2, sizeof(pkt2), NULL);
+	return gg_dcc7_listen_and_send_info(dcc);
 }
 
+/**
+ * Odrzuca próbę przesłania pliku.
+ *
+ * \param dcc Struktura połączenia
+ * \param reason Powód odrzucenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup dcc7
+ */
 int gg_dcc7_reject(struct gg_dcc7 *dcc, int reason)
 {
 	struct gg_dcc7_reject pkt;
@@ -344,6 +432,16 @@ int gg_dcc7_reject(struct gg_dcc7 *dcc, int reason)
 	return gg_send_packet(dcc->sess, GG_DCC7_REJECT, &pkt, sizeof(pkt), NULL);
 }
 
+/**
+ * \internal Obsługuje pakiet identyfikatora połączenia bezpośredniego.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload, int len)
 {
 	struct gg_dcc7_id_reply *p = payload;
@@ -384,22 +482,32 @@ int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload
 	return 0;
 }
 
+/**
+ * \internal Obsługuje pakiet akceptacji połączenia bezpośredniego.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *payload, int len)
 {
 	struct gg_dcc7_accept *p = payload;
 	struct gg_dcc7 *dcc;
 
 	if (!(dcc = gg_dcc7_session_find(sess, p->id))) {
-		// XXX wys�a� reject?
+		// XXX wysłać reject?
 		return 0;
 	}
 
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 	
-	// XXX czy dla odwrotnego po��czenia powinni�my wywo�a� ju� zdarzenie GG_DCC7_ACCEPT?
+	// XXX czy dla odwrotnego połączenia powinniśmy wywołać już zdarzenie GG_DCC7_ACCEPT?
 	
 	dcc->offset = gg_fix32(p->offset);
 	dcc->state = GG_STATE_WAITING_FOR_INFO;
@@ -407,6 +515,16 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
 	return 0;
 }
 
+/**
+ * \internal Obsługuje pakiet informacji o połączeniu bezpośrednim.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *payload, int len)
 {
 	struct gg_dcc7_info *p = payload;
@@ -417,31 +535,32 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 		return 0;
 	
 	if (p->type != GG_DCC7_TYPE_P2P) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 
 	if ((dcc->remote_addr = inet_addr(p->info)) == INADDR_NONE) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 
 	if (!(tmp = strchr(p->info, ' ')) || !(dcc->remote_port = atoi(tmp + 1))) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 
-	// je�li nadal czekamy na po��czenie przychodz�ce, a druga strona nie
-	// daje rady i oferuje namiary na siebie, bierzemy co daj�.
+	// jeśli nadal czekamy na połączenie przychodzące, a druga strona nie
+	// daje rady i oferuje namiary na siebie, bierzemy co dają.
 
-	if (dcc->state != GG_STATE_WAITING_FOR_INFO && dcc->state != GG_STATE_LISTENING) {
-		// XXX poinformowa�?
+	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
+		// XXX poinformować?
 		return 0;
 	}
 
 	if (dcc->state == GG_STATE_LISTENING) {
 		close(dcc->fd);
 		dcc->fd = -1;
+		dcc->reverse = 1;
 	}
 	
 	if (dcc->type == GG_SESSION_DCC7_SEND) {
@@ -453,13 +572,23 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	}
 
 	if (gg_dcc7_connect(sess, dcc) == -1) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 
 	return 0;
 }
 
+/**
+ * \internal Obsługuje pakiet odrzucenia połączenia bezpośredniego.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *payload, int len)
 {
 	struct gg_dcc7_reject *p = payload;
@@ -469,7 +598,7 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 		return 0;
 	
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
-		// XXX poinformowa�?
+		// XXX poinformować?
 		return 0;
 	}
 
@@ -477,11 +606,21 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 	e->event.dcc7_reject.dcc7 = dcc;
 	e->event.dcc7_reject.reason = gg_fix32(p->reason);
 
-	// XXX ustawi� state na rejected?
+	// XXX ustawić state na rejected?
 
 	return 0;
 }
 
+/**
+ * \internal Obsługuje pakiet nowego połączenia bezpośredniego.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
 int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payload, int len)
 {
 	struct gg_dcc7_new *p = payload;
@@ -557,14 +696,68 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payloa
 	return 0;
 }
 
+/**
+ * \internal Ustawia odpowiednie stany wewnętrzne w zależności od rodzaju
+ * połączenia.
+ * 
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu.
+ */
+static int gg_dcc7_postauth_fixup(struct gg_dcc7 *dcc)
+{
+	if (!dcc) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	switch (dcc->type) {
+		case GG_SESSION_DCC7_GET:
+			dcc->state = GG_STATE_GETTING_FILE;
+			dcc->check = GG_CHECK_READ;
+			return 0;
+
+		case GG_SESSION_DCC7_SEND:
+			dcc->state = GG_STATE_SENDING_FILE;
+			dcc->check = GG_CHECK_WRITE;
+			return 0;
+
+		case GG_SESSION_DCC7_VOICE:
+			dcc->state = GG_STATE_READING_VOICE_DATA;
+			dcc->check = GG_CHECK_READ;
+			return 0;
+	}
+
+	errno = EINVAL;
+
+	return -1;
+}
+
+/**
+ * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.
+ *
+ * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
+ * to \c GG_EVENT_NONE, nie wydarzyło się jeszcze nic wartego odnotowania.
+ * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free.
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \return Struktura zdarzenia lub \c NULL jeśli wystąpił błąd
+ *
+ * \ingroup dcc7
+ */
 struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 {
 	struct gg_event *e;
 
-//	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_watch_fd(%p);\n", dcc);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_watch_fd(%p);\n", dcc);
 
 	if (!dcc || (dcc->type != GG_SESSION_DCC7_SEND && dcc->type != GG_SESSION_DCC7_GET && dcc->type != GG_SESSION_DCC7_VOICE)) {
+		static int shown = 0;
+
+		if (!shown)
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid argument\n");
+		shown = 1;
 		errno = EINVAL;
 		return NULL;
 	}
@@ -624,15 +817,31 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 		case GG_STATE_CONNECTING:
 		{
-			int res, error = 0;
+			int res = 0, error = 0;
 			unsigned int error_size = sizeof(error);
 
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_CONNECTING\n");
 
-			if ((res = getsockopt(dcc->fd, SOL_SOCKET, SO_ERROR, &error, &error_size)) == -1 || error != 0) {
+			dcc->soft_timeout = 0;
+
+			if (dcc->timeout == 0)
+				error = ETIMEDOUT;
+
+			if (error || (res = getsockopt(dcc->fd, SOL_SOCKET, SO_ERROR, &error, &error_size)) == -1 || error != 0) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection failed (%s)\n", (res == -1) ? strerror(errno) : strerror(error));
+
+				if (!dcc->reverse) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection timeout, trying reverse connection\n");
+					close(dcc->fd);
+					dcc->fd = -1;
+					dcc->reverse = 1;
+	
+					if (gg_dcc7_listen_and_send_info(dcc) != -1)
+						break;
+				}
+					
 				e->type = GG_EVENT_DCC7_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+				e->event.dcc_error = GG_ERROR_DCC7_NET;
 				return e;
 			}
 
@@ -672,8 +881,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				dcc->check = GG_CHECK_WRITE;
 				dcc->timeout = GG_DEFAULT_TIMEOUT;
 			} else {
-				dcc->state = GG_STATE_SENDING_FILE;
-				dcc->check = GG_CHECK_WRITE;
+				gg_dcc7_postauth_fixup(dcc);
 				dcc->timeout = GG_DEFAULT_TIMEOUT;
 			}
 
@@ -694,8 +902,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			}
 
 			if (dcc->incoming) {
-				dcc->state = GG_STATE_GETTING_FILE;
-				dcc->check = GG_CHECK_READ;
+				gg_dcc7_postauth_fixup(dcc);
 				dcc->timeout = GG_DEFAULT_TIMEOUT;
 			} else {
 				dcc->state = GG_STATE_READING_ID;
@@ -711,7 +918,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			char buf[1024];
 			int chunk, res;
 
-//			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
 			if (lseek(dcc->file_fd, dcc->offset, SEEK_SET) == (off_t) -1) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() lseek() failed (%s)\n", strerror(errno));
@@ -757,7 +964,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			char buf[1024];
 			int res, wres;
 
-//			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_GETTING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_GETTING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
 			if ((res = read(dcc->fd, buf, sizeof(buf))) < 1) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
@@ -766,7 +973,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-			// XXX zapisywa� do skutku?
+			// XXX zapisywać do skutku?
 
 			if ((wres = write(dcc->file_fd, buf, res)) < res) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (fd=%d, res=%d, %s)\n", dcc->file_fd, wres, strerror(errno));
@@ -803,6 +1010,13 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 	return e;
 }
 
+/**
+ * Zwalnia zasoby używane przez połączenie bezpośrednie.
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \ingroup dcc7
+ */
 void gg_dcc7_free(struct gg_dcc7 *dcc)
 {
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_free(%p);\n", dcc);

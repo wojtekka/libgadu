@@ -18,6 +18,12 @@
  *  USA.
  */
 
+/**
+ * \file pubdir50.c
+ *
+ * \brief ObsÅ‚uga katalogu publicznego od wersji Gadu-Gadu 5.x
+ */
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,12 +31,14 @@
 
 #include "libgadu.h"
 
-/*
- * gg_pubdir50_new()
+/**
+ * Tworzy nowe zapytanie katalogu publicznego.
  *
- * tworzy now± zmienn± typu gg_pubdir50_t.
+ * \param type Rodzaj zapytania
  *
- * zaalokowana zmienna lub NULL w przypadku braku pamiêci.
+ * \return Zmienna \c gg_pubdir50_t lub \c NULL w przypadku bÅ‚Ä™du.
+ *
+ * \ingroup pubdir50
  */
 gg_pubdir50_t gg_pubdir50_new(int type)
 {
@@ -50,17 +58,16 @@ gg_pubdir50_t gg_pubdir50_new(int type)
 	return res;
 }
 
-/*
- * gg_pubdir50_add_n()  // funkcja wewnêtrzna
+/**
+ * \internal Dodaje lub zastÄ™puje pole zapytania lub odpowiedzi katalogu
+ * publicznego.
  *
- * funkcja dodaje lub zastêpuje istniej±ce pole do zapytania lub odpowiedzi.
+ * \param req Zapytanie lub odpowiedÅº
+ * \param num Numer wyniku odpowiedzi (0 dla zapytania)
+ * \param field Nazwa pola
+ * \param value WartoÅ›Ä‡ pola
  *
- *  - req - wska¼nik opisu zapytania,
- *  - num - numer wyniku (0 dla zapytania),
- *  - field - nazwa pola,
- *  - value - warto¶æ pola,
- *
- * 0/-1
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  */
 static int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, const char *value)
 {
@@ -110,31 +117,31 @@ static int gg_pubdir50_add_n(gg_pubdir50_t req, int num, const char *field, cons
 	return 0;
 }
 
-/*
- * gg_pubdir50_add()
+/**
+ * Dodaje pole zapytania.
  *
- * funkcja dodaje pole do zapytania.
+ * \param req Zapytanie
+ * \param field Nazwa pola
+ * \param value WartoÅ›Ä‡ pola
  *
- *  - req - wska¼nik opisu zapytania,
- *  - field - nazwa pola,
- *  - value - warto¶æ pola,
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  *
- * 0/-1
+ * \ingroup pubdir50
  */
 int gg_pubdir50_add(gg_pubdir50_t req, const char *field, const char *value)
 {
 	return gg_pubdir50_add_n(req, 0, field, value);
 }
 
-/*
- * gg_pubdir50_seq_set()
+/**
+ * Ustawia numer sekwencyjny zapytania.
  *
- * ustawia numer sekwencyjny zapytania.
+ * \param req Zapytanie
+ * \param seq Numer sekwencyjny
  *
- *  - req - zapytanie,
- *  - seq - nowy numer sekwencyjny.
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  *
- * 0/-1.
+ * \ingroup pubdir50
  */
 int gg_pubdir50_seq_set(gg_pubdir50_t req, uint32_t seq)
 {
@@ -151,12 +158,12 @@ int gg_pubdir50_seq_set(gg_pubdir50_t req, uint32_t seq)
 	return 0;
 }
 
-/*
- * gg_pubdir50_free()
+/**
+ * Zwalnia zasoby po zapytaniu lub odpowiedzi katalogu publicznego.
  *
- * zwalnia pamiêæ po zapytaniu lub rezultacie szukania u¿ytkownika.
+ * \param s Zapytanie lub odpowiedÅº
  *
- *  - s - zwalniana zmienna,
+ * \ingroup pubdir50
  */
 void gg_pubdir50_free(gg_pubdir50_t s)
 {
@@ -174,15 +181,15 @@ void gg_pubdir50_free(gg_pubdir50_t s)
 	free(s);
 }
 
-/*
- * gg_pubdir50()
+/**
+ * WysyÅ‚a zapytanie katalogu publicznego do serwera.
  *
- * wysy³a zapytanie katalogu publicznego do serwera.
+ * \param sess Struktura sesji
+ * \param req Zapytanie
  *
- *  - sess - sesja,
- *  - req - zapytanie.
+ * \return Numer sekwencyjny zapytania lub 0 w przypadku bÅ‚Ä™du
  *
- * numer sekwencyjny wyszukiwania lub 0 w przypadku b³êdu.
+ * \ingroup pubdir50
  */
 uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 {
@@ -248,15 +255,14 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 }
 
 /*
- * gg_pubdir50_handle_reply()  // funkcja wewnêtrzna
+ * \internal Analizuje przychodzÄ…cy pakiet odpowiedzi i zapisuje wynik
+ * w strukturze \c gg_event.
  *
- * analizuje przychodz±cy pakiet odpowiedzi i zapisuje wynik w struct gg_event.
+ * \param e Struktura zdarzenia
+ * \param packet Pakiet odpowiedzi
+ * \param length DÅ‚ugoÅ›Ä‡ pakietu odpowiedzi
  *
- *  - e - opis zdarzenia
- *  - packet - zawarto¶æ pakietu odpowiedzi
- *  - length - d³ugo¶æ pakietu odpowiedzi
- *
- * 0/-1
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  */
 int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 {
@@ -302,11 +308,11 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 			break;
 	}
 
-	/* brak wyników? */
+	/* brak wynikÃ³w? */
 	if (length == 5)
 		return 0;
 
-	/* pomiñ pocz±tek odpowiedzi */
+	/* pomiÅ„ poczÄ…tek odpowiedzi */
 	p = packet + 5;
 
 	while (p < end) {
@@ -314,7 +320,7 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 
 		field = p;
 
-		/* sprawd¼, czy nie mamy podzia³u na kolejne pole */
+		/* sprawdÅº, czy nie mamy podziaÅ‚u na kolejne pole */
 		if (!*field) {
 			num++;
 			field++;
@@ -323,22 +329,22 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 		value = NULL;
 		
 		for (p = field; p < end; p++) {
-			/* je¶li mamy koniec tekstu... */
+			/* jeÅ›li mamy koniec tekstu... */
 			if (!*p) {
-				/* ...i jeszcze nie mieli¶my warto¶ci pola to
-				 * wiemy, ¿e po tym zerze jest warto¶æ... */
+				/* ...i jeszcze nie mieliÅ›my wartoÅ›ci pola to
+				 * wiemy, Å¼e po tym zerze jest wartoÅ›Ä‡... */
 				if (!value)
 					value = p + 1;
 				else
 					/* ...w przeciwym wypadku koniec
-					 * warto¶ci i mo¿emy wychodziæ
-					 * grzecznie z pêtli */
+					 * wartoÅ›ci i moÅ¼emy wychodziÄ‡
+					 * grzecznie z pÄ™tli */
 					break;
 			}
 		}
 		
-		/* sprawd¼my, czy pole nie wychodzi poza pakiet, ¿eby nie
-		 * mieæ segfaultów, je¶li serwer przestanie zakañczaæ pakietów
+		/* sprawdÅºmy, czy pole nie wychodzi poza pakiet, Å¼eby nie
+		 * mieÄ‡ segfaultÃ³w, jeÅ›li serwer przestanie zakaÅ„czaÄ‡ pakietÃ³w
 		 * przez \0 */
 
 		if (p == end) {
@@ -348,8 +354,8 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 
 		p++;
 
-		/* je¶li dostali¶my namier na nastêpne wyniki, to znaczy ¿e
-		 * mamy koniec wyników i nie jest to kolejna osoba. */
+		/* jeÅ›li dostaliÅ›my namier na nastÄ™pne wyniki, to znaczy Å¼e
+		 * mamy koniec wynikÃ³w i nie jest to kolejna osoba. */
 		if (!strcasecmp(field, "nextstart")) {
 			res->next = atoi(value);
 			num--;
@@ -368,16 +374,16 @@ failure:
 	return -1;
 }
 
-/*
- * gg_pubdir50_get()
+/**
+ * Pobiera pole z odpowiedzi katalogu publicznego.
  *
- * pobiera informacjê z rezultatu wyszukiwania.
+ * \param res OdpowiedÅº
+ * \param num Numer wyniku odpowiedzi
+ * \param field Nazwa pola (wielkoÅ›Ä‡ liter nie ma znaczenia)
  *
- *  - res - rezultat wyszukiwania,
- *  - num - numer odpowiedzi,
- *  - field - nazwa pola (wielko¶æ liter nie ma znaczenia).
+ * \return WartoÅ›Ä‡ pola lub \c NULL jeÅ›li nie znaleziono
  *
- * warto¶æ pola lub NULL, je¶li nie znaleziono.
+ * \ingroup pubdir50
  */
 const char *gg_pubdir50_get(gg_pubdir50_t res, int num, const char *field)
 {
@@ -402,57 +408,61 @@ const char *gg_pubdir50_get(gg_pubdir50_t res, int num, const char *field)
 	return value;
 }
 
-/*
- * gg_pubdir50_count()
+/**
+ * Zwraca liczbÄ™ wynikÃ³w odpowiedzi.
  *
- * zwraca ilo¶æ wyników danego zapytania.
+ * \param res OdpowiedÅº
  *
- *  - res - odpowied¼
+ * \return Liczba wynikÃ³w lub -1 w przypadku bÅ‚Ä™du
  *
- * ilo¶æ lub -1 w przypadku b³êdu.
+ * \ingroup pubdir50
  */
 int gg_pubdir50_count(gg_pubdir50_t res)
 {
 	return (!res) ? -1 : res->count;
 }
 
-/*
- * gg_pubdir50_type()
+/**
+ * Zwraca rodzaj zapytania lub odpowiedzi.
  *
- * zwraca rodzaj zapytania lub odpowiedzi.
+ * \param res Zapytanie lub odpowiedÅº
  *
- *  - res - zapytanie lub odpowied¼
+ * \return Rodzaj lub -1 w przypadku bÅ‚Ä™du
  *
- * ilo¶æ lub -1 w przypadku b³êdu.
+ * \ingroup pubdir50
  */
 int gg_pubdir50_type(gg_pubdir50_t res)
 {
 	return (!res) ? -1 : res->type;
 }
 
-/*
- * gg_pubdir50_next()
+/**
+ * Zwraca numer, od ktÃ³rego naleÅ¼y rozpoczÄ…c kolejne wyszukiwanie.
  *
- * zwraca numer, od którego nale¿y rozpocz±æ kolejne wyszukiwanie, je¶li
- * zale¿y nam na kolejnych wynikach.
+ * DÅ‚uÅ¼sze odpowiedzi katalogu publicznego sÄ… wysyÅ‚ane przez serwer
+ * w mniejszych paczkach. Po otrzymaniu odpowiedzi, jeÅ›li numer kolejnego
+ * wyszukiwania jest wiÄ™kszy od zera, dalsze wyniki moÅ¼na otrzymaÄ‡ przez
+ * wywoÅ‚anie kolejnego zapytania z okreÅ›lonym numerem poczÄ…tkowym.
  *
- *  - res - odpowied¼
+ * \param res OdpowiedÅº
  *
- * numer lub -1 w przypadku b³êdu.
+ * \return Numer lub -1 w przypadku bÅ‚Ä™du
+ *
+ * \ingroup pubdir50
  */
 uin_t gg_pubdir50_next(gg_pubdir50_t res)
 {
 	return (!res) ? (unsigned) -1 : res->next;
 }
 
-/*
- * gg_pubdir50_seq()
+/**
+ * Zwraca numer sekwencyjny zapytania lub odpowiedzi.
  *
- * zwraca numer sekwencyjny zapytania lub odpowiedzi.
+ * \param res Zapytanie lub odpowiedÅº
  *
- *  - res - zapytanie lub odpowied¼
+ * \return Numer sekwencyjny lub -1 w przypadku bÅ‚Ä™du
  *
- * numer lub -1 w przypadku b³êdu.
+ * \ingroup pubdir50
  */
 uint32_t gg_pubdir50_seq(gg_pubdir50_t res)
 {

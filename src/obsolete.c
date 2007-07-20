@@ -18,11 +18,18 @@
  *  USA.
  */
 
-/*
- * Plik zawiera deklaracje funkcji, kt�re s� ju� nieaktualne ze wzgl�du
- * na zmiany w protokole, ale s� wymagane przez aplikacje linkowane ze
- * starszymi wersjami bibliotek.
+/**
+ * \file obsolete.c
+ *
+ * \brief Nieaktualne funkcje
+ *
+ * Plik zawiera definicje funkcji, które są już nieaktualne ze względu
+ * na zmiany w protokole. Programy konsolidowane ze starszych wersjami
+ * bibliotek powinny nadal mieć możliwość działania, mimo ograniczonej
+ * funkcjonalności.
  */
+
+/** \cond obsolete */
 
 #include <errno.h>
 
@@ -205,3 +212,5 @@ void gg_change_info_request_free(struct gg_change_info_request *r)
 {
 
 }
+
+/** \endcond */

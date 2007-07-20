@@ -1,0 +1,6 @@
+/**
+
+\defgroup debug Odpluskwianie
+\ingroup misc
+
+*/

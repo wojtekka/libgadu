@@ -1,0 +1,5 @@
+/**
+
+\defgroup session Połączenie z serwerem
+
+*/

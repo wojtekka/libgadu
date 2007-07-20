@@ -1,0 +1,149 @@
+/**
+
+\defgroup syncasync Połączenia synchroniczne i asynchroniczne
+\ingroup session
+
+\details
+
+Funkcje biblioteki (za wyjatkiem \ref dcc "połączeń bezpośrednich") zostały
+przygotowane w taki sposób, by móc z nich korzystać zarówno w trybie
+synchronicznym (działanie programu jest blokowane do zakończeniu operacji), jak
+i asynchroniczym (operacja jest rozpoczynana, a do czasu jej zakończenia
+program może robić inne rzeczy).
+
+Tryb asynchroniczny wymaga od programu obserwowania zmian na określonych
+deskryptorach za pomocą funkcji systemowych select() czy poll(), lub za 
+pomocą mechanizmów pętli zdarzeń wbudowanych w wykorzystaną bibliotekę
+interfejsu użytkownika. Każda struktura operacji asynchronicznej zawiera
+pole \c fd określające obserwowany deskryptor, pole \c watch będące maską
+bitową mówiącą czy obserwowana ma być możliwość odczytu i/lub zapisu,
+\c timeout określające maksymalny czas wykonywania operacji. Gdy zaobserwuje
+się zmianę na deskryptorze należy wywołać funkcję \c xxx_watch_fd()
+odpowiednią dla danej struktury. Dla większości struktur, funkcja
+\c xxx_watch_fd() zwróci informację o zdarzeniu w strukturze \c gg_event.
+W niektórych należy obserwować pole \c state, które po zakończeniu operacji
+zostanie zmienione na \c GG_STATE_DONE lub \c GG_STATE_ERROR. Dokładne
+informacje są zawsze umieszczone w opisie odpowiedniej funkcji
+\c xxx_watch_fd().
+
+\section sync-example Przykład połączenia synchronicznego
+
+\code
+struct gg_session *sesja;
+struct gg_login_params parametry;
+struct gg_event *zdarzenie;
+
+memset(&parametry, 0, sizeof(parametry));
+parametry.uin = 12345;
+parametry.password = "hasło";
+
+sesja = gg_login(&parametry);
+
+if (!sesja) {
+    błąd("Nie można się połączyć");
+    exit(1);
+}
+
+informacja("Połączono");
+
+gg_send_message(sesja, 23456, "Cześć!");
+
+while ((zdarzenie = gg_watch_fd(sesja))) {
+    switch (zdarzenie->type) {
+        // ...
+    }
+
+    gg_event_free(zdarzenie);
+}
+
+gg_logoff(sesja);
+gg_free_session(sesja);
+\endcode
+
+\note Przykład jest niekompletny, ponieważ powinien co minutę wywoływać
+funkcję \c gg_ping().
+
+\section sync-example Przykład połączenia asynchronicznego
+
+\code
+struct gg_session *sesja;
+struct gg_login_params parametry;
+struct timeval tv;
+fd_set rd, wd;
+int wynik;
+
+memset(&parametry, 0, sizeof(parametry));
+parametry.uin = 12345;
+parametry.password = "hasło";
+parametry.async = 1;
+
+sesja = gg_login(&parametry);
+
+if (!sesja) {
+    błąd("Nie można się połączyć");
+    exit(1);
+}
+
+for (;;) {
+    FD_ZERO(&rd);
+    FD_ZERO(&wd);
+
+    if ((sesja->check & GG_CHECK_READ))
+        FD_SET(sesja->fd, &rd);
+
+    if ((sesja->check & GG_CHECK_WRITE))
+        FD_SET(sesja->fd, &wd);
+
+    if (sesja->timeout) {
+        tv.tv_sec = sesja->timeout;
+        tv.tv_usec = 0;
+    }
+
+    wynik = select(sesja->fd + 1, &rd, &wd, NULL, (sesja->timeout) ? &tv : NULL);
+
+    if (!wynik) {
+        błąd("Przekroczono czas operacji");
+	gg_free_session(sesja);
+	exit(1);
+    }
+
+    if (wynik == -1) {
+        if (errno != EINTR) {
+	    błąd("Błąd funkcji select()");
+	    gg_free_session(sesja);
+	    exit(1);
+	}
+    }
+
+    if (FD_ISSET(sesja->fd, &rd) || FD_ISSET(sesja->fd, &wd)) {
+        struct gg_event *zdarzenie;
+
+	zdarzenie = gg_watch_fd(sesja);
+
+	if (!zdarzenie) {
+	    błąd("Połączenie przerwane");
+	    gg_free_session(sesja);
+	    exit(1);
+	}
+
+	switch (zdarzenie->type) {
+	    case GG_EVENT_CONN_SUCCESS:
+	        informacja("Połączono");
+		break;
+	    case GG_EVENT_CONN_FAILED:
+	        błąd("Nie można się połączyć");
+		gg_event_free(zdarzenie);
+		gg_free_session(sesja);
+		exit(1);
+	    // ...
+	}
+
+	gg_event_free(zdarzenie);
+    }
+}
+\endcode
+
+\note Przykład jest niekompletny, ponieważ powinien co minutę wywoływać
+funkcję \c gg_ping().
+
+*/

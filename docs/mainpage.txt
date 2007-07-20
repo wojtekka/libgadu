@@ -1,0 +1,15 @@
+/**
+
+\mainpage Test
+
+Test
+
+\page Foo
+
+Foo
+
+\page Bar
+
+Bar
+
+*/

@@ -1,0 +1,7 @@
+/**
+
+\defgroup helper Funkcje pomocnicze
+\ingroup misc
+
+*/
+

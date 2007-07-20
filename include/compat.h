@@ -19,6 +19,12 @@
  *  USA.
  */
 
+/**
+ * \file compat.h
+ *
+ * \brief Makra zapewniaj±ce kompatybilno¶æ API na ró¿nych systemach
+ */
+
 #ifndef __COMPAT_H
 #define __COMPAT_H
 

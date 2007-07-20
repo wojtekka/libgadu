@@ -2,7 +2,7 @@
 
 /*
  *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
- *                          Tomasz Chiliñski <chilek@chilan.com>
+ *                          Tomasz ChiliÅ„ski <chilek@chilan.com>
  *                          Adam Wysocki <gophi@ekg.chmurka.net>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,12 @@
  *  License along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
  *  USA.
+ */
+
+/**
+ * \file dcc.c
+ *
+ * \brief ObsÅ‚uga poÅ‚Ä…czeÅ„ bezpoÅ›rednich do wersji Gadu-Gadu 6.x
  */
 
 #include <sys/types.h>
@@ -43,15 +49,14 @@
 #include "libgadu.h"
 
 #ifndef GG_DEBUG_DISABLE
-/*
- * gg_dcc_debug_data() // funkcja wewnêtrzna
+
+/**
+ * \internal Przekazuje zawartoÅ›Ä‡ pakietu do odpluskwiania.
  *
- * wy¶wietla zrzut pakietu w hexie.
- *
- *  - prefix - prefiks zrzutu pakietu
- *  - fd - deskryptor gniazda
- *  - buf - bufor z danymi
- *  - size - rozmiar danych
+ * \param prefix Prefiks informacji
+ * \param fd Deskryptor gniazda
+ * \param buf Bufor z danumi
+ * \param size Rozmiar bufora z danymi
  */
 static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsigned int size)
 {
@@ -68,30 +73,34 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsig
 #define gg_dcc_debug_data(a,b,c,d) do { } while (0)
 #endif
 
-/*
+/**
+ * WysyÅ‚a Å¼Ä…danie zwrotnego poÅ‚Ä…czenia bezpoÅ›redniego.
+ *
+ * FunkcjÄ™ wykorzystuje siÄ™, jeÅ›li nie ma moÅ¼liwoÅ›ci poÅ‚Ä…czenia siÄ™ z odbiorcÄ…
+ * pliku lub rozmowy gÅ‚osowej. Po otrzymaniu Å¼Ä…dania druga strona sprÃ³buje
+ * nawiÄ…zaÄ‡ zwrotne poÅ‚Ä…czenie bezpoÅ›rednie z nadawcÄ….
  * gg_dcc_request()
  *
- * wysy³a informacjê o tym, ¿e dany klient powinien siê z nami po³±czyæ.
- * wykorzystywane, kiedy druga strona, której chcemy co¶ wys³aæ jest za
- * maskarad±.
+ * \param sess Struktura sesji
+ * \param uin Numer odbiorcy
  *
- *  - sess - struktura opisuj±ca sesjê GG
- *  - uin - numerek odbiorcy
+ * \return Patrz \c gg_send_message_ctcp
  *
- * patrz gg_send_message_ctcp().
+ * \ingroup dcc6
  */
 int gg_dcc_request(struct gg_session *sess, uin_t uin)
 {
 	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, (unsigned char*) "\002", 1);
 }
 
-/*
- * gg_dcc_fill_filetime()  // funkcja wewnêtrzna
+/**
+ * \internal Zamienia znacznik czasu w postaci uniksowej na format API WIN32.
  *
- * zamienia czas w postaci unixowej na windowsowy.
+ * \note Funkcja dziaÅ‚a jedynie gdy kompilator obsÅ‚uguje typ danych
+ * \c long \c long.
  *
- *  - unix - czas w postaci unixowej
- *  - filetime - czas w postaci windowsowej
+ * \param ut Czas w postaci uniksowej
+ * \param ft Czas w postaci API WIN32
  */
 static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 {
@@ -113,31 +122,33 @@ static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 #endif
 }
 
-/*
- * gg_dcc_fill_file_info()
+/**
+ * WypeÅ‚nia pola struktury \c gg_dcc niezbÄ™dne do wysÅ‚ania pliku.
  *
- * wype³nia pola struct gg_dcc niezbêdne do wys³ania pliku.
+ * \note WiÄ™kszÄ… funkcjonalnoÅ›Ä‡ zapewnia funkcja \c gg_dcc_fill_file_info2.
  *
- *  - d - struktura opisuj±ca po³±czenie DCC
- *  - filename - nazwa pliku
+ * \param d Struktura poÅ‚Ä…czenia
+ * \param filename Nazwa pliku
  *
- * 0, -1.
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
+ *
+ * \ingroup dcc6
  */
 int gg_dcc_fill_file_info(struct gg_dcc *d, const char *filename)
 {
 	return gg_dcc_fill_file_info2(d, filename, filename);
 }
 
-/*
- * gg_dcc_fill_file_info2()
+/**
+ * WypeÅ‚nia pola struktury \c gg_dcc niezbÄ™dne do wysÅ‚ania pliku.
  *
- * wype³nia pola struct gg_dcc niezbêdne do wys³ania pliku.
+ * \param d Struktura poÅ‚Ä…czenia
+ * \param filename Nazwa pliku zapisywana w strukturze
+ * \param local_filename Nazwa pliku w lokalnym systemie plikÃ³w
  *
- *  - d - struktura opisuj±ca po³±czenie DCC
- *  - filename - nazwa pliku
- *  - local_filename - nazwa na lokalnym systemie plików
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  *
- * 0, -1.
+ * \ingroup dcc6
  */
 int gg_dcc_fill_file_info2(struct gg_dcc *d, const char *filename, const char *local_filename)
 {
@@ -231,18 +242,16 @@ int gg_dcc_fill_file_info2(struct gg_dcc *d, const char *filename, const char *l
 	return 0;
 }
 
-/*
- * gg_dcc_transfer() // funkcja wewnêtrzna
+/**
+ * \internal Rozpoczyna poÅ‚Ä…czenie bezpoÅ›rednie z danym klientem.
  *
- * inicjuje proces wymiany pliku z danym klientem.
+ * \param ip Adres IP odbiorcy
+ * \param port Port odbiorcy
+ * \param my_uin WÅ‚asny numer
+ * \param peer_uin Numer odbiorcy
+ * \param type Rodzaj poÅ‚Ä…czenia (\c GG_SESSION_DCC_SEND lub \c GG_SESSION_DCC_GET)
  *
- *  - ip - adres ip odbiorcy
- *  - port - port odbiorcy
- *  - my_uin - w³asny numer
- *  - peer_uin - numer obiorcy
- *  - type - rodzaj wymiany (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_GET)
- *
- * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * \return Struktura \c gg_dcc lub \c NULL w przypadku bÅ‚Ä™du
  */
 static struct gg_dcc *gg_dcc_transfer(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin, int type)
 {
@@ -283,18 +292,17 @@ static struct gg_dcc *gg_dcc_transfer(uint32_t ip, uint16_t port, uin_t my_uin, 
 	return d;
 }
 
-/*
- * gg_dcc_get_file()
+/**
+ * Rozpoczyna odbieranie pliku przez zwrotne poÅ‚Ä…czenie bezpoÅ›rednie.
  *
- * inicjuje proces odbierania pliku od danego klienta, gdy ten wys³a³ do
- * nas ¿±danie po³±czenia.
+ * \param ip Adres IP nadawcy
+ * \param port Port nadawcy
+ * \param my_uin WÅ‚asny numer
+ * \param peer_uin Numer nadawcy
  *
- *  - ip - adres ip odbiorcy
- *  - port - port odbiorcy
- *  - my_uin - w³asny numer
- *  - peer_uin - numer obiorcy
+ * \return Struktura \c gg_dcc lub \c NULL w przypadku bÅ‚Ä™du
  *
- * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * \ingroup dcc6
  */
 struct gg_dcc *gg_dcc_get_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
@@ -303,17 +311,17 @@ struct gg_dcc *gg_dcc_get_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t p
 	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_GET);
 }
 
-/*
- * gg_dcc_send_file()
+/**
+ * Rozpoczyna wysyÅ‚anie pliku.
  *
- * inicjuje proces wysy³ania pliku do danego klienta.
+ * \param ip Adres IP odbiorcy
+ * \param port Port odbiorcy
+ * \param my_uin WÅ‚asny numer
+ * \param peer_uin Numer odbiorcy
  *
- *  - ip - adres ip odbiorcy
- *  - port - port odbiorcy
- *  - my_uin - w³asny numer
- *  - peer_uin - numer obiorcy
+ * \return Struktura \c gg_dcc lub \c NULL w przypadku bÅ‚Ä™du
  *
- * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * \ingroup dcc6
  */
 struct gg_dcc *gg_dcc_send_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
@@ -322,17 +330,17 @@ struct gg_dcc *gg_dcc_send_file(uint32_t ip, uint16_t port, uin_t my_uin, uin_t 
 	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_SEND);
 }
 
-/*
- * gg_dcc_voice_chat()
+/**
+ * Rozpoczyna poÅ‚Ä…czenie gÅ‚osowe.
  *
- * próbuje nawi±zaæ po³±czenie g³osowe.
+ * \param ip Adres IP odbiorcy
+ * \param port Port odbiorcy
+ * \param my_uin WÅ‚asny numer
+ * \param peer_uin Numer odbiorcy
  *
- *  - ip - adres ip odbiorcy
- *  - port - port odbiorcy
- *  - my_uin - w³asny numer
- *  - peer_uin - numer obiorcy
+ * \return Struktura \c gg_dcc lub \c NULL w przypadku bÅ‚Ä™du
  *
- * zaalokowana struct gg_dcc lub NULL je¶li wyst±pi³ b³±d.
+ * \ingroup dcc6
  */
 struct gg_dcc *gg_dcc_voice_chat(uint32_t ip, uint16_t port, uin_t my_uin, uin_t peer_uin)
 {
@@ -341,14 +349,16 @@ struct gg_dcc *gg_dcc_voice_chat(uint32_t ip, uint16_t port, uin_t my_uin, uin_t
 	return gg_dcc_transfer(ip, port, my_uin, peer_uin, GG_SESSION_DCC_VOICE);
 }
 
-/*
- * gg_dcc_set_type()
+/**
+ * Ustawia typ przychodzÄ…cego poÅ‚Ä…czenia bezpoÅ›redniego.
  *
- * po zdarzeniu GG_EVENT_DCC_CALLBACK nale¿y ustawiæ typ po³±czenia za
- * pomoc± tej funkcji.
+ * FunkcjÄ™ naleÅ¼y wywoÅ‚aÄ‡ po otrzymaniu zdarzenia \c GG_EVENT_DCC_CALLBACK.
  *
- *  - d - struktura opisuj±ca po³±czenie
- *  - type - typ po³±czenia (GG_SESSION_DCC_SEND lub GG_SESSION_DCC_VOICE)
+ * \param d Struktura poÅ‚Ä…czenia
+ * \param type Rodzaj poÅ‚Ä…czenia (\c GG_SESSION_DCC_SEND lub
+ *             \c GG_SESSION_DCC_VOICE)
+ *
+ * \ingroup dcc6
  */
 void gg_dcc_set_type(struct gg_dcc *d, int type)
 {
@@ -356,15 +366,15 @@ void gg_dcc_set_type(struct gg_dcc *d, int type)
 	d->state = (type == GG_SESSION_DCC_SEND) ? GG_STATE_SENDING_FILE_INFO : GG_STATE_SENDING_VOICE_REQUEST;
 }
 
-/*
- * gg_dcc_callback() // funkcja wewnêtrzna
+/**
+ * \internal Funkcja zwrotna poÅ‚Ä…czenia bezpoÅ›redniego.
  *
- * wywo³ywana z struct gg_dcc->callback, odpala gg_dcc_watch_fd i umieszcza
- * rezultat w struct gg_dcc->event.
+ * Pole \c callback struktury \c gg_dcc zawiera wskaÅºnik do tej funkcji.
+ * WywoÅ‚uje ona \c gg_watch_fd i zachowuje wynik w polu \c event.
  *
- *  - d - structura opisuj±ca po³±czenie
+ * \param d Struktura poÅ‚Ä…czenia
  *
- * 0, -1.
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  */
 static int gg_dcc_callback(struct gg_dcc *d)
 {
@@ -375,16 +385,17 @@ static int gg_dcc_callback(struct gg_dcc *d)
 	return (e != NULL) ? 0 : -1;
 }
 
-/*
- * gg_dcc_socket_create()
+/**
+ * Tworzy gniazdo nasÅ‚uchujÄ…ce dla poÅ‚Ä…czeÅ„ bezpoÅ›rednich.
  *
- * tworzy gniazdo dla bezpo¶redniej komunikacji miêdzy klientami.
+ * Funkcja przywiÄ…zuje gniazdo do pierwszego wolnego portu TCP.
  *
- *  - uin - w³asny numer
- *  - port - preferowany port, je¶li równy 0 lub -1, próbuje domy¶lnego
+ * \param uin WÅ‚asny numer
+ * \param port Preferowany port (jeÅ›li rÃ³wny 0 lub -1, prÃ³buje siÄ™ domyÅ›lnego)
  *
- * zaalokowana struct gg_dcc, któr± po¼niej nale¿y zwolniæ funkcj±
- * gg_dcc_free(), albo NULL je¶li wyst±pi³ b³±d.
+ * \return Struktura \c gg_dcc lub \c NULL w przypadku bÅ‚Ä™du
+ *
+ * \ingroup dcc6
  */
 struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 {
@@ -455,16 +466,16 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 	return c;
 }
 
-/*
- * gg_dcc_voice_send()
+/**
+ * WysyÅ‚a ramkÄ™ danych poÅ‚Ä…czenia gÅ‚osowego.
  *
- * wysy³a ramkê danych dla rozmowy g³osowej.
+ * \param d Struktura poÅ‚Ä…czenia
+ * \param buf Bufor z danymi
+ * \param length DÅ‚ugoÅ›Ä‡ bufora z danymi
  *
- *  - d - struktura opisuj±ca po³±czenie dcc
- *  - buf - bufor z danymi
- *  - length - rozmiar ramki
+ * \return 0 jeÅ›li siÄ™ powiodÅ‚o, -1 w przypadku bÅ‚Ä™du
  *
- * 0, -1.
+ * \ingroup dcc6
  */
 int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 {
@@ -499,7 +510,14 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	return 0;
 }
 
-#define gg_read(fd, buf, size) \
+/**
+ * \internal Odbiera dane z poÅ‚Ä…czenia bezpoÅ›redniego z obsÅ‚ugÄ… bÅ‚Ä™dÃ³w.
+ *
+ * \param fd Deskryptor gniazda
+ * \param buf Bufor na dane
+ * \param size Rozmiar bufora na dane
+ */
+#define gg_dcc_read(fd, buf, size) \
 { \
 	int tmp = read(fd, buf, size); \
 	\
@@ -518,7 +536,14 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	gg_dcc_debug_data("read", fd, buf, size); \
 }
 
-#define gg_write(fd, buf, size) \
+/**
+ * \internal WysyÅ‚a dane do poÅ‚Ä…czenia bezpoÅ›redniego z obsÅ‚ugÄ… bÅ‚Ä™dÃ³w.
+ *
+ * \param fd Deskryptor gniazda
+ * \param buf Bufor z danymi
+ * \param size Rozmiar bufora z danymi
+ */
+#define gg_dcc_write(fd, buf, size) \
 { \
 	int tmp; \
 	gg_dcc_debug_data("write", fd, buf, size); \
@@ -535,14 +560,18 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	} \
 }
 
-/*
- * gg_dcc_watch_fd()
+/**
+ * Funkcja wywoÅ‚ywana po zaobserwowaniu zmian na deskryptorze poÅ‚Ä…czenia.
  *
- * funkcja, któr± nale¿y wywo³aæ, gdy co¶ siê zmieni na gg_dcc->fd.
+ * Funkcja zwraca strukturÄ™ zdarzenia \c gg_event. JeÅ›li rodzaj zdarzenia
+ * to \c GG_EVENT_NONE, nie wydarzyÅ‚o siÄ™ jeszcze nic wartego odnotowania.
+ * StrukturÄ™ zdarzenia naleÅ¼y zwolniÄ‡ funkcja \c gg_event_free.
  *
- *  - h - struktura zwrócona przez gg_create_dcc_socket()
+ * \param h Struktura poÅ‚Ä…czenia
  *
- * zaalokowana struct gg_event lub NULL, je¶li zabrak³o pamiêci na ni±.
+ * \return Struktura zdarzenia lub \c NULL jeÅ›li wystÄ…piÅ‚ bÅ‚Ä…d
+ *
+ * \ingroup dcc6
  */
 struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 {
@@ -632,7 +661,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_READING_UIN_%d\n", (h->state == GG_STATE_READING_UIN_1) ? 1 : 2);
 
-				gg_read(h->fd, &uin, sizeof(uin));
+				gg_dcc_read(h->fd, &uin, sizeof(uin));
 
 				if (h->state == GG_STATE_READING_UIN_1) {
 					h->state = GG_STATE_READING_UIN_2;
@@ -653,7 +682,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_SENDING_ACK\n");
 
-				gg_write(h->fd, ack, 4);
+				gg_dcc_write(h->fd, ack, 4);
 
 				h->state = GG_STATE_READING_TYPE;
 				h->check = GG_CHECK_READ;
@@ -664,7 +693,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_TYPE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_TYPE\n");
 
-				gg_read(h->fd, &small, sizeof(small));
+				gg_dcc_read(h->fd, &small, sizeof(small));
 
 				small.type = gg_fix32(small.type);
 
@@ -701,7 +730,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_REQUEST:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_REQUEST\n");
 
-				gg_read(h->fd, &small, sizeof(small));
+				gg_dcc_read(h->fd, &small, sizeof(small));
 
 				small.type = gg_fix32(small.type);
 
@@ -734,7 +763,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_INFO:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_INFO\n");
 
-				gg_read(h->fd, &file_info_packet, sizeof(file_info_packet));
+				gg_dcc_read(h->fd, &file_info_packet, sizeof(file_info_packet));
 
 				memcpy(&h->file_info, &file_info_packet.file_info, sizeof(h->file_info));
 
@@ -756,7 +785,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				big.dunno1 = gg_fix32(h->offset);
 				big.dunno2 = 0;
 
-				gg_write(h->fd, &big, sizeof(big));
+				gg_dcc_write(h->fd, &big, sizeof(big));
 
 				h->state = GG_STATE_READING_FILE_HEADER;
 				h->chunk_size = sizeof(big);
@@ -776,7 +805,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				tiny.type = 0x01;	/* XXX */
 
-				gg_write(h->fd, &tiny, sizeof(tiny));
+				gg_dcc_write(h->fd, &tiny, sizeof(tiny));
 
 				h->state = GG_STATE_READING_VOICE_HEADER;
 				h->check = GG_CHECK_READ;
@@ -836,7 +865,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_VOICE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_HEADER\n");
 
-				gg_read(h->fd, &tiny, sizeof(tiny));
+				gg_dcc_read(h->fd, &tiny, sizeof(tiny));
 
 				switch (tiny.type) {
 					case 0x03:	/* XXX */
@@ -847,7 +876,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 						break;
 					case 0x04:	/* XXX */
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() peer breaking connection\n");
-						/* XXX zwracaæ odpowiedni event */
+						/* XXX zwracaÄ‡ odpowiedni event */
 					default:
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown request (%.2x)\n", tiny.type);
 						e->type = GG_EVENT_DCC_ERROR;
@@ -859,7 +888,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_VOICE_SIZE:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_SIZE\n");
 
-				gg_read(h->fd, &small, sizeof(small));
+				gg_dcc_read(h->fd, &small, sizeof(small));
 
 				small.type = gg_fix32(small.type);
 
@@ -937,7 +966,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				uins[0] = gg_fix32(h->uin);
 				uins[1] = gg_fix32(h->peer_uin);
 
-				gg_write(h->fd, uins, sizeof(uins));
+				gg_dcc_write(h->fd, uins, sizeof(uins));
 
 				h->state = GG_STATE_READING_ACK;
 				h->check = GG_CHECK_READ;
@@ -949,7 +978,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_ACK\n");
 
-				gg_read(h->fd, buf, 4);
+				gg_dcc_read(h->fd, buf, 4);
 
 				if (strncmp(buf, ack, 4)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() did't get ack\n");
@@ -970,7 +999,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				small.type = gg_fix32(0x0003);
 
-				gg_write(h->fd, &small, sizeof(small));
+				gg_dcc_write(h->fd, &small, sizeof(small));
 
 				h->state = GG_STATE_READING_VOICE_ACK;
 				h->check = GG_CHECK_READ;
@@ -983,7 +1012,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				small.type = (h->type == GG_SESSION_DCC_GET) ? gg_fix32(0x0003) : gg_fix32(0x0002);	/* XXX */
 
-				gg_write(h->fd, &small, sizeof(small));
+				gg_dcc_write(h->fd, &small, sizeof(small));
 
 				switch (h->type) {
 					case GG_SESSION_DCC_GET:
@@ -1020,7 +1049,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				small.type = gg_fix32(0x0001);	/* XXX */
 
-				gg_write(h->fd, &small, sizeof(small));
+				gg_dcc_write(h->fd, &small, sizeof(small));
 
 				file_info_packet.big.type = gg_fix32(0x0003);	/* XXX */
 				file_info_packet.big.dunno1 = 0;
@@ -1028,11 +1057,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				memcpy(&file_info_packet.file_info, &h->file_info, sizeof(h->file_info));
 
-				/* zostaj± teraz u nas, wiêc odwracamy z powrotem */
+				/* zostajÄ… teraz u nas, wiÄ™c odwracamy z powrotem */
 				h->file_info.size = gg_fix32(h->file_info.size);
 				h->file_info.mode = gg_fix32(h->file_info.mode);
 
-				gg_write(h->fd, &file_info_packet, sizeof(file_info_packet));
+				gg_dcc_write(h->fd, &file_info_packet, sizeof(file_info_packet));
 
 				h->state = GG_STATE_READING_FILE_ACK;
 				h->check = GG_CHECK_READ;
@@ -1043,9 +1072,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_ACK\n");
 
-				gg_read(h->fd, &big, sizeof(big));
+				gg_dcc_read(h->fd, &big, sizeof(big));
 
-				/* XXX sprawdzaæ wynik */
+				/* XXX sprawdzaÄ‡ wynik */
 				h->offset = gg_fix32(big.dunno1);
 
 				h->state = GG_STATE_SENDING_FILE_HEADER;
@@ -1059,7 +1088,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_VOICE_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_ACK\n");
 
-				gg_read(h->fd, &tiny, sizeof(tiny));
+				gg_dcc_read(h->fd, &tiny, sizeof(tiny));
 
 				if (tiny.type != 0x01) {
 					gg_debug(GG_DEBUG_MISC, "// invalid reply (%.2x), connection refused\n", tiny.type);
@@ -1090,7 +1119,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				big.dunno1 = gg_fix32(h->chunk_size);
 				big.dunno2 = 0;
 
-				gg_write(h->fd, &big, sizeof(big));
+				gg_dcc_write(h->fd, &big, sizeof(big));
 
 				h->state = GG_STATE_SENDING_FILE;
 				h->check = GG_CHECK_WRITE;
@@ -1119,7 +1148,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				size = read(h->file_fd, buf, utmp);
 
-				/* b³±d */
+				/* bÅ‚Ä…d */
 				if (size == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed. (errno=%d, %s)\n", errno, strerror(errno));
 
@@ -1138,7 +1167,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				/* je¶li wczytali¶my wiêcej, utnijmy. */
+				/* jeÅ›li wczytaliÅ›my wiÄ™cej, utnijmy. */
 				if (h->offset + size > h->file_info.size) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() too much (read=%d, ofs=%d, size=%d)\n", size, h->offset, h->file_info.size);
 					size = h->file_info.size - h->offset;
@@ -1198,7 +1227,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, read()=%d\n", h->offset, h->file_info.size, size);
 
-				/* b³±d */
+				/* bÅ‚Ä…d */
 				if (size == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed. (errno=%d, %s)\n", errno, strerror(errno));
 
@@ -1267,15 +1296,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 	return e;
 }
 
-#undef gg_read
-#undef gg_write
-
-/*
- * gg_dcc_free()
+/**
+ * Zwalnia zasoby uÅ¼ywane przez poÅ‚Ä…czenie bezpoÅ›rednie.
  *
- * zwalnia pamiêæ po strukturze po³±czenia dcc.
+ * \param d Struktura poÅ‚Ä…czenia
  *
- *  - d - zwalniana struktura
+ * \ingroup dcc6
  */
 void gg_dcc_free(struct gg_dcc *d)
 {

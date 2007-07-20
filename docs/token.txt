@@ -1,0 +1,45 @@
+/**
+
+\defgroup token Tokeny
+\ingroup http
+
+\details
+
+Jeśli chcemy zarejestrować konto lub zmienić hasło, należy pobrać z serwera
+token. Wywołujemy funkcję gg_token() i traktujemy wynikową strukturę
+gg_http tak jak każdą inną usługę HTTP. Po zakończonej operacji (\e state
+równe \e GG_STATE_DONE) w polu \e data będzie się znajdował wskaźnik na
+strukturę gg_token zawierającą informacje o tokenie. W polu \e body struktury
+gg_http znajdzie się obrazek tokenu o rozmiarze \e body_size. Aplikacja
+powinna wyświetlić token użytkownikowi w celu podania jego wartości.
+
+\section example Przykład pobierania tokenu
+
+\code
+struct gg_http *token;
+char nazwa[100];
+FILE *f;
+
+token = gg_token(0);
+
+if (!token) {
+    błąd("Błąd pobierania tokenu");
+    exit(1);
+}
+
+plik = fopen(((struct gg_token *) dane)->tokenid, "w");
+
+if (!plik) {
+    błąd("Błąd otwarcia pliku");
+    gg_token_free(token);
+    exit(1);
+}
+
+fwrite(token->body, token->body_size, 1, plik);
+fclose(plik);
+
+gg_token_free(token);
+\endcode
+
+*/
+

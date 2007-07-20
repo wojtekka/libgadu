@@ -18,10 +18,18 @@
  *  USA.
  */
 
+/**
+ * \file sha1.c
+ *
+ * \brief Funkcje wyznaczania skrĂłtu SHA1
+ */
+
 #include <sys/types.h>
 #include <unistd.h>
 
 #include "libgadu.h"
+
+/** \cond ignore */
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 
@@ -203,12 +211,16 @@ unsigned char finalcount[8];
 
 #endif /* GG_CONFIG_HAVE_OPENSSL */
 
+/** \endcond */
+
+/** \cond internal */
+
 /**
- * Liczy skrót SHA1 z ziarna i hasła.
+ * \internal Liczy skrĂłt SHA1 z ziarna i hasĹa.
  *
- * \param password Hasło
+ * \param password HasĹo
  * \param seed Ziarno
- * \param result Bufor na wynik funkcji skrótu (20 bajtów)
+ * \param result Bufor na wynik funkcji skrĂłtu (20 bajtĂłw)
  */
 void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 {
@@ -223,9 +235,10 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 }
 
 /**
- * \brief Liczy skrót SHA1 z pliku.
+ * \internal Liczy skrĂłt SHA1 z pliku.
  *
  * \param fd Deskryptor pliku
+ * \param result WskaĹşnik na skrĂłt
  *
  * \return 0 lub -1
  */
@@ -253,6 +266,6 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 		return -1;
 
 	return 0;
-
 }
 
+/** \endcond */

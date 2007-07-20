@@ -1,0 +1,6 @@
+/**
+
+\defgroup unregister Usuwanie użytkownika
+\ingroup http
+
+*/

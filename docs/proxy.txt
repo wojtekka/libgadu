@@ -1,0 +1,10 @@
+/**
+
+\defgroup proxy Serwer pośredniczący
+\ingroup misc
+
+\details
+
+\bug Ustawienia są globalne dla wszystkich połączeń.
+
+*/

@@ -1,0 +1,48 @@
+/**
+
+\defgroup messages Wiadomości
+\ingroup session
+
+\details
+
+\section images Wiadomości graficzne
+
+Informacje o obrazku są zawarte w bloku wiadomości dotyczącym formatowania
+tekstu. Dla danego znaku tekstu pole \c font zawiera \c GG_FONT_IMAGE i zaraz
+za nim znajduje się struktura \c gg_msg_richtext_image, np.
+
+\code
+Dane			  Opis
+-------------------------------------------------------------------------
+0x02			  gg_msg_richtext.flag = 0x02
+0x0d, 0x00		  		 .length = 0x000d
+0x00, 0x00		  gg_msg_richtext_format.position = 0x0000
+0x80						.font = GG_FONT_IMAGE
+0x90, 0x01		  gg_msg_richtext_image.unknown1 = 0x0109
+0x12, 0x34, 0x00, 0x00			       .size = 0x00003412
+0x56, 0x78, 0x00, 0x00			       .crc32 = 0x00007856
+\endcode
+
+Wiemy zatem, że obrazek ma długość 0x3412 i sumę kontrolną 0x7856. Jeśli
+nie mamy takiego obrazka zapisanego u siebie, wywołujemy funkcję:
+
+\code
+gg_image_request(sesja, nadawca, rozmiar, crc);
+\endcode
+
+Następnie czekamy na zdarzenie \c GG_EVENT_IMAGE_REPLY, w którym ważne są dla
+nas pola \c size, \c crc32, \c filename (nazwa obrazka) i \c image (treść
+obrazka). Rodzaj pliku graficznego nie jest określony przy transmisji.
+\e libgadu ignoruje wszystkie obrazki, które nie były zamówione, żeby uniknąć
+zajęcia całej dostępnej pamięci, na wypadek gdyby ktoś nieustannie wysyłał
+śmieci.
+
+Jeśli wysyłamy wiadomość graficzną musimy obsługiwać zdarzenie
+\c GG_EVENT_IMAGE_REQUEST, które w polach \c size i \c crc32 zawiera informacje
+o obrazku, którego potrzebuje nasz rozmówca. Obrazek wysyłamy funkcją:
+
+\code
+gg_image_reply(sesja, odbiorca, nazwa_pliku, obrazek, długość_obrazka);
+\endcode
+
+*/

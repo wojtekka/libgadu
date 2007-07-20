@@ -1,0 +1,5 @@
+/**
+
+\defgroup misc Pozostałe funkcje
+
+*/
