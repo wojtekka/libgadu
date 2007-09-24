@@ -1,6 +1,6 @@
 /**
 
-\mainpage Test
+\mainpage libgadu
 
 Test
 

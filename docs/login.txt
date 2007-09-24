@@ -1,6 +1,6 @@
 /**
 
-\defgroup login Logowanie się do serwera2
+\defgroup login Logowanie się do serwera
 \ingroup session
 
 \details

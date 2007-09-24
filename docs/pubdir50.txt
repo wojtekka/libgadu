@@ -5,7 +5,12 @@
 
 \details
 
-Przykład wyszukiwania:
+Funkcje katalogu publicznego pozwalają wyszukiwać znajomych oraz manipulować
+informacjami o sobie (imię, nazwisko, miejscowość, rok urodzenia itd.). Każda
+operacja na katalogu publicznym wymaga skonstruowania odpowiedniego zapytania
+do serwera i ewentualnej obsłudze odpowiedzi.
+
+Wyszukiwanie może wyglądać następująco:
 
 \code
 gg_pubdir50_t zapytanie;

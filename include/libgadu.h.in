@@ -870,23 +870,78 @@ uin_t gg_pubdir50_next(gg_pubdir50_t res);
 uint32_t gg_pubdir50_seq(gg_pubdir50_t res);
 void gg_pubdir50_free(gg_pubdir50_t res);
 
-#define GG_PUBDIR50_UIN "FmNumber"		/**< Numer Gadu-Gadu */
-#define GG_PUBDIR50_STATUS "FmStatus"		/**< Status */
-#define GG_PUBDIR50_FIRSTNAME "firstname"	/**< Imię */
-#define GG_PUBDIR50_LASTNAME "lastname"		/**< Nazwisko */
-#define GG_PUBDIR50_NICKNAME "nickname"		/**< Pseudonim */
-#define GG_PUBDIR50_BIRTHYEAR "birthyear"	/**< Rok urodzenia lub przedział lat oddzielony spacją */
-#define GG_PUBDIR50_CITY "city"			/**< Miejscowość */
-#define GG_PUBDIR50_GENDER "gender"		/**< Płeć */
-#define GG_PUBDIR50_GENDER_FEMALE "1"		/**< Kobieta (przy wyszukiwaniu) */
-#define GG_PUBDIR50_GENDER_MALE "2"		/**< Mężczyzna (przy wyszukiwaniu) */
-#define GG_PUBDIR50_GENDER_SET_FEMALE "2"	/**< Kobieta (przy zmianie danych) */
-#define GG_PUBDIR50_GENDER_SET_MALE "1"		/**< Mężczyzna (przy wyszukiwaniu) */
-#define GG_PUBDIR50_ACTIVE "ActiveOnly"		/**< Flaga wyszukiwania osób dostępnych */
-#define GG_PUBDIR50_ACTIVE_TRUE "1"		/**< Wartość flagi wyszukiwania osób dostępnych */
-#define GG_PUBDIR50_START "fmstart"		/**< Numer początkowy wyszukiwania */
-#define GG_PUBDIR50_FAMILYNAME "familyname"	/**< Nazwisko rodowe */
-#define GG_PUBDIR50_FAMILYCITY "familycity"	/**< Miejscowość pochodzenia */
+#ifndef DOXYGEN
+
+#define GG_PUBDIR50_UIN "FmNumber"
+#define GG_PUBDIR50_STATUS "FmStatus"
+#define GG_PUBDIR50_FIRSTNAME "firstname"
+#define GG_PUBDIR50_LASTNAME "lastname"
+#define GG_PUBDIR50_NICKNAME "nickname"
+#define GG_PUBDIR50_BIRTHYEAR "birthyear"
+#define GG_PUBDIR50_CITY "city"
+#define GG_PUBDIR50_GENDER "gender"
+#define GG_PUBDIR50_GENDER_FEMALE "1"
+#define GG_PUBDIR50_GENDER_MALE "2"
+#define GG_PUBDIR50_GENDER_SET_FEMALE "2"
+#define GG_PUBDIR50_GENDER_SET_MALE "1"
+#define GG_PUBDIR50_ACTIVE "ActiveOnly"
+#define GG_PUBDIR50_ACTIVE_TRUE "1"
+#define GG_PUBDIR50_START "fmstart"
+#define GG_PUBDIR50_FAMILYNAME "familyname"
+#define GG_PUBDIR50_FAMILYCITY "familycity"
+
+#else
+
+/** 
+ * \ingroup pubdir50
+ *
+ * Rodzaj pola zapytania.
+ */
+enum {
+	GG_PUBDIR50_UIN,	/**< Numer Gadu-Gadu */
+	GG_PUBDIR50_STATUS,	/**< Status */
+	GG_PUBDIR50_FIRSTNAME,	/**< Imię */
+	GG_PUBDIR50_LASTNAME,	/**< Nazwisko */
+	GG_PUBDIR50_NICKNAME,	/**< Pseudonim */
+	GG_PUBDIR50_BIRTHYEAR,	/**< Rok urodzenia lub przedział lat oddzielony spacją */
+	GG_PUBDIR50_CITY,	/**< Miejscowość */
+	GG_PUBDIR50_GENDER,	/**< Płeć */
+	GG_PUBDIR50_ACTIVE,	/**< Osoba dostępna (tylko wyszukiwanie) */
+	GG_PUBDIR50_START,	/**< Numer początkowy wyszukiwania (tylko wyszukiwanie) */
+	GG_PUBDIR50_FAMILYNAME,	/**< Nazwisko rodowe (tylko wysyłanie informacji o sobie) */
+	GG_PUBDIR50_FAMILYCITY,	/**< Miejscowość pochodzenia (tylko wysyłanie informacji o sobie) */
+};
+
+/**
+ * \ingroup pubdir50
+ *
+ * Wartość pola GG_PUBDIR50_GENDER przy wyszukiwaniu. Brak pola oznacza dowolną płeć.
+ */
+enum {
+	GG_PUBDIR50_GENDER_FEMALE,	/**< Kobieta */
+	GG_PUBDIR50_GENDER_MAIL,	/**< Mężczyzna */
+};
+
+/**
+ * \ingroup pubdir50
+ *
+ * Wartość pola GG_PUBDIR50_GENDER przy wysyłaniu informacji o sobie.
+ */
+enum {
+	GG_PUBDIR50_GENDER_SET_FEMALE,	/**< Kobieta */
+	GG_PUBDIR50_GENDER_SET_MAIL,	/**< Mężczyzna */
+};
+
+/**
+ * \ingroup pubdir50
+ *
+ * Wartość pola GG_PUBDIR50_ACTIVE.
+ */
+enum {
+	GG_PUBDIR50_ACTIVE_TRUE,	/**< Wyszukaj tylko osoby dostępne */
+}
+
+#endif	/* DOXYGEN */
 
 /**
  * Wynik operacji na katalogu publicznym.
@@ -978,11 +1033,16 @@ extern void (*gg_debug_handler_session)(struct gg_session *sess, int level, cons
 
 extern FILE *gg_debug_file;
 
+/**
+ * \ingroup debug
+ * @{
+ */
 #define GG_DEBUG_NET 1		/**< Rejestracja zdarzeń związanych z siecią */
 #define GG_DEBUG_TRAFFIC 2	/**< Rejestracja ruchu sieciowego */
 #define GG_DEBUG_DUMP 4		/**< Rejestracja zawartości pakietów */
 #define GG_DEBUG_FUNCTION 8	/**< Rejestracja wywołań funkcji */
 #define GG_DEBUG_MISC 16	/**< Rejestracja różnych informacji */
+/** @} */
 
 #ifdef GG_DEBUG_DISABLE
 #define gg_debug(x, y...) do { } while(0)
@@ -1006,11 +1066,29 @@ extern unsigned long gg_local_ip;
 #define GG_LOGIN_HASH_GG32 0x01	/**< Algorytm Gadu-Gadu */
 #define GG_LOGIN_HASH_SHA1 0x02	/**< Algorytm SHA1 */
 
+#ifndef DOXYGEN
+
 #define GG_PUBDIR50_WRITE 0x01
 #define GG_PUBDIR50_READ 0x02
 #define GG_PUBDIR50_SEARCH 0x03
 #define GG_PUBDIR50_SEARCH_REQUEST GG_PUBDIR50_SEARCH
 #define GG_PUBDIR50_SEARCH_REPLY 0x05
+
+#else
+
+/**
+ * \ingroup pubdir50
+ * 
+ * Rodzaj zapytania lub odpowiedzi katalogu publicznego.
+ */
+enum {
+	GG_PUBDIR50_WRITE,	/**< Wysłanie do serwera informacji o sobie */
+	GG_PUBDIR50_READ,	/**< Pobranie z serwera informacji o sobie */
+	GG_PUBDIR50_SEARCH,	/**< Wyszukiwanie w katalogu publicznym */
+	GG_PUBDIR50_SEARCH_REPLY,	/**< Wynik wyszukiwania w katalogu publicznym */
+};
+
+#endif	/* DOXYGEN */
 
 /** \cond obsolete */
 
@@ -1294,20 +1372,52 @@ struct gg_pubdir50_reply {
 
 #define GG_NEW_STATUS 0x0002
 
-// XXX API
-#define GG_STATUS_NOT_AVAIL 0x0001		/**< Niedostępny */
-#define GG_STATUS_NOT_AVAIL_DESCR 0x0015	/**< Niedostępny z opisem */
-#define GG_STATUS_AVAIL 0x0002			/**< Dostępny */
-#define GG_STATUS_AVAIL_DESCR 0x0004		/**< Dostępny z opisem */
-#define GG_STATUS_BUSY 0x0003			/**< Zajęty */
-#define GG_STATUS_BUSY_DESCR 0x0005		/**< Zajęty z opisem */
-#define GG_STATUS_INVISIBLE 0x0014		/**< Niewidoczny (tylko ustawianie) */
-#define GG_STATUS_INVISIBLE_DESCR 0x0016	/**< Niewidoczny z opisem (tylko ustawianie) */
-#define GG_STATUS_BLOCKED 0x0006		/**< Zablokowany */
+#ifndef DOXYGEN
 
-#define GG_STATUS_FRIENDS_MASK 0x8000		/**< Tylko dla znajomych (flaga bitowa) */
+#define GG_STATUS_NOT_AVAIL 0x0001
+#define GG_STATUS_NOT_AVAIL_DESCR 0x0015
+#define GG_STATUS_AVAIL 0x0002
+#define GG_STATUS_AVAIL_DESCR 0x0004
+#define GG_STATUS_BUSY 0x0003
+#define GG_STATUS_BUSY_DESCR 0x0005
+#define GG_STATUS_INVISIBLE 0x0014
+#define GG_STATUS_INVISIBLE_DESCR 0x0016
+#define GG_STATUS_BLOCKED 0x0006
 
-#define GG_STATUS_DESCR_MAXSIZE 70		/**< Maksymalny rozmiar opisu */
+#else
+
+/**
+ * \ingroup status
+ *
+ * Rodzaje statusów użytkownika.
+ */
+typedef enum {
+	GG_STATUS_NOT_AVAIL,		/**< Niedostępny */
+	GG_STATUS_NOT_AVAIL_DESCR,	/**< Niedostępny z opisem */
+	GG_STATUS_AVAIL,		/**< Dostępny */
+	GG_STATUS_AVAIL_DESCR,		/**< Dostępny z opisem */
+	GG_STATUS_BUSY,			/**< Zajęty */
+	GG_STATUS_BUSY_DESCR,		/**< Zajęty z opisem */
+	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
+	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
+	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
+} gg_status_t;
+
+#endif	/* DOXYGEN */
+
+/**
+ * \ingroup status
+ *
+ * Flaga bitowa dostępności tylko dla znajomych.
+ */
+#define GG_STATUS_FRIENDS_MASK 0x8000
+
+/**
+ * \ingroup status
+ *
+ * Maksymalna długośc opisu.
+ */
+#define GG_STATUS_DESCR_MAXSIZE 70
 
 /* GG_S_F() tryb tylko dla znajomych */
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
@@ -1350,10 +1460,26 @@ struct gg_notify {
 	uint8_t dunno1;				/* rodzaj wpisu w liście */
 } GG_PACKED;
 
-// XXX API
-#define GG_USER_OFFLINE 0x01	/* będziemy niewidoczni dla użytkownika */
-#define GG_USER_NORMAL 0x03	/* zwykły użytkownik */
-#define GG_USER_BLOCKED 0x04	/* zablokowany użytkownik */
+#ifndef DOXYGEN
+
+#define GG_USER_OFFLINE 0x01
+#define GG_USER_NORMAL 0x03
+#define GG_USER_BLOCKED 0x04
+
+#else
+
+/**
+ * \ingroup contacts
+ *
+ * Rodzaj kontaktu.
+ */
+enum {
+	GG_USER_OFFLINE,	/**< Niewidoczny dla użytkownika */
+	GG_USER_NORMAL,		/**< Zwykły kontakt */
+	GG_USER_BLOCKED,	/**< Zablokowany */
+};
+
+#endif	/* DOXYGEN */
 
 #define GG_LIST_EMPTY 0x0012
 
@@ -1435,16 +1561,39 @@ struct gg_status {
 
 #define GG_SEND_MSG 0x000b
 
-// XXX API
+#ifndef DOXYGEN
+
 #define GG_CLASS_QUEUED 0x0001
 #define GG_CLASS_OFFLINE GG_CLASS_QUEUED
 #define GG_CLASS_MSG 0x0004
 #define GG_CLASS_CHAT 0x0008
 #define GG_CLASS_CTCP 0x0010
 #define GG_CLASS_ACK 0x0020
-#define GG_CLASS_EXT GG_CLASS_ACK	/* kompatybilność wstecz */
+#define GG_CLASS_EXT GG_CLASS_ACK	/**< Dla kompatybilności wstecz */
 
-#define GG_MSG_MAXSIZE 2000
+#else
+
+/**
+ * \ingroup messages
+ *
+ * Klasy wiadomości.
+ */
+enum {
+	GG_CLASS_MSG,		/**< Wiadomość ma pojawić się w osobnym oknie */
+	GG_CLASS_CHAT,		/**< Wiadomość ma pojawić się w oknie rozmowy */
+	GG_CLASS_CTCP,		/**< Wiadomość przeznaczona dla klienta Gadu-Gadu */
+	GG_CLASS_ACK,		/**< Klient nie życzy sobie potwierdzenia */
+	GG_CLASS_QUEUED,	/**< Wiadomość zakolejkowana na serwerze (tylko przy odbieraniu) */
+};
+
+#endif	/* DOXYGEN */
+
+/**
+ * \ingroup messages
+ *
+ * Maksymalna długość wiadomości.
+ */
+#define GG_MSG_MAXSIZE 1989
 
 struct gg_send_msg {
 	uint32_t recipient;
@@ -1531,10 +1680,25 @@ struct gg_recv_msg {
 
 #define GG_USERLIST_REQUEST 0x0016
 
-// XXX API
+#ifndef DOXYGEN
+
 #define GG_USERLIST_PUT 0x00
 #define GG_USERLIST_PUT_MORE 0x01
 #define GG_USERLIST_GET 0x02
+
+#else
+
+/**
+ * \ingroup importexport
+ *
+ * Rodzaj zapytania.
+ */
+enum {
+	GG_USERLIST_PUT,	/**< Eksport listy kontaktów. */
+	GG_USERLIST_GET,	/**< Import listy kontaktów. */
+};
+
+#endif	/* DOXYGEN */
 
 struct gg_userlist_request {
 	uint8_t type;
@@ -1542,11 +1706,26 @@ struct gg_userlist_request {
 
 #define GG_USERLIST_REPLY 0x0010
 
-// XXX API
+#ifndef DOXYGEN
+
 #define GG_USERLIST_PUT_REPLY 0x00
 #define GG_USERLIST_PUT_MORE_REPLY 0x02
 #define GG_USERLIST_GET_REPLY 0x06
 #define GG_USERLIST_GET_MORE_REPLY 0x04
+
+#else
+
+/**
+ * \ingroup importexport
+ *
+ * Rodzaj odpowiedzi.
+ */
+enum {
+	GG_USERLIST_PUT_REPLY,	/**< Wyeksportowano listy kontaktów. */
+	GG_USERLIST_GET_REPLY,	/**< Zaimportowano listę kontaktów. */
+};
+
+#endif	/* DOXYGEN */
 
 struct gg_userlist_reply {
 	uint8_t type;
