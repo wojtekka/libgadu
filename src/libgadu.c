@@ -1089,7 +1089,7 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 
 	newtime = gg_fix32(time);
 
-	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), &newtime, sizeof(newtime), NULL);
+	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), "\0", 1, &newtime, sizeof(newtime), NULL);
 }
 
 /*
