@@ -426,6 +426,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	e->event.msg.msgclass = gg_fix32(r->msgclass);
 	e->event.msg.sender = gg_fix32(r->sender);
 	e->event.msg.time = gg_fix32(r->time);
+	e->event.msg.seq = gg_fix32(r->seq);
 	e->event.msg.message = (unsigned char*) strdup((char*) r + sizeof(*r));
 
 	return 0;

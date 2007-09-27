@@ -711,6 +711,7 @@ struct gg_event {
 
 			int formats_length;	/**< Długość informacji o formatowaniu tekstu */
 			void *formats;		/**< Informacje o formatowaniu tekstu */
+			uint32_t seq;		/**< Numer sekwencyjny wiadomości */
 		} msg;
 
 		/**
