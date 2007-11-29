@@ -582,7 +582,9 @@ enum gg_event_t {
 	GG_EVENT_DCC7_REJECT,		/**< Odrzucono połączenie 7.x */
 	GG_EVENT_DCC7_CONNECTED,	/**< Zestawiono połączenie 7.x */
 	GG_EVENT_DCC7_ERROR,		/**< Błąd połączenia 7.x */
-	GG_EVENT_DCC7_DONE		/**< Zakończono połączenie 7.x */
+	GG_EVENT_DCC7_DONE,		/**< Zakończono połączenie 7.x */
+
+	GG_EVENT_XML_EVENT		/**< Komunikat systemowy 7.7 */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -803,6 +805,13 @@ struct gg_event {
 			char *filename;		/**< Nazwa pliku */
 			char *image;		/**< Bufor z obrazkiem */
 		} image_reply;
+
+		/**
+		 * Zdarzenie systemowe
+		 */
+		struct {
+			char *data;		/**< Bufor z komunikatem */
+		} xml_event;
 
 		/**
 		 * Nowe połączenie bezpośrednie (\c GG_EVENT_DCC7_NEW)
@@ -1680,6 +1689,8 @@ struct gg_recv_msg {
 #define GG_DISCONNECTING 0x000b
 
 #define GG_USERLIST_REQUEST 0x0016
+
+#define GG_XML_EVENT 0x0027
 
 #ifndef DOXYGEN
 

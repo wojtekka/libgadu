@@ -120,6 +120,10 @@ void gg_event_free(struct gg_event *e)
 			free(e->event.image_reply.filename);
 			free(e->event.image_reply.image);
 			break;
+
+		case GG_EVENT_XML_EVENT:
+			free(e->event.xml_event.data);
+			break;
 	}
 
 	free(e);
@@ -845,6 +849,19 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received disconnection warning\n");
 			e->type = GG_EVENT_DISCONNECT;
+			break;
+		}
+
+		case GG_XML_EVENT:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received XML event\n");
+			e->type = GG_EVENT_XML_EVENT;
+			if (!(e->event.xml_event.data = (char *) malloc(h->length + 1))) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for XML event data\n");
+				goto fail;
+			}
+			memcpy(e->event.xml_event.data, p, h->length);
+			e->event.xml_event.data[h->length] = 0;
 			break;
 		}
 

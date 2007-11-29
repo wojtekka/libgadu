@@ -25,7 +25,7 @@ H1, H2, H3 { margin-top: 0px; }
 
 <center>
 <h1>Protokó³ Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001 - 2004 <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001 - 2007 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr />
@@ -45,9 +45,10 @@ H1, H2, H3 { margin-top: 0px; }
 		1.7.&nbsp;&nbsp;<a href="#ch1.7">Otrzymywanie wiadomo¶ci</a><br />
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
 		1.9.&nbsp;&nbsp;<a href="#ch1.9">Roz³±czenie</a><br />
-		1.10.&nbsp;&nbsp;<a href="#ch1.10">Katalog publiczny</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.11">Lista kontaktów</a><br />
-		1.12.&nbsp;&nbsp;<a href="#ch1.12">Indeks pakietów</a><br />
+		1.10.&nbsp;&nbsp;<a href="#ch1.10">Wiadomo¶ci systemowe</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.11">Katalog publiczny</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.12">Lista kontaktów</a><br />
+		1.13.&nbsp;&nbsp;<a href="#ch1.13">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Us³ugi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
@@ -923,7 +924,39 @@ ma wy¿szy priorytet).
 <hr />
 
 <a name="ch1.10"></a>
-<h3>1.10. Katalog publiczny</h3>
+<h3>1.10. Wiadomo¶ci systemowe</h3>
+
+<p>
+Od wersji 7.7 serwer mo¿e wysy³aæ nam wiadomo¶ci systemowe przy pomocy pakietu:
+</p>
+
+<div class="c">
+<pre>#define GG_SYSMSG 0x0027</pre>
+</div>
+
+<p>
+Wiadomo¶æ systemowa zawiera kod XML zakodowany w UTF-8 z informacjami dotycz±cymi 
+np. przed³u¿enia konta w mobilnym GG, czy nowej wiadomo¶ci na poczcie g³osowej. 
+Przyk³adowy kod:
+</p>
+
+<div class="c">
+<pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;event xmlns:ev="www.gadu-gadu.pl/Event/1.0" id ="" type="realtime" creation_time="1194732873" ttl="60"&gt;
+&lt;ev:actions&gt;
+&lt;ev:showMessage&gt;
+&lt;ev:text&gt;Wejd¼ na stronê EKG&lt;/ev:text&gt;
+
+&lt;ev:executeHtml url="ekg.chmurka.net" /&gt;
+&lt;/ev:showMessage&gt;
+&lt;/ev:actions&gt;
+&lt;/event&gt;</pre>
+</div>
+
+<hr />
+
+<a name="ch1.11"></a>
+<h3>1.11. Katalog publiczny</h3>
 
 <p>
 Od wersji 5.0.2 zmieniono sposób dostêpu do katalogu publicznego -- sta³
@@ -1036,8 +1069,8 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i p³ci znalezionych osób.
 
 <hr />
 
-<a name="ch1.11"></a>
-<h3>1.11. Lista kontaktów</h3>
+<a name="ch1.12"></a>
+<h3>1.12. Lista kontaktów</h3>
 
 <p>
 Od wersji 6.0 lista kontaktów na serwerze sta³a czê¶ci± sesji, zamiast
@@ -1145,8 +1178,8 @@ Aby usun±æ listê kontaktów z serwera nale¿y wys³aæ pust± listê kontaktów.
 
 <hr />
 
-<a name="ch1.12"></a>
-<h3>1.12. Indeks pakietów</h3>
+<a name="ch1.13"></a>
+<h3>1.13. Indeks pakietów</h3>
 
 <p>
 Pakiety wysy³ane:
@@ -1190,6 +1223,7 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowied¼ listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0011</tt></td><td><tt>GG_NOTIFY_REPLY60</tt></td><td>Stan listy kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_NEED_EMAIL</tt></td><td>Logowanie powiod³o siê, ale powinni¶my uzupe³niæ adres e-mail w katalogu publicznym</td></tr>
+<tr class="tabf"><td><tt>0x0027</tt></td><td><tt>GG_SYSMSG</tt></td><td>Odebrano wiadomo¶æ systemow±</td></tr>
 </table>
 
 <hr />
@@ -1860,7 +1894,7 @@ napisz na listê dyskusyjn±
 	bezpo¶rednich po³±czeñ.</li>
 	<li><b>Nikodem</b> (n-d%tlen.pl): flagi rodzaju u¿ytkownika.</li>
 	<li><b>Adam Wysocki</b> (gophi%ekg.chmurka.net): poprawki, utrzymanie 
-	wszystkiego w porz±dku.</li>
+	wszystkiego w porz±dku, GG_SYSMSG.</li>
 	<li><b>Marcin Krupowicz</b> (marcin.krupowicz%gmail.com): informacja na 
 	temat tego, ¿e pakiet GG_LOGIN_OK nie zawsze jest zerowej d³ugo¶ci.</li>
 </ul>
