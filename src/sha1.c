@@ -246,16 +246,45 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 {
 	unsigned char buf[4096];
 	SHA_CTX ctx;
-	off_t pos;
+	off_t pos, len;
 	int res;
 
 	if ((pos = lseek(fd, 0, SEEK_CUR)) == (off_t) -1)
 		return -1;
 
+	if ((len = lseek(fd, 0, SEEK_END)) == (off_t) -1)
+		return -1;
+
+	if (lseek(fd, 0, SEEK_SET) == (off_t) -1)
+		return -1;
+
 	SHA1_Init(&ctx);
 
-	while ((res = read(fd, buf, sizeof(buf))) > 0)
-		SHA1_Update(&ctx, buf, res);
+	if (len <= 10485760) {
+		while ((res = read(fd, buf, sizeof(buf))) > 0)
+			SHA1_Update(&ctx, buf, res);
+	} else {
+		int i;
+
+		for (i = 0; i < 9; i++) {
+			int j;
+
+			if (lseek(fd, (len - 1048576) / 9 * i, SEEK_SET) == (off_t) - 1)
+				return -1;
+
+			for (j = 0; j < 1048576 / sizeof(buf); j++) {
+				if ((res = read(fd, buf, sizeof(buf))) != sizeof(buf)) {
+					res = -1;
+					break;
+				}
+
+				SHA1_Update(&ctx, buf, res);
+			}
+
+			if (res == -1)
+				break;
+		}
+	}
 
 	if (res == -1)
 		return -1;
