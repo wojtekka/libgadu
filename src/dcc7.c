@@ -112,16 +112,25 @@ static int gg_dcc7_session_remove(struct gg_session *sess, struct gg_dcc7 *dcc)
  *
  * \param sess Struktura sesji
  * \param id Identyfikator połączenia
+ * \param uin Numer nadawcy lub odbiorcy
  *
  * \return Struktura połączenia lub \c NULL jeśli nie znaleziono
  */
-static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_t id)
+static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_t id, uin_t uin)
 {
 	struct gg_dcc7 *tmp;
+	int empty;
+
+	empty = !memcmp(&id, "\0\0\0\0\0\0\0\0", 8);
 
 	for (tmp = sess->dcc7_list; tmp; tmp = tmp->next) {
-		if (!memcmp(&tmp->cid, &id, sizeof(id)))
-			return tmp;
+		if (empty) {
+			if (tmp->peer_uin == uin && !tmp->state == GG_STATE_WAITING_FOR_ACCEPT)
+				return tmp;
+		} else {
+			if (!memcmp(&tmp->cid, &id, sizeof(id)))
+				return tmp;
+		}
 	}
 
 	return NULL;
@@ -220,6 +229,56 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 }
 
 /**
+ * \internal Tworzy gniazdo nasłuchujące i wysyła jego parametry
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
+{
+	struct gg_dcc7_info pkt;
+
+	// XXX dać możliwość konfiguracji?
+	
+	dcc->local_addr = dcc->sess->client_addr;
+
+	if (gg_dcc7_listen(dcc, 0) == -1)
+		return -1;
+
+	memset(&pkt, 0, sizeof(pkt));
+	pkt.uin = gg_fix32(dcc->peer_uin);
+	pkt.type = GG_DCC7_TYPE_P2P;
+	pkt.id = dcc->cid;
+	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), dcc->local_port);
+
+	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
+}
+
+/**
+ * \internal Odwraca połączenie po nieudanym connect()
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_dcc7_reverse_connect(struct gg_dcc7 *dcc)
+{
+	if (dcc->reverse)
+		return -1;
+
+	gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection timeout, trying reverse connection\n");
+	close(dcc->fd);
+	dcc->fd = -1;
+	dcc->reverse = 1;
+
+	if (gg_dcc7_listen_and_send_info(dcc) == -1)
+		return -1;
+
+	return 0;
+}
+
+/**
  * \internal Wysyła do serwera żądanie nadania identyfikatora sesji
  *
  * \param sess Struktura sesji
@@ -253,34 +312,71 @@ static int gg_dcc7_request_id(struct gg_session *sess, uint32_t type)
 }
 
 /**
- * \internal Tworzy gniazdo nasłuchujące i wysyła jego parametry
+ * \internal Rozpoczyna wysyłanie pliku.
  *
- * \param dcc Struktura połączenia
+ * Funkcja jest wykorzystywana przez \c gg_dcc7_send_file() oraz
+ * \c gg_dcc_send_file_fd().
  *
- * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ * \param sess Struktura sesji
+ * \param rcpt Numer odbiorcy
+ * \param fd Deskryptor pliku
+ * \param size Rozmiar pliku
+ * \param filename1250 Nazwa pliku w kodowaniu CP-1250
+ * \param hash Skrót SHA-1 pliku
+ * \param seek Flaga mówiąca, czy można używać lseek()
+ *
+ * \return Struktura \c gg_dcc7 lub \c NULL w przypadku błędu
+ *
+ * \ingroup dcc7
  */
-static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
+static struct gg_dcc7 *gg_dcc7_send_file_common(struct gg_session *sess, uin_t rcpt, int fd, size_t size, const char *filename1250, const char *hash, int seek)
 {
-	struct gg_dcc7_info pkt;
+	struct gg_dcc7 *dcc = NULL;
 
-	// XXX dać możliwość konfiguracji?
-	
-	dcc->local_addr = dcc->sess->client_addr;
+	if (!sess || !rcpt || !filename1250 || !hash || fd == -1) {
+		errno = EINVAL;
+		goto fail;
+	}
 
-	if (gg_dcc7_listen(dcc, 0) == -1)
-		return -1;
+	if (!(dcc = malloc(sizeof(struct gg_dcc7)))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() not enough memory\n");
+		goto fail;
+	}
 
-	memset(&pkt, 0, sizeof(pkt));
-	pkt.uin = gg_fix32(dcc->peer_uin);
-	pkt.type = GG_DCC7_TYPE_P2P;
-	pkt.id = dcc->cid;
-	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), dcc->local_port);
+	if (gg_dcc7_request_id(sess, GG_DCC7_TYPE_FILE) == -1)
+		goto fail;
 
-	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
+	memset(dcc, 0, sizeof(struct gg_dcc7));
+	dcc->type = GG_SESSION_DCC7_SEND;
+	dcc->dcc_type = GG_DCC7_TYPE_FILE;
+	dcc->state = GG_STATE_REQUESTING_ID;
+	dcc->timeout = GG_DEFAULT_TIMEOUT;
+	dcc->sess = sess;
+	dcc->fd = -1;
+	dcc->uin = sess->uin;
+	dcc->peer_uin = rcpt;
+	dcc->file_fd = fd;
+	dcc->size = size;
+	dcc->seek = seek;
+
+	strncpy((char*) dcc->filename, filename1250, GG_DCC7_FILENAME_LEN - 1);
+	dcc->filename[GG_DCC7_FILENAME_LEN] = 0;
+
+	memcpy(dcc->hash, hash, GG_DCC7_HASH_LEN);
+
+	if (gg_dcc7_session_add(sess, dcc) == -1)
+		goto fail;
+
+	return dcc;
+
+fail:
+	free(dcc);
+
+	return NULL;
 }
 
 /**
- * Rozpoczyna wysyłanie pliku.
+ * Rozpoczyna wysyłanie pliku o danej nazwie.
  *
  * \param sess Struktura sesji
  * \param rcpt Numer odbiorcy
@@ -296,6 +392,7 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 {
 	struct gg_dcc7 *dcc = NULL;
 	const char *tmp;
+	char hash_buf[GG_DCC7_HASH_LEN];
 	struct stat st;
 	int fd = -1;
 
@@ -308,11 +405,6 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 
 	if (!filename1250)
 		filename1250 = filename;
-
-	if (!(dcc = malloc(sizeof(struct gg_dcc7)))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() not enough memory\n");
-		goto fail;
-	}
 
 	if (stat(filename, &st) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() stat() failed (%s)\n", strerror(errno));
@@ -330,35 +422,19 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 		goto fail;
 	}
 
-	if (gg_dcc7_request_id(sess, GG_DCC7_TYPE_FILE) == -1)
-		goto fail;
+	if (hash) {
+		memcpy(dcc->hash, hash, GG_DCC7_HASH_LEN);
+	} else {
+		if (gg_file_hash_sha1(fd, (uint8_t*) hash_buf) == -1)
+			goto fail;
+
+		hash = hash_buf;
+	}
 
 	if ((tmp = strrchr(filename1250, '/')))
 		filename1250 = tmp + 1;
 
-	memset(dcc, 0, sizeof(struct gg_dcc7));
-	dcc->type = GG_SESSION_DCC7_SEND;
-	dcc->dcc_type = GG_DCC7_TYPE_FILE;
-	dcc->state = GG_STATE_REQUESTING_ID;
-	dcc->timeout = GG_DEFAULT_TIMEOUT;
-	dcc->sess = sess;
-	dcc->fd = -1;
-	dcc->uin = sess->uin;
-	dcc->peer_uin = rcpt;
-	dcc->file_fd = fd;
-	dcc->size = st.st_size;
-
-	strncpy((char*) dcc->filename, filename1250, GG_DCC7_FILENAME_LEN - 1);
-	dcc->filename[GG_DCC7_FILENAME_LEN] = 0;
-
-	if (hash) {
-		memcpy(dcc->hash, hash, GG_DCC7_HASH_LEN);
-	} else {
-		if (gg_file_hash_sha1(fd, dcc->hash) == -1)
-			goto fail;
-	}
-
-	if (gg_dcc7_session_add(sess, dcc) == -1)
+	if (!(dcc = gg_dcc7_send_file_common(sess, rcpt, fd, st.st_size, filename1250, hash, 1)))
 		goto fail;
 
 	return dcc;
@@ -374,6 +450,28 @@ fail:
 
 	return NULL;
 }
+
+/**
+ * Rozpoczyna wysyłanie pliku o danym deskryptorze.
+ *
+ * \param sess Struktura sesji
+ * \param rcpt Numer odbiorcy
+ * \param fd Deskryptor pliku
+ * \param size Rozmiar pliku
+ * \param filename1250 Nazwa pliku w kodowaniu CP-1250
+ * \param hash Skrót SHA-1 pliku
+ *
+ * \return Struktura \c gg_dcc7 lub \c NULL w przypadku błędu
+ *
+ * \ingroup dcc7
+ */
+struct gg_dcc7 *gg_dcc7_send_file_fd(struct gg_session *sess, uin_t rcpt, int fd, size_t size, const char *filename1250, const char *hash)
+{
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_send_file_fd(%p, %d, %d, %u, \"%s\", %p);\n", sess, rcpt, fd, size, filename1250, hash);
+
+	return gg_dcc7_send_file_common(sess, rcpt, fd, size, filename1250, hash, 0);
+}
+
 
 /**
  * Potwierdza chęć odebrania pliku.
@@ -497,13 +595,16 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
 	struct gg_dcc7_accept *p = payload;
 	struct gg_dcc7 *dcc;
 
-	if (!(dcc = gg_dcc7_session_find(sess, p->id))) {
+	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
 		// XXX wysłać reject?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 	
@@ -531,21 +632,24 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	struct gg_dcc7 *dcc;
 	char *tmp;
 
-	if (!(dcc = gg_dcc7_session_find(sess, p->id)))
+	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin))))
 		return 0;
 	
 	if (p->type != GG_DCC7_TYPE_P2P) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
 	if ((dcc->remote_addr = inet_addr(p->info)) == INADDR_NONE) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
 	if (!(tmp = strchr(p->info, ' ')) || !(dcc->remote_port = atoi(tmp + 1))) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
@@ -553,7 +657,8 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	// daje rady i oferuje namiary na siebie, bierzemy co dają.
 
 	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
@@ -572,8 +677,11 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	}
 
 	if (gg_dcc7_connect(sess, dcc) == -1) {
-		// XXX poinformować?
-		return 0;
+		if (gg_dcc7_reverse_connect(dcc) == -1) {
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_NET;
+			return 0;
+		}
 	}
 
 	return 0;
@@ -594,11 +702,12 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 	struct gg_dcc7_reject *p = payload;
 	struct gg_dcc7 *dcc;
 
-	if (!(dcc = gg_dcc7_session_find(sess, p->id)))
+	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin))))
 		return 0;
 	
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
-		// XXX poinformować?
+		e->type = GG_EVENT_DCC7_ERROR;
+		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
@@ -830,16 +939,9 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (error || (res = getsockopt(dcc->fd, SOL_SOCKET, SO_ERROR, &error, &error_size)) == -1 || error != 0) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection failed (%s)\n", (res == -1) ? strerror(errno) : strerror(error));
 
-				if (!dcc->reverse) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection timeout, trying reverse connection\n");
-					close(dcc->fd);
-					dcc->fd = -1;
-					dcc->reverse = 1;
-	
-					if (gg_dcc7_listen_and_send_info(dcc) != -1)
-						break;
-				}
-					
+				if (gg_dcc7_reverse_connect(dcc) != -1)
+					break;
+				
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_NET;
 				return e;
@@ -920,7 +1022,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
-			if (lseek(dcc->file_fd, dcc->offset, SEEK_SET) == (off_t) -1) {
+			if (dcc->seek && lseek(dcc->file_fd, dcc->offset, SEEK_SET) == (off_t) -1) {
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() lseek() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_FILE;

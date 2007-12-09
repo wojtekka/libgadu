@@ -378,6 +378,7 @@ struct gg_dcc7 {
 	struct gg_dcc7 *next;	/**< Następne połączenie w liście */
 
 	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_dcc7_watch_fd */
+	int seek;		/**< Flaga mówiąca, że można zmieniać położenie w wysyłanym pliku */
 };
 
 /**
@@ -1032,6 +1033,7 @@ void gg_dcc_free(struct gg_dcc *c);
 
 struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *d);
 struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const char *filename, const char *filename1250, const char *hash);
+struct gg_dcc7 *gg_dcc7_send_file_fd(struct gg_session *sess, uin_t rcpt, int fd, size_t size, const char *filename1250, const char *hash);
 int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset);
 int gg_dcc7_reject(struct gg_dcc7 *dcc, int reason);
 void gg_dcc7_free(struct gg_dcc7 *d);
