@@ -272,10 +272,7 @@ static int gg_dcc7_reverse_connect(struct gg_dcc7 *dcc)
 	dcc->fd = -1;
 	dcc->reverse = 1;
 
-	if (gg_dcc7_listen_and_send_info(dcc) == -1)
-		return -1;
-
-	return 0;
+	return gg_dcc7_listen_and_send_info(dcc);
 }
 
 /**
@@ -370,7 +367,8 @@ static struct gg_dcc7 *gg_dcc7_send_file_common(struct gg_session *sess, uin_t r
 	return dcc;
 
 fail:
-	free(dcc);
+	if (dcc)
+		free(dcc);
 
 	return NULL;
 }
@@ -446,7 +444,8 @@ fail:
 		errno = errsv;
 	}
 
-	free(dcc);
+	if (dcc)
+		free(dcc);
 
 	return NULL;
 }
