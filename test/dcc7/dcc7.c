@@ -242,6 +242,8 @@ int main(int argc, char **argv)
 					if (test_mode == TEST_MODE_RECEIVE_NAT)
 						gs->client_addr = INADDR_NONE;
 
+					ping = time(NULL);
+
 					break;
 
 				case GG_EVENT_CONN_FAILED:
