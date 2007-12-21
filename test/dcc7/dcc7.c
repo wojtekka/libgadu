@@ -28,7 +28,7 @@ char *config_password;
 unsigned int config_peer;
 char *config_file;
 unsigned int config_size = 1048576;
-unsigned long config_ip;
+unsigned long config_ip = 0xffffffff;
 unsigned int config_port;
 
 int test_mode;
@@ -145,9 +145,11 @@ int main(int argc, char **argv)
 	glp.uin = config_uin;
 	glp.password = config_password;
 	glp.async = 1;
-	glp.client_addr = config_ip;
-	glp.client_port = config_port;
+//	glp.client_addr = config_ip;
+//	glp.client_port = config_port;
 	glp.protocol_version = 0x2a;
+
+	gg_dcc_ip = config_ip;
 
 	debug("Connecting...\n");
 
