@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	struct gg_login_params glp;
 	struct gg_dcc7 *gd = NULL;
 	time_t ping = 0, last = 0;
-	int fds[2];
+	int fds[2] = { -1, -1 };
 
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s <mode>\n"
