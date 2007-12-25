@@ -159,10 +159,10 @@ Host: appmsg.gadu-gadu.pl</pre>
 
 <p>
 <b>NUMER</b> jest numerem Gadu-Gadu. <b>WERSJA</b> jest wersją klienta
-w postaci ,,<tt>A, B, C, D</tt>'' (na przykład ,,<tt>5, 0, 5, 107</tt>'' dla
-wersji 5.0.5 build 107).
+w postaci &bdquo;<tt>A, B, C, D</tt>&rdquo; (na przykład
+&bdquo;<tt>5, 0, 5, 107</tt>&rdquo; dla wersji 5.0.5 build 107).
 <b>FORMAT</b> określa czy wiadomość systemowa będzie przesyłana czystym
-tekstem (brak zmiennej "fmt") czy w HTMLu (wartość ,,<tt>2</tt>'').
+tekstem (brak zmiennej &bdquo;fmt&rdquo;) czy w HTMLu (wartość &bdquo;<tt>2</tt>&rdquo;).
 <b>WIADOMOŚĆ</b> jest numerem ostatnio otrzymanej wiadomości systemowej.
 <b>PRZEGLĄDARKA</b> może być jednym z poniższych tekstów:
 </p>
@@ -190,20 +190,20 @@ na przykład tak:
 <p>
 Pierwsze pole jest numerem wiadomości systemowej, a trzecie i czwarte
 podają nam namiary na właściwy serwer. Jeśli serwer jest niedostępny,
-zamiast adresu IP jest zwracany tekst ,,<tt>notoperating</tt>''.
+zamiast adresu IP jest zwracany tekst &bdquo;<tt>notoperating</tt>&rdquo;.
 Jeżeli połączenie z portem 8074 nie powiedzie się z jakichś powodów,
 można się łączyć na port 443. 
 </p>
 
 <p>
 Jeśli pierwsza liczba nie jest równa zero, zaraz po nagłówku znajduje się
-wiadomość systemowa, lub jeśli linia zaczyna się od znaku ,,<tt>@</tt>'',
+wiadomość systemowa, lub jeśli linia zaczyna się od znaku &bdquo;<tt>@</tt>&rdquo;,
 adres strony, którą należy otworzyć w przeglądarce.
 </p>
 
 <p>
 Jeśli klient chce się łączyć za pomocą protokołu TLSv1, wysyła zapytanie
-do innego skryptu (,,<tt>appmsg3.asp</tt>'') i otrzymuje w odpowiedzi adres
+do innego skryptu (&bdquo;<tt>appmsg3.asp</tt>&rdquo;) i otrzymuje w odpowiedzi adres
 serwera oraz port 443. Protokół jest identyczny, z tym wyjątkiem, że cała
 transmisja jest szyfrowana. Dobrym zwyczajem jest również sprawdzane
 autentyczności certyfikatu, by uniknąć ataków typu man-in-the-middle.
@@ -482,7 +482,7 @@ Gdzie pole <tt>type</tt> jest mapą bitową następujących wartości:
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>GG_USER_BUDDY</tt></td><td><tt>0x01</tt></td><td>Każdy użytkownik dodany do listy kontaktów</td></tr>
-<tr class="tabf"><td><tt>GG_USER_FRIEND</tt></td><td><tt>0x02</tt></td><td>Użytkownik, dla którego jesteśmy widoczni w trybie ,,tylko dla przyjaciół''</td></tr>
+<tr class="tabf"><td><tt>GG_USER_FRIEND</tt></td><td><tt>0x02</tt></td><td>Użytkownik, dla którego jesteśmy widoczni w trybie &bdquo;tylko dla przyjaciół&rdquo;</td></tr>
 <tr class="tabf"><td><tt>GG_USER_BLOCKED</tt></td><td><tt>0x04</tt></td><td>Użytkownik, którego wiadomości nie chcemy otrzymywać</td></tr>
 </table>
 
@@ -552,7 +552,7 @@ portem może przyjmować również poniższe wartości:
 </table>
 
 <p>
-Zdarzają się też inne ,,nietypowe'' wartości, ale ich znaczenie nie jest
+Zdarzają się też inne &bdquo;nietypowe&rdquo; wartości, ale ich znaczenie nie jest
 jeszcze do końca znane.
 </p>
 
@@ -736,7 +736,7 @@ następujące znaczenie:
 
 <p>
 Jeśli wiadomość zawiera obrazek, przesyłana jest jego suma kontrolna CRC32
-i rozmiar. Dzięki temu nie trzeba za każdym razem wysyłać każdego obrazka --
+i rozmiar. Dzięki temu nie trzeba za każdym razem wysyłać każdego obrazka &mdash;
 klienty je zachowują. Struktura <tt>gg_msg_richtext_image</tt> opisująca
 obrazek umieszczony w wiadomości wygląda następująco:
 </p>
@@ -803,7 +803,7 @@ to, że klient nie posiada żądanego obrazka.
 </p>
 
 <p>
-Przykładowo, by przesłać tekst ,,ala <b>ma</b> kota'', należy dołączyć do
+Przykładowo, by przesłać tekst &bdquo;ala <b>ma</b> kota&rdquo;, należy dołączyć do
 wiadomości następującą sekwencję bajtów:
 </p>
 
@@ -877,7 +877,7 @@ Czas nadania jest zapisany w postaci UTC, jako ilości sekund od 1 stycznie
 </p>
 
 <p>
-W przypadku pakietów ,,konferencyjnych'' na końcu pakietu doklejona jest
+W przypadku pakietów &bdquo;konferencyjnych&rdquo; na końcu pakietu doklejona jest
 struktura identyczna z <tt>gg_msg_recipients</tt> zawierająca pozostałych
 rozmówców.
 </p>
@@ -958,7 +958,7 @@ Przykładowy kod:
 <h3>1.11. Katalog publiczny</h3>
 
 <p>
-Od wersji 5.0.2 zmieniono sposób dostępu do katalogu publicznego -- stał
+Od wersji 5.0.2 zmieniono sposób dostępu do katalogu publicznego &mdash; stał
 się częścią sesji, zamiast osobnej sesji HTTP. Aby obsługiwać wyszukiwanie
 osób, odczytywanie własnych informacji lub ich modyfikację należy użyć
 następującego typu pakietu:
@@ -1000,10 +1000,10 @@ parametry od siebie. Możliwe parametry zapytania to:
 <tr class="tabf"><td><tt>GG_PUBDIR50_FIRSTNAME</tt></td><td><tt>firstname</tt></td><td>Imię</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_LASTNAME</tt></td><td><tt>lastname</tt></td><td>Nazwisko</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_NICKNAME</tt></td><td><tt>nickname</tt></td><td>Pseudonim</td></tr>
-<tr class="tabf"><td><tt>GG_PUBDIR50_BIRTHYEAR</tt></td><td><tt>birthyear</tt></td><td>Rok urodzenia. Jeśli chcemy szukać osób z danego przedziału, podajemy rok początkowy i końcowy, oddzielone spacją. Na przykład ,,<tt>1980 1985</tt>''.</td></tr>
+<tr class="tabf"><td><tt>GG_PUBDIR50_BIRTHYEAR</tt></td><td><tt>birthyear</tt></td><td>Rok urodzenia. Jeśli chcemy szukać osób z danego przedziału, podajemy rok początkowy i końcowy, oddzielone spacją. Na przykład &bdquo;<tt>1980 1985</tt>&rdquo;.</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_CITY</tt></td><td><tt>city</tt></td><td>Miejscowość</td></tr>
-<tr class="tabf"><td><tt>GG_PUBDIR50_GENDER</tt></td><td><tt>gender</tt></td><td>Płeć. Jeśli szukamy kobiet, ma wartość ,,<tt>1</tt>'' (stała <tt>GG_PUBDIR50_GENDER_FEMALE</tt>). Jeśli mężczyzn, ma wartość ,,<tt>2</tt>'' (stała <tt>GG_PUBDIR50_GENDER_MALE</tt>). W przypadku pobierania lub ustawiania informacji o sobie stałe mają odwrócone znaczenia (stałe <tt>GG_PUBDIR50_GENDER_SET_FEMALE</tt> i <tt>GG_PUBDIR50_GENDER_SET_MALE</tt>)</td></tr>
-<tr class="tabf"><td><tt>GG_PUBDIR50_ACTIVE</tt></td><td><tt>ActiveOnly</tt></td><td>Jeśli szukamy tylko dostępnych osób, ma mieć wartość ,,<tt>1</tt>'' (stała <tt>GG_PUBDIR50_ACTIVE_TRUE</tt>).</td></tr>
+<tr class="tabf"><td><tt>GG_PUBDIR50_GENDER</tt></td><td><tt>gender</tt></td><td>Płeć. Jeśli szukamy kobiet, ma wartość &bdquo;<tt>1</tt>&rdquo; (stała <tt>GG_PUBDIR50_GENDER_FEMALE</tt>). Jeśli mężczyzn, ma wartość &bdquo;<tt>2</tt>&rdquo; (stała <tt>GG_PUBDIR50_GENDER_MALE</tt>). W przypadku pobierania lub ustawiania informacji o sobie stałe mają odwrócone znaczenia (stałe <tt>GG_PUBDIR50_GENDER_SET_FEMALE</tt> i <tt>GG_PUBDIR50_GENDER_SET_MALE</tt>)</td></tr>
+<tr class="tabf"><td><tt>GG_PUBDIR50_ACTIVE</tt></td><td><tt>ActiveOnly</tt></td><td>Jeśli szukamy tylko dostępnych osób, ma mieć wartość &bdquo;<tt>1</tt>&rdquo; (stała <tt>GG_PUBDIR50_ACTIVE_TRUE</tt>).</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_FAMILYNAME</tt></td><td><tt>familyname</tt></td><td>Nazwisko panieńskie. Ma znaczenie tylko przy ustawianiu własnych danych.</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_FAMILYCITY</tt></td><td><tt>familycity</tt></td><td>Miejscowość pochodzenia. Ma znaczenie tylko przy ustawianiu własnych danych.</td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_START</tt></td><td><tt>fmstart</tt></td><td>Numer, od którego rozpocząć wyszukiwanie. Ma znaczenie, gdy kontynuujemy wyszukiwanie.</td></tr>
@@ -1049,7 +1049,7 @@ kolejne osoby oddzielane pustym polem: <tt>"<b>parametr</b>\0<b>wartość</b>\0\
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Etykieta</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>GG_PUBDIR50_STATUS</tt></td><td><tt>FmStatus</tt></td><td>Stan szukanej osoby</td></tr>
-<tr class="tabf"><td>&nbsp;</td><td><tt>nextstart</tt></td><td>Pole występujące w ostatnim wyniku, określające, od jakiego numeru należy rozpocząć wyszukiwanie, by otrzymać kolejną porcję danych. Podaje się go w zapytaniu jako parametr ,,<tt>start</tt>''.</td></tr>
+<tr class="tabf"><td>&nbsp;</td><td><tt>nextstart</tt></td><td>Pole występujące w ostatnim wyniku, określające, od jakiego numeru należy rozpocząć wyszukiwanie, by otrzymać kolejną porcję danych. Podaje się go w zapytaniu jako parametr &bdquo;<tt>start</tt>&rdquo;.</td></tr>
 </table>
 
 <p>
@@ -1295,7 +1295,7 @@ Cache-control: private
 
 <p>
 Nagłówki nie są dla nas ważne. Można zauważyć tylko to, że czasami serwer
-ustawia <tt><b>COOKIE</b></tt> np. ,,<tt>ASPSESSIONIDQQGGGLJC=CAEKMBGDJCFBEOKCELEFCNKH; path=/</tt>''. Pisząc dalej, że serwer ,,odpowie wartością'' mowa
+ustawia <tt><b>COOKIE</b></tt> np. &bdquo;<tt>ASPSESSIONIDQQGGGLJC=CAEKMBGDJCFBEOKCELEFCNKH; path=/</tt>&rdquo;. Pisząc dalej, że serwer &bdquo;odpowie wartością&rdquo; mowa
 tylko o polu <b>ODPOWIEDŹ</b>. Kodowanie znaków w odpowiedzi to CP1250.
 </p>
 
@@ -1307,7 +1307,7 @@ tylko o polu <b>ODPOWIEDŹ</b>. Kodowanie znaków w odpowiedzi to CP1250.
 
 <p>
 Prawdopodobnie ze względu na nadużycia i wykorzystywanie automatów
-rejestrujących do polowań na ,,złote numery GG'', wprowadzono konieczność
+rejestrujących do polowań na &bdquo;złote numery GG&rdquo;, wprowadzono konieczność
 autoryzacji za pomocą tokenu. Każda operacja zaczyna się od pobrania tokenu
 z serwera, wyświetlenia użytkownikowi, odczytaniu jego wartości i wysłania
 zapytania z identyfikatorem i wartością tokenu. Pobranie tokenu wygląda 
@@ -1449,9 +1449,9 @@ Jeśli został podany nieprawidłowy token, serwer odpowie:
 <tr class="tabh"><td width="20%"><b>Wysyłamy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>fmnumber</tt></td><td>usuwany numer</td></tr>
 <tr class="tabf"><td><tt>fmpwd</tt></td><td>hasło</td></tr>
-<tr class="tabf"><td><tt>delete</tt></td><td>wartość ,,<tt>1</tt>''</td></tr>
+<tr class="tabf"><td><tt>delete</tt></td><td>wartość &bdquo;<tt>1</tt>&rdquo;</td></tr>
 <tr class="tabf"><td><tt>pwd</tt></td><td>losowa liczba</td></tr>
-<tr class="tabf"><td><tt>email</tt></td><td>wartość ,,<tt>deletedaccount@gadu-gadu.pl</tt>''</td></tr>
+<tr class="tabf"><td><tt>email</tt></td><td>wartość &bdquo;<tt>deletedaccount@gadu-gadu.pl</tt>&rdquo;</td></tr>
 <tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
 <tr class="tabf"><td><tt>tokenval</tt></td><td>wartość tokenu</td></tr>
 <tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>pwd</tt> i <tt>email</tt></td></tr>
