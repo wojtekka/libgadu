@@ -1,8 +1,0 @@
-.libs
-.deps
-Makefile
-Makefile.in
-so_locations
-*.lo
-.depend
-libgadu.la
