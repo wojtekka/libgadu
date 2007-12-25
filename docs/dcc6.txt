@@ -4,7 +4,6 @@
 
 \defgroup dcc6 Połączenia bezpośrednie do wersji Gadu-Gadu 6.x
 \ingroup dcc
-\brief Przesyłanie plików i rozmowy głosowe
 
 \note Funkcje opisane poniżej są zgodne ze starą wersją Gadu-Gadu. Nowy
 sposób przesyłania plików i przeprowadzania rozmów głosowych, wprowadzony
@@ -17,7 +16,7 @@ samego \b publicznego adresu IP, serwer przesyła im ich adresy lokalne.
 
 Ze względu na kierunek i sposób połączenia, wyróżniamy kilka sytuacji:
 
- - mamy publiczny lub niepubliczny adres IP i chcemy wysłać plik do osoby
+ - Mamy publiczny lub niepubliczny adres IP i chcemy wysłać plik do osoby
    z publicznym adresem -- łączymy się z jego klientem, przedstawiamy się,
    mówimy czego chcemy i jeśli druga strona to zaakceptuje, zaczynam
    wysyłać plik. Przypomina zwykłe połączenia DCC klientów IRC. 
@@ -25,7 +24,7 @@ Ze względu na kierunek i sposób połączenia, wyróżniamy kilka sytuacji:
  - Mamy publiczny adres IP i wysyłam plik do kogoś za NAT -- wysyłamy
    na jego numer odpowiednią wiadomość przeznaczoną dla klienta (klasa
    \c GG_CLASS_CTCP). Druga strona po odebraniu takiego pakietu łączy się
-   znaku o kodzie 0x02. druga strona, odebrawszy taki pakiet łączy się
+   znaku o kodzie \c 0x02. druga strona, odebrawszy taki pakiet łączy się
    z nami, mówi, że proszono ją o połączenie i czeka na dalsze instrukcje.
    My wtedy wysyłamy informację, że owszem, chcemy wysłać plik, mówimy jaki
    i jeśli druga strona to zaakceptuje, nadajemy.
@@ -39,10 +38,10 @@ Ze względu na kierunek i sposób połączenia, wyróżniamy kilka sytuacji:
 To, czy możemy się z kimś połączyć widać po porcie połączeń bezpośrednich
 drugiej strony, jaki dostajemy w zdarzeniach o zmianie statusu. Jeśli port
 jest niższy od 10, połączenie nie jest możliwe i należy wysłać specjalną 
-wiadomość za pomocą funkcji gg_dcc_request().
+wiadomość za pomocą funkcji \c gg_dcc_request().
 
 Każde połączenie bezpośrednie i gniazdo nasłuchujące opisywane jest przez
-strukturę gg_dcc. To ostatnie możemy stworzyć za pomocą:
+strukturę \c gg_dcc. To ostatnie możemy stworzyć za pomocą:
 
 \code
 struct gg_dcc *gniazdo;
@@ -57,17 +56,19 @@ dodaj_do_obserwowanych(gniazdo);
 
 Jeśli podamy port 0, libgadu spróbuje znaleźć pierwszy wolny port w okolicy
 domyślnego portu połączeń bezpośrednich. W przypadku powodzenia zwraca
-zaalokowaną strukturę gg_dcc, której najbardziej interesującym polem
+zaalokowaną strukturę \c gg_dcc, której najbardziej interesującym polem
 \c port zawierające numer przyznanego portu. Jeśli zwróci \c NULL, w zmiennej
 systemowej \c errno znajdzie się powód błędu: \c EINVAL to niewłaściwie
 parametry, \c ENOMEM to brak pamięci, a reszta możliwych błędów to błędy
 związane z gniazdami, np. \c EADDRINUSE gdy nie można znaleźć wolnego portu.
 
-Następnie należy w zmiennej \c gg_dcc_port ustawić zaalokowany port, do
-zmiennej \c gg_dcc_ip wpisać publiczny adres IP i połączyć się z serwerem,
+Następnie należy w zmiennej globalnej \c gg_dcc_port ustawić zaalokowany port,
+do zmiennej \c gg_dcc_ip wpisać publiczny adres IP i połączyć się z serwerem,
 żeby poinformować świat o swoich namiarach. Jeśli publiczny adres IP to
-255.255.255.255, automatycznie jest przypisywany adres IP, z którego 
-wychodzi połączenie do serwera.
+\c 255.255.255.255, automatycznie jest przypisywany adres IP, z którego 
+wychodzi połączenie do serwera. Należy pamiętać, że wartości tych zmiennych
+są używane przez \c gg_login(), więc ich wartości trzeba ustawić przez 
+połączeniem.
 
 Po połączeniu obserwujemy deskryptor gniazda nasłuchującego i gdy coś się
 pojawi, wywołujemy:
@@ -86,7 +87,7 @@ if (!zdarzenie) {
 \endcode
 
 Błąd jest zwracany tylko w naprawdę krytycznych sytuacjach, gdy
-brakuje pamięci, lub nie powiodła się operacja na socketach, która
+brakuje pamięci, lub nie powiodła się operacja na gniazdach, która
 nie miała się nie powieść (i przy okazji dalsza praca jest kompletnie
 bezcelowa).
 
@@ -178,7 +179,7 @@ if (gg_dcc_fill_file_info(dcc, nazwa_pliku)) {
    wcześnie się skończy, \c GG_ERROR_DCC_REFUSED gdy użytkownik po drugiej
    stronie odmówił połączenia.
 
-Tutaj również należy pamiętać o wywoływaniu gg_event_free().
+Tutaj również należy pamiętać o wywoływaniu \c gg_event_free().
 
 \par
 

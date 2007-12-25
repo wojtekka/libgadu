@@ -1,6 +1,0 @@
-/**
-
-\defgroup register Rejestracja nowego użytkownika
-\ingroup http
-
-*/

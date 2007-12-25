@@ -2,4 +2,9 @@
 
 \defgroup http Usługi HTTP
 
+W niektórych należy obserwować pole \c state, które po zakończeniu operacji
+zostanie zmienione na \c GG_STATE_DONE lub \c GG_STATE_ERROR. Dokładne
+informacje są zawsze umieszczone w opisie odpowiedniej funkcji
+\c xxx_watch_fd().
+
 */

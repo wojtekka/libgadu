@@ -1,6 +1,0 @@
-/**
-
-\defgroup status Zmiana statusu użytkownika
-\ingroup session
- 
-*/

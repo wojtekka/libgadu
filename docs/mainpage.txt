@@ -2,14 +2,21 @@
 
 \mainpage libgadu
 
-Test
+\e libgadu jest biblioteką przeznaczoną do obsługi protokołu komunikatora
+Gadu-Gadu. Przez dłuższy czas była integralną częścią
+<a href="http://ekg.chmurka.net/">Eksperymentalnego Klienta Gadu-Gadu</a>,
+lecz ze względu na problemy z dystrybucją pakietów i wykorzystaniem
+w innych projektach, została wydzielona. Własnościowy protokół został
+rozszyfrowany metodą inżynierii wstecznej (ang. \e "reverse engineering"),
+przez co \e libgadu może nie być w 100% zgodna z pierwowzorem.
 
-\page Foo
+\note Należy pamiętać, że używanie alternatywnych klientów jest niezgodne z
+regulaminem korzystania z serwisu Gadu-Gadu.
 
-Foo
-
-\page Bar
-
-Bar
+Biblioteka została napisana w języku C i jest niezależna od systemu
+operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z
+POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na
+istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach
+konsolowych, jak i graficznych GTK+ i Qt.
 
 */

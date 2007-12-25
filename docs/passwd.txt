@@ -1,6 +1,0 @@
-/**
-
-\defgroup passwd Zmiana hasła
-\ingroup http
-
-*/

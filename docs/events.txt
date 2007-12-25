@@ -1,30 +1,30 @@
 /**
 
-\defgroup syncasync Połączenia synchroniczne i asynchroniczne
+\defgroup events Obsługa zdarzeń
 \ingroup session
 
 \details
 
-Funkcje biblioteki (za wyjatkiem \ref dcc "połączeń bezpośrednich") zostały
+Funkcje biblioteki (za wyjątkiem \ref dcc "połączeń bezpośrednich") zostały
 przygotowane w taki sposób, by móc z nich korzystać zarówno w trybie
 synchronicznym (działanie programu jest blokowane do zakończeniu operacji), jak
 i asynchroniczym (operacja jest rozpoczynana, a do czasu jej zakończenia
 program może robić inne rzeczy).
 
+W trybie synchronicznym, po udanym zakończeniu funkcji \c gg_login(), należy
+w pętli wywoływać funkcję \c gg_watch_fd(), która po odebraniu informacji od
+serwera zwróci informację o zdarzeniu w strukturze \c gg_event lub \c NULL 
+w przypadku błędu. Lista zdarzeń znajduje się poniżej.
+
 Tryb asynchroniczny wymaga od programu obserwowania zmian na określonych
-deskryptorach za pomocą funkcji systemowych select() czy poll(), lub za 
+deskryptorach za pomocą funkcji systemowych \c select() czy \c poll(), lub za 
 pomocą mechanizmów pętli zdarzeń wbudowanych w wykorzystaną bibliotekę
-interfejsu użytkownika. Każda struktura operacji asynchronicznej zawiera
+interfejsu użytkownika. Struktura połączenia asynchronicznego zawiera
 pole \c fd określające obserwowany deskryptor, pole \c watch będące maską
 bitową mówiącą czy obserwowana ma być możliwość odczytu i/lub zapisu,
 \c timeout określające maksymalny czas wykonywania operacji. Gdy zaobserwuje
-się zmianę na deskryptorze należy wywołać funkcję \c xxx_watch_fd()
-odpowiednią dla danej struktury. Dla większości struktur, funkcja
-\c xxx_watch_fd() zwróci informację o zdarzeniu w strukturze \c gg_event.
-W niektórych należy obserwować pole \c state, które po zakończeniu operacji
-zostanie zmienione na \c GG_STATE_DONE lub \c GG_STATE_ERROR. Dokładne
-informacje są zawsze umieszczone w opisie odpowiedniej funkcji
-\c xxx_watch_fd().
+się zmianę na deskryptorze należy wywołać funkcję \c gg_watch_fd() i postępować
+podobnie jak w trybie synchronicznym.
 
 \section sync-example Przykład połączenia synchronicznego
 
@@ -60,8 +60,8 @@ gg_logoff(sesja);
 gg_free_session(sesja);
 \endcode
 
-\note Przykład jest niekompletny, ponieważ powinien co minutę wywoływać
-funkcję \c gg_ping().
+\note Przykład jest niekompletny, ponieważ powinien wysłać listę kontaktów
+i co minutę wywoływać funkcję \c gg_ping().
 
 \section sync-example Przykład połączenia asynchronicznego
 
@@ -143,7 +143,32 @@ for (;;) {
 }
 \endcode
 
-\note Przykład jest niekompletny, ponieważ powinien co minutę wywoływać
-funkcję \c gg_ping().
+\note Przykład jest niekompletny, ponieważ powinien wysłać listę kontaktów
+i co minutę wywoływać funkcję \c gg_ping().
+
+\section Zdarzenia
+
+ - \c GG_EVENT_NONE
+ - \c GG_EVENT_CONN_FAILED
+ - \c GG_EVENT_CONN_SUCCESS
+
+ - \c GG_EVENT_MSG
+
+ - \c GG_EVENT_NOTIFY_DESCR
+ - \c GG_EVENT_NOTIFY
+ - \c GG_EVENT_STATUS
+ - \c GG_EVENT_NOTIFY60
+ - \c GG_EVENT_STATUS60
+ - \c GG_EVENT_ACK
+ - \c GG_EVENT_MSG_ACK
+ - \c GG_EVENT_PONG
+ - \c GG_EVENT_DISCONNECT
+ - \c GG_EVENT_XML_EVENT
+ - \c GG_EVENT_USERLIST
+ - \c GG_EVENT_IMAGE_REPLY
+ - \c GG_EVENT_IMAGE_REQUEST
+
+
+ - \c GG_EVENT_
 
 */

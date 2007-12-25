@@ -6,12 +6,12 @@
 \details
 
 Jeśli chcemy zarejestrować konto lub zmienić hasło, należy pobrać z serwera
-token. Wywołujemy funkcję gg_token() i traktujemy wynikową strukturę
-gg_http tak jak każdą inną usługę HTTP. Po zakończonej operacji (\e state
-równe \e GG_STATE_DONE) w polu \e data będzie się znajdował wskaźnik na
-strukturę gg_token zawierającą informacje o tokenie. W polu \e body struktury
-gg_http znajdzie się obrazek tokenu o rozmiarze \e body_size. Aplikacja
-powinna wyświetlić token użytkownikowi w celu podania jego wartości.
+token. Wywołujemy funkcję \c gg_token() i traktujemy wynikową strukturę
+\c gg_http tak jak każdą inną usługę HTTP. Po zakończonej operacji (\c state
+równe \c GG_STATE_DONE) w polu \c data będzie się znajdował wskaźnik na
+strukturę \c gg_token zawierającą informacje o tokenie. W polu \c body
+struktury \c gg_http znajdzie się obrazek tokenu o rozmiarze \c body_size.
+Aplikacja powinna wyświetlić token użytkownikowi w celu podania jego wartości.
 
 \section example Przykład pobierania tokenu
 

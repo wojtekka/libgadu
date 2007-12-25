@@ -1,8 +1,0 @@
-/**
-
-\defgroup ip Konfiguracja IP
-\ingroup misc
-
-\bug Ustawienia są globalne dla wszystkich połączeń.
-
-*/

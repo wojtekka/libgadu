@@ -1,6 +1,0 @@
-/**
-
-\defgroup remind Przypomnienie hasła
-\ingroup http
-
-*/

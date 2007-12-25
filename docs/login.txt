@@ -159,6 +159,7 @@ funkcja ,,my_handle_event()'', która może wyglądać tak:
 	}
 
 	gg_event_free(e);
+\endcode
 
 przy okazji wiadomo, co oznaczają zdarzenia. część z nich można ignorować,
 jeśli robi się okrojonego klienta, np. wysyłającego jedną wiadomość z linii
