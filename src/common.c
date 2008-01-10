@@ -47,7 +47,7 @@
 /**
  * Plik, do którego będą przekazywane informacje odpluskwiania.
  *
- * Funkcja \c gg_debug i pochodne mogą być przechwytywane przez aplikację
+ * Funkcja \c gg_debug() i pochodne mogą być przechwytywane przez aplikację
  * korzystającą z biblioteki, by wyświetlić je na żądanie użytkownika lub
  * zapisać do późniejszej analizy. Jeśli nie określono pliku, wybrane
  * informacje będą wysyłane do standardowego wyjścia błędu (\c stderr).

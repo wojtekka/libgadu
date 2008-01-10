@@ -5,11 +5,12 @@
 
 \details
 
-Funkcje biblioteki (za wyjątkiem \ref dcc "połączeń bezpośrednich") zostały
-przygotowane w taki sposób, by móc z nich korzystać zarówno w trybie
-synchronicznym (działanie programu jest blokowane do zakończeniu operacji), jak
-i asynchroniczym (operacja jest rozpoczynana, a do czasu jej zakończenia
-program może robić inne rzeczy).
+Funkcje biblioteki zostały przygotowane w taki sposób, by móc z nich korzystać
+zarówno w trybie synchronicznym (działanie programu jest blokowane do
+zakończeniu operacji), jak i asynchroniczym (operacja jest rozpoczynana, a do
+czasu jej zakończenia program może robić inne rzeczy). Wyjątkiem są \ref dcc
+"połączenia bezpośrednie", które pozwalają jedynie na połączenia
+asynchroniczne.
 
 W trybie synchronicznym, po udanym zakończeniu funkcji \c gg_login(), należy
 w pętli wywoływać funkcję \c gg_watch_fd(), która po odebraniu informacji od
@@ -17,14 +18,33 @@ serwera zwróci informację o zdarzeniu w strukturze \c gg_event lub \c NULL
 w przypadku błędu. Lista zdarzeń znajduje się poniżej.
 
 Tryb asynchroniczny wymaga od programu obserwowania zmian na określonych
-deskryptorach za pomocą funkcji systemowych \c select() czy \c poll(), lub za 
+deskryptorach za pomocą funkcji systemowych \c select() czy \c poll(), lub za
 pomocą mechanizmów pętli zdarzeń wbudowanych w wykorzystaną bibliotekę
-interfejsu użytkownika. Struktura połączenia asynchronicznego zawiera
-pole \c fd określające obserwowany deskryptor, pole \c watch będące maską
-bitową mówiącą czy obserwowana ma być możliwość odczytu i/lub zapisu,
-\c timeout określające maksymalny czas wykonywania operacji. Gdy zaobserwuje
+interfejsu użytkownika. Interesujące z punktu widzeniu połączenia
+asynchronicznego pola to \ref gg_session::fd "\c fd"
+określające obserwowany deskryptor, pole \ref gg_session::check "\c check"
+będące maską bitową typu \ref gg_check_t "\c gg_check_t"
+, mówiącą czy obserwowana ma być możliwość odczytu i/lub zapisu oraz
+\ref gg_session::timeout "\c timeout"
+określające maksymalny czas wykonywania operacji. Gdy zaobserwuje
 się zmianę na deskryptorze należy wywołać funkcję \c gg_watch_fd() i postępować
 podobnie jak w trybie synchronicznym.
+
+\note Po przekroczeniu czasu określonego w polu \c timeout, należy sprawdzić
+wartość flagi \ref gg_session::soft_timeout "\c soft_timeout"
+. Jeśli jest równa \c 0 (\c false), można przerwać
+połączenie i zwolnić zasoby, a jeśli nie jest równa \c 0 (\c true), należy
+wywołać \c gg_watch_fd(), by dać szansę bibliotece zareagować na przekroczenie
+czasu operacji. Za pomocą mechanizmu \c soft_timeout są realizowane próby
+połączenia z innymi portami, np. gdy domyślny port 8074 jest zablokowany oraz
+zwrotne połączenia bezpośrednie (7.x), gdy jedna ze stron połączenia znajduje
+się za routerem NAT lub firewallem.
+
+\note Po zerwaniu połączenia lub nieudanym logowaniu pole \ref
+gg_session::state "\c state"
+przyjmuje wartość \c GG_STATE_IDLE. Przed dodaniem deskryptora \c fd do listy
+obserwowanych, warto w ten sposób sprawdzić, czy dane połączenie nie jest już
+nieaktywne.
 
 \section sync-example Przykład połączenia synchronicznego
 
@@ -148,27 +168,171 @@ i co minutę wywoływać funkcję \c gg_ping().
 
 \section Zdarzenia
 
- - \c GG_EVENT_NONE
- - \c GG_EVENT_CONN_FAILED
- - \c GG_EVENT_CONN_SUCCESS
-
- - \c GG_EVENT_MSG
-
- - \c GG_EVENT_NOTIFY_DESCR
- - \c GG_EVENT_NOTIFY
- - \c GG_EVENT_STATUS
- - \c GG_EVENT_NOTIFY60
- - \c GG_EVENT_STATUS60
- - \c GG_EVENT_ACK
- - \c GG_EVENT_MSG_ACK
- - \c GG_EVENT_PONG
- - \c GG_EVENT_DISCONNECT
- - \c GG_EVENT_XML_EVENT
- - \c GG_EVENT_USERLIST
- - \c GG_EVENT_IMAGE_REPLY
- - \c GG_EVENT_IMAGE_REQUEST
-
-
- - \c GG_EVENT_
+<table>
+<tr>
+<th>Typ zdarzenia</th>
+<th>Pole \c gg_event</th>
+<th>Typ pola</th>
+<th>Opis</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_NONE</td>
+<td>-</td>
+<td>-</td>
+<td>\copydoc gg_event_t::GG_EVENT_NONE</td>
+</tr>
+<tr>
+<th colspan="4">Zdarzenia związane z połączeniem</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_CONN_SUCCESS</td>
+<td>-</td>
+<td>-</td>
+<td>\copydoc gg_event_t::GG_EVENT_CONN_SUCCESS</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_CONN_FAILED</td>
+<td>\c event.failure</td>
+<td>\ref gg_failure_t "\c gg_failure_t"
+</td>
+<td>\copydoc gg_event_t::GG_EVENT_CONN_FAILED</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_PONG</td>
+<td>-</td>
+<td>-</td>
+<td>\copydoc gg_event_t::GG_EVENT_PONG</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DISCONNECT</td>
+<td>-</td>
+<td>-</td>
+<td>\copydoc gg_event_t::GG_EVENT_DISCONNECT</td>
+</tr>
+<tr>
+<th colspan="4">Wiadomości</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_XML_EVENT</td>
+<td>\c event.xml_event</td>
+<td>\c gg_event_xml_event</td>
+<td>\copydoc gg_event_t::GG_EVENT_XML_EVENT</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_MSG</td>
+<td>\c event.msg</td>
+<td>\c gg_event_msg</td>
+<td>\copydoc gg_event_t::GG_EVENT_MSG</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_ACK</td>
+<td>\c event.ack</td>
+<td>\c gg_event_ack</td>
+<td>\copydoc gg_event_t::GG_EVENT_ACK</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_IMAGE_REQUEST</td>
+<td>\c event.image_request</td>
+<td>\c gg_event_image_request</td>
+<td>\copydoc gg_event_t::GG_EVENT_IMAGE_REQUEST</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_IMAGE_REPLY</td>
+<td>\c event.image_reply</td>
+<td>\c gg_event_image_reply</td>
+<td>\copydoc gg_event_t::GG_EVENT_IMAGE_REPLY</td>
+</tr>
+<tr>
+<th colspan="4">Lista kontaktów</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_NOTIFY</td>
+<td>\c event.notify\c[\c]</td>
+<td>\c gg_notify_reply</td>
+<td>\copydoc gg_event_t::GG_EVENT_NOTIFY</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_NOTIFY_DESCR</td>
+<td>\c event.notify_descr</td>
+<td>\c gg_event_notify_descr</td>
+<td>\copydoc gg_event_t::GG_EVENT_NOTIFY_DESCR</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_STATUS</td>
+<td>\c event.status</td>
+<td>\c gg_event_status</td>
+<td>\copydoc gg_event_t::GG_EVENT_STATUS</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_NOTIFY60</td>
+<td>\c event.notify60\c[\c]</td>
+<td>\c gg_event_notify60</td>
+<td>\copydoc gg_event_t::GG_EVENT_NOTIFY60</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_STATUS60</td>
+<td>\c event.status60</td>
+<td>\c gg_event_status60</td>
+<td>\copydoc gg_event_t::GG_EVENT_STATUS60</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_USERLIST</td>
+<td>\c event.userlist</td>
+<td>\c gg_event_userlist</td>
+<td>\copydoc gg_event_t::GG_EVENT_USERLIST</td>
+</tr>
+<tr>
+<th colspan="4">Katalog publiczny</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_PUBDIR50_SEARCH_REPLY</td>
+<td>\c event.pubdir50</td>
+<td>\ref pubdir50 "\c gg_pubdir50_t"
+</td>
+<td>\copydoc gg_event_t::GG_EVENT_PUBDIR50_SEARCH_REPLY</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_PUBDIR50_READ</td>
+<td>\c event.pubdir50</td>
+<td>\ref pubdir50 "\c gg_pubdir50_t"
+</td>
+<td>\copydoc gg_event_t::GG_EVENT_PUBDIR50_READ</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_PUBDIR50_WRITE</td>
+<td>\c event.pubdir50</td>
+<td>\ref pubdir50 "\c gg_pubdir50_t"
+</td>
+<td>\copydoc gg_event_t::GG_EVENT_PUBDIR50_WRITE</td>
+</tr>
+<tr>
+<th colspan="4">Połączenia bezpośrednie</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_NEW</td>
+<td>\c event.dcc7_new</td>
+<td>\c gg_dcc7</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_NEW</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_ACCEPT</td>
+<td>\c event.dcc7_accept</td>
+<td>\c gg_event_dcc7_accept</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_ACCEPT</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_REJECT</td>
+<td>\c event.dcc7_reject</td>
+<td>\c gg_event_dcc7_reject</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_REJECT</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_ERROR</td>
+<td>\c event.dcc7_error</td>
+<td>\ref gg_error_t "\c gg_error_t"
+</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_ERROR</td>
+</tr>
+</table>
 
 */

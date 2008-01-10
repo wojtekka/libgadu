@@ -846,7 +846,7 @@ static int gg_dcc7_postauth_fixup(struct gg_dcc7 *dcc)
  *
  * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
  * to \c GG_EVENT_NONE, nie wydarzyło się jeszcze nic wartego odnotowania.
- * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free.
+ * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free().
  *
  * \param dcc Struktura połączenia
  *

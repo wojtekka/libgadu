@@ -142,7 +142,7 @@ typedef struct {
 	uint8_t id[8];
 } gg_dcc7_id_t;
 
-/*
+/**
  * Makro deklarujące pola wspólne dla struktur sesji.
  */
 #define gg_common_head(x) \
@@ -171,7 +171,9 @@ struct gg_dcc7;
 /**
  * Sesja Gadu-Gadu.
  *
- * Tworzona przez funkcję \c gg_login, zwalniana przez \c gg_free_session.
+ * Tworzona przez funkcję \c gg_login(), zwalniana przez \c gg_free_session().
+ *
+ * \ingroup login
  */
 struct gg_session {
 	gg_common_head(struct gg_session)
@@ -241,13 +243,15 @@ struct gg_session {
 
 	struct gg_dcc7 *dcc7_list;	/**< Lista połączeń bezpośrednich skojarzonych z sesją */
 	
-	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_watch_fd */
+	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_watch_fd() */
 };
 
 /**
  * Połączenie HTTP.
  *
- * Tworzone przez \c gg_http_connect, zwalniane przez \c gg_http_free.
+ * Tworzone przez \c gg_http_connect(), zwalniane przez \c gg_http_free().
+ *
+ * \ingroup http
  */
 struct gg_http {
 	gg_common_head(struct gg_http)
@@ -304,9 +308,9 @@ struct gg_file_info {
 /**
  * Połączenie bezpośrednie do wersji Gadu-Gadu 6.x.
  *
- * Tworzone przez \c gg_dcc_socket_create, \c gg_dcc_get_file,
- * \c gg_dcc_send_file lub \c gg_dcc_voice_chat, zwalniane przez
- * \c gg_dcc_free.
+ * Tworzone przez \c gg_dcc_socket_create(), \c gg_dcc_get_file(),
+ * \c gg_dcc_send_file() lub \c gg_dcc_voice_chat(), zwalniane przez
+ * \c gg_dcc_free().
  *
  * \ingroup dcc6
  */
@@ -377,7 +381,7 @@ struct gg_dcc7 {
 				/**< Sesja do której przypisano połączenie */
 	struct gg_dcc7 *next;	/**< Następne połączenie w liście */
 
-	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_dcc7_watch_fd */
+	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_dcc7_watch_fd() */
 	int seek;		/**< Flaga mówiąca, że można zmieniać położenie w wysyłanym pliku */
 };
 
@@ -480,6 +484,8 @@ enum gg_state_t {
 /**
  * Informacja o tym, czy biblioteka chce zapisywać i/lub czytać
  * z deskryptora. Maska bitowa.
+ *
+ * \ingroup events
  */
 enum gg_check_t {
 	GG_CHECK_NONE = 0,		/**< Nie sprawdzaj niczego */
@@ -489,7 +495,9 @@ enum gg_check_t {
 
 /**
  * Parametry połączenia z serwerem Gadu-Gadu. Parametry zostały przeniesione
- * do struktury, by uniknąć zmian API po rozszerzeniu protokołu.
+ * do struktury, by uniknąć zmian API po rozszerzeniu protokołu i dodaniu
+ * kolejnych opcji połączenia. Część parametrów, które nie są już aktualne
+ * lub nie mają znaczenia, została usunięta z dokumentacji.
  *
  * \ingroup login
  */
@@ -497,30 +505,34 @@ struct gg_login_params {
 	uin_t uin;			/**< Numer Gadu-Gadu */
 	char *password;			/**< Hasło */
 	int async;			/**< Flaga asynchronicznego połączenia (domyślnie nie) */
-	int status;			/**< Początkowy status użytkownika (domyślnie \c GG_STATUS_AVAIL */
+	int status;			/**< Początkowy status użytkownika (domyślnie \c GG_STATUS_AVAIL) */
 	char *status_descr;		/**< Początkowy opis użytkownika (domyślnie brak) */
 	uint32_t server_addr;		/**< Adres serwera Gadu-Gadu (domyślnie pobierany automatycznie) */
 	uint16_t server_port;		/**< Port serwera Gadu-Gadu (domyślnie pobierany automatycznie) */
+#ifndef DOXYGEN
 	uint32_t client_addr;		/**< Adres połączeń bezpośrednich (nieaktualne) */
 	uint16_t client_port;		/**< Port połączeń bezpośrednich (nieaktualne) */
-	int protocol_version;		/**< Wymuszona wersja protokołu (nie ma wpływu na zachowanie biblioteki) */
-	char *client_version;		/**< Wymuszona wersja klienta */
+#endif
+	int protocol_version;		/**< Wersja protokołu wysyłana do serwera (domyślnie najnowsza obsługiwana) */
+	char *client_version;		/**< Wersja klienta wysyłana do serwera (domyślnie najnowsza znana) */
 	int has_audio;			/**< Flaga obsługi połączeń głosowych */
-	int last_sysmsg;		/**< Numer ostatniej wiadomości systemowej */
-	uint32_t external_addr;		/**< Adres publiczny dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
-	uint16_t external_port;		/**< Port publiczny dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
+	int last_sysmsg;		/**< Numer ostatnio odebranej wiadomości systemowej */
+	uint32_t external_addr;		/**< Adres publiczny dla połączeń bezpośrednich (6.x) */
+	uint16_t external_port;		/**< Port publiczny dla połączeń bezpośrednich (6.x) */
+#ifndef DOXYGEN
 	int tls;			/**< Flaga połączenia szyfrowanego (nieaktualna) */
-	int image_size;			/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
+#endif
+	int image_size;			/**< Maksymalny rozmiar obsługiwanych obrazków w kilobajtach */
+#ifndef DOXYGEN
 	int era_omnix;			/**< Flaga udawania klienta Era Omnix (nieaktualna) */
+#endif
 	int hash_type;			/**< Rodzaj skrótu hasła (domyślnie SHA1) */
 
-/** \cond internal */
-
+#ifndef DOXYGEN
 	char dummy[5 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
-
-/** \endcond */
+#endif
 
 };
 
@@ -544,48 +556,50 @@ uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len);
 
 /**
  * Rodzaj zdarzenia.
+ *
+ * \ingroup events
  */
 enum gg_event_t {
-	GG_EVENT_NONE = 0,		/**< Nic się nie wydarzyło */
-	GG_EVENT_MSG,			/**< Otrzymano wiadomość */
-	GG_EVENT_NOTIFY,		/**< Zmiana statusu kontaktu */
-	GG_EVENT_NOTIFY_DESCR,		/**< Zmiana statusu kontaktu */
-	GG_EVENT_STATUS,		/**< Zmiana statusu kontaktu */
-	GG_EVENT_ACK,			/**< Potwierdzenie wiadomości */
-	GG_EVENT_PONG,			/**< Utrzymanie połączenia */
-	GG_EVENT_CONN_FAILED,		/**< Połączenie się nie udało */
-	GG_EVENT_CONN_SUCCESS,		/**< Połączono */
-	GG_EVENT_DISCONNECT,		/**< Serwer zrywa połączenie */
+	GG_EVENT_NONE = 0,		/**< Nie wydarzyło się nic wartego uwagi */
+	GG_EVENT_MSG,			/**< \brief Otrzymano wiadomość. Przekazuje również wiadomości systemowe od numeru 0. */
+	GG_EVENT_NOTIFY,		/**< \brief Informacja o statusach osób z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
+	GG_EVENT_NOTIFY_DESCR,		/**< \brief Informacja o statusie opisowym osoby z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
+	GG_EVENT_STATUS,		/**< \brief Zmiana statusu osoby z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
+	GG_EVENT_ACK,			/**< Potwierdzenie doręczenia wiadomości */
+	GG_EVENT_PONG,			/**< \brief Utrzymanie połączenia. Obecnie serwer nie wysyła już do klienta ramek utrzymania połączenia, polega wyłącznie na wysyłaniu ramek przez klienta. */
+	GG_EVENT_CONN_FAILED,		/**< \brief Nie udało się połączyć */
+	GG_EVENT_CONN_SUCCESS,		/**< \brief Połączono z serwerem. Pierwszą rzeczą, jaką należy zrobić jest wysłanie listy kontaktów. */
+	GG_EVENT_DISCONNECT,		/**< \brief Serwer zrywa połączenie. Zdarza się, gdy równolegle do serwera podłączy się druga sesja i trzeba zerwać połączenie z pierwszą. */
 
-	GG_EVENT_DCC_NEW,		/**< Nowe połączenie bezpośrednie 6.x */
-	GG_EVENT_DCC_ERROR,		/**< Błąd połączenia 6.x */
-	GG_EVENT_DCC_DONE,		/**< Zakończono połączenie 6.x */
-	GG_EVENT_DCC_CLIENT_ACCEPT,	/**< Moment akceptacji klienta */
-	GG_EVENT_DCC_CALLBACK,		/**< Połączenie zwrotne */
-	GG_EVENT_DCC_NEED_FILE_INFO,	/**< Należy wypełnić \c file_info */
-	GG_EVENT_DCC_NEED_FILE_ACK,	/**< Czeka na potwierdzenie pliku */
-	GG_EVENT_DCC_NEED_VOICE_ACK,	/**< Czeka na potwierdzenie rozmowy */
-	GG_EVENT_DCC_VOICE_DATA, 	/**< Dane połączenia głosowego 6.x */
+	GG_EVENT_DCC_NEW,		/**< Nowe połączenie bezpośrednie (6.x) */
+	GG_EVENT_DCC_ERROR,		/**< Błąd połączenia bezpośredniego (6.x) */
+	GG_EVENT_DCC_DONE,		/**< Zakończono połączenie bezpośrednie (6.x) */
+	GG_EVENT_DCC_CLIENT_ACCEPT,	/**< Moment akceptacji klienta w połączeniu bezpośrednim (6.x) */
+	GG_EVENT_DCC_CALLBACK,		/**< Zwrotne połączenie bezpośrednie (6.x) */
+	GG_EVENT_DCC_NEED_FILE_INFO,	/**< Należy wypełnić \c file_info dla połączenia bezpośredniego (6.x) */
+	GG_EVENT_DCC_NEED_FILE_ACK,	/**< Czeka na potwierdzenie pliku w połączeniu bezpośrednim (6.x) */
+	GG_EVENT_DCC_NEED_VOICE_ACK,	/**< Czeka na potwierdzenie rozmowy w połączeniu bezpośrednim (6.x) */
+	GG_EVENT_DCC_VOICE_DATA, 	/**< Dane bezpośredniego połączenia głosowego (6.x) */
 
-	GG_EVENT_PUBDIR50_SEARCH_REPLY,	/**< Odpowiedz katalogu publicznego */
+	GG_EVENT_PUBDIR50_SEARCH_REPLY,	/**< Odpowiedź katalogu publicznego */
 	GG_EVENT_PUBDIR50_READ,		/**< Odczytano własne dane z katalogu publicznego */
-	GG_EVENT_PUBDIR50_WRITE,	/**< Zmienino własne dane w katalogu publicznym */
+	GG_EVENT_PUBDIR50_WRITE,	/**< Zmieniono własne dane w katalogu publicznym */
 
-	GG_EVENT_STATUS60,		/**< Zmiana statusu kontaktu */
-	GG_EVENT_NOTIFY60,		/**< Zmiana statusu kontaktu */
-	GG_EVENT_USERLIST,		/**< Odpowiedź listy kontaktów */
-	GG_EVENT_IMAGE_REQUEST,		/**< Żądanie obrazka */
-	GG_EVENT_IMAGE_REPLY,		/**< Odpowiedź z obrazkiem */
-	GG_EVENT_DCC_ACK,		/**< Potwierdzenie transmisji */
+	GG_EVENT_STATUS60,		/**< Zmiana statusu osoby z listy kontaktów */
+	GG_EVENT_NOTIFY60,		/**< Informacja o statusach osób z listy kontaktów */
+	GG_EVENT_USERLIST,		/**< Wynik importu lub eksportu listy kontaktów */
+	GG_EVENT_IMAGE_REQUEST,		/**< Żądanie przesłania obrazka z wiadommości */
+	GG_EVENT_IMAGE_REPLY,		/**< Przysłano obrazek z wiadomości */
+	GG_EVENT_DCC_ACK,		/**< Potwierdzenie transmisji w połączeniu bezpośrednim (6.x) */
 
-	GG_EVENT_DCC7_NEW,		/**< Nowe połączenie bezpośrednie 7.x */
-	GG_EVENT_DCC7_ACCEPT,		/**< Zaakceptowano połączenie 7.x */
-	GG_EVENT_DCC7_REJECT,		/**< Odrzucono połączenie 7.x */
-	GG_EVENT_DCC7_CONNECTED,	/**< Zestawiono połączenie 7.x */
-	GG_EVENT_DCC7_ERROR,		/**< Błąd połączenia 7.x */
-	GG_EVENT_DCC7_DONE,		/**< Zakończono połączenie 7.x */
+	GG_EVENT_DCC7_NEW,		/**< Nowe połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_ACCEPT,		/**< Zaakceptowano połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_REJECT,		/**< Odrzucono połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_CONNECTED,	/**< Zestawiono połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_ERROR,		/**< Błąd połączenia bezpośredniego (7.x) */
+	GG_EVENT_DCC7_DONE,		/**< Zakończono połączenie bezpośrednie (7.x) */
 
-	GG_EVENT_XML_EVENT		/**< Komunikat systemowy 7.7 */
+	GG_EVENT_XML_EVENT		/**< Otrzymano komunikat systemowy (7.7) */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -660,199 +674,192 @@ struct gg_pubdir50_s {
  * Zapytanie lub odpowiedź katalogu publicznego.
  *
  * Do pól nie należy się odwoływać bezpośrednio -- wszystkie niezbędne
- * informacje są dostępne za pomocą funkcji \c gg_pubdir50_...
+ * informacje są dostępne za pomocą funkcji \c gg_pubdir50_*
  */
 typedef struct gg_pubdir50_s *gg_pubdir50_t;
 
 /**
+ * Opis zdarzenia \c GG_EVENT_MSG.
+ */
+struct gg_event_msg {
+	uin_t sender;		/**< Numer nadawcy */
+	int msgclass;		/**< Klasa wiadomości */
+	time_t time;		/**< Czas nadania */
+	unsigned char *message;	/**< Treść wiadomości */
+
+	int recipients_count;	/**< Liczba odbiorców konferencji */
+	uin_t *recipients;	/**< Odbiorcy konferencji */
+
+	int formats_length;	/**< Długość informacji o formatowaniu tekstu */
+	void *formats;		/**< Informacje o formatowaniu tekstu */
+	uint32_t seq;		/**< Numer sekwencyjny wiadomości */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_NOTIFY_DESCR.
+ */
+struct gg_event_notify_descr {
+	struct gg_notify_reply *notify;	/**< Informacje o liście kontaktów */
+	char *descr;		/**< Opis status */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_STATUS.
+ */
+struct gg_event_status {
+	uin_t uin;		/**< Numer Gadu-Gadu */
+	uint32_t status;	/**< Nowy status */
+	char *descr;		/**< Opis */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_STATUS60.
+ */
+struct gg_event_status60 {
+	uin_t uin;		/**< Numer Gadu-Gadu */
+	int status;		/**< Nowy status */
+	uint32_t remote_ip;	/**< Adres IP dla połączeń bezpośrednich */
+	uint16_t remote_port;	/**< Port dla połączeń bezpośrednich */
+	int version;		/**< Wersja protokołu */
+	int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
+	char *descr;		/**< Opis statusu */
+	time_t time;		/**< Czas powrotu */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_NOTIFY_REPLY60.
+ */
+struct gg_event_notify60 {
+	uin_t uin;		/**< Numer Gadu-Gadu */
+	int status;		/**< Nowy status */
+	uint32_t remote_ip;	/**< Adres IP dla połączeń bezpośrednich */
+	uint16_t remote_port;	/**< Port dla połączeń bezpośrednich */
+	int version;		/**< Wersja protokołu */
+	int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
+	char *descr;		/**< Opis statusu */
+	time_t time;		/**< Czas powrotu */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_ACK.
+ */
+struct gg_event_ack {
+	uin_t recipient;	/**< Numer odbiorcy */
+	int status;		/**< Status doręczenia */
+	int seq;		/**< Numer sekwencyjny wiadomości */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_USERLIST.
+ */
+struct gg_event_userlist {
+	char type;		/**< Rodzaj odpowiedzi */
+	char *reply;		/**< Treść odpowiedzi */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_DCC_VOICE_DATA.
+ */
+struct gg_event_dcc_voice_data {
+	uint8_t *data;		/**< Dane dźwiękowe */
+	int length;		/**< Rozmiar danych dźwiękowych */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_IMAGE_REQUEST.
+ */
+struct gg_event_image_request {
+	uin_t sender;		/**< Nadawca żądania */
+	uint32_t size;		/**< Rozmiar obrazka */
+	uint32_t crc32;		/**< Suma kontrolna CRC32 */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_IMAGE_REPLY.
+ */
+struct gg_event_image_reply {
+	uin_t sender;		/**< Nadawca obrazka */
+	uint32_t size;		/**< Rozmiar obrazka */
+	uint32_t crc32;		/**< Suma kontrolna CRC32 */
+	char *filename;		/**< Nazwa pliku */
+	char *image;		/**< Bufor z obrazkiem */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_XML_EVENT.
+ */
+struct gg_event_xml_event {
+	char *data;		/**< Bufor z komunikatem */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_DCC7_CONNECTED.
+ */
+struct gg_event_dcc7_connected {
+	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
+	// XXX czy coś się przyda?
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_DCC7_REJECT.
+ */
+struct gg_event_dcc7_reject {
+	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
+	int reason;		/**< powód odrzucenia */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_DCC7_ACCEPT.
+ */
+struct gg_event_dcc7_accept {
+	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
+	int type;		/**< Sposób połączenia (P2P, przez serwer) */
+	uint32_t remote_ip;	/**< Adres zdalnego klienta */
+	uint16_t remote_port;	/**< Port zdalnego klienta */
+};
+
+/**
+ * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
+ * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
+ *
+ * \ingroup events
+ */
+union gg_event_union {
+	enum gg_failure_t failure;	/**< Błąd połączenia (\c GG_EVENT_CONN_FAILED) */
+	struct gg_notify_reply *notify;	/**< Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY) */
+	struct gg_event_notify_descr notify_descr;	/**< Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY_DESCR) */
+	struct gg_event_status status;	/**< Zmiana statusu kontaktów (\c GG_EVENT_STATUS) */
+	struct gg_event_status60 status60;	/**< Zmiana statusu kontaktów (\c GG_EVENT_STATUS60) */
+	struct gg_event_notify60 *notify60;	/**< Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY60) */
+	struct gg_event_msg msg;	/**< Otrzymano wiadomość (\c GG_EVENT_MSG) */
+	struct gg_event_ack ack;	/**< Potwierdzenie wiadomości (\c GG_EVENT_ACK) */
+	struct gg_event_image_request image_request;	/**< Żądanie wysłania obrazka (\c GG_EVENT_IMAGE_REQUEST) */
+	struct gg_event_image_reply image_reply;	/**< Odpowiedź z obrazkiem (\c GG_EVENT_IMAGE_REPLY) */
+	struct gg_event_userlist userlist;	/**< Odpowiedź listy kontaktów (\c GG_EVENT_USERLIST) */
+	gg_pubdir50_t pubdir50;	/**< Odpowiedź katalogu publicznego (\c GG_EVENT_PUBDIR50_*) */
+	struct gg_event_xml_event xml_event;	/**< Zdarzenie systemowe (\c GG_EVENT_XML_EVENT) */
+	struct gg_dcc *dcc_new;	/**< Nowe połączenie bezpośrednie (\c GG_EVENT_DCC_NEW) */
+	enum gg_error_t dcc_error;	/**< Błąd połączenia bezpośredniego (\c GG_EVENT_DCC_ERROR) */
+	struct gg_event_dcc_voice_data dcc_voice_data;	/**< Dane połączenia głosowego (\c GG_EVENT_DCC_VOICE_DATA) */
+	struct gg_dcc7 *dcc7_new;	/**< Nowe połączenie bezpośrednie (\c GG_EVENT_DCC7_NEW) */
+	enum gg_error_t dcc7_error;	/**< Błąd połączenia bezpośredniego (\c GG_EVENT_DCC7_ERROR) */
+	struct gg_event_dcc7_connected dcc7_connected;	/**< Informacja o zestawieniu połączenia bezpośredniego (\c GG_EVENT_DCC7_CONNECTED) */
+	struct gg_event_dcc7_reject dcc7_reject;	/**< Odrzucono połączenia bezpośredniego (\c GG_EVENT_DCC7_REJECT) */
+	struct gg_event_dcc7_accept dcc7_accept;	/**< Zaakceptowano połączenie bezpośrednie (\c GG_EVENT_DCC7_ACCEPT) */
+};
+
+/**
  * Opis zdarzenia.
  *
- * Zwracany przez funkcje \c gg_watch_fd, \c gg_dcc_watch_fd
- * i \c gg_dcc7_watch_fd. Po przeanalizowaniu należy zwolnić
- * za pomocą \c gg_event_free.
+ * Zwracany przez funkcje \c gg_watch_fd(), \c gg_dcc_watch_fd()
+ * i \c gg_dcc7_watch_fd(). Po przeanalizowaniu należy zwolnić
+ * za pomocą \c gg_event_free().
+ *
+ * \ingroup events
  */
 struct gg_event {
-	int type;	/**< Rodzaj zdarzenia */
-
-	union {
-		/**
-		 * Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY)
-		 */
-		struct gg_notify_reply *notify;
-
-		/**
-		 * Błąd połączenia (\c GG_EVENT_CONN_FAILED)
-		 */
-		enum gg_failure_t failure;
-
-		/**
-		 * Nowe połączenie bezpośrednie (\c GG_EVENT_DCC_NEW)
-		 */
-		struct gg_dcc *dcc_new;
-
-		/**
-		 * Błąd połączenia bezpośredniego (\c GG_EVENT_DCC_ERROR)
-		 */
-		int dcc_error;
-
-		/**
-		 * Odpowiedź katalogu publicznego (\c GG_EVENT_PUBDIR50_...)
-		 */
-		gg_pubdir50_t pubdir50;
-
-		/**
-		 * Otrzymano wiadomość (\c GG_EVENT_MSG)
-		 */
-		struct {
-			uin_t sender;		/**< Numer nadawcy */
-			int msgclass;		/**< Klasa wiadomości */
-			time_t time;		/**< Czas nadania */
-			unsigned char *message;	/**< Treść wiadomości */
-
-			int recipients_count;	/**< Liczba odbiorców konferencji */
-			uin_t *recipients;	/**< Odbiorcy konferencji */
-
-			int formats_length;	/**< Długość informacji o formatowaniu tekstu */
-			void *formats;		/**< Informacje o formatowaniu tekstu */
-			uint32_t seq;		/**< Numer sekwencyjny wiadomości */
-		} msg;
-
-		/**
-		 * Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY_DESCR)
-		 */
-		struct {
-			struct gg_notify_reply *notify;	/**< Informacje o liście kontaktów */
-			char *descr;		/**< Opis status */
-		} notify_descr;
-
-		/**
-		 * Zmiana statusu kontaktów (\c GG_EVENT_STATUS)
-		 */
-		struct {
-			uin_t uin;		/**< Numer Gadu-Gadu */
-			uint32_t status;	/**< Nowy status */
-			char *descr;		/**< Opis */
-		} status;
-
-		/**
-		 * Zmiana statusu kontaktów (\c GG_EVENT_STATUS60)
-		 */
-		struct {
-			uin_t uin;		/**< Numer Gadu-Gadu */
-			int status;		/**< Nowy status */
-			uint32_t remote_ip;	/**< Adres IP dla połączeń bezpośrednich */
-			uint16_t remote_port;	/**< Port dla połączeń bezpośrednich */
-			int version;		/**< Wersja protokołu */
-			int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
-			char *descr;		/**< Opis statusu */
-			time_t time;		/**< Czas powrotu */
-		} status60;
-
-		/**
-		 * Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY60)
-		 */
-		struct {
-			uin_t uin;		/**< Numer Gadu-Gadu */
-			int status;		/**< Nowy status */
-			uint32_t remote_ip;	/**< Adres IP dla połączeń bezpośrednich */
-			uint16_t remote_port;	/**< Port dla połączeń bezpośrednich */
-			int version;		/**< Wersja protokołu */
-			int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
-			char *descr;		/**< Opis statusu */
-			time_t time;		/**< Czas powrotu */
-		} *notify60;
-
-		/**
-		 * Potwierdzenie wiadomości (\c GG_EVENT_ACK)
-		 */
-		struct {
-			uin_t recipient;	/**< Numer odbiorcy */
-			int status;		/**< Status doręczenia */
-			int seq;		/**< Numer sekwencyjny wiadomości */
-		} ack;
-
-		/**
-		 * Dane połączenia głosowego (\c GG_EVENT_DCC_VOICE_DATA)
-		 */
-		struct {
-			uint8_t *data;		/**< Dane dźwiękowe */
-			int length;		/**< Rozmiar danych dźwiękowych */
-		} dcc_voice_data;
-
-		/**
-		 * Odpowiedź listy kontaktów (\c GG_EVENT_USERLIST)
-		 */
-		struct {
-			char type;		/**< Rodzaj odpowiedzi */
-			char *reply;		/**< Treść odpowiedzi */
-		} userlist;
-
-		/**
-		 * Żądanie wysłania obrazka (\c GG_EVENT_IMAGE_REQUEST)
-		 */
-		struct {
-			uin_t sender;		/**< Nadawca żądania */
-			uint32_t size;		/**< Rozmiar obrazka */
-			uint32_t crc32;		/**< Suma kontrolna CRC32 */
-		} image_request;
-
-		/**
-		 * Odpowiedź z obrazkiem (\c GG_EVENT_IMAGE_REPLY)
-		 */
-		struct {
-			uin_t sender;		/**< Nadawca obrazka */
-			uint32_t size;		/**< Rozmiar obrazka */
-			uint32_t crc32;		/**< Suma kontrolna CRC32 */
-			char *filename;		/**< Nazwa pliku */
-			char *image;		/**< Bufor z obrazkiem */
-		} image_reply;
-
-		/**
-		 * Zdarzenie systemowe
-		 */
-		struct {
-			char *data;		/**< Bufor z komunikatem */
-		} xml_event;
-
-		/**
-		 * Nowe połączenie bezpośrednie (\c GG_EVENT_DCC7_NEW)
-		 */
-		struct gg_dcc7 *dcc7_new;
-
-		/**
-		 * Błąd połączenia bezpośredniego (\c GG_EVENT_DCC7_ERROR)
-		 */
-		int dcc7_error;
-
-		/**
-		 * Informacja o zestawieniu połączenia bezpośredniego
-		 * (\c GG_EVENT_DCC7_CONNECTED)
-		 */
-		struct {
-			struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
-			// XXX czy coś się przyda?
-		} dcc7_connected;
-
-		/**
-		 * Odrzucono połączenia bezpośredniego
-		 * (\c GG_EVENT_DCC7_REJECT)
-		 */
-		struct {
-			struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
-			int reason;		/**< powód odrzucenia */
-		} dcc7_reject;
-
-		/**
-		 * Zaakceptowano połączenie bezpośrednie
-		 * (\c GG_EVENT_DCC7_ACCEPT)
-		 */
-		struct {
-			struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
-			int type;		/**< Sposób połączenia (P2P, przez serwer) */
-			uint32_t remote_ip;	/**< Adres zdalnego klienta */
-			uint16_t remote_port;	/**< Port zdalnego klienta */
-		} dcc7_accept;
-	} event;
+	int type;			/**< Rodzaj zdarzenia */
+	union gg_event_union event;	/**< Informacja o zdarzeniu */
 };
 
 struct gg_event *gg_watch_fd(struct gg_session *sess);
@@ -1396,14 +1403,16 @@ struct gg_pubdir50_reply {
 #define GG_STATUS_INVISIBLE_DESCR 0x0016
 #define GG_STATUS_BLOCKED 0x0006
 
+#define GG_STATUS_FRIENDS_MASK 0x8000
+
 #else
 
 /**
- * \ingroup status
- *
  * Rodzaje statusów użytkownika.
+ *
+ * \ingroup status
  */
-typedef enum {
+enum {
 	GG_STATUS_NOT_AVAIL,		/**< Niedostępny */
 	GG_STATUS_NOT_AVAIL_DESCR,	/**< Niedostępny z opisem */
 	GG_STATUS_AVAIL,		/**< Dostępny */
@@ -1413,16 +1422,10 @@ typedef enum {
 	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
 	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
 	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
-} gg_status_t;
+	GG_STATUS_FRIENDS_MASK,		/**< Flaga bitowa dostępności tylko dla znajomych */
+};
 
 #endif	/* DOXYGEN */
-
-/**
- * \ingroup status
- *
- * Flaga bitowa dostępności tylko dla znajomych.
- */
-#define GG_STATUS_FRIENDS_MASK 0x8000
 
 /**
  * \ingroup status
@@ -1486,9 +1489,9 @@ struct gg_notify {
  * Rodzaj kontaktu.
  */
 enum {
-	GG_USER_OFFLINE,	/**< Niewidoczny dla użytkownika */
 	GG_USER_NORMAL,		/**< Zwykły kontakt */
 	GG_USER_BLOCKED,	/**< Zablokowany */
+	GG_USER_OFFLINE,	/**< Niewidoczny dla kontaktu */
 };
 
 #endif	/* DOXYGEN */
@@ -1586,9 +1589,9 @@ struct gg_status {
 #else
 
 /**
- * \ingroup messages
- *
  * Klasy wiadomości.
+ *
+ * \ingroup messages
  */
 enum {
 	GG_CLASS_MSG,		/**< Wiadomość ma pojawić się w osobnym oknie */

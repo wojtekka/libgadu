@@ -58,6 +58,8 @@
  * strukturę \c gg_event.
  *
  * \param e Struktura zdarzenia
+ *
+ * \ingroup events
  */
 void gg_event_free(struct gg_event *e)
 {
@@ -1002,11 +1004,13 @@ fail:
  *
  * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
  * to \c GG_EVENT_NONE, nie wydarzyło się jeszcze nic wartego odnotowania.
- * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free.
+ * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free().
  *
  * \param sess Struktura sesji
  *
  * \return Struktura zdarzenia lub \c NULL jeśli wystąpił błąd
+ *
+ * \ingroup events
  */
 struct gg_event *gg_watch_fd(struct gg_session *sess)
 {

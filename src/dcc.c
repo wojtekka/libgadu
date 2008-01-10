@@ -84,7 +84,7 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsig
  * \param sess Struktura sesji
  * \param uin Numer odbiorcy
  *
- * \return Patrz \c gg_send_message_ctcp
+ * \return Patrz \c gg_send_message_ctcp()
  *
  * \ingroup dcc6
  */
@@ -125,7 +125,7 @@ static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 /**
  * Wypełnia pola struktury \c gg_dcc niezbędne do wysłania pliku.
  *
- * \note Większą funkcjonalność zapewnia funkcja \c gg_dcc_fill_file_info2.
+ * \note Większą funkcjonalność zapewnia funkcja \c gg_dcc_fill_file_info2().
  *
  * \param d Struktura połączenia
  * \param filename Nazwa pliku
@@ -370,7 +370,9 @@ void gg_dcc_set_type(struct gg_dcc *d, int type)
  * \internal Funkcja zwrotna połączenia bezpośredniego.
  *
  * Pole \c callback struktury \c gg_dcc zawiera wskaźnik do tej funkcji.
- * Wywołuje ona \c gg_watch_fd i zachowuje wynik w polu \c event.
+ * Wywołuje ona \c gg_watch_fd() i zachowuje wynik w polu \c event.
+ *
+ * \note Funkcjonalność funkcjo zwrotnej nie jest już wspierana.
  *
  * \param d Struktura połączenia
  *

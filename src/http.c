@@ -55,11 +55,11 @@
  *
  * Przy połączeniu asynchronicznym, funkcja rozpoczyna połączenie, a dalsze
  * etapy będą przeprowadzane po wykryciu zmian (\c watch) na obserwowanym
- * deskryptorze (\c fd) i wywołaniu funkcji \c gg_http_watch_fd.
+ * deskryptorze (\c fd) i wywołaniu funkcji \c gg_http_watch_fd().
  *
- * Po zakończeniu, należy zwolnić strukturę za pomocą funkcji \c gg_http_free.
- * Połączenie asynchroniczne można zatrzymać w każdej chwili za pomocą
- * \c gg_http_stop.
+ * Po zakończeniu, należy zwolnić strukturę za pomocą funkcji
+ * \c gg_http_free(). Połączenie asynchroniczne można zatrzymać w każdej
+ * chwili za pomocą \c gg_http_stop().
  *
  * \param hostname Adres serwera
  * \param port Port serwera
@@ -188,7 +188,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
  *
  * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
  * to \c GG_EVENT_NONE, nie wydarzyło się jeszcze nic wartego odnotowania.
- * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free. Połączenie
+ * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free(). Połączenie
  * jest zakończone, jeśli pole \c state jest równe \c GG_STATE_PARSING.
  * W przypadku błędu połączenia, pole \c state będzie równe
  * \c GG_STATE_ERROR, a kod błędu znajdzie się w polu \c error.
@@ -472,7 +472,7 @@ int gg_http_watch_fd(struct gg_http *h)
 /**
  * Kończy asynchroniczne połączenie HTTP.
  *
- * Po zatrzymaniu należy zwolnić zasoby funkcją \c gg_http_free.
+ * Po zatrzymaniu należy zwolnić zasoby funkcją \c gg_http_free().
  *
  * \param h Struktura połączenia
  *

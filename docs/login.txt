@@ -1,203 +1,95 @@
 /**
 
-\defgroup login Logowanie się do serwera
+\defgroup login Połączenie z serwerem
 \ingroup session
 
 \details
 
-każda sesja jest opisywana przez ,,struct gg_session''. biblioteka może
-w ramach jednego procesu/wątku obsługiwać tyle sesji, na ile pozwolą
-zasoby. na początku deklarujemy:
+Każde połączenie z serwerem jest rozpoczynane funkcją \c gg_login() zwracającą
+strukturę \c gg_session, opisującą dane połączenie. Funkcja \c gg_login() za
+parametr przyjmuje wskaźnik strukturę zawierającą listę parametrów połączenia.
+Przykładowy kod rozpoczynający łączenie wygląda następująco:
 
 \code
-...
+struct gg_session *sesja;
+struct gg_login_params parametry;
+struct gg_event *zdarzenie;
+
+memset(&parametry, 0, sizeof(parametry));
+parametry.uin = 12345;
+parametry.password = "hasło";
+parametry.async = 1;
+parametry.status = GG_STATUS_INVISIBLE;
+
+sesja = gg_login(&parametry);
+
+if (!sesja) {
+    błąd("Nie można się połączyć");
+    exit(1);
+}
+
+// ...
 \endcode
 
-następnie będziemy się łączyć. przykład będzie dotyczył socketów
-nieblokujących, bo w większości aplikacji ciężko sobie pozwolić na
-zawieszanie programu na czas łączenia.
+Lista wszystkich parametrów połączenia znajduje się w opisie struktury \c
+gg_login_params. W zależności od tego, czy łączymy się synchronicznie czy
+asynchronicznie (jak w przykładzie), funkcja \c gg_login() zwróci wskaźnik
+dopiero po udanym połączeniu lub zaraz po rozpoczęciu procedury łączenia.
+Dokładny opis dalszej obsługi połączenia znajduje się w sekcji poświęconej \ref
+events "obsłudze zdarzeń".
 
-\code
-	struct gg_session *blah;
-	struct gg_login_params p;
+Aby łączyć się z użyciem serwera pośredniczącego (ang. \e proxy), należy przed
+połączeniem ustawić zmienne globalne \ref proxy "\c gg_proxy_enabled"
+, \ref proxy "\c gg_proxy_host"
+, \ref proxy "\c gg_proxy_port"
+ i \ref proxy "inne."
 
-	memset(&p, 0, sizeof(p));
-	p.uin = 123456;
-	p.password = "hasło";
-	p.async = 1;
-	p.status = GG_STATUS_INVISIBLE;
+Do korzystania z połączeń bezpośrednich wersji 6.x, konieczne jest przed
+połączeniem ustawienie zmiennych globalnych \ref ip "\c gg_dcc_ip"
+i \ref ip "\c gg_dcc_port."
 
-	if (!(blah = gg_login(&p)))
-		my_error();
-\endcode
+\section login-details Procedura łączenia z serwerem
 
-jeśli uda się rozpocząć proces łączenia, dostajemy wskaźnik do struktury,
-inaczej NULL. wywołanie gg_login() powoduje uruchomienie drugiego procesu
-lub wątku w tle, który wywoła gethostbyname() i potokiem zwróci wynik.
-później połączy się z serwerem, wyśle, odbierze, połączy się ze wskazanym
-adresem IP, zaloguje się itd. jako że wszystko dzieję się w tle, klient
-musi sprawdzać cały czas podane deskryptory. pole ,,blah->fd'' zawiera
-deskryptor, a ,,blah->check'' jest bitmapą i zawiera GG_CHECK_READ i/lub
-GG_CHECK_WRITE jeśli mamy sprawdzić czy przyszły nowe dane i/lub możemy
-wysyłać. jeśli coś się wydarzy, wywołujemy ,,gg_watch_fd()'', a libgadu
-sobie już sprawdzi, co takiego się zdarzyło:
+Procedura łączenia się z serwerem składa się z kilku etapów:
 
-\code
-	while (1) {
-		fd_set rd, wr, ex;
+ -# Rozwiązywanie nazwy serwera rozdzielającego (ang. \e hub), domyślnie
+    \c appmsg.gadu-gadu.pl
+ -# Nawiązanie połączenia z serwerem rozdzielającym na porcie 80.
+ -# Wysłanie zapytania o adres właściwego serwera. Parametrami zapytania są
+    m.in. numer konta i wersja klienta.
+ -# Odebranie odpowiedzi zawierającej adres IP właściwego serwera, jego port
+    i ewentualnie wiadomość systemową.
+ -# Nawiązanie połączenia z właściwym serwerem.
+ -# Odebranie pakietu z ziarnem hasła do przeprowadzenia autoryzacji typu
+    \e challenge-response.
+ -# Wysłanie pakietu z parametrami logowania (w tym skrótem hasła).
+ -# Odebranie pakietu z informacją o pomyślnym lub nieudanym logowaniu.
 
-		FD_ZERO(&rd);
-		FD_ZERO(&wr);
-		FD_ZERO(&ex);
+Wszystkimi etapami zajmuje się funkcja \c gg_login() w przypadku połączenia
+synchronicznego lub \c gg_login() i \c gg_watch_fd() dla połączeń
+asynchronicznych. Możliwe jest pominięcie pierwszych czterech kroków,
+związanych z połączeniem z serwerem rozdzielającym, przez
+ręczne podanie adresu i portu właściwego serwera w polach
+\ref gg_login_params::server_addr "\c server_addr"
+i \ref gg_login_params::server_port "\c server_port"
+struktury \c gg_login_params. Jest to przydatne w sytuacjach, gdy serwer
+rozdzielający jest przeciążony lub niedostępny, albo gdy zwraca nieprawidłowy
+adres właściwego serwera.
 
-		if ((blah->check & GG_CHECK_READ))
-			FD_SET(blah->fd, &rd);
-		if ((blah->check & GG_CHECK_WRITE))
-			FD_SET(blah->fd, &wr);
-		FD_SET(blah->fd, &ex);
+Rozwiązywanie nazwy w systemach zgodnych z normą POSIX jest operacją
+synchroniczną. Z tego powodu w trybie asynchronicznym konieczne jest utworzenie
+dodatkowego procesu lub wątku (w zależności od opcji kompilacji), który w tle
+dokona rozwiązania nazwy i zwróci wynik do procesu lub wątku nadrzędnego.
 
-		if (select(blah->fd + 1, &rd, &wr, &ex, NULL) == -1)
-			my_error();
+\section login-keepalive Utrzymanie połączenia
 
-		if (FD_ISSET(blah->fd, &ex))
-			my_error();
+Serwer oczekuje regularnego wysyłania pakietów utrzymania połączenia. W tym
+celu należy co minutę wywoływać funkcję \c gg_ping().
 
-		if (FD_ISSET(blah->fd, &rd) || FD_ISSET(blah->fd, &wr))
-			my_handle_event();
-	}
-\endcode
+\section login-logoff Zakończenie połączenia
 
-dla uproszczenia, nie ma tutaj obsługi timeoutów i tym podobnych dodatków.
-poza tym, jeśli program sprawdza też inne deskryptory (np. stdin dla
-klientów konsolowych), dobrze byłoby sprawdzić, czy dana sesja coś robi i
-nie sprawdzać ,,blah->fd'' jeśli ,,blah->state == GG_STATE_IDLE''. od czasu
-do czasu można dać serwerowi znać, że coś się dzieje, za pomocą...
-
-\code
-	gg_ping(blah);
-\endcode
-
-ale to już wymaga implementacji timerów i liczenia czasu od ostatniego
-pinga. ,,blah->last_event'' mówi, kiedy dostaliśmy cokolwiek ostatnio od
-serwera. wszystkie pola struktury są opisane w pliku libgadu.h.
-
-wracając do obsługi deskryptorów -- jeśli klient zauważy, że coś się
-zmieniło na podanym sockecie, powinien wywołać ,,gg_watch_fd()'',
-która wszystkim się zajmie. zwraca ona wskaźnik do zaalokowanej
-struktury opisującej zdarzenie. po obejrzeniu należy zwolnić ją za
-pomocą ,,gg_event_free()''. w powyższym przykładzie jest wywoływana
-funkcja ,,my_handle_event()'', która może wyglądać tak:
-
-\code
-	struct gg_event *e;
-	
-	if (!(e = gg_watch_fd(blah)))
-		my_error();
-
-	switch (e->type) {
-		case GG_EVENT_NONE:
-		case GG_EVENT_PONG:
-			/* olewamy */
-			break;
-
-		case GG_EVENT_CONN_SUCCESS:
-			printf("połączono!\n");
-			/* tutaj wysyłamy userlistę za pomocą gg_notify() */
-			break;
-
-		case GG_EVENT_CONN_FAILED:
-			printf("nie udało się\n");
-			/* powód w e->event.failure, stałe GG_FAILURE_... */
-			break;
-
-		case GG_EVENT_MSG:
-			printf("masz wiadomość!\n");
-			printf("od: %d\n", e->event.msg.sender);
-			printf("treść: %s\n", e->event.msg.message);
-			/* e->event.msg.class mówi czy rozmowa czy wiad. */
-			/* jeśli e->event.msg.sender równy 0, to mamy */
-			/* wiadomość systemową o numerze w msg.class */
-			break;
-
-		case GG_EVENT_NOTIFY:
-			printf("oto ludzie, którzy się pojawili: ");
-			/* tutaj sprawdzanie tablicy e->event.notify */
-			break;
-
-		case GG_EVENT_NOTIFY60:
-			printf("oto ludzie, którzy się pojawili: ");
-			/* tutaj sprawdzanie tablicy e->event.notify60 */
-			break;
-
-		case GG_EVENT_STATUS:
-			printf("ktoś %d zmienił stan\n", e->event.status.uin);
-			/* nowy stan w e->event.status.status */
-			break;
-
-		case GG_EVENT_STATUS60:
-			printf("ktoś %d zmienił stan\n", e->event.status60.uin);
-			/* nowy stan w e->event.status60.status */
-			break;
-
-		case GG_EVENT_ACK:
-			printf("wiadomość dotarła do %d.\n",
-				e->event.ack.recipient);
-			/* e->event.ack.status mówi czy dotarła do klienta */
-			/* czy leży na serwerze, stałe GG_ACK_... */
-			/* e->event.ack.seq to numerek wiadomości */
-			break;
-
-		case GG_EVENT_PUBDIR50_REPLY:
-			printf("znalazło kogoś\n");
-			/* opisane niżej */
-			break;
-
-		case GG_EVENT_USERLIST:
-			printf("wysłano lub odebrano listę z serwera\n");
-			/* opisane niżej */
-			break;
-	}
-
-	gg_event_free(e);
-\endcode
-
-przy okazji wiadomo, co oznaczają zdarzenia. część z nich można ignorować,
-jeśli robi się okrojonego klienta, np. wysyłającego jedną wiadomość z linii
-komend.
-
-po zalogowaniu należy wysłać serwerowi listę użytkowników, których mamy
-w liście kontaktów. ,,gg_notify()'' przyjmuje za argument tablicę zmiennych
-typu ,,uin_t''. w odpowiedzi dostaniemy GG_EVENT_NOTIFY i tablicę struktur
-,,struct gg_notify_reply'', jeśli ktoś jest. po szczegóły odsyłam do
-libgadu.c, libgadu.h i źródeł konsolowego klienta. jeśli dodajemy lub
-usuwamy kogoś w trakcie działania, należy skorzystać z ,,gg_add_notify()''
-lub ,,gg_remove_notify()''. jeśli chcemy korzystać z listy osób blokowanych
-lub takich, przed którymi się ukrywamy, należy korzystać z funkcji
-,,gg_notify_ex()'', ,,gg_add_notify_ex()'' i ,,gg_remove_notify_ex()'',
-które biorą dodatkowy argument mówiący, jak traktować użytkownika.
-odpowiadają za to stałe GG_USER_NORMAL, GG_USER_BLOCKED i GG_USER_OFFLINE.
-
-żeby zmienić stan na zajęty lub dostępny, używamy ,,gg_change_status()'',
-,,gg_change_status_descr()'' lub ,,gg_change_status_descr_time()''.
-
-wysyłanie wiadomości za pomocą ,,gg_send_message()''. parametr ,,class''
-mówi, czy ma się pojawić w osobnym okienku (GG_CLASS_MSG) czy w okienku
-rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomości,
-którego możemy użyć do potwierdzenia. wiadomość, która ma być sformatowana
-w odpowiedni sposób (pogrubienie, kursywa, kolory, itp.) wysyłamy za pomocą
-,,gg_send_message_richtext()''. wiadomości konferencyjne wysyłamy funkcjami
-,,gg_send_message_confer()'' lub ,,gg_send_message_confer_richtext()''.
-
-jeśli chcemy się wylogować, wywołujemy ,,gg_logoff()'' i potem zwalniamy
-pamięć związaną z sesją funkcją ,,gg_free_session()''.
-
-jeśli chcemy przypomnieć swoje hasło, wywołujemy funkcję
-,,gg_remind_passwd2()'', a wynikową strukturę ,,gg_http'' traktujemy
-podobnie do ,,gg_session'':
- - sprawdzamy ->fd i ->check,
- - wywołujemy ,,gg_remind_passwd_watch_fd()'', gdy coś się dzieje. funkcja
-   ta zwraca -1 w przypadku błędu. jeśli zwraca 0, wywołujemy ją, póki
-   ->state nie będzie równe GG_STATE_DONE lub GG_STATE_ERROR.
- - po zakończeniu, wywołujemy ,,gg_remind_passwd_free()''.
+Aby się wylogować, należy użyć funkcji \c gg_logoff(), a następnie zwolnić
+zasoby związane z sesją za pomocą funkcji \c gg_free_session(). Aby ustawić
+status z opisem, należy wcześniej wywołać funkcję \c gg_change_status_descr().
 
 */

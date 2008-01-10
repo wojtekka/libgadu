@@ -39,7 +39,7 @@
 /**
  * Rejestruje nowego użytkownika.
  *
- * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token.
+ * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token().
  *
  * \param email Adres e-mail
  * \param password Hasło
@@ -138,7 +138,7 @@ struct gg_http *gg_register3(const char *email, const char *password, const char
  * znajdzie się w polu \c error.
  *
  * \note W rzeczywistości funkcja jest makrem rozwijanym do
- * \c gg_pubdir_watch_fd.
+ * \c gg_pubdir_watch_fd().
  *
  * \param h Struktura połączenia
  *
@@ -154,7 +154,7 @@ int gg_register_watch_fd(struct gg_httpd *h)
 /**
  * Zwalnia zasoby po operacji.
  *
- * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free.
+ * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free().
  *
  * \param h Struktura połączenia
  *
@@ -170,7 +170,7 @@ void gg_register_free(struct gg_http *h)
 /**
  * Usuwa użytkownika.
  *
- * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token.
+ * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token().
  *
  * \param uin Numer Gadu-Gadu
  * \param password Hasło
@@ -267,7 +267,7 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
  * znajdzie się w polu \c error.
  *
  * \note W rzeczywistości funkcja jest makrem rozwijanym do
- * \c gg_pubdir_watch_fd.
+ * \c gg_pubdir_watch_fd().
  *
  * \param h Struktura połączenia
  *
@@ -283,7 +283,7 @@ int gg_unregister_watch_fd(struct gg_httpd *h)
 /**
  * Zwalnia zasoby po operacji.
  *
- * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free.
+ * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free().
  *
  * \param h Struktura połączenia
  *
@@ -299,7 +299,7 @@ void gg_unregister_free(struct gg_http *h)
 /**
  * Zmienia hasło użytkownika.
  *
- * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token.
+ * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token().
  *
  * \param uin Numer Gadu-Gadu
  * \param email Adres e-mail
@@ -405,7 +405,7 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
  * znajdzie się w polu \c error.
  *
  * \note W rzeczywistości funkcja jest makrem rozwijanym do
- * \c gg_pubdir_watch_fd.
+ * \c gg_pubdir_watch_fd().
  *
  * \param h Struktura połączenia
  *
@@ -421,7 +421,7 @@ int gg_change_passwd_watch_fd(struct gg_httpd *h)
 /**
  * Zwalnia zasoby po operacji.
  *
- * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free.
+ * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free().
  *
  * \param h Struktura połączenia
  *
@@ -437,7 +437,7 @@ void gg_change_passwd_free(struct gg_http *h)
 /**
  * Wysyła hasło użytkownika na e-mail.
  *
- * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token.
+ * Wymaga wcześniejszego pobrania tokenu za pomocą \c gg_token().
  *
  * \param uin Numer Gadu-Gadu
  * \param email Adres e-mail (podany przy rejestracji)
@@ -532,7 +532,7 @@ struct gg_http *gg_remind_passwd3(uin_t uin, const char *email, const char *toke
  * znajdzie się w polu \c error.
  *
  * \note W rzeczywistości funkcja jest makrem rozwijanym do
- * \c gg_pubdir_watch_fd.
+ * \c gg_pubdir_watch_fd().
  *
  * \param h Struktura połączenia
  *
@@ -548,7 +548,7 @@ int gg_remind_watch_fd(struct gg_httpd *h)
 /**
  * Zwalnia zasoby po operacji.
  *
- * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free.
+ * \note W rzeczywistości funkcja jest makrem rozwijanym do \c gg_pubdir_free().
  *
  * \param h Struktura połączenia
  *

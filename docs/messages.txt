@@ -5,6 +5,14 @@
 
 \details
 
+wysyłanie wiadomości za pomocą ,,gg_send_message()''. parametr ,,class''
+mówi, czy ma się pojawić w osobnym okienku (GG_CLASS_MSG) czy w okienku
+rozmowy (GG_CLASS_CHAT). funkcja zwraca numer sekwencyjny wiadomości,
+którego możemy użyć do potwierdzenia. wiadomość, która ma być sformatowana
+w odpowiedni sposób (pogrubienie, kursywa, kolory, itp.) wysyłamy za pomocą
+,,gg_send_message_richtext()''. wiadomości konferencyjne wysyłamy funkcjami
+,,gg_send_message_confer()'' lub ,,gg_send_message_confer_richtext()''.
+
 \section images Wiadomości graficzne
 
 Informacje o obrazku są zawarte w bloku wiadomości dotyczącym formatowania
