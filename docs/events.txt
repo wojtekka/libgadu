@@ -32,8 +32,8 @@ podobnie jak w trybie synchronicznym.
 
 \note Po przekroczeniu czasu określonego w polu \c timeout, należy sprawdzić
 wartość flagi \ref gg_session::soft_timeout "\c soft_timeout"
-. Jeśli jest równa \c 0 (\c false), można przerwać
-połączenie i zwolnić zasoby, a jeśli nie jest równa \c 0 (\c true), należy
+. Jeśli jest równa \c 0 (tj. \c FALSE), można przerwać
+połączenie i zwolnić zasoby, a jeśli jest różna (tj. \c TRUE), należy
 wywołać \c gg_watch_fd(), by dać szansę bibliotece zareagować na przekroczenie
 czasu operacji. Za pomocą mechanizmu \c soft_timeout są realizowane próby
 połączenia z innymi portami, np. gdy domyślny port 8074 jest zablokowany oraz
@@ -45,6 +45,12 @@ gg_session::state "\c state"
 przyjmuje wartość \c GG_STATE_IDLE. Przed dodaniem deskryptora \c fd do listy
 obserwowanych, warto w ten sposób sprawdzić, czy dane połączenie nie jest już
 nieaktywne.
+
+\note Próba wysłania danych do zamkniętego połączenia (np. zerwanego przez
+serwer) w systemach uniksowych powoduje wysłanie sygnału \c SIGPIPE, który
+domyślnie powoduje unicestwienie procesu. Dlatego, aby pozwolić bibliotece
+zareagować na zerwanie połączenia w sensowny sposób, należy ignorować sygnał
+w aplikacji.
 
 \section sync-example Przykład połączenia synchronicznego
 
@@ -166,7 +172,7 @@ for (;;) {
 \note Przykład jest niekompletny, ponieważ powinien wysłać listę kontaktów
 i co minutę wywoływać funkcję \c gg_ping().
 
-\section Zdarzenia
+\section events-list Zdarzenia
 
 <table>
 <tr>

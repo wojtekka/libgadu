@@ -1,23 +1,25 @@
 /**
 
 \defgroup token Tokeny
-\ingroup http
+\ingroup services
 
 \details
 
-Jeśli chcemy zarejestrować konto lub zmienić hasło, należy pobrać z serwera
-token. Wywołujemy funkcję \c gg_token() i traktujemy wynikową strukturę
-\c gg_http tak jak każdą inną usługę HTTP. Po zakończonej operacji (\c state
-równe \c GG_STATE_DONE) w polu \c data będzie się znajdował wskaźnik na
-strukturę \c gg_token zawierającą informacje o tokenie. W polu \c body
-struktury \c gg_http znajdzie się obrazek tokenu o rozmiarze \c body_size.
-Aplikacja powinna wyświetlić token użytkownikowi w celu podania jego wartości.
+W celu zarejestrowania konta lub zmiany hasła, należy pobrać z serwera token.
+Przy asynchronicznej operacji, po wywołaniu funkcji \c gg_token() wynikową
+strukturę \c gg_http należy traktować tak jak każde połączenie HTTP. Po
+zakończeniu operacji asynchronicznej (\c state równe \c GG_STATE_DONE) lub
+wyjściu z funkcji \c gg_token() w operacji synchronicznej, w polu \c data
+struktury będzie znajdował się wskaźnik na strukturą \c gg_token zawierającą
+informacje o tokenie. W polu \c body struktury \c gg_http znajdzie się obrazek
+tokenu o rozmiarze \c body_size. Aplikacja powinna wyświetlić token
+użytkownikowi w celu odczytania i przekazania treści, która następnie zostana
+przekazana do odpowiedniej funkcji wywołania usługi dodatkowej.
 
 \section example Przykład pobierania tokenu
 
 \code
 struct gg_http *token;
-char nazwa[100];
 FILE *f;
 
 token = gg_token(0);
@@ -27,7 +29,7 @@ if (!token) {
     exit(1);
 }
 
-plik = fopen(((struct gg_token *) dane)->tokenid, "w");
+plik = fopen(((struct gg_token *) token->data)->tokenid, "w");
 
 if (!plik) {
     błąd("Błąd otwarcia pliku");

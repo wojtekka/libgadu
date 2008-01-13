@@ -18,4 +18,11 @@ Przykład zmiany stanu na zajęty z opisem, widoczny tylko dla znajomych:
 gg_change_status_descr(sesja, GG_STATUS_INVISIBLE_DESCR | GG_STATUS_FRIENDS_MASK, "Nie przeszkadzać!");
 \endcode
 
+Aby obserwować zmiany statusu kontaktów, należy najpierw
+\ref contacts "dodać do listy konktaktów" ich identyfikatory, a następnie
+obsługiwać \ref events-list "zdarzenia" związane ze zmianami statusu.
+
+\bug Nie ma możliwości ustawiania i poprawnego odbierania statusów
+zawierających czas powrotu.
+
 */

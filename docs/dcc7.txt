@@ -3,6 +3,8 @@
 \defgroup dcc7 Połączenia bezpośrednie od wersji Gadu-Gadu 7.x
 \ingroup dcc
 
+\details
+
 Przesyłanie plików zgodne z Gadu-Gadu 7.x jest znacznie prostsze niż
 w wersji \ref dcc6 "6.x". Podobnie jak poprzednio, każde połączenie jest
 opisane przez strukturę \c gg_dcc7. Nie ma konieczności otwierania gniazda

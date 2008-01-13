@@ -957,12 +957,14 @@ enum {
  */
 enum {
 	GG_PUBDIR50_ACTIVE_TRUE,	/**< Wyszukaj tylko osoby dostępne */
-}
+};
 
 #endif	/* DOXYGEN */
 
 /**
  * Wynik operacji na katalogu publicznym.
+ *
+ * \ingroup http
  */
 struct gg_pubdir {
 	int success;		/**< Flaga powodzenia operacji */
@@ -1589,7 +1591,9 @@ struct gg_status {
 #else
 
 /**
- * Klasy wiadomości.
+ * Klasy wiadomości. Wartości są maskami bitowymi, które w większości
+ * przypadków można łączyć (połączenie \c GG_CLASS_MSG i \c GG_CLASS_CHAT
+ * nie ma sensu).
  *
  * \ingroup messages
  */
@@ -1604,9 +1608,9 @@ enum {
 #endif	/* DOXYGEN */
 
 /**
- * \ingroup messages
- *
  * Maksymalna długość wiadomości.
+ *
+ * \ingroup messages
  */
 #define GG_MSG_MAXSIZE 1989
 
@@ -1621,16 +1625,19 @@ struct gg_msg_richtext {
 	uint16_t length;
 } GG_PACKED;
 
+/**
+ * Struktura opisująca formatowanie tekstu. W zależności od wartości pola
+ * \c font, zaraz za tą strukturą może wystąpić \c gg_msg_richtext_color
+ * lub \c gg_msg_richtext_image.
+ *
+ * \ingroup messages
+ */
 struct gg_msg_richtext_format {
-	uint16_t position;
-	uint8_t font;
+	uint16_t position;	/**< Początkowy znak formatowania (liczony od 0) */
+	uint8_t font;		/**< Atrybuty formatowania */
 } GG_PACKED;
 
-struct gg_msg_richtext_image {
-	uint16_t unknown1;
-	uint32_t size;
-	uint32_t crc32;
-} GG_PACKED;
+#ifndef DOXYGEN
 
 #define GG_FONT_BOLD 0x01
 #define GG_FONT_ITALIC 0x02
@@ -1638,10 +1645,44 @@ struct gg_msg_richtext_image {
 #define GG_FONT_COLOR 0x08
 #define GG_FONT_IMAGE 0x80
 
+#else
+
+/**
+ * Atrybuty formatowania wiadomości.
+ *
+ * \ingroup messages
+ */
+enum {
+	GG_FONT_BOLD,
+	GG_FONT_ITALIC,
+	GG_FONT_UNDERLINE,
+	GG_FONT_COLOR,
+	GG_FONT_IMAGE
+};
+
+#endif	/* DOXYGEN */
+
+/**
+ * Struktura opisującą kolor tekstu dla atrybutu \c GG_FONT_COLOR.
+ *
+ * \ingroup messages
+ */
 struct gg_msg_richtext_color {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
+	uint8_t red;		/**< Składowa czerwona koloru */
+	uint8_t green;		/**< Składowa zielona koloru */
+	uint8_t blue;		/**< Składowa niebieska koloru */
+} GG_PACKED;
+
+/**
+ * Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu
+ * \c GG_FONT_IMAGE.
+ *
+ * \ingroup messages
+ */
+struct gg_msg_richtext_image {
+	uint16_t unknown1;	/**< Nieznane pole o wartości 0x0109 */
+	uint32_t size;		/**< Rozmiar obrazka */
+	uint32_t crc32;		/**< Suma kontrolna CRC32 obrazka */
 } GG_PACKED;
 
 struct gg_msg_recipients {
@@ -1665,12 +1706,31 @@ struct gg_msg_image_reply {
 
 #define GG_SEND_MSG_ACK 0x0005
 
-// XXX API
+#ifndef DOXYGEN
+
 #define GG_ACK_BLOCKED 0x0001
 #define GG_ACK_DELIVERED 0x0002
 #define GG_ACK_QUEUED 0x0003
 #define GG_ACK_MBOXFULL 0x0004
 #define GG_ACK_NOT_DELIVERED 0x0006
+
+#else
+
+/**
+ * Status doręczenia wiadomości.
+ *
+ * \ingroup messages
+ */
+enum
+{
+	GG_ACK_DELIVERED,	/**< Wiadomość dostarczono. */
+	GG_ACK_QUEUED,		/**< Wiadomość zakolejkowano z powodu niedostępności odbiorcy. */
+	GG_ACK_BLOCKED,		/**< Wiadomość zablokowana przez serwer (spam, świąteczne ograniczenia itd.) */
+	GG_ACK_MBOXFULL,	/**< Wiadomości nie dostarczono z powodu zapełnionej kolejki wiadomości odbiorcy. */
+	GG_ACK_NOT_DELIVERED	/**< Wiadomości nie dostarczono (tylko dla \c GG_CLASS_CTCP). */
+};
+
+#endif	/* DOXYGEN */
 
 struct gg_send_msg_ack {
 	uint32_t status;

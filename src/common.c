@@ -61,8 +61,8 @@ FILE *gg_debug_file = NULL;
 /**
  * \internal Przekazuje informacje odpluskwiania do odpowiedniej funkcji.
  *
- * Jeśli aplikacja ustawiła odpowiednią funkcję obsługi w \c
- * gg_debug_handler_session lub \c gg_debug_handler, jest ona wywoływana.
+ * Jeśli aplikacja ustawiła odpowiednią funkcję obsługi w
+ * \c gg_debug_handler_session lub \c gg_debug_handler, jest ona wywoływana.
  * W przeciwnym wypadku wynik jest wysyłany do standardowego wyjścia błędu.
  *
  * \param sess Struktura sesji (może być \c NULL)

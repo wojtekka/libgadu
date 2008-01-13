@@ -186,16 +186,15 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 /**
  * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.
  *
- * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
- * to \c GG_EVENT_NONE, nie wydarzyło się jeszcze nic wartego odnotowania.
- * Strukturę zdarzenia należy zwolnić funkcja \c gg_event_free(). Połączenie
- * jest zakończone, jeśli pole \c state jest równe \c GG_STATE_PARSING.
- * W przypadku błędu połączenia, pole \c state będzie równe
- * \c GG_STATE_ERROR, a kod błędu znajdzie się w polu \c error.
+ * Operacja będzie zakończona, gdy pole \c state będzie równe
+ * \c GG_STATE_PARSING. W tym miejscu działanie przejmuje zwykle funkcja
+ * korzystająca z \c gg_http_watch_fd(). W przypadku błędu połączenia,
+ * pole \c state będzie równe \c GG_STATE_ERROR, a kod błędu znajdzie się
+ * w polu \c error.
  *
  * \param h Struktura połączenia
  *
- * \return Struktura zdarzenia lub \c NULL jeśli wystąpił błąd
+ * \return \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup http
  */

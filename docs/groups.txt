@@ -4,19 +4,7 @@
 
 \defgroup dcc Połączenia bezpośrednie między klientami
 
-\defgroup http Usługi HTTP
-
-\defgroup passwd Zmiana hasła
-\ingroup http
-
-\defgroup register Rejestracja nowego użytkownika
-\ingroup http
-
-\defgroup unregister Usuwanie użytkownika
-\ingroup http
-
-\defgroup remind Przypomnienie hasła
-\ingroup http
+\defgroup services Usługi dodatkowe
 
 \defgroup debug Odpluskwianie
 \ingroup misc

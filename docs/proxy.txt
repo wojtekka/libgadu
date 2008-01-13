@@ -11,8 +11,7 @@ mechanizmem podstawowym (Digest i NTLM nie są obsługiwane). Aby wymusić
 korzystanie z serwera pośredniczącego, należy ustawić flagę \c gg_proxy_enabled
 i odpowiednio ustawić poszczególne zmienne.
 
-\bug Serwer pośredniczący jest wykorzystywany tylko dla połączeń z serwerem
-Gadu-Gadu i usług HTTP, nie dla połączeń bezpośrednich.
+\bug Serwer pośredniczący nie jest wykorzystywany dla połączeń bezpośrednich.
 
 \bug Ustawienia serwera pośredniczącego są globalne dla wszystkich połączeń.
 

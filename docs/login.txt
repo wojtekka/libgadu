@@ -31,8 +31,8 @@ if (!sesja) {
 // ...
 \endcode
 
-Lista wszystkich parametrów połączenia znajduje się w opisie struktury \c
-gg_login_params. W zależności od tego, czy łączymy się synchronicznie czy
+Lista wszystkich parametrów połączenia znajduje się w opisie struktury
+\c gg_login_params. W zależności od tego, czy łączymy się synchronicznie czy
 asynchronicznie (jak w przykładzie), funkcja \c gg_login() zwróci wskaźnik
 dopiero po udanym połączeniu lub zaraz po rozpoczęciu procedury łączenia.
 Dokładny opis dalszej obsługi połączenia znajduje się w sekcji poświęconej \ref
@@ -80,6 +80,11 @@ Rozwiązywanie nazwy w systemach zgodnych z normą POSIX jest operacją
 synchroniczną. Z tego powodu w trybie asynchronicznym konieczne jest utworzenie
 dodatkowego procesu lub wątku (w zależności od opcji kompilacji), który w tle
 dokona rozwiązania nazwy i zwróci wynik do procesu lub wątku nadrzędnego.
+
+\note Jeśli biblioteka używa procesu do rozwiązywania nazw, w aplikacji należy
+użyć funkcji systemowej \c wait() lub podobnej do prawidłowego zakończenia
+życia procesu potomnego. W przeciwnym wypadku, w zależności od zachowania
+systemu operacyjnego, mogą powstawać procesy \e zombie.
 
 \section login-keepalive Utrzymanie połączenia
 

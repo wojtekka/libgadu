@@ -5,6 +5,8 @@
 \defgroup dcc6 Połączenia bezpośrednie do wersji Gadu-Gadu 6.x
 \ingroup dcc
 
+\details
+
 \note Funkcje opisane poniżej są zgodne ze starą wersją Gadu-Gadu. Nowy
 sposób przesyłania plików i przeprowadzania rozmów głosowych, wprowadzony
 w Gadu-Gadu 7.x, obsługiwany jest \ref dcc7 "innymi funkcjami".
