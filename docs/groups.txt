@@ -1,0 +1,33 @@
+/**
+
+\defgroup session Połączenie z serwerem
+
+\defgroup dcc Połączenia bezpośrednie między klientami
+
+\defgroup http Usługi HTTP
+
+\defgroup passwd Zmiana hasła
+\ingroup http
+
+\defgroup register Rejestracja nowego użytkownika
+\ingroup http
+
+\defgroup unregister Usuwanie użytkownika
+\ingroup http
+
+\defgroup remind Przypomnienie hasła
+\ingroup http
+
+\defgroup debug Odpluskwianie
+\ingroup misc
+
+\defgroup helper Funkcje pomocnicze
+\ingroup misc
+
+\defgroup misc Pozostałe funkcje
+
+\defgroup ip Konfiguracja IP
+\ingroup misc
+\bug Ustawienia są globalne dla wszystkich połączeń.
+
+*/
