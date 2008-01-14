@@ -1081,6 +1081,12 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
+			if (dcc->offset >= dcc->size) {
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() offset >= size, finished\n");
+				e->type = GG_EVENT_DCC7_DONE;
+				return e;
+			}
+
 			if (dcc->seek && lseek(dcc->file_fd, dcc->offset, SEEK_SET) == (off_t) -1) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() lseek() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
@@ -1126,6 +1132,12 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			int res, wres;
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_GETTING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
+
+			if (dcc->offset >= dcc->size) {
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
+				e->type = GG_EVENT_DCC7_DONE;
+				return e;
+			}
 
 			if ((res = read(dcc->fd, buf, sizeof(buf))) < 1) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
