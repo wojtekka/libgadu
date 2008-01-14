@@ -51,6 +51,9 @@
 #include "compat.h"
 #include "libgadu.h"
 
+#define gg_debug_dcc(dcc, fmt...) \
+	gg_debug_session((dcc) ? (dcc)->sess : NULL, fmt)
+
 /**
  * \internal Dodaje połączenie bezpośrednie do sesji.
  *
@@ -61,7 +64,10 @@
  */
 static int gg_dcc7_session_add(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_session_add(%p, %p)\n", sess, dcc);
+
 	if (!sess || !dcc || dcc->next) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_session_remove() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -84,7 +90,10 @@ static int gg_dcc7_session_remove(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
 	struct gg_dcc7 *tmp;
 
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_session_remove(%p, %p)\n", sess, dcc);
+
 	if (!sess || !dcc) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_session_remove() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -121,6 +130,8 @@ static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_
 	struct gg_dcc7 *tmp;
 	int empty;
 
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_session_find(%p, ..., %d)\n", sess, (int) uin);
+
 	empty = !memcmp(&id, "\0\0\0\0\0\0\0\0", 8);
 
 	for (tmp = sess->dcc7_list; tmp; tmp = tmp->next) {
@@ -146,7 +157,10 @@ static struct gg_dcc7 *gg_dcc7_session_find(struct gg_session *sess, gg_dcc7_id_
  */
 static int gg_dcc7_connect(struct gg_session *sess, struct gg_dcc7 *dcc)
 {
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_connect(%p, %p)\n", sess, dcc);
+
 	if (!sess || !dcc) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_connect() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -177,13 +191,16 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 	struct sockaddr_in sin;
 	int fd, bound = 0;
 
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen(%p, %d)\n", dcc, port);
+
 	if (!dcc) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() can't create socket (%s)\n", strerror(errno));
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() can't create socket (%s)\n", strerror(errno));
 		return -1;
 	}
 
@@ -197,12 +214,12 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 		sin.sin_addr.s_addr = INADDR_ANY;
 		sin.sin_port = htons(port);
 
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() trying port %d\n", port);
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() trying port %d\n", port);
 		if (!bind(fd, (struct sockaddr*) &sin, sizeof(sin)))
 			bound = 1;
 		else {
 			if (++port == 65535) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() no free port found\n");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() no free port found\n");
 				close(fd);
 				errno = ENOENT;
 				return -1;
@@ -212,7 +229,7 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 
 	if (listen(fd, 1)) {
 		int errsv = errno;
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_listen() unable to listen (%s)\n", strerror(errno));
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to listen (%s)\n", strerror(errno));
 		close(fd);
 		errno = errsv;
 		return -1;
@@ -239,6 +256,8 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 {
 	struct gg_dcc7_info pkt;
 
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen_and_send_info(%p)\n", dcc);
+
 	// XXX dać możliwość konfiguracji?
 	
 	dcc->local_addr = dcc->sess->client_addr;
@@ -264,10 +283,14 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
  */
 static int gg_dcc7_reverse_connect(struct gg_dcc7 *dcc)
 {
-	if (dcc->reverse)
-		return -1;
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_reverse_connect(%p)\n", dcc);
 
-	gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection timeout, trying reverse connection\n");
+	if (dcc->reverse) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_reverse_connect() already reverse connection\n");
+		return -1;
+	}
+
+	gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_reverse_connect() timeout, trying reverse connection\n");
 	close(dcc->fd);
 	dcc->fd = -1;
 	dcc->reverse = 1;
@@ -287,17 +310,22 @@ static int gg_dcc7_request_id(struct gg_session *sess, uint32_t type)
 {
 	struct gg_dcc7_id_request pkt;
 
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_request_id(%p, %d)\n", sess, type);
+
 	if (!sess) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_request_id() invalid parameters\n");
 		errno = EFAULT;
 		return -1;
 	}
 
 	if (sess->state != GG_STATE_CONNECTED) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_request_id() not connected\n");
 		errno = ENOTCONN;
 		return -1;
 	}
 
 	if (type != GG_DCC7_TYPE_VOICE && type != GG_DCC7_TYPE_FILE) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_request_id() invalid transfer type (%d)\n", type);
 		errno = EINVAL;
 		return -1;
 	}
@@ -331,12 +359,13 @@ static struct gg_dcc7 *gg_dcc7_send_file_common(struct gg_session *sess, uin_t r
 	struct gg_dcc7 *dcc = NULL;
 
 	if (!sess || !rcpt || !filename1250 || !hash || fd == -1) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file_common() invalid parameters\n");
 		errno = EINVAL;
 		goto fail;
 	}
 
 	if (!(dcc = malloc(sizeof(struct gg_dcc7)))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() not enough memory\n");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file_common() not enough memory\n");
 		goto fail;
 	}
 
@@ -394,9 +423,10 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 	struct stat st;
 	int fd = -1;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_send_file(%p, %d, \"%s\", %p);\n", sess, rcpt, filename, hash);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_send_file(%p, %d, \"%s\", %p)\n", sess, rcpt, filename, hash);
 
 	if (!sess || !rcpt || !filename) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() invalid parameters\n");
 		errno = EINVAL;
 		goto fail;
 	}
@@ -405,18 +435,18 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 		filename1250 = filename;
 
 	if (stat(filename, &st) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() stat() failed (%s)\n", strerror(errno));
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() stat() failed (%s)\n", strerror(errno));
 		goto fail;
 	}
 
 	if ((st.st_mode & S_IFDIR)) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() that's a directory\n");
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() that's a directory\n");
 		errno = EINVAL;
 		goto fail;
 	}
 
 	if ((fd = open(filename, O_RDONLY)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_send_file() open() failed (%s)\n", strerror(errno));
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() open() failed (%s)\n", strerror(errno));
 		goto fail;
 	}
 
@@ -466,7 +496,7 @@ fail:
  */
 struct gg_dcc7 *gg_dcc7_send_file_fd(struct gg_session *sess, uin_t rcpt, int fd, size_t size, const char *filename1250, const char *hash)
 {
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_send_file_fd(%p, %d, %d, %u, \"%s\", %p);\n", sess, rcpt, fd, size, filename1250, hash);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_send_file_fd(%p, %d, %d, %u, \"%s\", %p)\n", sess, rcpt, fd, size, filename1250, hash);
 
 	return gg_dcc7_send_file_common(sess, rcpt, fd, size, filename1250, hash, 0);
 }
@@ -478,6 +508,10 @@ struct gg_dcc7 *gg_dcc7_send_file_fd(struct gg_session *sess, uin_t rcpt, int fd
  * \param dcc Struktura połączenia
  * \param offset Początkowy offset przy wznawianiu przesyłania pliku
  *
+ * \note Biblioteka nie zmienia położenia w odbieranych plikach. Jeśli offset
+ * początkowy jest różny od zera, należy ustawić go funkcją \c lseek() lub
+ * podobną.
+ *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup dcc7
@@ -486,7 +520,10 @@ int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset)
 {
 	struct gg_dcc7_accept pkt;
 
-	if (!dcc->sess) {
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_accept(%p, %d)\n", dcc, offset);
+
+	if (!dcc || !dcc->sess) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_accept() invalid parameters\n");
 		errno = EFAULT;
 		return -1;
 	}
@@ -498,6 +535,8 @@ int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset)
 
 	if (gg_send_packet(dcc->sess, GG_DCC7_ACCEPT, &pkt, sizeof(pkt), NULL) == -1)
 		return -1;
+
+	dcc->offset = offset;
 
 	return gg_dcc7_listen_and_send_info(dcc);
 }
@@ -516,7 +555,10 @@ int gg_dcc7_reject(struct gg_dcc7 *dcc, int reason)
 {
 	struct gg_dcc7_reject pkt;
 
-	if (!dcc->sess) {
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_reject(%p, %d)\n", dcc, reason);
+
+	if (!dcc || !dcc->sess) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_reject() invalid parameters\n");
 		errno = EFAULT;
 		return -1;
 	}
@@ -544,7 +586,7 @@ int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload
 	struct gg_dcc7_id_reply *p = payload;
 	struct gg_dcc7 *tmp;
 
-	gg_debug_session(sess, GG_DEBUG_MISC, "// sess %p dcc_list %p\n", sess, sess->dcc7_list);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_id(%p, %p, %p, %d)\n", sess, e, payload, len);
 
 	for (tmp = sess->dcc7_list; tmp; tmp = tmp->next) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// checking dcc %p, state %d, type %d\n", tmp, tmp->state, tmp->dcc_type);
@@ -594,7 +636,10 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
 	struct gg_dcc7_accept *p = payload;
 	struct gg_dcc7 *dcc;
 
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_accept(%p, %p, %p, %d)\n", sess, e, payload, len);
+
 	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_accept() unknown dcc session\n");
 		// XXX wysłać reject?
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -602,6 +647,7 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
 	}
 
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_accept() invalid state\n");
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
@@ -631,22 +677,29 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	struct gg_dcc7 *dcc;
 	char *tmp;
 
-	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin))))
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_info(%p, %p, %p, %d)\n", sess, e, payload, len);
+
+	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unknown dcc session\n");
 		return 0;
+	}
 	
 	if (p->type != GG_DCC7_TYPE_P2P) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unhandled transfer type (%d)\n", p->type);
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
 	if ((dcc->remote_addr = inet_addr(p->info)) == INADDR_NONE) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP address\n");
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
 	if (!(tmp = strchr(p->info, ' ')) || !(dcc->remote_port = atoi(tmp + 1))) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP port\n");
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
@@ -656,6 +709,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	// daje rady i oferuje namiary na siebie, bierzemy co dają.
 
 	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid state\n");
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
@@ -701,10 +755,15 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 	struct gg_dcc7_reject *p = payload;
 	struct gg_dcc7 *dcc;
 
-	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin))))
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_reject(%p, %p, %p, %d)\n", sess, e, payload, len);
+
+	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_reject() unknown dcc session\n");
 		return 0;
+	}
 	
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_reject() invalid state\n");
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
@@ -733,6 +792,8 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payloa
 {
 	struct gg_dcc7_new *p = payload;
 	struct gg_dcc7 *dcc;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_new(%p, %p, %p, %d)\n", sess, e, payload, len);
 
 	switch (gg_fix32(p->type)) {
 		case GG_DCC7_TYPE_FILE:
@@ -769,7 +830,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payloa
 
 		case GG_DCC7_TYPE_VOICE:
 			if (!(dcc = malloc(sizeof(struct gg_dcc7)))) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_handle_packet() not enough memory\n");
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_packet() not enough memory\n");
 				return -1;
 			}
 			
@@ -796,7 +857,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payloa
 			break;
 
 		default:
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_new() unknown dcc type (%04x) from %ld\n", gg_fix32(p->type), gg_fix32(p->uin_from));
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_new() unknown dcc type (%d) from %ld\n", gg_fix32(p->type), gg_fix32(p->uin_from));
 
 			break;
 	}
@@ -814,7 +875,10 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payloa
  */
 static int gg_dcc7_postauth_fixup(struct gg_dcc7 *dcc)
 {
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_postauth_fixup(%p)\n", dcc);
+
 	if (!dcc) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_postauth_fixup() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
@@ -858,20 +922,16 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 {
 	struct gg_event *e;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_watch_fd(%p);\n", dcc);
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_watch_fd(%p)\n", dcc);
 
 	if (!dcc || (dcc->type != GG_SESSION_DCC7_SEND && dcc->type != GG_SESSION_DCC7_GET && dcc->type != GG_SESSION_DCC7_VOICE)) {
-		static int shown = 0;
-
-		if (!shown)
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid argument\n");
-		shown = 1;
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid parameters\n");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (!(e = malloc(sizeof(struct gg_event)))) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() not enough memory\n");
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() not enough memory\n");
 		return NULL;
 	}
 
@@ -885,21 +945,21 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			int fd, one = 1;
 			unsigned int sin_len = sizeof(sin);
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_LISTENING\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_LISTENING\n");
 
 			if ((fd = accept(dcc->fd, (struct sockaddr*) &sin, &sin_len)) == -1) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() accept() failed (%s)\n", strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() accept() failed (%s)\n", strerror(errno));
 				return e;
 			}
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection from %s:%d\n", inet_ntoa(sin.sin_addr), htons(sin.sin_port));
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection from %s:%d\n", inet_ntoa(sin.sin_addr), htons(sin.sin_port));
 
 #ifdef FIONBIO
 			if (ioctl(fd, FIONBIO, &one) == -1) {
 #else
 			if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
 #endif
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() can't set nonblocking (%s)\n", strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() can't set nonblocking (%s)\n", strerror(errno));
 				close(fd);
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -928,7 +988,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			int res = 0, error = 0;
 			unsigned int error_size = sizeof(error);
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_CONNECTING\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_CONNECTING\n");
 
 			dcc->soft_timeout = 0;
 
@@ -936,7 +996,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				error = ETIMEDOUT;
 
 			if (error || (res = getsockopt(dcc->fd, SOL_SOCKET, SO_ERROR, &error, &error_size)) == -1 || error != 0) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection failed (%s)\n", (res == -1) ? strerror(errno) : strerror(error));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection failed (%s)\n", (res == -1) ? strerror(errno) : strerror(error));
 
 				if (gg_dcc7_reverse_connect(dcc) != -1)
 					break;
@@ -946,7 +1006,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connected, sending id\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connected, sending id\n");
 
 			dcc->state = GG_STATE_SENDING_ID;
 			dcc->check = GG_CHECK_WRITE;
@@ -961,17 +1021,17 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			gg_dcc7_id_t id;
 			int res;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_READING_ID\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_READING_ID\n");
 
 			if ((res = read(dcc->fd, &id, sizeof(id))) != sizeof(id)) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 				return e;
 			}
 
 			if (memcmp(&id, &dcc->cid, sizeof(id))) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid id\n");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid id\n");
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 				return e;
@@ -993,10 +1053,10 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 		{
 			int res;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_SENDING_ID\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_SENDING_ID\n");
 
 			if ((res = write(dcc->fd, &dcc->cid, sizeof(dcc->cid))) != sizeof(dcc->cid)) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)", res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)", res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 				return e;
@@ -1019,10 +1079,10 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			char buf[1024];
 			int chunk, res;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
 			if (dcc->seek && lseek(dcc->file_fd, dcc->offset, SEEK_SET) == (off_t) -1) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() lseek() failed (%s)\n", strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() lseek() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_FILE;
 				return e;
@@ -1032,14 +1092,14 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				chunk = sizeof(buf);
 
 			if ((res = read(dcc->file_fd, buf, chunk)) < 1) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (res=%d, %s)\n", res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (res=%d, %s)\n", res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = (res == -1) ? GG_ERROR_DCC7_FILE : GG_ERROR_DCC7_EOF;
 				return e;
 			}
 
 			if ((res = write(dcc->fd, buf, res)) == -1) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%s)\n", strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_NET;
 				return e;
@@ -1048,7 +1108,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			dcc->offset += res;
 
 			if (dcc->offset >= dcc->size) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
 				return e;
 			}
@@ -1065,10 +1125,10 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			char buf[1024];
 			int res, wres;
 
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_GETTING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_GETTING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
 			if ((res = read(dcc->fd, buf, sizeof(buf))) < 1) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = (res == -1) ? GG_ERROR_DCC7_NET : GG_ERROR_DCC7_EOF;
 				return e;
@@ -1077,7 +1137,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			// XXX zapisywać do skutku?
 
 			if ((wres = write(dcc->file_fd, buf, res)) < res) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (fd=%d, res=%d, %s)\n", dcc->file_fd, wres, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (fd=%d, res=%d, %s)\n", dcc->file_fd, wres, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_FILE;
 				return e;
@@ -1086,7 +1146,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			dcc->offset += res;
 
 			if (dcc->offset >= dcc->size) {
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
 				return e;
 			}
@@ -1100,7 +1160,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 		default:
 		{
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_???\n");
+			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_???\n");
 			e->type = GG_EVENT_DCC7_ERROR;
 			e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 
@@ -1120,7 +1180,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
  */
 void gg_dcc7_free(struct gg_dcc7 *dcc)
 {
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc7_free(%p);\n", dcc);
+	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_free(%p)\n", dcc);
 
 	if (!dcc)
 		return;
