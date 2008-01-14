@@ -33,7 +33,7 @@ Dokumentację podzielono na następujące działy:
 	- \ref messages
 	- \ref status
 	- \ref pubdir50
-	- \ref importexport <br />
+	- \ref importexport <br>
 
 - Funkcje związane z usługami dodatkowymi
 	- \ref http
@@ -41,11 +41,11 @@ Dokumentację podzielono na następujące działy:
 	- \ref register
 	- \ref passwd
 	- \ref remind
-	- \ref unregister <br />
+	- \ref unregister <br>
 
 - Funkcje związane z połączeniami bezpośrednimi
 	- \ref dcc6
-	- \ref dcc7 <br />
+	- \ref dcc7 <br>
 
 - Pozostałe funkcje
 	- \ref proxy
