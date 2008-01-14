@@ -52,6 +52,7 @@ Dokumentację podzielono na następujące działy:
 	- \ref ip
 	- \ref debug
 	- \ref helper
+	- \ref todo
 
 \warning Należy pamiętać, że używanie alternatywnych klientów jest niezgodne
 z regulaminem korzystania z serwisu Gadu-Gadu.

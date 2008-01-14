@@ -4,7 +4,7 @@
 # General configuration options
 #---------------------------------------------------------------------------
 PROJECT_NAME           = libgadu
-PROJECT_NUMBER         = 1.7.2
+PROJECT_NUMBER         = pre-1.8.0
 OUTPUT_DIRECTORY       = .
 OUTPUT_LANGUAGE        = Polish
 EXTRACT_ALL            = YES
@@ -45,8 +45,8 @@ DETAILS_AT_TOP         = YES
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
 #---------------------------------------------------------------------------
-QUIET                  = NO
-WARNINGS               = NO
+QUIET                  = YES
+WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = NO
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           = 
@@ -54,7 +54,7 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT                  = ../src ../include .
-FILE_PATTERNS          = *.c *.h *.txt
+FILE_PATTERNS          = *.c *.h *.dox
 RECURSIVE              = YES
 EXCLUDE                = ../config.h
 EXCLUDE_SYMLINKS       = NO
@@ -145,6 +145,6 @@ SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
 PREDEFINED             = DOXYGEN
-EXPAND_AS_DEFINED      = gg_common_head
+EXPAND_AS_DEFINED      = gg_common_head GG_PACKED
 SKIP_FUNCTION_MACROS   = NO
 
