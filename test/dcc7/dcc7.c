@@ -38,7 +38,9 @@ enum {
 	TEST_MODE_SEND = 0,
 	TEST_MODE_SEND_NAT,
 	TEST_MODE_RECEIVE,
-	TEST_MODE_RECEIVE_NAT
+	TEST_MODE_RECEIVE_NAT,
+	TEST_MODE_RECEIVE_RESUME,
+	TEST_MODE_LAST
 };
 
 extern int __connect(int socket, const struct sockaddr *address, socklen_t address_len);
@@ -114,13 +116,14 @@ int main(int argc, char **argv)
 	time_t ping = 0, last = 0;
 	int fds[2] = { -1, -1 };
 
-	if (argc != 2) {
+	if (argc != 2 || atoi(argv[1]) >= TEST_MODE_LAST) {
 		fprintf(stderr, "usage: %s <mode>\n"
 				"\n"
 				"mode: 0 - send file\n"
 				"      1 - send file, simulate NAT\n"
 				"      2 - receive file\n"
 				"      3 - receive file, simulate NAT\n"
+				"      4 - receive file, resume at the end\n"
 				"\n", argv[0]);
 		exit(1);
 	}
@@ -293,10 +296,13 @@ int main(int argc, char **argv)
 				case GG_EVENT_DCC7_NEW:
 					debug("Incoming direct connection\n");
 
-					if (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT) {
+					if (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME) {
 						gd = ge->event.dcc7_new;
 						gd->file_fd = open("/dev/null", O_WRONLY);
-						gg_dcc7_accept(gd, 0);
+						if (test_mode != TEST_MODE_RECEIVE_RESUME)
+							gg_dcc7_accept(gd, 0);
+						else
+							gg_dcc7_accept(gd, gd->size);
 					}
 
 					break;
