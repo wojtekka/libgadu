@@ -27,6 +27,7 @@ unsigned int config_uin;
 char *config_password;
 unsigned int config_peer;
 char *config_file;
+char *config_dir;
 unsigned int config_size = 1048576;
 unsigned long config_ip = 0xffffffff;
 unsigned int config_port;
@@ -83,6 +84,9 @@ int config_read(void)
 
 		if (!strncmp(buf, "file ", 5))
 			config_file = strdup(buf + 5);
+
+		if (!strncmp(buf, "dir ", 4))
+			config_dir = strdup(buf + 4);
 
 		if (!strncmp(buf, "size ", 5))
 			config_size = atoi(buf + 5);
@@ -153,6 +157,13 @@ int main(int argc, char **argv)
 	glp.protocol_version = 0x2a;
 
 	gg_dcc_ip = config_ip;
+
+	if (config_dir && (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME)) {
+		if (chdir(config_dir) == -1) {
+			perror("chdir");
+			exit(1);
+		}
+	}
 
 	debug("Connecting...\n");
 
@@ -298,7 +309,15 @@ int main(int argc, char **argv)
 
 					if (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME) {
 						gd = ge->event.dcc7_new;
-						gd->file_fd = open("/dev/null", O_WRONLY);
+						if (config_dir) {
+							gd->file_fd = open((char*) gd->filename, O_WRONLY | O_CREAT, 0600);
+//							lseek(gd->file_fd, gd->size, SEEK_SET);
+						} else 
+							gd->file_fd = open("/dev/null", O_WRONLY);
+						if (gd->file_fd == -1) {
+							perror("open");
+							exit(1);
+						}
 						if (test_mode != TEST_MODE_RECEIVE_RESUME)
 							gg_dcc7_accept(gd, 0);
 						else
