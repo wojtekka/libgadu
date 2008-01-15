@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2008 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Tomasz Chiliński <chilek@chilan.com>
  *                          Adam Wysocki <gophi@ekg.chmurka.net>
  *
