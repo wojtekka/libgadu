@@ -1,5 +1,5 @@
 #!/bin/sh
-valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 ./dcc7 "$@" 3> val7.log.tmp
-pid=$(head -n 1 val7.log.tmp | cut -d' ' -f1)
-grep "^$pid" val7.log.tmp > val7.log
-rm -f val7.log.tmp
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 ./dcc7 "$@" 3> valgrind.log.tmp
+pid=$(head -n 1 valgrind.log.tmp | cut -d' ' -f1)
+grep "^$pid" valgrind.log.tmp > valgrind.log
+rm -f valgrind.log.tmp
