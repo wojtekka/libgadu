@@ -12,6 +12,7 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/signal.h>
+#include <sys/wait.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
@@ -19,24 +20,28 @@
 
 #define LOCALHOST "127.0.67.67"
 #define LOCALPORT 17219
+#define UNREACHABLE "192.0.2.1"	/* documentation and example class, RFC 3330 */
 
-#define TEST_MAX 100
+#define TEST_MAX (3*3*3*3*2)
 
 enum {
-	FLAG_SERVER = 1
+	FLAG_SERVER = 1,
 };
 
-/** Port plugged flags */
-int plugs[3];
+enum {
+	PLUG_NONE = 0,
+	PLUG_RESET = 1,
+	PLUG_TIMEOUT = 2
+};
 
-/** Resolver enabled flag */
-int resolve;
+/** Port and resolver plug flags */
+int plug_80, plug_443, plug_8074, plug_resolver;
 
-/** Server pid, duh */
-int server_pid;
+/** Server process id, duh! */
+int server_pid = -1;
 
-int test_errors;
-int test_failed[TEST_MAX];
+/** Report file */
+FILE *log_file;
 
 static inline void set32(char *ptr, unsigned int value)
 {
@@ -59,10 +64,13 @@ void failure(void) __attribute__ ((noreturn));
 
 void failure(void)
 {
-	if (getpid() == server_pid) {
-		kill(getppid(), SIGTERM);
-	} else {
-		kill(server_pid, SIGTERM);
+	if (server_pid != -1) {
+		if (getpid() == server_pid) {
+			kill(getppid(), SIGTERM);
+		} else {
+			kill(server_pid, SIGTERM);
+			printf("\n");
+		}
 	}
 	
 	exit(0);
@@ -77,8 +85,8 @@ void debug(const char *fmt, ...)
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 
-	fprintf(stderr, "\033[1m%s\033[0m", buf);
-	fflush(stderr);
+	fprintf(log_file, "<b>%s</b>", buf);
+	fflush(log_file);
 }
 
 extern int __connect(int socket, const struct sockaddr *address, socklen_t address_len);
@@ -91,24 +99,14 @@ int port_to_index(int port)
 	switch (port) {
 		case 80:
 			return 0;
-		case 443:
-			return 1;
 		case 8074:
+			return 1;
+		case 443:
 			return 2;
 		default:
 			debug("Invalid port %d, terminating\n", port);
 			failure();
 	}
-}
-
-void port_plug(int port)
-{
-	plugs[port_to_index(port)] = 1;
-}
-
-void port_unplug(int port)
-{
-	plugs[port_to_index(port)] = 0;
 }
 
 struct hostent *gethostbyname(const char *name)
@@ -118,7 +116,9 @@ struct hostent *gethostbyname(const char *name)
 	static char *addr_list[2];
 	static char sname[128];
 
-	if (!resolve) {
+	if (plug_resolver != PLUG_NONE) {
+		if (plug_resolver == PLUG_TIMEOUT)
+			sleep(30);
 		h_errno = HOST_NOT_FOUND;
 		return NULL;
 	}
@@ -162,6 +162,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 {
 	struct sockaddr_in sin;
+	int result, plug, port;
 
 	if (address_len < sizeof(sin)) {
 		debug("Invalid argument for connect(): sa_len < %d\n", sizeof(sin));
@@ -170,8 +171,6 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	}
 
 	memcpy(&sin, address, address_len);
-
-	printf("connect(%s, %d)\n", inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 
 	if (sin.sin_family != AF_INET) {
 		debug("Invalid argument for connect(): sa_family = %d\n", sin.sin_family);
@@ -187,29 +186,47 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 
 	switch (ntohs(sin.sin_port)) {
 		case 80:
-		case 443:
-		case 8074:
-		{
-			int idx = port_to_index(ntohs(sin.sin_port));
-
-			if (plugs[idx])
-				idx = 3;
-
-			sin.sin_port = htons(LOCALPORT + idx);
-
+			plug = plug_80;
+			port = LOCALPORT;
 			break;
-		}
-
+		case 443:
+			plug = plug_443;
+			port = LOCALPORT + 1;
+			break;
+		case 8074:
+			plug = plug_8074;
+			port = LOCALPORT + 2;
+			break;
 		default:
 			debug("Invalid argument for connect(): sin_port = %d\n", ntohs(sin.sin_port));
 			errno = EINVAL;
 			return -1;
 	}
 
-	return __connect(socket, (struct sockaddr*) &sin, address_len);
+	switch (plug) {
+		case PLUG_NONE:
+			sin.sin_port = htons(port);
+			break;
+		case PLUG_RESET:
+			sin.sin_port = htons(LOCALPORT + 3);
+			break;
+		case PLUG_TIMEOUT:
+			sin.sin_addr.s_addr = inet_addr(UNREACHABLE);
+			break;
+	}
+
+	if (!(fcntl(socket, F_GETFL) & O_NONBLOCK))
+		alarm(1);
+
+	result =  __connect(socket, (struct sockaddr*) &sin, address_len);
+
+	if (!(fcntl(socket, F_GETFL) & O_NONBLOCK))
+		alarm(0);
+
+	return result;
 }
 
-int try_connect(int async, int flags)
+int test_connect(int async, int server)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -219,9 +236,8 @@ int try_connect(int async, int flags)
 	glp.password = "dupa.8";
 	glp.async = async;
 
-	if ((flags & FLAG_SERVER)) {
+	if (server)
 		glp.server_addr = inet_addr(LOCALHOST);
-	}
 
 	gs = gg_login(&glp);
 
@@ -250,14 +266,14 @@ int try_connect(int async, int flags)
 				FD_SET(gs->fd, &wr);
 
 			if ((gs->timeout)) {
-				tv.tv_sec = gs->timeout;
+				tv.tv_sec = 1;
 				tv.tv_usec = 0;
 			}
 
 			res = select(gs->fd + 1, &rd, &wr, NULL, (gs->timeout) ? &tv : NULL);
 			
-			if (!res) {
-				debug("Timeout\n");
+			if (res == 0 && !gs->soft_timeout) {
+				debug("hard timeout\n");
 				gg_free_session(gs);
 				return 0;
 			}
@@ -268,9 +284,12 @@ int try_connect(int async, int flags)
 				return 0;
 			}
 
-			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr)) {
+			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (res == 0 && gs->soft_timeout)) {
 				struct gg_event *ge;
 				
+				if (res == 0)
+					debug("soft timeout\n");
+		
 				ge = gg_watch_fd(gs);
 
 				if (!ge) {
@@ -306,37 +325,36 @@ int try_connect(int async, int flags)
 	}
 }
 
-void test_run(int num, int result, int flags, const char *desc)
-{
-	if (num > TEST_MAX) {
-		debug("%d > TEST_MAX\n", num);
-		failure();
-	}
-
-	printf("\n------------------------------------------------------------------------------\n");
-	printf(" Test %d\n", num);
-	if (desc)
-		printf(" Description: %s\n", desc);
-	printf(" Expected result: %s\n", (result) ? "success" : "failure");
-	printf("------------------------------------------------------------------------------\n");
-
-	if (!!try_connect(0, flags) != !!result) {
-		test_errors++;
-		test_failed[num - 1] = 1;
-		debug("Test %d failed in synchronous mode\n", num);
-	}
-
-	if (!!try_connect(1, flags) != !!result) {
-		test_errors++;
-		test_failed[num - 1] = 1;
-		debug("Test %d failed in asynchronous mode\n", num);
-	}
-}
 
 void test_reset(void)
 {
-	memset(plugs, 0, sizeof(plugs));
-	resolve = 1;
+}
+
+void test_stats(void)
+{
+/*
+	printf("\n------------------------------------------------------------------------------\n");
+	printf(" Error count: %d\n", test_errors);
+
+	if (test_errors > 0) {
+		int i, first = 1;
+
+		printf(" Failed tests: ");
+
+		for (i = 0; i < TEST_MAX; i++) {
+			if (!test_failed[i])
+				continue;
+
+			if (!first)
+				printf(", ");
+			first = 0;
+			printf("%d", i + 1);
+		}
+
+		printf("\n");
+	}
+*/
+	printf("------------------------------------------------------------------------------\n");
 }
 
 void serve(void)
@@ -495,13 +513,25 @@ void serve(void)
 
 void cleanup(int sig)
 {
-	kill(server_pid, SIGTERM);
+	failure();
+}
+
+void sigalrm(int sig)
+{
+
 }
 
 int main(int argc, char **argv)
 {
+	int i, result[2][TEST_MAX] = { { 0, }, { 0, } };
+
+	if (!(log_file = fopen("report.html", "w"))) {
+		perror("fopen");
+		failure();
+	}
+
 	signal(SIGPIPE, SIG_IGN);
-	gg_debug_file = stdout;
+	gg_debug_file = log_file;
 	gg_debug_level = ~0;
 
 	if ((server_pid = fork()) == -1) {
@@ -509,66 +539,116 @@ int main(int argc, char **argv)
 		failure();
 	}
 
+	signal(SIGTERM, cleanup);
+	signal(SIGINT, cleanup);
+	signal(SIGQUIT, cleanup);
+	signal(SIGALRM, sigalrm);
+
 	if (!server_pid) {
 		serve();
 		exit(0);
 	}
 
-	signal(SIGTERM, cleanup);
-	signal(SIGINT, cleanup);
-	signal(SIGQUIT, cleanup);
+	fprintf(log_file, 
+"<html>\n"
+"<head>\n"
+"<title>libgadu connection test report</title>\n"
+"<style type=\"text/css\">\n"
+".io { text-align: center; }\n"
+".testno { font-size: 16pt; }\n"
+".yes { background: #c0ffc0; }\n"
+".no { background: #ffc0c0; }\n"
+"pre.success { background: #c0ffc0; padding: 3px 5px; border: 1px solid #80ff80; }\n"
+"pre.failure { background: #ffc0c0; padding: 3px 5px; border: 1px solid #ff8080; }\n"
+"</style>\n"
+"<script>\n"
+"function show_result(id, type, value)\n"
+"{\n"
+"    e = document.getElementById('l'+id+type);\n"
+"    if (e)\n"
+"        e.setAttribute('class', value ? 'success' : 'failure');\n"
+"    e = document.getElementById('r'+id+type);\n"
+"    if (e) {\n"
+"        e.setAttribute('class', value ? 'yes' : 'no');\n"
+"        e.innerHTML = value ? 'Success' : 'Failure';\n"
+"    }\n"
+"}\n"
+"</script>\n"
+"</head>\n"
+"<body>\n");
 
-	/* Test 1 */
+	fflush(log_file);
 
-	test_reset();
-	resolve = 0;
-	test_run(1, 0, 0, "Resolver failure");
+	for (i = 0; i < 10/*TEST_MAX*/; i++) {
+		int j = i, server, expect = 0;
 
-	/* Test 2 */
+		printf("\r\033[KTest %d of %d...", i + 1, TEST_MAX);
+		fflush(stdout);
 
-	test_reset();
-	port_plug(80);
-	port_plug(443);
-	port_plug(8074);
-	test_run(2, 0, 0, "All ports closed");
+		plug_80 = j % 3;
+		j /= 3;
+		plug_8074 = j % 3;
+		j /= 3;
+		plug_443 = j % 3;
+		j /= 3;
+		plug_resolver = j % 3;
+		j /= 3;
+		server = j % 2;
+		j /= 2;
 
-	/* Test 3 */
-
-	test_reset();
-	test_run(3, 1, 0, "Regular connection");
-
-	/* Test 4 */
-
-	test_reset();
-	port_plug(8074);
-	test_run(4, 1, 0, "Fallback to port 443");
-
-	/* Test 5 */
-
-	test_reset();
-	port_plug(80);
-	test_run(5, 1, 0, "Fallback to hub address if it's down");
-
-	printf("\n------------------------------------------------------------------------------\n");
-	printf(" Error count: %d\n", test_errors);
-	if (test_errors > 0) {
-		int i, first = 1;
-
-		printf(" Failed tests: ");
-
-		for (i = 0; i < TEST_MAX; i++) {
-			if (!test_failed[i])
-				continue;
-
-			if (!first)
-				printf(", ");
-			first = 0;
-			printf("%d", i + 1);
+		if ((plug_resolver == PLUG_NONE && plug_80 == PLUG_NONE) || server) {
+			if (plug_8074 == PLUG_NONE || plug_443 == PLUG_NONE)
+				expect = 1;
 		}
 
-		printf("\n");
+		fprintf(log_file, "<table border=\"1\">\n");
+		fprintf(log_file, "<tr><th id=\"l%i\" colspan=\"8\"><span class=\"testno\">Test %d</span></th></tr>\n", i, i + 1);
+		fprintf(log_file, "<tr><td colspan=\"5\" class=\"io\">Input</td><td colspan=\"3\" class=\"io\">Output</td></tr>\n");
+		fprintf(log_file, "<tr><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n");
+		fprintf(log_file, "<tr class=\"params\">");
+		fprintf(log_file, (plug_resolver == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_resolver == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
+		fprintf(log_file, (plug_80 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_80 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
+		fprintf(log_file, (plug_8074 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_8074 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
+		fprintf(log_file, (plug_443 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_443 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
+		fprintf(log_file, (server) ? "<td>Yes</td>" : "<td>No</td>");
+		fprintf(log_file, (expect) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
+		fprintf(log_file, "<td id=\"r%da\">Untested</td><td id=\"r%db\">Untested</td>", i, i);
+		fprintf(log_file, "</tr>\n</table>\n");
+
+		if (!(plug_80 == PLUG_TIMEOUT || plug_443 == PLUG_TIMEOUT || plug_8074 == PLUG_TIMEOUT || plug_resolver == PLUG_TIMEOUT)) {
+			fprintf(log_file, "<pre id=\"l%da\">", i);
+			fflush(log_file);
+			result[0][i] = test_connect(0, server);
+			fprintf(log_file, "</pre>");
+			fprintf(log_file, "<script>\nshow_result(%d, 'a', %d);\n</script>\n", i, result[0][i]);
+		} else {
+			result[0][i] = -1;
+		}
+
+		fprintf(log_file, "<pre id=\"l%db\">", i);
+		fflush(log_file);
+		result[1][i] = test_connect(1, server);
+		fprintf(log_file, "</pre>");
+
+		fprintf(log_file, "<script>\nshow_result(%d, 'b', %d);\n</script>\n", i, result[1][i]);
+
+		if (result[0][i] == -1)
+			result[0][i] = result[1][i];
+
+		if (result[0][i] != result[1][i] || result[0][i] != expect)
+			fprintf(log_file, "<script>\nshow_result(%d, '', 0);\n</script>\n", i);
+
+		fprintf(log_file, "<hr />\n");
+		fflush(log_file);
+
+		while (waitpid(-1, NULL, WNOHANG) != 0);
 	}
-	printf("------------------------------------------------------------------------------\n");
+
+	fprintf(log_file, "</body>\n</html>\n");
+
+	printf("\n");
+
+	cleanup(0);
 
 	return 0;
 }
