@@ -37,11 +37,40 @@ enum {
 /** Port and resolver plug flags */
 int plug_80, plug_443, plug_8074, plug_resolver;
 
+/** Asynchronous mode flag */
+int async_mode;
+
 /** Server process id, duh! */
 int server_pid = -1;
 
 /** Report file */
 FILE *log_file;
+
+/** Log buffer */
+char *log_buffer;
+
+static void debug_handler(int level, const char *format, va_list ap)
+{
+	char buf[4096], *tmp;
+	int len = (log_buffer) ? strlen(log_buffer) : 0;
+
+	if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf) - 1) {
+		fprintf(stderr, "Increase temporary log buffer size!\n");
+	}
+
+	if (!(tmp = realloc(log_buffer, len + strlen(buf) + 1))) {
+		fprintf(stderr, "Out of memory for log buffer!\n");
+		return;
+	}
+
+	if (log_buffer) {
+		log_buffer = tmp;
+		strcat(log_buffer, buf);
+	} else {
+		log_buffer = tmp;
+		strcpy(log_buffer, buf);
+	}
+}
 
 static inline void set32(char *ptr, unsigned int value)
 {
@@ -78,15 +107,13 @@ void failure(void)
 
 void debug(const char *fmt, ...)
 {
-	char buf[4096];
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
+	debug_handler(0, "<b>", ap);
+	debug_handler(0, fmt, ap);
+	debug_handler(0, "</b>", ap);
 	va_end(ap);
-
-	fprintf(log_file, "<b>%s</b>", buf);
-	fflush(log_file);
 }
 
 extern int __connect(int socket, const struct sockaddr *address, socklen_t address_len);
@@ -117,9 +144,13 @@ struct hostent *gethostbyname(const char *name)
 	static char sname[128];
 
 	if (plug_resolver != PLUG_NONE) {
-		if (plug_resolver == PLUG_TIMEOUT)
-			sleep(30);
-		h_errno = HOST_NOT_FOUND;
+		if (plug_resolver == PLUG_TIMEOUT) {
+			if (async_mode)
+				sleep(30);
+			h_errno = TRY_AGAIN;
+		} else {
+			h_errno = HOST_NOT_FOUND;
+		}
 		return NULL;
 	}
 
@@ -211,22 +242,21 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			sin.sin_port = htons(LOCALPORT + 3);
 			break;
 		case PLUG_TIMEOUT:
+			if (!async_mode) {
+				errno = ETIMEDOUT;
+				return -1;
+			}
+
 			sin.sin_addr.s_addr = inet_addr(UNREACHABLE);
 			break;
 	}
 
-	if (!(fcntl(socket, F_GETFL) & O_NONBLOCK))
-		alarm(1);
-
 	result =  __connect(socket, (struct sockaddr*) &sin, address_len);
-
-	if (!(fcntl(socket, F_GETFL) & O_NONBLOCK))
-		alarm(0);
 
 	return result;
 }
 
-int test_connect(int async, int server)
+int test_connect(int server)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -234,14 +264,14 @@ int test_connect(int async, int server)
 	memset(&glp, 0, sizeof(glp));
 	glp.uin = 1;
 	glp.password = "dupa.8";
-	glp.async = async;
+	glp.async = async_mode;
 
 	if (server)
 		glp.server_addr = inet_addr(LOCALHOST);
 
 	gs = gg_login(&glp);
 
-	if (!async) {
+	if (!async_mode) {
 		if (!gs)
 			return 0;
 
@@ -461,7 +491,7 @@ void serve(void)
 					set32(seed + 4, 4);
 					set32(seed + 8, 0x12345678);
 
-					write(cfds[j], seed, sizeof(seed));
+					send(cfds[j], seed, sizeof(seed), 0);
 				}
 			}
 		}
@@ -469,7 +499,7 @@ void serve(void)
 		if (cfds[0] != -1 && FD_ISSET(cfds[0], &rd)) {
 			int res;
 
-			res = read(cfds[0], buf + len, sizeof(buf) - len - 1);
+			res = recv(cfds[0], buf + len, sizeof(buf) - len - 1, 0);
 
 			if (res > 0) {
 				buf[len + res] = 0;
@@ -477,7 +507,7 @@ void serve(void)
 
 				if (strstr(buf, "\r\n\r\n")) {
 					snprintf(buf, sizeof(buf), "HTTP/1.0 200 OK\r\n\r\n0 %s:%d %s\r\n", LOCALHOST, 8074, LOCALHOST);
-					write(cfds[0], buf, strlen(buf));
+					send(cfds[0], buf, strlen(buf), 0);
 					close(cfds[0]);
 					cfds[0] = -1;
 				}
@@ -490,7 +520,7 @@ void serve(void)
 		if (cfds[1] != -1 && FD_ISSET(cfds[1], &rd)) {
 			int res;
 
-			res = read(cfds[1], buf + len, sizeof(buf) - len);
+			res = recv(cfds[1], buf + len, sizeof(buf) - len, 0);
 
 			if (res > 0) {
 				len += res;
@@ -501,11 +531,11 @@ void serve(void)
 					set32(ok, GG_LOGIN_OK);
 					set32(ok + 4, 0);
 
-					write(cfds[1], ok, sizeof(ok));
+					send(cfds[1], ok, sizeof(ok), 0);
 				}
 			} else {
-				close(cfds[0]);
-				cfds[0] = -1;
+				close(cfds[1]);
+				cfds[1] = -1;
 			}
 		}
 	}
@@ -523,7 +553,17 @@ void sigalrm(int sig)
 
 int main(int argc, char **argv)
 {
-	int i, result[2][TEST_MAX] = { { 0, }, { 0, } };
+	int i, test_from, test_to, result[TEST_MAX][2] = { { 0, } };
+
+	if (argc == 3) {
+		test_from = atoi(argv[1]);
+		test_to = atoi(argv[2]);
+	}
+
+	if (argc != 3 || test_from < 1 || test_from > TEST_MAX || test_from > test_to || test_to < 1 || test_to > TEST_MAX) {
+		test_from = 1;
+		test_to = TEST_MAX;
+	}
 
 	if (!(log_file = fopen("report.html", "w"))) {
 		perror("fopen");
@@ -531,7 +571,7 @@ int main(int argc, char **argv)
 	}
 
 	signal(SIGPIPE, SIG_IGN);
-	gg_debug_file = log_file;
+	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
 	if ((server_pid = fork()) == -1) {
@@ -561,26 +601,15 @@ int main(int argc, char **argv)
 "pre.success { background: #c0ffc0; padding: 3px 5px; border: 1px solid #80ff80; }\n"
 "pre.failure { background: #ffc0c0; padding: 3px 5px; border: 1px solid #ff8080; }\n"
 "</style>\n"
-"<script>\n"
-"function show_result(id, type, value)\n"
-"{\n"
-"    e = document.getElementById('l'+id+type);\n"
-"    if (e)\n"
-"        e.setAttribute('class', value ? 'success' : 'failure');\n"
-"    e = document.getElementById('r'+id+type);\n"
-"    if (e) {\n"
-"        e.setAttribute('class', value ? 'yes' : 'no');\n"
-"        e.innerHTML = value ? 'Success' : 'Failure';\n"
-"    }\n"
-"}\n"
-"</script>\n"
 "</head>\n"
 "<body>\n");
 
 	fflush(log_file);
 
-	for (i = 0; i < 10/*TEST_MAX*/; i++) {
+	for (i = test_from - 1; i < test_to; i++) {
 		int j = i, server, expect = 0;
+		char *log[2];
+		const char *display;
 
 		printf("\r\033[KTest %d of %d...", i + 1, TEST_MAX);
 		fflush(stdout);
@@ -596,13 +625,27 @@ int main(int argc, char **argv)
 		server = j % 2;
 		j /= 2;
 
+		for (j = 0; j < 2; j++) {
+			async_mode = j;
+			result[i][j] = test_connect(server);
+			log[j] = log_buffer;
+			log_buffer = NULL;
+		}
+
 		if ((plug_resolver == PLUG_NONE && plug_80 == PLUG_NONE) || server) {
 			if (plug_8074 == PLUG_NONE || plug_443 == PLUG_NONE)
 				expect = 1;
 		}
 
-		fprintf(log_file, "<table border=\"1\">\n");
-		fprintf(log_file, "<tr><th id=\"l%i\" colspan=\"8\"><span class=\"testno\">Test %d</span></th></tr>\n", i, i + 1);
+		if (result[i][0] == result[i][1] && result[i][0] == expect) {
+			display = "none";
+		} else {
+			display = "block";
+		}
+
+		fprintf(log_file, "<div id=\"test%d\">\n", i + 1);
+		fprintf(log_file, "<table id=\"result%d\" border=\"1\">\n", i + 1);
+		fprintf(log_file, "<tr><th class=\"%s\" colspan=\"8\"><span class=\"testno\">Test %d</span></th></tr>\n", (result[i][0] != result[i][1] || result[i][0] != expect) ? "failure" : "success", i + 1);
 		fprintf(log_file, "<tr><td colspan=\"5\" class=\"io\">Input</td><td colspan=\"3\" class=\"io\">Output</td></tr>\n");
 		fprintf(log_file, "<tr><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n");
 		fprintf(log_file, "<tr class=\"params\">");
@@ -612,34 +655,19 @@ int main(int argc, char **argv)
 		fprintf(log_file, (plug_443 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_443 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
 		fprintf(log_file, (server) ? "<td>Yes</td>" : "<td>No</td>");
 		fprintf(log_file, (expect) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
-		fprintf(log_file, "<td id=\"r%da\">Untested</td><td id=\"r%db\">Untested</td>", i, i);
+		fprintf(log_file, (result[i][0]) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
+		fprintf(log_file, (result[i][1]) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
 		fprintf(log_file, "</tr>\n</table>\n");
 
-		if (!(plug_80 == PLUG_TIMEOUT || plug_443 == PLUG_TIMEOUT || plug_8074 == PLUG_TIMEOUT || plug_resolver == PLUG_TIMEOUT)) {
-			fprintf(log_file, "<pre id=\"l%da\">", i);
-			fflush(log_file);
-			result[0][i] = test_connect(0, server);
-			fprintf(log_file, "</pre>");
-			fprintf(log_file, "<script>\nshow_result(%d, 'a', %d);\n</script>\n", i, result[0][i]);
-		} else {
-			result[0][i] = -1;
-		}
+		for (j = 0; j < 2; j++)
+			fprintf(log_file, "<pre id=\"log%d%c\" class=\"%s\" style=\"display: %s;\">%s</pre>", i + 1, 'a' + j, (result[i][j]) ? "success" : "failure", display, log[j]);
 
-		fprintf(log_file, "<pre id=\"l%db\">", i);
-		fflush(log_file);
-		result[1][i] = test_connect(1, server);
-		fprintf(log_file, "</pre>");
-
-		fprintf(log_file, "<script>\nshow_result(%d, 'b', %d);\n</script>\n", i, result[1][i]);
-
-		if (result[0][i] == -1)
-			result[0][i] = result[1][i];
-
-		if (result[0][i] != result[1][i] || result[0][i] != expect)
-			fprintf(log_file, "<script>\nshow_result(%d, '', 0);\n</script>\n", i);
-
+		fprintf(log_file, "</div>\n");
 		fprintf(log_file, "<hr />\n");
 		fflush(log_file);
+
+		free(log[0]);
+		free(log[1]);
 
 		while (waitpid(-1, NULL, WNOHANG) != 0);
 	}

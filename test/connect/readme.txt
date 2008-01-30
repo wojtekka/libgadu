@@ -29,8 +29,6 @@ Kolejne testy są uruchamiane dla różnych parametrów symulacji:
 - port 443 działa lub nie,
 - podano ręcznie adres serwera lub nie.
 
-Dla przyspieszenia testów, limit czasu połączenia jest zmniejszany do
-1 sekundy. Testy związane z niedostępnością serwera nie są uruchamiane
-dla połączeń synchronicznych, ponieważ limit czasu połączenia w takim
-wypadku jest bardzo wysoki i może sięgać minut (dla kilkuset połączeń
-to _robi_ różnicę).
+Dla przyspieszenia testów, limit czasu połączenia przy operacjach 
+asynchronicznych jest zmniejszany do 1 sekundy. Dla synchronicznych,
+funkcje systemowe od razu zwracają błąd typu ETIMEDOUT.
