@@ -1047,7 +1047,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			goto fail;
 		}
 
-		if (p->server_addr && p->server_port)
+		if (sess->server_addr)
 			sess->state = GG_STATE_CONNECTING_GG;
 		else
 			sess->state = GG_STATE_CONNECTING_HUB;
