@@ -34,7 +34,9 @@ podobnie jak w trybie synchronicznym.
 wartość flagi \ref gg_session::soft_timeout "\c soft_timeout"
 . Jeśli jest równa \c 0 (tj. \c FALSE), można przerwać
 połączenie i zwolnić zasoby, a jeśli jest różna (tj. \c TRUE), należy
-wywołać \c gg_watch_fd(), by dać szansę bibliotece zareagować na przekroczenie
+wywołać \c gg_watch_fd() ustawiając wcześniej
+\ref gg_session::timeout "\c timeout"
+na \c 0, by dać szansę bibliotece zareagować na przekroczenie
 czasu operacji. Za pomocą mechanizmu \c soft_timeout są realizowane próby
 połączenia z innymi portami, np. gdy domyślny port 8074 jest zablokowany oraz
 zwrotne połączenia bezpośrednie (7.x), gdy jedna ze stron połączenia znajduje
