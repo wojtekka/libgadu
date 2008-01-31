@@ -1020,7 +1020,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (!p->async) {
 		struct in_addr a;
 
-		if (!p->server_addr || !p->server_port) {
+		if (!sess->server_addr) {
 			if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 				struct in_addr *hn;
 
@@ -1033,8 +1033,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 				}
 			}
 		} else {
-			a.s_addr = p->server_addr;
-			port = p->server_port;
+			a.s_addr = sess->server_addr;
+			port = sess->port;
 		}
 
 		sess->hub_addr = a.s_addr;
