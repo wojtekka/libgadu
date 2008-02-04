@@ -1384,6 +1384,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));
 
+				if (sess->port == GG_HTTPS_PORT)
+					goto fail_connecting;
+
 				sess->port = GG_HTTPS_PORT;
 
 				/* próbujemy na port 443. */
@@ -1391,6 +1394,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 					goto fail_connecting;
 				}
+
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+				sess->soft_timeout = 1;
+
+				break;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");

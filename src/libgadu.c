@@ -1044,7 +1044,20 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-			goto fail;
+
+			/* nie wyszło? próbujemy portu 443. */
+			if (sess->server_addr) {
+				sess->port = GG_HTTPS_PORT;
+
+				if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, 0)) == -1) {
+					/* ostatnia deska ratunku zawiodła?
+					 * w takim razie zwijamy manatki. */
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail;
+				}
+			} else {
+				goto fail;
+			}
 		}
 
 		if (sess->server_addr)
@@ -1089,6 +1102,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		}
 		sess->state = GG_STATE_CONNECTING_GG;
 		sess->check = GG_CHECK_WRITE;
+		sess->soft_timeout = 1;
 	}
 
 	return sess;
