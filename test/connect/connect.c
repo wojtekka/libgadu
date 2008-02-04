@@ -266,8 +266,10 @@ int test_connect(int server)
 	glp.password = "dupa.8";
 	glp.async = async_mode;
 
-	if (server)
+	if (server) {
 		glp.server_addr = inet_addr(LOCALHOST);
+//		glp.server_port = 8074;
+	}
 
 	gs = gg_login(&glp);
 
@@ -317,8 +319,10 @@ int test_connect(int server)
 			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (res == 0 && gs->soft_timeout)) {
 				struct gg_event *ge;
 				
-				if (res == 0)
+				if (res == 0) {
 					debug("soft timeout\n");
+					gs->timeout = 0;
+				}
 		
 				ge = gg_watch_fd(gs);
 
@@ -660,7 +664,7 @@ int main(int argc, char **argv)
 		fprintf(log_file, "</tr>\n</table>\n");
 
 		for (j = 0; j < 2; j++)
-			fprintf(log_file, "<pre id=\"log%d%c\" class=\"%s\" style=\"display: %s;\">%s</pre>", i + 1, 'a' + j, (result[i][j]) ? "success" : "failure", display, log[j]);
+			fprintf(log_file, "<pre id=\"log%d%c\" class=\"%s\" style=\"display: %s;\">%s</pre>", i + 1, 'a' + j, (result[i][j]) ? "success" : "failure", "block"/*display*/, log[j]);
 
 		fprintf(log_file, "</div>\n");
 		fprintf(log_file, "<hr />\n");
