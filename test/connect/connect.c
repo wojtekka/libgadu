@@ -37,6 +37,9 @@ enum {
 /** Port and resolver plug flags */
 int plug_80, plug_443, plug_8074, plug_resolver;
 
+/** Flags telling which actions libgadu */
+int tried_80, tried_443, tried_8074, tried_resolver;
+
 /** Asynchronous mode flag */
 int async_mode;
 
@@ -93,13 +96,11 @@ void failure(void) __attribute__ ((noreturn));
 
 void failure(void)
 {
-	if (server_pid != -1) {
-		if (getpid() == server_pid) {
-			kill(getppid(), SIGTERM);
-		} else {
-			kill(server_pid, SIGTERM);
-			printf("\n");
-		}
+	if (server_pid == 0) {
+		kill(getppid(), SIGTERM);
+	} else if (server_pid != -1) {
+		kill(server_pid, SIGTERM);
+		printf("\n");
 	}
 	
 	exit(0);
@@ -110,9 +111,9 @@ void debug(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	debug_handler(0, "<b>", ap);
+	debug_handler(0, "\001", ap);
 	debug_handler(0, fmt, ap);
-	debug_handler(0, "</b>", ap);
+	debug_handler(0, "\002", ap);
 	va_end(ap);
 }
 
@@ -142,6 +143,8 @@ struct hostent *gethostbyname(const char *name)
 	static struct in_addr addr;
 	static char *addr_list[2];
 	static char sname[128];
+
+	tried_resolver = 1;
 
 	if (plug_resolver != PLUG_NONE) {
 		if (plug_resolver == PLUG_TIMEOUT) {
@@ -219,14 +222,17 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		case 80:
 			plug = plug_80;
 			port = LOCALPORT;
+			tried_80 = 1;
 			break;
 		case 443:
 			plug = plug_443;
 			port = LOCALPORT + 1;
+			tried_443 = 1;
 			break;
 		case 8074:
 			plug = plug_8074;
 			port = LOCALPORT + 2;
+			tried_8074 = 1;
 			break;
 		default:
 			debug("Invalid argument for connect(): sin_port = %d\n", ntohs(sin.sin_port));
@@ -260,6 +266,11 @@ int test_connect(int server)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
+
+	tried_80 = 0;
+	tried_443 = 0;
+	tried_8074 = 0;
+	tried_resolver = 0;
 
 	memset(&glp, 0, sizeof(glp));
 	glp.uin = 1;
@@ -305,7 +316,7 @@ int test_connect(int server)
 			res = select(gs->fd + 1, &rd, &wr, NULL, (gs->timeout) ? &tv : NULL);
 			
 			if (res == 0 && !gs->soft_timeout) {
-				debug("hard timeout\n");
+				debug("Hard timeout\n");
 				gg_free_session(gs);
 				return 0;
 			}
@@ -320,14 +331,14 @@ int test_connect(int server)
 				struct gg_event *ge;
 				
 				if (res == 0) {
-					debug("soft timeout\n");
+					debug("Soft timeout\n");
 					gs->timeout = 0;
 				}
 		
 				ge = gg_watch_fd(gs);
 
 				if (!ge) {
-					debug("gg_watch_fd failure\n");
+					debug("gg_watch_fd() failed\n");
 					gg_free_session(gs);
 					return 0;
 				}
@@ -357,11 +368,6 @@ int test_connect(int server)
 			}
 		}
 	}
-}
-
-
-void test_reset(void)
-{
 }
 
 void test_stats(void)
@@ -545,6 +551,74 @@ void serve(void)
 	}
 }
 
+char *htmlize(const char *in)
+{
+	char *out;
+	int i, j, size = 0;
+
+	for (i = 0; in[i]; i++) {
+		switch (in[i]) {
+			case '<':
+			case '>':
+				size += 4;
+				break;
+			case '&':
+				size += 5;
+				break;
+			case '\n':
+				size += 7;
+				break;
+			case 1:
+				size += 3;
+				break;
+			case 2:
+				size += 4;
+				break;
+			default:
+				size++;
+		}
+	}
+
+	if (!(out = malloc(size + 1)))
+		return NULL;
+
+	for (i = 0, j = 0; in[i]; i++) {
+		switch (in[i]) {
+			case '<':
+				strcpy(out + j, "&lt;");
+				j += 4;
+				break;
+			case '>':
+				strcpy(out + j, "&gt;");
+				j += 4;
+				break;
+			case '&':
+				strcpy(out + j, "&amp;");
+				j += 5;
+				break;
+			case '\n':
+				strcpy(out + j, "<br />\n");
+				j += 7;
+				break;
+			case 1:
+				strcpy(out + j, "<b>");
+				j += 3;
+				break;
+			case 2:
+				strcpy(out + j, "</b>");
+				j += 4;
+				break;
+			default:
+				out[j] = in[i];
+				j++;
+		}
+	}
+		
+	out[size] = 0;
+
+	return out;
+}
+
 void cleanup(int sig)
 {
 	failure();
@@ -558,6 +632,7 @@ void sigalrm(int sig)
 int main(int argc, char **argv)
 {
 	int i, test_from, test_to, result[TEST_MAX][2] = { { 0, } };
+	int exit_code = 0;
 
 	if (argc == 3) {
 		test_from = atoi(argv[1]);
@@ -602,11 +677,33 @@ int main(int argc, char **argv)
 ".testno { font-size: 16pt; }\n"
 ".yes { background: #c0ffc0; }\n"
 ".no { background: #ffc0c0; }\n"
-"pre.success { background: #c0ffc0; padding: 3px 5px; border: 1px solid #80ff80; }\n"
-"pre.failure { background: #ffc0c0; padding: 3px 5px; border: 1px solid #ff8080; }\n"
+"tt { margin: 4px 3px; display: block; }\n"
+"#header { margin-bottom: 0.5em; text-align: right; }\n"
 "</style>\n"
+"<script>\n"
+"function toggle(id)\n"
+"{\n"
+"	if (document.getElementById(id).style.display == 'none')\n"
+"		document.getElementById(id).style.display = 'block';\n"
+"	else\n"
+"		document.getElementById(id).style.display = 'none';\n"
+"}\n"
+"function showall()\n"
+"{\n"
+"	for (i = %d; i <= %d; i++) {\n"
+"		document.getElementById('log'+i+'a').style.display = 'block';\n"
+"		document.getElementById('log'+i+'b').style.display = 'block';\n"
+"	}\n"
+"}\n"
+"</script>\n"
 "</head>\n"
-"<body>\n");
+"<body>\n"
+"<div id=\"header\">\n"
+"<a href=\"javascript:showall();\">Show all</a>\n"
+"</div>\n"
+"<table border=\"1\" width=\"100%%\">\n"
+"<tr><td rowspan=\"2\">No.</td><td colspan=\"5\" class=\"io\">Input</td><td colspan=\"3\" class=\"io\">Output</td></tr>\n"
+"<tr><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n", test_from, test_to);
 
 	fflush(log_file);
 
@@ -632,6 +729,33 @@ int main(int argc, char **argv)
 		for (j = 0; j < 2; j++) {
 			async_mode = j;
 			result[i][j] = test_connect(server);
+
+			/* check for invalid behaviour */
+			if (server && (tried_resolver || tried_80)) {
+				result[i][j] = 0;
+				debug("Used resolver or hub when server provided\n");
+			}
+
+			if (tried_443 && !tried_8074) {
+				result[i][j] = 0;
+				debug("Didn't try 8074 although tried 443\n");
+			}
+
+			if (!server && plug_resolver == PLUG_NONE && !tried_80) {
+				result[i][j] = 0;
+				debug("Didn't use hub\n");
+			}
+
+			if (server && !tried_8074 && !tried_443) {
+				result[i][j] = 0;
+				debug("Didn't try connecting directly\n");
+			}
+
+			if ((server || (plug_resolver == PLUG_NONE && plug_80 == PLUG_NONE)) && plug_8074 != PLUG_NONE && !tried_443) {
+				result[i][j] = 0;
+				debug("Didn't try 443\n");
+			}
+
 			log[j] = log_buffer;
 			log_buffer = NULL;
 		}
@@ -642,32 +766,34 @@ int main(int argc, char **argv)
 		}
 
 		if (result[i][0] == result[i][1] && result[i][0] == expect) {
-			display = "none";
+			display = " style=\"display: none;\"";
 		} else {
-			display = "block";
+			display = "";
+			exit_code = 1;
 		}
 
-		fprintf(log_file, "<div id=\"test%d\">\n", i + 1);
-		fprintf(log_file, "<table id=\"result%d\" border=\"1\">\n", i + 1);
-		fprintf(log_file, "<tr><th class=\"%s\" colspan=\"8\"><span class=\"testno\">Test %d</span></th></tr>\n", (result[i][0] != result[i][1] || result[i][0] != expect) ? "failure" : "success", i + 1);
-		fprintf(log_file, "<tr><td colspan=\"5\" class=\"io\">Input</td><td colspan=\"3\" class=\"io\">Output</td></tr>\n");
-		fprintf(log_file, "<tr><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n");
-		fprintf(log_file, "<tr class=\"params\">");
+		fprintf(log_file, "<tr class=\"params\"><td><b>%d</b></td>", i + 1);
 		fprintf(log_file, (plug_resolver == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_resolver == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
 		fprintf(log_file, (plug_80 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_80 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
 		fprintf(log_file, (plug_8074 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_8074 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
 		fprintf(log_file, (plug_443 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((plug_443 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
 		fprintf(log_file, (server) ? "<td>Yes</td>" : "<td>No</td>");
 		fprintf(log_file, (expect) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
-		fprintf(log_file, (result[i][0]) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
-		fprintf(log_file, (result[i][1]) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
-		fprintf(log_file, "</tr>\n</table>\n");
 
-		for (j = 0; j < 2; j++)
-			fprintf(log_file, "<pre id=\"log%d%c\" class=\"%s\" style=\"display: %s;\">%s</pre>", i + 1, 'a' + j, (result[i][j]) ? "success" : "failure", "block"/*display*/, log[j]);
+		for (j = 0; j < 2; j++) {
+			fprintf(log_file, "<td class=\"%s\"><a href=\"javascript:toggle('log%d%c');\">%s</a></td>", (result[i][j]) ? "yes" : "no", i + 1, 'a' + j, (result[i][j]) ? "Success" : "Failure");
+		}
 
-		fprintf(log_file, "</div>\n");
-		fprintf(log_file, "<hr />\n");
+		fprintf(log_file, "</tr>\n");
+
+		for (j = 0; j < 2; j++) {
+			const char *class = (result[i][j]) ? "yes" : "no";
+			char *tmp = htmlize(log[j]);
+
+			fprintf(log_file, "<tr>\n<td colspan=\"9\" class=\"%s\">\n<tt id=\"log%d%c\"%s>\n%s\n</tt>\n</td>\n</tr>\n", class, i + 1, 'a' + j, display, tmp);
+			free(tmp);
+		}
+
 		fflush(log_file);
 
 		free(log[0]);
@@ -682,6 +808,6 @@ int main(int argc, char **argv)
 
 	cleanup(0);
 
-	return 0;
+	return exit_code;
 }
 
