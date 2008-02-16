@@ -896,27 +896,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 				/* no tak, nie uda³o siê po³±czyæ z proxy. nawet
 				 * nie próbujemy dalej. */
-				if (sess->proxy_addr && sess->proxy_port) {
+				if (sess->proxy_addr && sess->proxy_port)
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
-					goto fail_connecting;
-				}
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to hub failed (errno=%d, %s), trying direct connection\n", res, strerror(res));
+				else
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to hub failed (errno=%d, %s), trying direct connection\n", res, strerror(res));
 				close(sess->fd);
 
-				if ((sess->fd = gg_connect(&sess->hub_addr, GG_DEFAULT_PORT, sess->async)) == -1) {
-					/* przy asynchronicznych, gg_connect()
-					 * zwraca -1 przy b³êdach socket(),
-					 * ioctl(), braku routingu itd. dlatego
-					 * nawet nie próbujemy dalej. */
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() direct connection failed (errno=%d, %s), critical\n", errno, strerror(errno));
-					goto fail_connecting;
-				}
-
-				sess->state = GG_STATE_CONNECTING_GG;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
-				break;
+				goto fail_connecting;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
@@ -997,44 +983,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			/* sprawdzamy, czy wszystko w porz±dku. */
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() that's not what we've expected, trying direct connection\n");
-
-				close(sess->fd);
-
-				/* je¶li otrzymali¶my jakie¶ dziwne informacje,
-				 * próbujemy siê ³±czyæ z pominiêciem huba. */
-				if (sess->proxy_addr && sess->proxy_port) {
-					if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
-						/* trudno. nie wysz³o. */
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
-						goto fail_connecting;
-					}
-
-					sess->state = GG_STATE_CONNECTING_GG;
-					sess->check = GG_CHECK_WRITE;
-					sess->timeout = GG_DEFAULT_TIMEOUT;
-					break;
-				}
-
-				sess->port = GG_DEFAULT_PORT;
-
-				/* ³±czymy siê na port 8074 huba. */
-				if ((sess->fd = gg_connect(&sess->hub_addr, sess->port, sess->async)) == -1) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", errno, strerror(errno));
-
-					sess->port = GG_HTTPS_PORT;
-
-					/* ³±czymy siê na port 443. */
-					if ((sess->fd = gg_connect(&sess->hub_addr, sess->port, sess->async)) == -1) {
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-						goto fail_connecting;
-					}
-				}
-
-				sess->state = GG_STATE_CONNECTING_GG;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
-				break;
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
+				goto fail_connecting;
 			}
 
 			/* ignorujemy resztê nag³ówka. */
@@ -1180,6 +1130,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));
 
+				if (sess->port == GG_HTTPS_PORT)
+					goto fail_connecting;
+
 				sess->port = GG_HTTPS_PORT;
 
 				/* próbujemy na port 443. */
@@ -1187,6 +1140,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 					goto fail_connecting;
 				}
+
+				sess->state = GG_STATE_CONNECTING_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+
+				break;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");

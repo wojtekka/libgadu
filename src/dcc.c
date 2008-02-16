@@ -1115,6 +1115,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
+				if (h->offset >= h->file_info.size) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() offset >= size, finished\n");
+					e->type = GG_EVENT_DCC_DONE;
+					return e;
+				}
+
 				lseek(h->file_fd, h->offset, SEEK_SET);
 
 				size = read(h->file_fd, buf, utmp);
@@ -1193,6 +1199,12 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				if ((utmp = h->chunk_size - h->chunk_offset) > sizeof(buf))
 					utmp = sizeof(buf);
+
+				if (h->offset >= h->file_info.size) {
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() offset >= size, finished\n");
+					e->type = GG_EVENT_DCC_DONE;
+					return e;
+				}
 
 				size = read(h->fd, buf, utmp);
 

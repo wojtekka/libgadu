@@ -847,7 +847,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (!p->async) {
 		struct in_addr a;
 
-		if (!p->server_addr || !p->server_port) {
+		if (!sess->server_addr) {
 			if ((a.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 				struct in_addr *hn;
 
@@ -860,8 +860,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 				}
 			}
 		} else {
-			a.s_addr = p->server_addr;
-			port = p->server_port;
+			a.s_addr = sess->server_addr;
+			port = sess->port;
 		}
 
 		sess->hub_addr = a.s_addr;
@@ -871,10 +871,23 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 		if ((sess->fd = gg_connect(&a, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-			goto fail;
+
+			/* nie wysz³o? próbujemy portu 443. */
+			if (sess->server_addr) {
+				sess->port = GG_HTTPS_PORT;
+
+				if ((sess->fd = gg_connect(&a, GG_HTTPS_PORT, 0)) == -1) {
+					/* ostatnia deska ratunku zawiod³a?
+					 * w takim razie zwijamy manatki. */
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail;
+				}
+			} else {
+				goto fail;
+			}
 		}
 
-		if (p->server_addr && p->server_port)
+		if (sess->server_addr)
 			sess->state = GG_STATE_CONNECTING_GG;
 		else
 			sess->state = GG_STATE_CONNECTING_HUB;
