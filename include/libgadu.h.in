@@ -593,11 +593,12 @@ enum gg_event_t {
 	GG_EVENT_DCC_ACK,		/**< Potwierdzenie transmisji w połączeniu bezpośrednim (6.x) */
 
 	GG_EVENT_DCC7_NEW,		/**< Nowe połączenie bezpośrednie (7.x) */
-	GG_EVENT_DCC7_ACCEPT,		/**< Zaakceptowano połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_ACCEPT,		/**< Zaakceptowano połączenie bezpośrednie (7.x), nowy deskryptor */
 	GG_EVENT_DCC7_REJECT,		/**< Odrzucono połączenie bezpośrednie (7.x) */
 	GG_EVENT_DCC7_CONNECTED,	/**< Zestawiono połączenie bezpośrednie (7.x) */
 	GG_EVENT_DCC7_ERROR,		/**< Błąd połączenia bezpośredniego (7.x) */
 	GG_EVENT_DCC7_DONE,		/**< Zakończono połączenie bezpośrednie (7.x) */
+	GG_EVENT_DCC7_PENDING,		/**< Trwa próba połączenia bezpośredniego (7.x), nowy deskryptor */
 
 	GG_EVENT_XML_EVENT		/**< Otrzymano komunikat systemowy (7.7) */
 };

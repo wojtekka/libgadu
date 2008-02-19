@@ -28,6 +28,10 @@ albo od razu wywołać \c gg_dcc7_reject(), jeśli nie chcemy połączenia. Tak 
 jak przy wysyłaniu, wystarczy obsłużyć \c GG_EVENT_DCC7_DONE w strukturze
 \c gg_dcc7 i \c GG_EVENT_DCC7_ERROR w strukturach \c gg_session i \c gg_dcc7.
 
+Deskryptor połączenia (pole \c fd struktury \c gg_dcc7) może zmienić się
+po wywołaniu funkcji \c gg_dcc7_accept() lub otrzymaniu jednego ze zdarzeń:
+\c GG_EVENT_DCC7_CONNECTED, \c GG_EVENT_DCC7_ACCEPT, \c GG_EVENT_DCC7_PENDING.
+
 Do zrobienia:
 
 - rozmowy głosowe,

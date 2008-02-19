@@ -481,7 +481,10 @@ fail:
 }
 
 /**
- * Rozpoczyna wysyłanie pliku o danym deskryptorze.
+ * \internal Rozpoczyna wysyłanie pliku o danym deskryptorze.
+ *
+ * \note Wysyłanie pliku nie będzie działać poprawnie, jeśli deskryptor
+ * źródłowy jest w trybie nieblokującym i w pewnym momencie zabraknie danych.
  *
  * \param sess Struktura sesji
  * \param rcpt Numer odbiorcy
@@ -727,6 +730,8 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 		e->event.dcc7_accept.type = gg_fix32(p->type);
 		e->event.dcc7_accept.remote_ip = dcc->remote_addr;
 		e->event.dcc7_accept.remote_port = dcc->remote_port;
+	} else {
+		e->type = GG_EVENT_DCC7_PENDING;
 	}
 
 	if (gg_dcc7_connect(sess, dcc) == -1) {
@@ -998,11 +1003,13 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (error || (res = getsockopt(dcc->fd, SOL_SOCKET, SO_ERROR, &error, &error_size)) == -1 || error != 0) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection failed (%s)\n", (res == -1) ? strerror(errno) : strerror(error));
 
-				if (gg_dcc7_reverse_connect(dcc) != -1)
-					break;
-				
-				e->type = GG_EVENT_DCC7_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC7_NET;
+				if (gg_dcc7_reverse_connect(dcc) != -1) {
+					e->type = GG_EVENT_DCC7_PENDING;
+				} else {
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_NET;
+				}
+
 				return e;
 			}
 
