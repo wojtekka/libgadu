@@ -49,6 +49,9 @@ if test "x$STDINT_H" = "xsys/types.h"; then
 	AC_DEFINE([GG_CONFIG_HAVE_SYS_TYPES_H], [], [Defined if uintX_t types are defined in <sys/types.h>.])
 fi
 
+AC_DEFINE([GG_LIBGADU_VERSION], [], [Library version])
+AC_DEFINE_UNQUOTED(GG_LIBGADU_VERSION, "${VERSION}")
+
 dnl SunOS
 
 AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
