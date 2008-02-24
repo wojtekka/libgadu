@@ -1,0 +1,69 @@
+/**
+
+\mainpage libgadu
+
+\e libgadu jest biblioteką przeznaczoną do obsługi protokołu komunikatora
+Gadu-Gadu. Przez dłuższy czas była integralną częścią
+<a href="http://ekg.chmurka.net/">Eksperymentalnego Klienta Gadu-Gadu</a>,
+lecz ze względu na problemy z dystrybucją pakietów i wykorzystaniem
+w innych projektach, została wydzielona. Własnościowy protokół został
+rozszyfrowany metodą inżynierii wstecznej (ang. \e "reverse engineering"),
+przez co \e libgadu może nie być w 100% zgodna z pierwowzorem.
+
+Biblioteka została napisana w języku C i jest niezależna od systemu
+operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z
+POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na
+istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach
+konsolowych, jak i graficznych GTK+ i Qt.
+
+Strona projektu znajduje się pod adresem http://toxygen.net/libgadu/.
+Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
+<a href="http://lists.ziew.org/mailman/listinfo/libgadu-devel">libgadu-devel</a>
+poświęconą rozwojowi biblioteki, programowaniu przy jej użyciu oraz protokołowi
+Gadu-Gadu. Istnieje również lista 
+<a href="http://lists.ziew.org/mailman/listinfo/libgadu-commit">libgadu-commit</a>,
+na którą są wysyłane informacje o zmianach w kodzie źródłowym.
+
+Dokumentację podzielono na następujące działy:
+
+- Funkcje związane połączeniem 
+	- \ref login
+	- \ref events
+	- \ref contacts
+	- \ref messages
+	- \ref status
+	- \ref pubdir50
+	- \ref importexport <br>
+
+- Funkcje związane z usługami dodatkowymi
+	- \ref http
+	- \ref token
+	- \ref register
+	- \ref passwd
+	- \ref remind
+	- \ref unregister <br>
+
+- Funkcje związane z połączeniami bezpośrednimi
+	- \ref dcc6
+	- \ref dcc7 <br>
+
+- Pozostałe funkcje
+	- \ref proxy
+	- \ref ip
+	- \ref debug
+	- \ref helper
+	- \ref todo
+
+- Informacje dodatkowe
+	- \ref changelog
+
+\warning Należy pamiętać, że używanie alternatywnych klientów jest niezgodne
+z regulaminem korzystania z serwisu Gadu-Gadu.
+
+\note Na potrzeby przykładów użyto numerów kontaktów typu 1234 itp. Numery
+te prawdopodobnie są numerami używanymi, dlatego testując własny kod <em>nie
+należy</em> używać losowo wybranych numerów, tylko własnych lub
+zarejestrowanych na potrzeby testów. Dobrym zwyczajem jest również usuwanie
+kont po zakończeniu eksperymentów.
+
+*/

@@ -1,0 +1,100 @@
+/**
+
+\defgroup login Połączenie z serwerem
+\ingroup session
+
+\details
+
+Każde połączenie z serwerem jest rozpoczynane funkcją \c gg_login() zwracającą
+strukturę \c gg_session, opisującą dane połączenie. Funkcja \c gg_login() za
+parametr przyjmuje wskaźnik strukturę zawierającą listę parametrów połączenia.
+Przykładowy kod rozpoczynający łączenie wygląda następująco:
+
+\code
+struct gg_session *sesja;
+struct gg_login_params parametry;
+struct gg_event *zdarzenie;
+
+memset(&parametry, 0, sizeof(parametry));
+parametry.uin = 12345;
+parametry.password = "hasło";
+parametry.async = 1;
+parametry.status = GG_STATUS_INVISIBLE;
+
+sesja = gg_login(&parametry);
+
+if (!sesja) {
+    błąd("Nie można się połączyć");
+    exit(1);
+}
+
+// ...
+\endcode
+
+Lista wszystkich parametrów połączenia znajduje się w opisie struktury
+\c gg_login_params. W zależności od tego, czy łączymy się synchronicznie czy
+asynchronicznie (jak w przykładzie), funkcja \c gg_login() zwróci wskaźnik
+dopiero po udanym połączeniu lub zaraz po rozpoczęciu procedury łączenia.
+Dokładny opis dalszej obsługi połączenia znajduje się w sekcji poświęconej \ref
+events "obsłudze zdarzeń".
+
+Aby łączyć się z użyciem serwera pośredniczącego (ang. \e proxy), należy przed
+połączeniem ustawić zmienne globalne \ref proxy "\c gg_proxy_enabled"
+, \ref proxy "\c gg_proxy_host"
+, \ref proxy "\c gg_proxy_port"
+ i \ref proxy "inne."
+
+Do korzystania z połączeń bezpośrednich wersji 6.x, konieczne jest przed
+połączeniem ustawienie zmiennych globalnych \ref ip "\c gg_dcc_ip"
+i \ref ip "\c gg_dcc_port."
+
+\section login-details Procedura łączenia z serwerem
+
+Procedura łączenia się z serwerem składa się z kilku etapów:
+
+ -# Rozwiązywanie nazwy serwera rozdzielającego (ang. \e hub), domyślnie
+    \c appmsg.gadu-gadu.pl
+ -# Nawiązanie połączenia z serwerem rozdzielającym na porcie 80.
+ -# Wysłanie zapytania o adres właściwego serwera. Parametrami zapytania są
+    m.in. numer konta i wersja klienta.
+ -# Odebranie odpowiedzi zawierającej adres IP właściwego serwera, jego port
+    i ewentualnie wiadomość systemową.
+ -# Nawiązanie połączenia z właściwym serwerem.
+ -# Odebranie pakietu z ziarnem hasła do przeprowadzenia autoryzacji typu
+    \e challenge-response.
+ -# Wysłanie pakietu z parametrami logowania (w tym skrótem hasła).
+ -# Odebranie pakietu z informacją o pomyślnym lub nieudanym logowaniu.
+
+Wszystkimi etapami zajmuje się funkcja \c gg_login() w przypadku połączenia
+synchronicznego lub \c gg_login() i \c gg_watch_fd() dla połączeń
+asynchronicznych. Możliwe jest pominięcie pierwszych czterech kroków,
+związanych z połączeniem z serwerem rozdzielającym, przez
+ręczne podanie adresu i portu właściwego serwera w polach
+\ref gg_login_params::server_addr "\c server_addr"
+i \ref gg_login_params::server_port "\c server_port"
+struktury \c gg_login_params. Jest to przydatne w sytuacjach, gdy serwer
+rozdzielający jest przeciążony lub niedostępny, albo gdy zwraca nieprawidłowy
+adres właściwego serwera.
+
+Rozwiązywanie nazwy w systemach zgodnych z normą POSIX jest operacją
+synchroniczną. Z tego powodu w trybie asynchronicznym konieczne jest utworzenie
+dodatkowego procesu lub wątku (w zależności od opcji kompilacji), który w tle
+dokona rozwiązania nazwy i zwróci wynik do procesu lub wątku nadrzędnego.
+
+\note Jeśli biblioteka używa procesu do rozwiązywania nazw, w aplikacji należy
+użyć funkcji systemowej \c wait() lub podobnej do prawidłowego zakończenia
+życia procesu potomnego. W przeciwnym wypadku, w zależności od zachowania
+systemu operacyjnego, mogą powstawać procesy \e zombie.
+
+\section login-keepalive Utrzymanie połączenia
+
+Serwer oczekuje regularnego wysyłania pakietów utrzymania połączenia. W tym
+celu należy co minutę wywoływać funkcję \c gg_ping().
+
+\section login-logoff Zakończenie połączenia
+
+Aby się wylogować, należy użyć funkcji \c gg_logoff(), a następnie zwolnić
+zasoby związane z sesją za pomocą funkcji \c gg_free_session(). Aby ustawić
+status z opisem, należy wcześniej wywołać funkcję \c gg_change_status_descr().
+
+*/

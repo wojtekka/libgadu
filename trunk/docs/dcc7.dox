@@ -1,0 +1,42 @@
+/**
+
+\defgroup dcc7 Połączenia bezpośrednie od wersji Gadu-Gadu 7.x
+\ingroup dcc
+
+\details
+
+Przesyłanie plików zgodne z Gadu-Gadu 7.x jest znacznie prostsze niż
+w wersji \ref dcc6 "6.x". Podobnie jak poprzednio, każde połączenie jest
+opisane przez strukturę \c gg_dcc7. Nie ma konieczności otwierania gniazda
+nasłuchującego, ponieważ jest tworzone dla każdego połączenia osobno.
+
+Gdy chcemy wysłać plik, wywołujemy \c gg_dcc7_send_file() i obserwujemy
+zdarzenia zarówno z \c gg_session, jak i \c gg_dcc7. Parametry funkcji
+to struktura sesji, numer odbiorcy, nazwa pliku, nazwa pliku w kodowaniu
+CP1250 (jeśli NULL to brana jest oryginalna nazwa) i skrót pliku
+wyznaczony algorytmem SHA1 (jeśli NULL to biblioteka liczy, blokując
+na ten czas działanie aplikacji). Wysyłanie jest praktycznie bezobsługowe,
+wystarczy zareagować na zdarzenie \c GG_EVENT_DCC7_DONE i
+\c GG_EVENT_DCC7_ERROR w gg_dcc7 oraz \c GG_EVENT_DCC7_REJECTED i
+\c GG_EVENT_DCC7_ERROR w \c gg_session, żeby wiedzieć, kiedy zwolnić zasoby
+funkcją \c gg_dcc7_free().
+
+Jeśli ktoś do nas wysyła plik, otrzymamy zdarzenie \c GG_EVENT_DCC7_NEW
+z sesji. Należy przygotować deskryptor otwarty do zapisu, wpisać jego
+wartość do pola \c file_fd struktury \c gg_dcc7 i wywołać \c gg_dcc7_accept()
+albo od razu wywołać \c gg_dcc7_reject(), jeśli nie chcemy połączenia. Tak samo
+jak przy wysyłaniu, wystarczy obsłużyć \c GG_EVENT_DCC7_DONE w strukturze
+\c gg_dcc7 i \c GG_EVENT_DCC7_ERROR w strukturach \c gg_session i \c gg_dcc7.
+
+Deskryptor połączenia (pole \c fd struktury \c gg_dcc7) może zmienić się
+po wywołaniu funkcji \c gg_dcc7_accept() lub otrzymaniu jednego ze zdarzeń:
+\c GG_EVENT_DCC7_CONNECTED, \c GG_EVENT_DCC7_ACCEPT, \c GG_EVENT_DCC7_PENDING.
+
+Do zrobienia:
+
+- rozmowy głosowe,
+
+- połączenia przez serwer -- enigmatyczne informacje o rodzaju połączenia
+  niestety niewiele mówią.
+
+*/
