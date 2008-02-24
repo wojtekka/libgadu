@@ -1295,13 +1295,13 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_HTTPS_PORT 443
 #define GG_HTTP_USERAGENT "Mozilla/4.7 [en] (Win98; I)"
 
-#define GG_DEFAULT_CLIENT_VERSION "6, 1, 0, 158"
-#define GG_DEFAULT_PROTOCOL_VERSION 0x24
+#define GG_DEFAULT_CLIENT_VERSION "7, 7, 0, 3351"
+#define GG_DEFAULT_PROTOCOL_VERSION 0x2a
 #define GG_DEFAULT_TIMEOUT 30
 #define GG_HAS_AUDIO_MASK 0x40000000
 #define GG_HAS_AUDIO7_MASK 0x20000000
 #define GG_ERA_OMNIX_MASK 0x04000000
-#define GG_LIBGADU_VERSION "CVS"
+#undef GG_LIBGADU_VERSION
 
 #define GG_DEFAULT_DCC_PORT 1550
 

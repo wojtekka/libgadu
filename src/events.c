@@ -1140,7 +1140,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			char buf[1024], *client, *auth;
 			int res = 0;
 			unsigned int res_size = sizeof(res);
-			const char *host, *appmsg;
+			const char *host, *appmsg, *fmt;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
 
@@ -1168,21 +1168,25 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				host = "";
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-			if (sess->ssl)
+			if (sess->ssl) {
 				appmsg = "appmsg3.asp";
-			else
+				fmt = "";
+			} else
 #endif
-				appmsg = "appmsg2.asp";
+			{
+				appmsg = "appmsg4.asp";
+				fmt = "&fmt=2";
+			}
 
 			auth = gg_proxy_auth();
 
 			snprintf(buf, sizeof(buf) - 1,
-				"GET %s/appsvc/%s?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
+				"GET %s/appsvc/%s?fmnumber=%u&version=%s%s&lastmsg=%d HTTP/1.0\r\n"
 				"Host: " GG_APPMSG_HOST "\r\n"
 				"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 				"Pragma: no-cache\r\n"
 				"%s"
-				"\r\n", host, appmsg, sess->uin, client, sess->last_sysmsg, (auth) ? auth : "");
+				"\r\n", host, appmsg, sess->uin, client, fmt, sess->last_sysmsg, (auth) ? auth : "");
 
 			if (auth)
 				free(auth);
@@ -1280,6 +1284,15 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* analizujemy otrzymane dane. */
 			tmp = buf;
 
+#ifdef GG_CONFIG_HAVE_OPENSSL
+			if (!sess->ssl)
+#endif
+			{
+				while (*tmp && *tmp != ' ')
+					tmp++;
+				while (*tmp && *tmp == ' ')
+					tmp++;
+			}
 			while (*tmp && *tmp != ' ')
 				tmp++;
 			while (*tmp && *tmp == ' ')
