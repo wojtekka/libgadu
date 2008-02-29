@@ -435,24 +435,22 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 		filename1250 = filename;
 
 	if (stat(filename, &st) == -1) {
-		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() stat() failed (%s)\n", strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() stat() failed (%s)\n", strerror(errno));
 		goto fail;
 	}
 
 	if ((st.st_mode & S_IFDIR)) {
-		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() that's a directory\n");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() that's a directory\n");
 		errno = EINVAL;
 		goto fail;
 	}
 
 	if ((fd = open(filename, O_RDONLY)) == -1) {
-		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_send_file() open() failed (%s)\n", strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() open() failed (%s)\n", strerror(errno));
 		goto fail;
 	}
 
-	if (hash) {
-		memcpy(dcc->hash, hash, GG_DCC7_HASH_LEN);
-	} else {
+	if (!hash) {
 		if (gg_file_hash_sha1(fd, (uint8_t*) hash_buf) == -1)
 			goto fail;
 
