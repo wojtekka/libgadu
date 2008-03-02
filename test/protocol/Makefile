@@ -2,10 +2,13 @@ CC = gcc
 CFLAGS = -Wall -I../../include -ggdb
 LIBS = ../../src/.libs/libgadu.a
 
-all:	protocol
+all:	test
 
 protocol:	protocol.o script.o $(LIBS)
 	$(CC) -o $@ protocol.o script.o $(LIBS)
+
+test:	protocol
+	./protocol
 
 script.o:	script.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -19,4 +22,4 @@ poke:	protocol
 clean:
 	rm -f *.o protocol *~ core *.log script.c
 
-.PHONY:	all clean poke
+.PHONY:	all clean poke test
