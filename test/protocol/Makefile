@@ -1,15 +1,15 @@
 CC = gcc
 CFLAGS = -Wall -I../../include -ggdb
-LDFLAGS = -lssl -lcrypto
+LDFLAGS = $(shell grep -q ssl ../../pkgconfig/libgadu.pc && echo "-lssl -lcrypto")
 LIBS = ../../src/.libs/libgadu.a
 
-all:	test
-
-protocol:	protocol.o script.o $(LIBS)
-	$(CC) -o $@ protocol.o script.o $(LIBS) $(LDFLAGS)
+all:	protocol
 
 test:	protocol
 	./protocol
+
+protocol:	protocol.o script.o $(LIBS)
+	$(CC) -o $@ protocol.o script.o $(LIBS) $(LDFLAGS)
 
 script.o:	script.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -17,10 +17,9 @@ script.o:	script.c
 script.c:	test.scr compile
 	./compile < test.scr > script.c
 
-poke:	protocol
-	./protocol
+poke:	test
 
 clean:
 	rm -f *.o protocol *~ core *.log script.c
 
-.PHONY:	all clean poke test
+.PHONY:	all test poke clea
