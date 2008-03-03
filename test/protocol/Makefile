@@ -1,11 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -I../../include -ggdb
+LDFLAGS = -lssl -lcrypto
 LIBS = ../../src/.libs/libgadu.a
 
 all:	test
 
 protocol:	protocol.o script.o $(LIBS)
-	$(CC) -o $@ protocol.o script.o $(LIBS)
+	$(CC) -o $@ protocol.o script.o $(LIBS) $(LDFLAGS)
 
 test:	protocol
 	./protocol
