@@ -41,7 +41,7 @@ int buffered_write(char *data, int len)
 int main(int argc, char **argv)
 {
 	struct gg_login_params glp;
-	struct gg_session *gs;
+	struct gg_session *gs = NULL;
 	int lfd;	/* listening socket */
 	int value = 1;
 	struct sockaddr_in sin;
