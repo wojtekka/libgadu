@@ -172,6 +172,42 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+		if (script[state].type == EXPECT_DATA && inbuflen >= 8) {
+			int len;
+
+			len = (((unsigned char) inbuf[4]) | ((unsigned char) inbuf[5]) << 8 | ((unsigned char) inbuf[6]) << 16 | ((unsigned char) inbuf[7]) << 24) + 8;
+
+			if (inbuflen >= len) {
+				int i;
+
+				if (script[state].data_len != len) {
+					debug("state %d: invalid data length %d vs %d\n", state, len, script[state].data_len);
+					exit(1);
+				}
+
+				for (i = 0; i < script[state].data_len; i++) {
+					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
+						debug("state %d: received invalid data at %d %d %d\n", state, i, script[state].data[i], inbuf[i]);
+						exit(1);
+					}
+				}
+
+				if (len == inbuflen) {
+					inbuflen = 0;
+				} else {
+					memmove(inbuf, inbuf + len, inbuflen - len);
+					inbuflen -= len;
+				}
+
+				debug("state %d: received data\n", state);
+
+				state++;
+				last = time(NULL);
+
+				continue;
+			}
+		}
+
 		if (time(NULL) - last >= 5) {
 			debug("state %d: timeout\n", state);
 			exit(1);
@@ -256,53 +292,11 @@ int main(int argc, char **argv)
 				debug("state %d: disconnected\n", state);
 				state++;
 				last = time(NULL);
-
-				continue;
 			} else {
 				inbuflen += res;
-
-				if (inbuflen >= 8) {
-					int len;
-
-					len = (inbuf[4] | inbuf[5] << 8 | inbuf[6] << 16 | inbuf[7] << 24) + 8;
-
-					if (inbuflen >= len) {
-						int i;
-
-						if (script[state].type != EXPECT_DATA) {
-							debug("state %d: unexpected data\n", state);
-							exit(1);
-						}
-
-						if (script[state].data_len != len) {
-							debug("state %d: invalid data length %d vs %d\n", state, len, script[state].data_len);
-							exit(1);
-						}
-
-						for (i = 0; i < script[state].data_len; i++) {
-							if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
-								debug("state %d: received invalid data at %d %d %d\n", state, i, script[state].data[i], inbuf[i]);
-								exit(1);
-							}
-						}
-
-						if (len == inbuflen) {
-							inbuflen = 0;
-						} else {
-							memmove(inbuf, inbuf + len, inbuflen - len);
-							inbuflen -= len;
-						}
-
-						debug("state %d: received data\n", state);
-
-						state++;
-						last = time(NULL);
-
-						continue;
-					}
-
-				}
 			}
+
+			continue;
 		}
 
 		if (fd != -1 && FD_ISSET(fd, &wds)) {
@@ -332,7 +326,7 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 
-			if (ge->type != GG_EVENT_NONE) {
+			if (ge->type != GG_EVENT_NONE || (script[state].type == EXPECT_EVENT && script[state].event == GG_EVENT_NONE)) {
 				if (script[state].type != EXPECT_EVENT) {
 					debug("state %d: unexpected event %d\n", state, ge->type);
 					exit(1);

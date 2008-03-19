@@ -1,0 +1,82 @@
+#-----------------------------------------------------------------------------
+# Changing status
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status(session, GG_STATUS_AVAIL);
+}
+
+expect data (02 00 00 00, 04 00 00 00, 02 00 00 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status_descr(session, GG_STATUS_AVAIL_DESCR, "Test");
+}
+
+expect data (02 00 00 00, 08 00 00 00, 04 00 00 00, 54 65 73 74)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status(session, GG_STATUS_NOT_AVAIL);
+}
+
+expect data (02 00 00 00, 04 00 00 00, 01 00 00 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status_descr(session, GG_STATUS_NOT_AVAIL_DESCR, "Test");
+}
+
+expect data (02 00 00 00, 08 00 00 00, 15 00 00 00, 54 65 73 74)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status(session, GG_STATUS_BUSY);
+}
+
+expect data (02 00 00 00, 04 00 00 00, 03 00 00 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status_descr(session, GG_STATUS_BUSY_DESCR, "Test");
+}
+
+expect data (02 00 00 00, 08 00 00 00, 05 00 00 00, 54 65 73 74)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status(session, GG_STATUS_INVISIBLE);
+}
+
+expect data (02 00 00 00, 04 00 00 00, 14 00 00 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status_descr(session, GG_STATUS_INVISIBLE_DESCR, "Test");
+}
+
+expect data (02 00 00 00, 08 00 00 00, 16 00 00 00, 54 65 73 74)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status(session, GG_STATUS_AVAIL | GG_STATUS_FRIENDS_MASK);
+}
+
+expect data (02 00 00 00, 04 00 00 00, 02 80 00 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_change_status_descr_time(session, GG_STATUS_AVAIL, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<This part should be truncated>", 0x12345678);
+}
+
+expect data (02 00 00 00, 4f 00 00 00, 02 00 00 00, 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 00, 78 56 34 12)
+

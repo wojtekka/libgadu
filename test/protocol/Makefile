@@ -14,8 +14,8 @@ protocol:	protocol.o script.o $(LIBS)
 script.o:	script.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-script.c:	test.scr compile
-	./compile < test.scr > script.c
+script.c:	$(wildcard tests/*.scr) compile
+	./compile tests/*.scr > script.c
 
 poke:	test
 

@@ -75,6 +75,7 @@ Dostępne reakcje:
 
 5. expect event GG_EVENT_... (
      pole == wartość
+     pole[indeks] == (typ) wartość
      ...
    )
 
@@ -83,11 +84,13 @@ Dostępne reakcje:
    z reakcją, nawias zamykający na początku linii. Pola muszą zawierać
    nazwę pola zdarzenia z unii. Dostępne są wszystkie operatory porównań
    języka C. Porównywanie ciągów znaków zapisuje się tak samo jak liczb,
-   tj. operatorami == i !=. Pola nieopisane regułami są ignorowane. Przykład:
+   tj. operatorami == i !=. Pola zdefiniowane jako wskaźniki typu (void*)
+   można porównywać dzięki opisaniu typu przed wartością. Przykład:
 
    expect event GG_EVENT_MSG (
      msg.sender != 0
      msg.message == "Ala ma kota"
+     msg.recipients[0] == (int) 123456
    )
 
 6. expect event [GG_EVENT_...] {
@@ -110,3 +113,8 @@ Dostępne reakcje:
      return true;
    }
 
+Dodatkowe dyrektywy:
+
+1. include nazwapliku.scr
+
+   Dołącza zawartość pliku do scenariusza.

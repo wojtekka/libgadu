@@ -1,0 +1,131 @@
+#-----------------------------------------------------------------------------
+# Sending regular message
+#-----------------------------------------------------------------------------
+
+call {
+	gg_send_message(session, GG_CLASS_CHAT, 0x123456, (unsigned char*) "Test");
+}
+
+expect data (0b 00 00 00, 11 00 00 00, 56 34 12 00, xx xx xx xx, 08 00 00 00, 54 65 73 74 00)
+
+#-----------------------------------------------------------------------------
+# Sending rich-text message
+#-----------------------------------------------------------------------------
+
+call {
+	const char format[] = {
+		2,
+		15, 0,
+		0, 0, GG_FONT_BOLD, 
+		1, 0, GG_FONT_ITALIC,
+		2, 0, GG_FONT_UNDERLINE,
+		3, 0, GG_FONT_COLOR, 0x12, 0x34, 0x56
+	};
+
+	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "Test", (unsigned char*) format, sizeof(format));
+}
+
+expect data (0b 00 00 00, 23 00 00 00, 56 34 12 00, xx xx xx xx, 28 00 00 00, 54 65 73 74 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
+
+#-----------------------------------------------------------------------------
+# Sending conference message
+#-----------------------------------------------------------------------------
+
+call {
+	uin_t contacts[] = { 0x111111, 0x222222, 0x333333 };
+
+	gg_send_message_confer(session, GG_CLASS_CHAT | GG_CLASS_ACK, 3, contacts, (unsigned char*) "Test");
+}
+
+expect data (0b 00 00 00, 1e 00 00 00, 11 11 11 00, xx xx xx xx, 28 00 00 00, 54 65 73 74 00, 01, 02 00 00 00, 22 22 22 00, 33 33 33 00)
+expect data (0b 00 00 00, 1e 00 00 00, 22 22 22 00, xx xx xx xx, 28 00 00 00, 54 65 73 74 00, 01, 02 00 00 00, 11 11 11 00, 33 33 33 00)
+expect data (0b 00 00 00, 1e 00 00 00, 33 33 33 00, xx xx xx xx, 28 00 00 00, 54 65 73 74 00, 01, 02 00 00 00, 11 11 11 00, 22 22 22 00)
+
+#-----------------------------------------------------------------------------
+# Receiving regular message
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 14 00 00 00, 11 11 11 11, 22 22 22 22, 33 33 33 33, 44 44 44 44, 41 42 43 00)
+
+expect event GG_EVENT_MSG (
+	msg.sender == 0x11111111
+	msg.seq == 0x22222222
+	msg.time == 0x33333333
+	msg.msgclass == 0x44444444
+	msg.message == "ABC"
+
+	msg.recipients_count == 0
+	msg.recipients == NULL
+
+	msg.formats_length == 0
+	msg.formats == NULL
+)
+
+#-----------------------------------------------------------------------------
+# Receiving rich-text message
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 1c 00 00 00, 11 11 11 00, 22 22 00 22, 33 00 33 33, 00 44 44 44, 54 65 73 74 00, 02, 04 00, 12 34 56 78)
+
+expect event GG_EVENT_MSG (
+	msg.sender == 0x00111111
+	msg.seq == 0x22002222
+	msg.time == 0x33330033
+	msg.msgclass == 0x44444400
+	msg.message == "Test"
+
+	msg.recipients_count == 0
+	msg.recipients == NULL
+
+	msg.formats_length == 4
+	msg.formats[0] == (char) 0x12
+	msg.formats[1] == (char) 0x34
+	msg.formats[2] == (char) 0x56
+	msg.formats[3] == (char) 0x78
+)
+
+#-----------------------------------------------------------------------------
+# Receiving conference message
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 26 00 00 00, 11 11 11 00, 22 22 00 22, 33 00 33 33, 00 44 44 44, 54 65 73 74 00, 01, 03 00 00 00, 01 00 00 00, 02 00 00 00, 03 00 00 00)
+
+expect event GG_EVENT_MSG (
+	msg.sender == 0x00111111
+	msg.seq == 0x22002222
+	msg.time == 0x33330033
+	msg.msgclass == 0x44444400
+	msg.message == "Test"
+
+	msg.recipients_count == 3
+	msg.recipients[0] == (int) 1
+	msg.recipients[1] == (int) 2
+	msg.recipients[2] == (int) 3
+
+	msg.formats_length == 0
+	msg.formats == NULL
+)
+
+#-----------------------------------------------------------------------------
+# Receiving CTCP message
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 11 00 00 00, 11 11 11 11, 22 22 22 22, 33 33 33 33, 10 00 00 00, 02)
+
+expect event GG_EVENT_MSG (
+	msg.msgclass == GG_CLASS_CTCP
+)
+
+#-----------------------------------------------------------------------------
+# Receiving malformed messages
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 13 00 00 00, 11 11 11 11, 22 22 22 22, 33 33 33 33, 44 44 44 44, 31 32 33)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, 14 00 00 00, 00 00 00 00, 00 00 00 00, 00 00 00 00, 00 00 00 00, 31 32 33 00)
+
+expect event GG_EVENT_NONE
