@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-use vars qw(@script);
+use vars qw(@script $test);
 
 sub parse
 {
@@ -21,6 +21,11 @@ sub parse
 			next;
 		}
 
+		if (/^test\s+(.*)\s*$/) {
+			push @tests, "\t\"$1\",\n";
+			$test++;
+		}
+
 		if (/^login\s*\((.*)\)\s*$/) {
 			if ($1 eq "") {
 				print STDERR "$filename:$line: login requires arguments\n";
@@ -37,6 +42,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = ACTION_LOGIN,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t\t.line = $line,\n";
 			$entry .= "\t\t.glp = &script_glp_$state,\n";
 			$entry .= "\t},\n";
 			$entry .= "\n";
@@ -51,6 +59,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = ACTION_LOGOFF,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			$entry .= "\t},\n";
 			$entry .= "\n";
 
@@ -64,6 +75,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = EXPECT_" . uc($1) . "CONNECT,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			$entry .= "\t},\n";
 			$entry .= "\n";
 
@@ -127,6 +141,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = EXPECT_EVENT,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			if ($1 ne "") {
 				$entry .= "\t\t.event = $1,\n";
 			}
@@ -150,7 +167,8 @@ sub parse
 			for ($i = 0; $i < scalar @data; $i++) {
 				my $count;
 
-				if ($data[$i] =~ /^([0-9a-fA-F]+)\*([0-9]+)/) {
+				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
+
 					$byte = $1;
 					$count = $2;
 				} else {
@@ -176,6 +194,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = EXPECT_DATA,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			$entry .= "\t\t.data = (unsigned char*) \"$data\",\n";
 			$entry .= "\t\t.data_mask = (unsigned char*) \"$data_mask\",\n";
 			$entry .= "\t\t.data_len = $data_len,\n";
@@ -189,13 +210,35 @@ sub parse
 		}
 
 		if (/^send\s+\((.+)\)\s*$/) {
-			@data = map { "\\x$_" } split(/[\s,]+/, $1);
-			$data = join '', @data;
-			$data_len = scalar @data;
+			@data = split(/[\s,]+/, $1);
+			@data_new = ();
+
+			for ($i = 0; $i < scalar @data; $i++) {
+				my $count;
+
+				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
+
+					$byte = $1;
+					$count = $2;
+				} else {
+					$byte = $data[$i];
+					$count = 1;
+				}
+
+				for ($j = 0; $j < $count; $j++) {
+					push @data_new, $byte;
+				}
+			}
+
+			$data = join '', map { "\\x$_" } @data_new;
+			$data_len = scalar @data_new;
 
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = ACTION_SEND,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			$entry .= "\t\t.data = (unsigned char*) \"$data\",\n";
 			$entry .= "\t\t.data_len = $data_len,\n";
 			$entry .= "\t},\n";
@@ -221,6 +264,9 @@ sub parse
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
 			$entry .= "\t\t.type = ACTION_CALL,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
 			$entry .= "\t\t.call = script_call_$state,\n";
 			$entry .= "\t},\n";
 			$entry .= "\n";
@@ -241,14 +287,23 @@ print "\n";
 print "#include <stdio.h>\n";
 print "#include <stdlib.h>\n";
 print "#include <string.h>\n";
+print "#include <arpa/inet.h>\n";
 print "#include \"script.h\"\n";
 print "\n";
 
 $state = 0;
+$test = -1;
 
 foreach $i (@ARGV) {
 	parse($i);
 }
+
+print "const char *tests[] =\n";
+print "{\n";
+print @tests;
+print "\tNULL\n";
+print "};\n";
+print "\n";
 
 $entry = "\t/* state $state */\n";
 $entry .= "\t{\n";

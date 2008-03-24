@@ -19,6 +19,9 @@ typedef int (*state_check_event_func_t)(int type, union gg_event_union *);
 typedef void (*state_api_call_func_t)(struct gg_session *);
 
 typedef struct {
+	const char *filename;
+	int line;
+	int test;
 	state_type_t type;
 	struct gg_login_params *glp;
 	enum gg_event_t event;
@@ -30,6 +33,8 @@ typedef struct {
 } state_t;
 
 extern state_t script[];
+
+extern const char *tests[];
 
 #ifdef false
 #undef false
