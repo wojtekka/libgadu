@@ -516,6 +516,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
 				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
 				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
+				e->event.notify_descr.notify[0].version = gg_fix32(e->event.notify_descr.notify[0].version);
 
 				count = h->length - sizeof(*n);
 				if (!(tmp = malloc(count + 1))) {
@@ -542,6 +543,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
 					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
 					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
+					e->event.notify[i].version = gg_fix32(e->event.notify[i].version);
 				}
 			}
 
