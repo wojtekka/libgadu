@@ -28,6 +28,18 @@
 		fflush(stderr); \
 	} while(0)
 
+#define error(state, msg...) \
+	do { \
+		fprintf(stderr, "\033[1;31m"); \
+		if (script[state].test != -1) \
+			fprintf(stderr, "File: %s, Line: %d, Test: %s\n", script[state].filename, script[state].line, tests[script[state].test]); \
+		else \
+			fprintf(stderr, "File: %s, Line: %d\n", script[state].filename, script[state].line); \
+		fprintf(stderr, msg); \
+		fprintf(stderr, "\033[0m"); \
+		fflush(stderr); \
+	} while(0)
+
 static char outbuf[4096];
 static int outbuflen = 0;
 static int fd = -1;	/* connected socket */
@@ -181,13 +193,13 @@ int main(int argc, char **argv)
 				int i;
 
 				if (script[state].data_len != len) {
-					debug("state %d: invalid data length %d vs %d\n", state, len, script[state].data_len);
+					error(state, "Invalid data length %d vs expected %d\n", len, script[state].data_len);
 					exit(1);
 				}
 
 				for (i = 0; i < script[state].data_len; i++) {
 					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
-						debug("state %d: received invalid data at %d %d %d\n", state, i, script[state].data[i], inbuf[i]);
+						error(state, "Received invalid data at offset %d: expected %d, received %d\n", i, script[state].data[i], inbuf[i]);
 						exit(1);
 					}
 				}
@@ -269,7 +281,7 @@ int main(int argc, char **argv)
 			fd = res;
 
 			if (script[state].type != EXPECT_CONNECT) {
-				debug("state %d: unexpected connect\n", state);
+				error(state, "Unexpected connect\n");
 				exit(1);
 			}
 
@@ -285,11 +297,13 @@ int main(int argc, char **argv)
 
 			if (res < 1) {
 				if (script[state].type != EXPECT_DISCONNECT) {
-					debug("state %d: unexpected disconnect\n", state);
+					error(state, "Unexpected disconnect\n");
 					exit(1);
 				}
 
 				debug("state %d: disconnected\n", state);
+				close(fd);
+				fd = -1;
 				state++;
 				last = time(NULL);
 			} else {
@@ -328,12 +342,17 @@ int main(int argc, char **argv)
 
 			if (ge->type != GG_EVENT_NONE || (script[state].type == EXPECT_EVENT && script[state].event == GG_EVENT_NONE)) {
 				if (script[state].type != EXPECT_EVENT) {
-					debug("state %d: unexpected event %d\n", state, ge->type);
+					error(state, "Unexpected event %d\n", ge->type);
 					exit(1);
 				}
 
-				if ((script[state].event != 0 && ge->type != script[state].event) || (script[state].check_event && !(script[state].check_event)(ge->type, &ge->event))) {
-					debug("state %d: invalid event %d\n", state, ge->type);
+				if ((script[state].event != 0 && ge->type != script[state].event)) {
+					error(state, "Invalid event %d\n", ge->type);
+					exit(1);
+				}
+
+				if ((script[state].check_event && !(script[state].check_event)(ge->type, &ge->event))) {
+					error(state, "Invalid event data\n");
 					exit(1);
 				}
 
