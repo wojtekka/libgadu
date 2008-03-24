@@ -73,3 +73,80 @@ call {
 expect data (0f 00 00 00, d0 07 00 00, 01*2000)
 
 expect data (10 00 00 00, 05 00 00 00, 01 01 01 01 01)
+
+#-----------------------------------------------------------------------------
+# Status change (pre-6.0)
+#-----------------------------------------------------------------------------
+
+send (02 00 00 00, 08 00 00 00, 11 11 11 00, 14 00 00 00)
+
+expect event GG_EVENT_STATUS (
+	status.uin == 0x00111111
+	status.status == GG_STATUS_INVISIBLE
+	status.descr == NULL
+)
+
+send (02 00 00 00, 0b 00 00 00, 11 11 11 00, 16 00 00 00, 41 42 43)
+
+expect event GG_EVENT_STATUS (
+	status.uin == 0x00111111
+	status.status == GG_STATUS_INVISIBLE_DESCR
+	status.descr == "ABC"
+)
+
+send (02 00 00 00, 0c 00 00 00, 11 11 11 00, 16 00 00 00, 41 42 43 00)
+
+expect event GG_EVENT_STATUS (
+	status.uin == 0x00111111
+	status.status == GG_STATUS_INVISIBLE_DESCR
+	status.descr == "ABC"
+)
+
+send (02 00 00 00, 07 00 00 00, 00*7)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+# Status change (6.0)
+#-----------------------------------------------------------------------------
+
+send (0f 00 00 00, 0e 00 00 00, 11 11 11 00, 14, 7f 00 00 01, 34 12, 2a, ff, 00)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x2a
+	status60.image_size == 0xff
+	status60.descr == NULL
+)
+
+send (0f 00 00 00, 11 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 41 42 43)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE_DESCR
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x2a
+	status60.image_size == 0xff
+	status60.descr == "ABC"
+)
+
+send (0f 00 00 00, 12 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 41 42 43 00)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE_DESCR
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x0000002a
+	status60.image_size == 0x000000ff
+	status60.descr == "ABC"
+)
+
+send (0f 00 00 00, 0d 00 00 00, 00*13)
+
+expect event GG_EVENT_NONE
+
