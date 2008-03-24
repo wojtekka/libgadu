@@ -86,6 +86,8 @@ expect event GG_EVENT_STATUS (
 	status.descr == NULL
 )
 
+#-----------------------------------------------------------------------------
+
 send (02 00 00 00, 0b 00 00 00, 11 11 11 00, 16 00 00 00, 41 42 43)
 
 expect event GG_EVENT_STATUS (
@@ -93,6 +95,8 @@ expect event GG_EVENT_STATUS (
 	status.status == GG_STATUS_INVISIBLE_DESCR
 	status.descr == "ABC"
 )
+
+#-----------------------------------------------------------------------------
 
 send (02 00 00 00, 0c 00 00 00, 11 11 11 00, 16 00 00 00, 41 42 43 00)
 
@@ -102,12 +106,16 @@ expect event GG_EVENT_STATUS (
 	status.descr == "ABC"
 )
 
+#-----------------------------------------------------------------------------
+
 send (02 00 00 00, 07 00 00 00, 00*7)
 
 expect event GG_EVENT_NONE
 
 #-----------------------------------------------------------------------------
 # Status change (6.0)
+#-----------------------------------------------------------------------------
+# TODO: GG_HAS_AUDIO_MASK, GG_ERA_OMNIX_MASK
 #-----------------------------------------------------------------------------
 
 send (0f 00 00 00, 0e 00 00 00, 11 11 11 00, 14, 7f 00 00 01, 34 12, 2a, ff, 00)
@@ -122,6 +130,8 @@ expect event GG_EVENT_STATUS60 (
 	status60.descr == NULL
 )
 
+#-----------------------------------------------------------------------------
+
 send (0f 00 00 00, 11 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 41 42 43)
 
 expect event GG_EVENT_STATUS60 (
@@ -133,6 +143,8 @@ expect event GG_EVENT_STATUS60 (
 	status60.image_size == 0xff
 	status60.descr == "ABC"
 )
+
+#-----------------------------------------------------------------------------
 
 send (0f 00 00 00, 12 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 41 42 43 00)
 
@@ -146,7 +158,409 @@ expect event GG_EVENT_STATUS60 (
 	status60.descr == "ABC"
 )
 
+#-----------------------------------------------------------------------------
+
 send (0f 00 00 00, 0d 00 00 00, 00*13)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+# Status change (post-7.0)
+#-----------------------------------------------------------------------------
+# TODO: GG_HAS_AUDIO_MASK, GG_ERA_OMNIX_MASK
+#-----------------------------------------------------------------------------
+
+send (17 00 00 00, 12 00 00 00, 11 11 11 00, 14, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x2a
+	status60.image_size == 0xff
+	status60.descr == NULL
+)
+
+#-----------------------------------------------------------------------------
+
+send (17 00 00 00, 15 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 41 42 43)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE_DESCR
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x2a
+	status60.image_size == 0xff
+	status60.descr == "ABC"
+)
+
+#-----------------------------------------------------------------------------
+
+send (17 00 00 00, 16 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 41 42 43 00)
+
+expect event GG_EVENT_STATUS60 (
+	status60.uin == 0x00111111
+	status60.status == GG_STATUS_INVISIBLE_DESCR
+	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_port == 0x1234
+	status60.version == 0x0000002a
+	status60.image_size == 0x000000ff
+	status60.descr == "ABC"
+)
+
+#-----------------------------------------------------------------------------
+
+send (17 00 00 00, 11 00 00 00, 00*17)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+# Notify reply (pre-6.0)
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 01 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_NOT_AVAIL
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 02 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_AVAIL
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 03 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_BUSY
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 06 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_BLOCKED
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 14 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_INVISIBLE
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 28 00 00 00, 11 11 11 00, 02 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12, 22 22 22 00, 01 00 00 00, 7f 00 00 02, 78 56, 29 00 00 00, 78 56)
+
+expect event GG_EVENT_NOTIFY (
+	notify[0].uin == 0x00111111
+	notify[0].status == GG_STATUS_AVAIL
+	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_port == 0x1234
+	notify[0].version == 0x2a
+
+	notify[1].uin == 0x00222222
+	notify[1].status == GG_STATUS_NOT_AVAIL
+	notify[1].remote_ip == inet_addr("127.0.0.2")
+	notify[1].remote_port == 0x5678
+	notify[1].version == 0x29
+
+	notify[2].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 04 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12, 41 42 43)
+
+expect event GG_EVENT_NOTIFY_DESCR (
+	notify_descr.notify[0].uin == 0x00111111
+	notify_descr.notify[0].status == GG_STATUS_AVAIL_DESCR
+	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_port == 0x1234
+	notify_descr.notify[0].version == 0x2a
+	notify_descr.descr == "ABC"
+
+	notify_descr.notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 05 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12, 41 42 43)
+
+expect event GG_EVENT_NOTIFY_DESCR (
+	notify_descr.notify[0].uin == 0x00111111
+	notify_descr.notify[0].status == GG_STATUS_BUSY_DESCR
+	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_port == 0x1234
+	notify_descr.notify[0].version == 0x2a
+	notify_descr.descr == "ABC"
+
+	notify_descr.notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 15 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12, 41 42 43)
+
+expect event GG_EVENT_NOTIFY_DESCR (
+	notify_descr.notify[0].uin == 0x00111111
+	notify_descr.notify[0].status == GG_STATUS_NOT_AVAIL_DESCR
+	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_port == 0x1234
+	notify_descr.notify[0].version == 0x2a
+	notify_descr.descr == "ABC"
+
+	notify_descr.notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (0c 00 00 00, 18 00 00 00, 11 11 11 00, 04 00 00 00, 7f 00 00 01, 34 12, 2a 00 00 00, 34 12, 41 42 43 00)
+
+expect event GG_EVENT_NOTIFY_DESCR (
+	notify_descr.notify[0].uin == 0x00111111
+	notify_descr.notify[0].status == GG_STATUS_AVAIL_DESCR
+	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_port == 0x1234
+	notify_descr.notify[0].version == 0x2a
+	notify_descr.descr == "ABC"
+
+	notify_descr.notify[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+# Notify reply (6.0)
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 0e 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+
+	notify60[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 12 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 03, 41 42 43)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+
+	notify60[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 20 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 03, 41 42 43, 22 22 22 00, 03, 7f 00 00 02, 78 56, 29, 64, 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL_DESCR
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+	notify60[0].descr == "ABC"
+
+	notify60[1].uin == 0x00222222
+	notify60[1].status == GG_STATUS_BUSY
+	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_port == 0x5678
+	notify60[1].version == 0x29
+	notify60[1].image_size == 0x64
+
+	notify60[2].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 12 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 03, 41 42 43)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 33 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 04, 41 42 43 00, 22 22 22 00, 05, 7f 00 00 02, 78 56, 29, 64, 00, 03, 44 45 46, 33 33 33 00, 06, 7f 00 00 03, 21 43, 28, 00, 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL_DESCR
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+	notify60[0].descr == "ABC"
+
+	notify60[1].uin == 0x00222222
+	notify60[1].status == GG_STATUS_BUSY_DESCR
+	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_port == 0x5678
+	notify60[1].version == 0x29
+	notify60[1].image_size == 0x64
+	notify60[1].descr == "DEF"
+
+	notify60[2].uin == 0x00333333
+	notify60[2].status == GG_STATUS_BLOCKED
+	notify60[2].remote_ip == inet_addr("127.0.0.3")
+	notify60[2].remote_port == 0x4321
+	notify60[2].version == 0x28
+	notify60[2].image_size == 0x00
+
+	notify60[3].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (11 00 00 00, 0d 00 00 00, 00*13)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+# Notify reply (post-7.0)
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 12 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+
+	notify60[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 16 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 03, 41 42 43)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+
+	notify60[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 28 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 03, 41 42 43, 22 22 22 00, 03, 7f 00 00 02, 78 56, 29, 64, 00, 00 00 00 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL_DESCR
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+	notify60[0].descr == "ABC"
+
+	notify60[1].uin == 0x00222222
+	notify60[1].status == GG_STATUS_BUSY
+	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_port == 0x5678
+	notify60[1].version == 0x29
+	notify60[1].image_size == 0x64
+
+	notify60[2].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 16 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 03, 41 42 43)
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 3f 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 04, 41 42 43 00, 22 22 22 00, 05, 7f 00 00 02, 78 56, 29, 64, 00, 00 00 00 00, 03, 44 45 46, 33 33 33 00, 06, 7f 00 00 03, 21 43, 28, 00, 00, 00 00 00 00)
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL_DESCR
+	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+	notify60[0].descr == "ABC"
+
+	notify60[1].uin == 0x00222222
+	notify60[1].status == GG_STATUS_BUSY_DESCR
+	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_port == 0x5678
+	notify60[1].version == 0x29
+	notify60[1].image_size == 0x64
+	notify60[1].descr == "DEF"
+
+	notify60[2].uin == 0x00333333
+	notify60[2].status == GG_STATUS_BLOCKED
+	notify60[2].remote_ip == inet_addr("127.0.0.3")
+	notify60[2].remote_port == 0x4321
+	notify60[2].version == 0x28
+	notify60[2].image_size == 0x00
+
+	notify60[3].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
+send (18 00 00 00, 11 00 00 00, 00*17)
 
 expect event GG_EVENT_NONE
 
