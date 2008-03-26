@@ -123,7 +123,7 @@ send (0f 00 00 00, 0e 00 00 00, 11 11 11 00, 14, 7f 00 00 01, 34 12, 2a, ff, 00)
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x2a
 	status60.image_size == 0xff
@@ -137,7 +137,7 @@ send (0f 00 00 00, 11 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE_DESCR
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x2a
 	status60.image_size == 0xff
@@ -151,7 +151,7 @@ send (0f 00 00 00, 12 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE_DESCR
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x0000002a
 	status60.image_size == 0x000000ff
@@ -175,7 +175,7 @@ send (17 00 00 00, 12 00 00 00, 11 11 11 00, 14, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x2a
 	status60.image_size == 0xff
@@ -189,7 +189,7 @@ send (17 00 00 00, 15 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE_DESCR
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x2a
 	status60.image_size == 0xff
@@ -203,7 +203,7 @@ send (17 00 00 00, 16 00 00 00, 11 11 11 00, 16, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_STATUS60 (
 	status60.uin == 0x00111111
 	status60.status == GG_STATUS_INVISIBLE_DESCR
-	status60.remote_ip == inet_addr("127.0.0.1")
+	status60.remote_ip == 127.0.0.1
 	status60.remote_port == 0x1234
 	status60.version == 0x0000002a
 	status60.image_size == 0x000000ff
@@ -225,7 +225,7 @@ send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 01 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_NOT_AVAIL
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
@@ -239,7 +239,7 @@ send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 02 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_AVAIL
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
@@ -253,7 +253,7 @@ send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 03 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_BUSY
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
@@ -267,7 +267,7 @@ send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 06 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_BLOCKED
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
@@ -281,7 +281,7 @@ send (0c 00 00 00, 14 00 00 00, 11 11 11 00, 14 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_INVISIBLE
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
@@ -295,13 +295,13 @@ send (0c 00 00 00, 28 00 00 00, 11 11 11 00, 02 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY (
 	notify[0].uin == 0x00111111
 	notify[0].status == GG_STATUS_AVAIL
-	notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify[0].remote_ip == 127.0.0.1
 	notify[0].remote_port == 0x1234
 	notify[0].version == 0x2a
 
 	notify[1].uin == 0x00222222
 	notify[1].status == GG_STATUS_NOT_AVAIL
-	notify[1].remote_ip == inet_addr("127.0.0.2")
+	notify[1].remote_ip == 127.0.0.2
 	notify[1].remote_port == 0x5678
 	notify[1].version == 0x29
 
@@ -315,7 +315,7 @@ send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 04 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY_DESCR (
 	notify_descr.notify[0].uin == 0x00111111
 	notify_descr.notify[0].status == GG_STATUS_AVAIL_DESCR
-	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_ip == 127.0.0.1
 	notify_descr.notify[0].remote_port == 0x1234
 	notify_descr.notify[0].version == 0x2a
 	notify_descr.descr == "ABC"
@@ -330,7 +330,7 @@ send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 05 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY_DESCR (
 	notify_descr.notify[0].uin == 0x00111111
 	notify_descr.notify[0].status == GG_STATUS_BUSY_DESCR
-	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_ip == 127.0.0.1
 	notify_descr.notify[0].remote_port == 0x1234
 	notify_descr.notify[0].version == 0x2a
 	notify_descr.descr == "ABC"
@@ -345,7 +345,7 @@ send (0c 00 00 00, 17 00 00 00, 11 11 11 00, 15 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY_DESCR (
 	notify_descr.notify[0].uin == 0x00111111
 	notify_descr.notify[0].status == GG_STATUS_NOT_AVAIL_DESCR
-	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_ip == 127.0.0.1
 	notify_descr.notify[0].remote_port == 0x1234
 	notify_descr.notify[0].version == 0x2a
 	notify_descr.descr == "ABC"
@@ -360,7 +360,7 @@ send (0c 00 00 00, 18 00 00 00, 11 11 11 00, 04 00 00 00, 7f 00 00 01, 34 12, 2a
 expect event GG_EVENT_NOTIFY_DESCR (
 	notify_descr.notify[0].uin == 0x00111111
 	notify_descr.notify[0].status == GG_STATUS_AVAIL_DESCR
-	notify_descr.notify[0].remote_ip == inet_addr("127.0.0.1")
+	notify_descr.notify[0].remote_ip == 127.0.0.1
 	notify_descr.notify[0].remote_port == 0x1234
 	notify_descr.notify[0].version == 0x2a
 	notify_descr.descr == "ABC"
@@ -377,7 +377,7 @@ send (11 00 00 00, 0e 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00)
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -392,7 +392,7 @@ send (11 00 00 00, 12 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -407,7 +407,7 @@ send (11 00 00 00, 20 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL_DESCR
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -415,7 +415,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[1].uin == 0x00222222
 	notify60[1].status == GG_STATUS_BUSY
-	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_ip == 127.0.0.2
 	notify60[1].remote_port == 0x5678
 	notify60[1].version == 0x29
 	notify60[1].image_size == 0x64
@@ -436,7 +436,7 @@ send (11 00 00 00, 33 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL_DESCR
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -444,7 +444,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[1].uin == 0x00222222
 	notify60[1].status == GG_STATUS_BUSY_DESCR
-	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_ip == 127.0.0.2
 	notify60[1].remote_port == 0x5678
 	notify60[1].version == 0x29
 	notify60[1].image_size == 0x64
@@ -452,7 +452,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[2].uin == 0x00333333
 	notify60[2].status == GG_STATUS_BLOCKED
-	notify60[2].remote_ip == inet_addr("127.0.0.3")
+	notify60[2].remote_ip == 127.0.0.3
 	notify60[2].remote_port == 0x4321
 	notify60[2].version == 0x28
 	notify60[2].image_size == 0x00
@@ -475,7 +475,7 @@ send (18 00 00 00, 12 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -490,7 +490,7 @@ send (18 00 00 00, 16 00 00 00, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -505,7 +505,7 @@ send (18 00 00 00, 28 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL_DESCR
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -513,7 +513,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[1].uin == 0x00222222
 	notify60[1].status == GG_STATUS_BUSY
-	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_ip == 127.0.0.2
 	notify60[1].remote_port == 0x5678
 	notify60[1].version == 0x29
 	notify60[1].image_size == 0x64
@@ -534,7 +534,7 @@ send (18 00 00 00, 3f 00 00 00, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00,
 expect event GG_EVENT_NOTIFY60 (
 	notify60[0].uin == 0x00111111
 	notify60[0].status == GG_STATUS_AVAIL_DESCR
-	notify60[0].remote_ip == inet_addr("127.0.0.1")
+	notify60[0].remote_ip == 127.0.0.1
 	notify60[0].remote_port == 0x1234
 	notify60[0].version == 0x2a
 	notify60[0].image_size == 0xff
@@ -542,7 +542,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[1].uin == 0x00222222
 	notify60[1].status == GG_STATUS_BUSY_DESCR
-	notify60[1].remote_ip == inet_addr("127.0.0.2")
+	notify60[1].remote_ip == 127.0.0.2
 	notify60[1].remote_port == 0x5678
 	notify60[1].version == 0x29
 	notify60[1].image_size == 0x64
@@ -550,7 +550,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 	notify60[2].uin == 0x00333333
 	notify60[2].status == GG_STATUS_BLOCKED
-	notify60[2].remote_ip == inet_addr("127.0.0.3")
+	notify60[2].remote_ip == 127.0.0.3
 	notify60[2].remote_port == 0x4321
 	notify60[2].version == 0x28
 	notify60[2].image_size == 0x00

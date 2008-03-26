@@ -13,9 +13,10 @@ Dostępne akcje:
 1. login (parametr = wartość, ...)
 
    Logowanie do serwera z podanymi parametrami gg_login_params. Parametry
-   podaje się w jednej linii oddzielone przecinkiem. Przykład:
+   podaje się w jednej linii oddzielone przecinkiem. Adresy IP można podawać
+   w normalnej postaci, zostaną one odpowiednio zamienione. Przykład:
 
-   login (uin = 123456789, password = "qwerty")
+   login (uin = 123456789, password = "qwerty", external_ip = 127.0.0.1)
 
 2. logoff
 
@@ -85,7 +86,8 @@ Dostępne reakcje:
    nazwę pola zdarzenia z unii. Dostępne są wszystkie operatory porównań
    języka C. Porównywanie ciągów znaków zapisuje się tak samo jak liczb,
    tj. operatorami == i !=. Pola zdefiniowane jako wskaźniki typu (void*)
-   można porównywać dzięki opisaniu typu przed wartością. Przykład:
+   można porównywać dzięki opisaniu typu przed wartością. Adresy IP można
+   zapisywać w normalnej postacji. Przykład:
 
    expect event GG_EVENT_MSG (
      msg.sender != 0
