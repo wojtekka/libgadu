@@ -1639,7 +1639,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				{
 					unsigned int hash;
 
-					hash = gg_login_hash(password, w->key);
+					hash = gg_fix32(gg_login_hash(password, w->key));
 					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
 					memcpy(l.hash, &hash, sizeof(hash));
 
