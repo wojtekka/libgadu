@@ -3,6 +3,8 @@
 /*
  *  (C) Copyright 2007 Wojtek Kaniewski <wojtekka@irc.pl>
  *
+ *  Public domain SHA-1 implementation by Steve Reid <steve@edmweb.com>
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
  *  2.1 as published by the Free Software Foundation.
