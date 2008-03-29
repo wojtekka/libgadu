@@ -82,18 +82,14 @@ expect event GG_EVENT_USERLIST {
 	if (event->userlist.type != GG_USERLIST_GET_REPLY)
 		return FALSE;
 
-	printf("len=%d\n", strlen(event->userlist.reply));
-
 	if (strlen(event->userlist.reply) != 4095)
 		return FALSE;
 
 	for (i = 0; i < 4095; i++) {
 		int ch = (i < 2047) ? 'A' : (i < 4094) ? 'B' : 'C';
 
-		if (event->userlist.reply[i] != ch) {
-			printf("offset %d, is '%c', should '%c'\n", i, event->userlist.reply[i], ch);
+		if (event->userlist.reply[i] != ch)
 			return FALSE;
-		}
 	}
 
 	return TRUE;
