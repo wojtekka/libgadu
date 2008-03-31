@@ -918,7 +918,7 @@ void gg_pubdir50_free(gg_pubdir50_t res);
  */
 enum {
 	GG_PUBDIR50_UIN,	/**< Numer Gadu-Gadu */
-	GG_PUBDIR50_STATUS,	/**< Status */
+	GG_PUBDIR50_STATUS,	/**< Status (tylko wynik wyszukiwania) */
 	GG_PUBDIR50_FIRSTNAME,	/**< Imię */
 	GG_PUBDIR50_LASTNAME,	/**< Nazwisko */
 	GG_PUBDIR50_NICKNAME,	/**< Pseudonim */
