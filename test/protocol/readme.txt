@@ -28,9 +28,13 @@ Dostępne akcje:
    można oddzielać spacjami i/lub przecinkami dla czytelnego pogrupowania.
    Pakiet musi zawierać poprawny nagłówek. Docelowo trzeba będzie stworzyć
    mechanizm do łatwiejszego przekazywania liczb 32-bitowych, 16-bitowych
-   i ciągów znaków. Przykład:
+   i ciągów znaków. Jeśli na pozycji 4 pojawi się słowo "auto", zostanie tam
+   umieszczony rozmiar pozostałej części pakietu w postaci 32-bitowej liczby
+   little-endian. Można umieszczać ciągi znaków w cudzysłowach, bez spacji
+   i bez znaków kontrolnych. Przykład:
 
    send (03 00 00 00, 00 00 00 00)
+   send (10 00 00 00, auto, "Ala" 20 "ma" 20 "kota" 00)
 
 4. call {
      // kod C
@@ -39,7 +43,7 @@ Dostępne akcje:
    Wywołuje funkcje biblioteki. Kod C jest kopiowany dosłownie i ubierany
    w definicję funkcji, więc może zawierać dowolny kod języka C: deklaracje
    zmiennych, instrukcje warunkowe itd. Struktura sesji jest zdefioniowana
-   jako parametr funkcji o nazwie session. Początkowy nawias klamrowy musi
+   jako parametr funkcji o nazwie "session". Początkowy nawias klamrowy musi
    znajdować się na końcu linii z nazwą regułki, a końcowy na początku linii.
    Przykład:
 
@@ -63,9 +67,13 @@ Dostępne reakcje:
    Oczekuje na pakiet od biblioteki. Poszczególne liczby heksadecymalne
    (bez "0x") można oddzielać spacjami i/lub przecinkami dla czytelnego
    pogrupowania. Bajty, których wartość ma być ignorowana oznacza się jako
-   "xx". Pakiet musi zawierać poprawny nagłówek. Przykład:
+   "xx". Pakiet musi zawierać poprawny nagłówek. Jeśli na pozycji 4 pojawi
+   się słowo "auto", zostanie tam umieszczony rozmiar pozostałej części
+   pakietu w postaci 32-bitowej liczby little-endian. Można umieszczać ciągi
+   znaków w cudzysłowach, bez spacji i bez znaków kontrolnych. Przykład:
 
    expect data (20 00 00 00, 04 00 00 00, xx xx xx xx)
+   expect data (0f 00 00 00, auto, "Ala" 20 "ma" 20 "kota" 00)
 
 4. expect event GG_EVENT_...
 
@@ -101,9 +109,9 @@ Dostępne reakcje:
 
    Oczekuje na zdarzenie od biblioteki. Zasady dotyczące wklejania kodu C
    są identyczne jak dla akcji call. Typ zdarzenia jest przekazywany jako
-   parametr type, unia zdarzenia jako wskaźnik event. Typ zdarzenia nie musi
-   wystąpić. Kod musi zwrócić wartość prawdziwą jeśli zdarzenie jest poprawne.
-   Przykład:
+   parametr "type", unia zdarzenia jako wskaźnik "event". Typ zdarzenia nie
+   musi wystąpić. Kod musi zwrócić wartość prawdziwą jeśli zdarzenie jest
+   poprawne. Przykład:
 
    expect event {
      if (type != GG_EVENT_CONN_SUCCESS && type != GG_EVENT_CONN_FAILED)

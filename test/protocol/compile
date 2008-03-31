@@ -173,9 +173,34 @@ sub parse
 			@data = split(/[\s,]+/, $1);
 			@data_new = ();
 			@data_mask = ();
+			$auto = 0;
 
 			for ($i = 0; $i < scalar @data; $i++) {
 				my $count;
+
+				if ($data[$i] eq "auto" && $i == 4) {
+					$auto = 1;
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					next;
+				}
+
+				if ($data[$i] =~ /"(.*)"/) {
+					my $j;
+
+					foreach $j (split(//, $1)) {
+						push @data_new, sprintf("%02x", ord($j));
+						push @data_mask, "ff";
+					}
+
+					next;
+				}
 
 				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
 
@@ -197,9 +222,17 @@ sub parse
 				}
 			}
 
+			$data_len = scalar @data_new;
+
+			if ($auto) {
+				$data_new[4] = sprintf("%02x", ($data_len - 8) & 255);
+				$data_new[5] = sprintf("%02x", (($data_len - 8) >> 8) & 255);
+				$data_new[6] = sprintf("%02x", (($data_len - 8) >> 16) & 255);
+				$data_new[7] = sprintf("%02x", (($data_len - 8) >> 24) & 255);
+			}
+
 			$data = join '', map { "\\x$_" } @data_new;
 			$data_mask = join '', map { "\\x$_" } @data_mask;
-			$data_len = scalar @data_new;
 
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
@@ -222,10 +255,30 @@ sub parse
 		if (/^send\s+\((.+)\)\s*$/) {
 			@data = split(/[\s,]+/, $1);
 			@data_new = ();
+			$auto = 0;
 
 			for ($i = 0; $i < scalar @data; $i++) {
 				my $count;
 
+				if ($data[$i] eq "auto" && $i == 4) {
+					$auto = 1;
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					next;
+				}
+
+				if ($data[$i] =~ /"(.*)"/) {
+					my $j;
+
+					foreach $j (split(//, $1)) {
+						push @data_new, sprintf("%02x", ord($j));
+					}
+
+					next;
+				}
+					
 				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
 
 					$byte = $1;
@@ -240,8 +293,16 @@ sub parse
 				}
 			}
 
-			$data = join '', map { "\\x$_" } @data_new;
 			$data_len = scalar @data_new;
+
+			if ($auto) {
+				$data_new[4] = sprintf("%02x", ($data_len - 8) & 255);
+				$data_new[5] = sprintf("%02x", (($data_len - 8) >> 8) & 255);
+				$data_new[6] = sprintf("%02x", (($data_len - 8) >> 16) & 255);
+				$data_new[7] = sprintf("%02x", (($data_len - 8) >> 24) & 255);
+			}
+
+			$data = join '', map { "\\x$_" } @data_new;
 
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";

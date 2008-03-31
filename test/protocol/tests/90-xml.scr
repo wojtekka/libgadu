@@ -2,7 +2,7 @@
 # XML event
 #-----------------------------------------------------------------------------
 
-send (27 00 00 00, 17 00 00 00, 3c 3f 78 6d 6c 20 76 65 72 73 69 6f 6e 3d 27 31 2e 30 27 3f 3e 0d 0a)
+send (27 00 00 00, auto, "<?xml" 20 "version='1.0'?>" 0d 0a)
 
 expect event GG_EVENT_XML_EVENT (
 	xml_event.data == "<?xml version='1.0'?>\r\n"

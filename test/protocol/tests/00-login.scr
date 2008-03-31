@@ -3,9 +3,9 @@
 #-----------------------------------------------------------------------------
 login (uin = 1, password = "")
 expect connect
-send (01 00 00 00, 04 00 00 00, 12 34 56 78)
-expect data (19 00 00 00, 5c 00 00 00, xx*92)
-send (03 00 00 00, 00 00 00 00)
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (19 00 00 00, auto, xx*92)
+send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
 expect disconnect
@@ -16,9 +16,9 @@ expect disconnect
 
 login (uin = 1, password = "")
 expect connect
-send (01 00 00 00, 04 00 00 00, 12 34 56 78)
-expect data (19 00 00 00, 5c 00 00 00, xx*92)
-send (14 00 00 00, 00 00 00 00)
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (19 00 00 00, auto, xx*92)
+send (14 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
 expect disconnect
@@ -29,9 +29,9 @@ expect disconnect
 
 login (uin = 1, password = "")
 expect connect
-send (01 00 00 00, 04 00 00 00, 12 34 56 78)
-expect data (19 00 00 00, 5c 00 00 00, xx*92)
-send (09 00 00 00, 00 00 00 00)
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (19 00 00 00, auto, xx*92)
+send (09 00 00 00, auto)
 expect event GG_EVENT_CONN_FAILED
 logoff
 expect disconnect
@@ -39,11 +39,11 @@ expect disconnect
 #-----------------------------------------------------------------------------
 # Login with parameters
 #-----------------------------------------------------------------------------
-login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "ABC", protocol_version = 0x55, has_audio = 1, image_size = 255, hash_type = GG_LOGIN_HASH_GG32, external_addr = 127.0.0.1, external_port = 0x1234)
+login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "Test", protocol_version = 0x55, has_audio = 1, image_size = 255, hash_type = GG_LOGIN_HASH_GG32, external_addr = 127.0.0.1, external_port = 0x1234)
 expect connect
-send (01 00 00 00, 04 00 00 00, 12 34 56 78)
-expect data (19 00 00 00, 5f 00 00 00, 56 34 12 00, 01, 09 ad 7d 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00, 16 00 00 00, 55 00 00 40, 00, 7f 00 00 01, 34 12, 00 00 00 00, 00 00, ff, be, 41 42 43)
-send (03 00 00 00, 00 00 00 00)
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (19 00 00 00, auto, 56 34 12 00, 01, 09 ad 7d 58 00*60, 16 00 00 00, 55 00 00 40, 00, 7f 00 00 01, 34 12, 00 00 00 00, 00 00, ff, be, "Test")
+send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
 expect disconnect
@@ -53,9 +53,9 @@ expect disconnect
 #-----------------------------------------------------------------------------
 login (uin = 0x123456, password = "")
 expect connect
-send (01 00 00 00, 04 00 00 00, 12 34 56 78)
-expect data (19 00 00 00, 5c 00 00 00, 56 34 12 00, 02, 9b ce 73 d0 c8 b9 ec a4 f2 41 54 f3 bd 3b 8a a4 73 b1 c3 a9 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00, 02 00 00 00, 2a 00 00 00, 00, 00 00 00 00, 00 00, 00 00 00 00, 00 00, 00, be)
-send (03 00 00 00, 00 00 00 00)
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (19 00 00 00, auto, 56 34 12 00, 02, 9b ce 73 d0 c8 b9 ec a4 f2 41 54 f3 bd 3b 8a a4 73 b1 c3 a9 00*44, 02 00 00 00, 2a 00 00 00, 00, 00 00 00 00, 00 00, 00 00 00 00, 00 00, 00, be)
+send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 
 
