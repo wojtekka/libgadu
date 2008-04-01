@@ -1,8 +1,94 @@
 #-----------------------------------------------------------------------------
-# Image request
+# Sending image request
 #-----------------------------------------------------------------------------
 
+call {
+	gg_image_request(session, 0x00123456, 4, 0x784dd132);
+}
+
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 04, 04 00 00 00, 32 d1 4d 78)
+
 #-----------------------------------------------------------------------------
-# Image reply
+# Receiving image reply
 #-----------------------------------------------------------------------------
+
+send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 05, 04 00 00 00, 32 d1 4d 78, "test.txt" 00, "Test")
+
+expect event GG_EVENT_IMAGE_REPLY {
+	return (event->image_reply.sender == 0x00123456) && 
+		(event->image_reply.size == 4) &&
+		(event->image_reply.crc32 == 0x784dd132) &&
+		(strcmp(event->image_reply.filename, "test.txt") == 0) &&
+		(memcmp(event->image_reply.image, "Test", 4) == 0);
+}
+
+#-----------------------------------------------------------------------------
+# Receiving unsolicited image reply
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 05, 04 00 00 00, 12 34 56 78, "junk.txt" 00, "Junk")
+
+expect event GG_EVENT_NONE
+
+#-----------------------------------------------------------------------------
+# Receiving multipart image reply
+#-----------------------------------------------------------------------------
+
+call {
+	gg_image_request(session, 0x00123456, 8, 0x568347c8);
+}
+
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 04, 08 00 00 00, c8 47 83 56)
+
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 05, 08 00 00 00, c8 47 83 56, "test.txt" 00, "Test")
+
+send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 06, 08 00 00 00, c8 47 83 56, "1234")
+
+expect event GG_EVENT_IMAGE_REPLY {
+	return (event->image_reply.sender == 0x00123456) && 
+		(event->image_reply.size == 8) &&
+		(event->image_reply.crc32 == 0x568347c8) &&
+		(strcmp(event->image_reply.filename, "test.txt") == 0) &&
+		(memcmp(event->image_reply.image, "Test1234", 8) == 0);
+}
+
+#-----------------------------------------------------------------------------
+# Receiving image request
+#-----------------------------------------------------------------------------
+
+send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 04, 04 00 00 00, 32 d1 4d 78)
+
+expect event GG_EVENT_IMAGE_REQUEST (
+	image_request.sender == 0x00123456
+	image_request.size == 4
+	image_request.crc32 == 0x784dd132
+)
+
+#-----------------------------------------------------------------------------
+# Sending image reply
+#-----------------------------------------------------------------------------
+
+call {
+	gg_image_reply(session, 0x123456, "test.txt", "Test", 4);
+}
+
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 04 00 00 00, 32 d1 4d 78, "test.txt" 00, "Test")
+
+#-----------------------------------------------------------------------------
+# Sending multipart reply
+#-----------------------------------------------------------------------------
+
+call {
+	char tmp[2048];
+
+	memset(tmp, 'A', sizeof(tmp));
+
+	gg_image_reply(session, 0x123456, "multipart.txt", tmp, sizeof(tmp));
+}
+
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 00 08 00 00, 39 20 df d5, "multipart.txt" 00, 41*1885)
+
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 06, 00 08 00 00, 39 20 df d5, 41*162)
 
