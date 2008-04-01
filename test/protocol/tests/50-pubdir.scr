@@ -37,13 +37,14 @@ call {
 
 	gg_pubdir50_add(request, GG_PUBDIR50_FIRSTNAME, "Anna");
 	gg_pubdir50_add(request, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_FEMALE);
+	gg_pubdir50_seq_set(request, 0x12345678);
 
 	gg_pubdir50(session, request);
 
 	gg_pubdir50_free(request);
 }
 
-expect data (14 00 00 00, auto, 03, xx xx xx xx, "firstname" 00, "Anna" 00, "gender" 00, "1" 00)
+expect data (14 00 00 00, auto, 03, 78 56 34 12, "firstname" 00, "Anna" 00, "gender" 00, "1" 00)
 
 #-----------------------------------------------------------------------------
 
@@ -122,6 +123,12 @@ expect event GG_EVENT_PUBDIR50_SEARCH_REPLY {
 	int i;
 
 	if (gg_pubdir50_count(event->pubdir50) != 2)
+		return FALSE;
+
+	if (gg_pubdir50_seq(event->pubdir50) != 0x12345678)
+		return FALSE;
+
+	if (gg_pubdir50_type(event->pubdir50) != GG_PUBDIR50_SEARCH_REPLY)
 		return FALSE;
 
 	for (i = 0; i < sizeof(data) / sizeof(data[0]); i++) {
