@@ -1,0 +1,143 @@
+#-----------------------------------------------------------------------------
+# Search request
+#-----------------------------------------------------------------------------
+
+call {
+	gg_pubdir50_t request;
+
+	if (!(request = gg_pubdir50_new(GG_PUBDIR50_SEARCH_REQUEST)))
+		return;
+
+	gg_pubdir50_add(request, GG_PUBDIR50_UIN, "123456");
+	gg_pubdir50_add(request, GG_PUBDIR50_FIRSTNAME, "Jan");
+	gg_pubdir50_add(request, GG_PUBDIR50_LASTNAME, "Kowalski");
+	gg_pubdir50_add(request, GG_PUBDIR50_NICKNAME, "Janko Muzykant");
+	gg_pubdir50_add(request, GG_PUBDIR50_BIRTHYEAR, "1900 2000");
+	gg_pubdir50_add(request, GG_PUBDIR50_CITY, "Warszawa");
+	gg_pubdir50_add(request, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_MALE);
+	gg_pubdir50_add(request, GG_PUBDIR50_ACTIVE, GG_PUBDIR50_ACTIVE_TRUE);
+	gg_pubdir50_add(request, GG_PUBDIR50_FAMILYNAME, "Nowak");
+	gg_pubdir50_add(request, GG_PUBDIR50_FAMILYCITY, "Zielonka");
+	gg_pubdir50_add(request, GG_PUBDIR50_START, "234567");
+
+	gg_pubdir50(session, request);
+
+	gg_pubdir50_free(request);
+}
+
+expect data (14 00 00 00, auto, 03, xx xx xx xx, "FmNumber" 00, "123456" 00, "firstname" 00, "Jan" 00, "lastname" 00, "Kowalski" 00, "nickname" 00, "Janko" 20 "Muzykant" 00, "birthyear" 00, "1900" 20 "2000" 00, "city" 00, "Warszawa" 00, "gender" 00, "2" 00, "ActiveOnly" 00, "1" 00, "familyname" 00, "Nowak" 00, "familycity" 00, "Zielonka" 00, "fmstart" 00, "234567" 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_pubdir50_t request;
+
+	if (!(request = gg_pubdir50_new(GG_PUBDIR50_SEARCH_REQUEST)))
+		return;
+
+	gg_pubdir50_add(request, GG_PUBDIR50_FIRSTNAME, "Anna");
+	gg_pubdir50_add(request, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_FEMALE);
+
+	gg_pubdir50(session, request);
+
+	gg_pubdir50_free(request);
+}
+
+expect data (14 00 00 00, auto, 03, xx xx xx xx, "firstname" 00, "Anna" 00, "gender" 00, "1" 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_pubdir50_t request;
+
+	if (!(request = gg_pubdir50_new(GG_PUBDIR50_READ)))
+		return;
+
+	gg_pubdir50(session, request);
+
+	gg_pubdir50_free(request);
+}
+
+expect data (14 00 00 00, auto, 02, xx xx xx xx)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_pubdir50_t request;
+
+	if (!(request = gg_pubdir50_new(GG_PUBDIR50_WRITE)))
+		return;
+
+	gg_pubdir50_add(request, GG_PUBDIR50_FIRSTNAME, "Jan");
+	gg_pubdir50_add(request, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_SET_MALE);
+
+	gg_pubdir50(session, request);
+
+	gg_pubdir50_free(request);
+}
+
+expect data (14 00 00 00, auto, 01, xx xx xx xx, "firstname" 00, "Jan" 00, "gender" 00, "1" 00)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_pubdir50_t request;
+
+	if (!(request = gg_pubdir50_new(GG_PUBDIR50_WRITE)))
+		return;
+
+	gg_pubdir50_add(request, GG_PUBDIR50_FIRSTNAME, "Anna");
+	gg_pubdir50_add(request, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_SET_FEMALE);
+
+	gg_pubdir50(session, request);
+
+	gg_pubdir50_free(request);
+}
+
+expect data (14 00 00 00, auto, 01, xx xx xx xx, "firstname" 00, "Anna" 00, "gender" 00, "2" 00)
+
+#-----------------------------------------------------------------------------
+
+send (0e 00 00 00, auto, 05, 78 56 34 12, "FmNumber" 00, "123456" 00, "firstname" 00, "Jan" 00, "nickname" 00, "Janko" 20 "Muzykant" 00, "birthyear" 00, "1901" 00, "city" 00, "Warszawa" 00, "FmStatus" 00, "4" 00, 00, "FmNumber" 00, "234567" 00, "firstname" 00, "Adam" 00, "nickname" 00, "Nowy" 00, "birthyear" 00, "1979" 00, "city" 00, "Tuchola" 00, "FmStatus" 00, "1" 00, 00, "nextstart" 00, "345678" 00)
+
+expect event GG_EVENT_PUBDIR50_SEARCH_REPLY {
+	struct {
+		int num;
+		const char *key;
+		const char *value;
+	} data[] = {
+		{ 0, GG_PUBDIR50_UIN, "123456" },
+		{ 0, GG_PUBDIR50_FIRSTNAME, "Jan" },
+		{ 0, GG_PUBDIR50_NICKNAME, "Janko Muzykant" },
+		{ 0, GG_PUBDIR50_BIRTHYEAR, "1901" },
+		{ 0, GG_PUBDIR50_CITY, "Warszawa" },
+		{ 0, GG_PUBDIR50_STATUS, "4" },
+		{ 1, GG_PUBDIR50_UIN, "234567" },
+		{ 1, GG_PUBDIR50_FIRSTNAME, "Adam" },
+		{ 1, GG_PUBDIR50_NICKNAME, "Nowy" },
+		{ 1, GG_PUBDIR50_BIRTHYEAR, "1979" },
+		{ 1, GG_PUBDIR50_CITY, "Tuchola" },
+		{ 1, GG_PUBDIR50_STATUS, "1" },
+	};
+	int i;
+
+	if (gg_pubdir50_count(event->pubdir50) != 2)
+		return FALSE;
+
+	for (i = 0; i < sizeof(data) / sizeof(data[0]); i++) {
+		if (strcmp(gg_pubdir50_get(event->pubdir50, data[i].num, data[i].key), data[i].value) != 0)
+			return FALSE;
+	}
+
+	if (gg_pubdir50_get(event->pubdir50, 0, GG_PUBDIR50_LASTNAME) != NULL)
+		return FALSE;
+
+	if (gg_pubdir50_get(event->pubdir50, 2, GG_PUBDIR50_UIN) != NULL)
+		return FALSE;
+
+	if (gg_pubdir50_next(event->pubdir50) != 345678)
+		return FALSE;
+
+	return TRUE;
+}
+
