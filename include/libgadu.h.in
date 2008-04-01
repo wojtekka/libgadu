@@ -938,7 +938,7 @@ enum {
  */
 enum {
 	GG_PUBDIR50_GENDER_FEMALE,	/**< Kobieta */
-	GG_PUBDIR50_GENDER_MAIL,	/**< Mężczyzna */
+	GG_PUBDIR50_GENDER_MALE,	/**< Mężczyzna */
 };
 
 /**
@@ -948,7 +948,7 @@ enum {
  */
 enum {
 	GG_PUBDIR50_GENDER_SET_FEMALE,	/**< Kobieta */
-	GG_PUBDIR50_GENDER_SET_MAIL,	/**< Mężczyzna */
+	GG_PUBDIR50_GENDER_SET_MALE,	/**< Mężczyzna */
 };
 
 /**
