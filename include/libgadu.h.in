@@ -918,7 +918,7 @@ void gg_pubdir50_free(gg_pubdir50_t res);
  */
 enum {
 	GG_PUBDIR50_UIN,	/**< Numer Gadu-Gadu */
-	GG_PUBDIR50_STATUS,	/**< Status */
+	GG_PUBDIR50_STATUS,	/**< Status (tylko wynik wyszukiwania) */
 	GG_PUBDIR50_FIRSTNAME,	/**< Imię */
 	GG_PUBDIR50_LASTNAME,	/**< Nazwisko */
 	GG_PUBDIR50_NICKNAME,	/**< Pseudonim */
@@ -938,7 +938,7 @@ enum {
  */
 enum {
 	GG_PUBDIR50_GENDER_FEMALE,	/**< Kobieta */
-	GG_PUBDIR50_GENDER_MAIL,	/**< Mężczyzna */
+	GG_PUBDIR50_GENDER_MALE,	/**< Mężczyzna */
 };
 
 /**
@@ -948,7 +948,7 @@ enum {
  */
 enum {
 	GG_PUBDIR50_GENDER_SET_FEMALE,	/**< Kobieta */
-	GG_PUBDIR50_GENDER_SET_MAIL,	/**< Mężczyzna */
+	GG_PUBDIR50_GENDER_SET_MALE,	/**< Mężczyzna */
 };
 
 /**

@@ -277,8 +277,8 @@ Skrót hasła można liczyć na dwa sposoby:
 
 <p>
 Pierwszy algorytm (<tt>GG_LOGIN_HASH_GG32</tt>) został wymyślony na potrzeby
-Gadu-Gadu i zwraca 32-bitową dla danego ziarna i hasła. Jego implementacja
-w języku C wygląda następująco:
+Gadu-Gadu i zwraca 32-bitową wartość dla danego ziarna i hasła. Jego
+implementacja w języku C wygląda następująco:
 </p>
 
 <div class="example">
@@ -1146,7 +1146,7 @@ Na zapytania dotyczące listy kontaktów serwer odpowiada pakietem:
 	
 struct gg_userlist_reply {
 	char type;		<i>/* rodzaj zapytania */</i>
-	char request[];		<i>/* treść, nie musi wystąpić */</i>
+	char reply[];		<i>/* treść, nie musi wystąpić */</i>
 };</pre>
 </div>
 
@@ -1195,6 +1195,7 @@ Pakiety wysyłane:
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_REMOVE_NOTIFY</tt></td><td>Usunięcie z listy kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x000f</tt></td><td><tt>GG_NOTIFY_FIRST</tt></td><td>Początkowy fragment listy kontaktów większej niż 400 wpisów</td></tr>
 <tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_NOTIFY_LAST</tt></td><td>Ostatni fragment listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x0012</tt></td><td><tt>GG_LIST_EMPTY</tt></td><td>Lista kontaktów jest pusta</td></tr>
 <tr class="tabf2"><td><tt>0x0013</tt></td><td><tt>GG_LOGIN_EXT</tt></td><td>Logowanie przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_PUBDIR50_REQUEST</tt></td><td>Zapytanie katalogu publicznego</td></tr>
 <tr class="tabf2"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie</td></tr>

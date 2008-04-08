@@ -58,11 +58,11 @@ Aby otrzymać wynik, należy obsłużyć zdarzenia \c GG_EVENT_PUBDIR50_SEARCH_R
 wyników wyszukiwania wygląda następująco:
 
 \code
-gg_search50_t wynik;
+gg_pubdir50_t wynik;
 int i, ilosc;
 
-wynik = event->event.search50;
-ilosc = gg_search50_count(wynik);
+wynik = event->event.pubdir50;
+ilosc = gg_pubdir50_count(wynik);
 
 if (ilosc < 1) {
     wiadomość("Nie znaleziono");

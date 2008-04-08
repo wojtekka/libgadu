@@ -516,6 +516,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
 				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
 				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
+				e->event.notify_descr.notify[0].version = gg_fix32(e->event.notify_descr.notify[0].version);
 
 				count = h->length - sizeof(*n);
 				if (!(tmp = malloc(count + 1))) {
@@ -542,6 +543,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
 					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
 					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
+					e->event.notify[i].version = gg_fix32(e->event.notify[i].version);
 				}
 			}
 
@@ -1637,7 +1639,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				{
 					unsigned int hash;
 
-					hash = gg_login_hash(password, w->key);
+					hash = gg_fix32(gg_login_hash(password, w->key));
 					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
 					memcpy(l.hash, &hash, sizeof(hash));
 

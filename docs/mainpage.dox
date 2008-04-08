@@ -10,6 +10,8 @@ w innych projektach, została wydzielona. Własnościowy protokół został
 rozszyfrowany metodą inżynierii wstecznej (ang. \e "reverse engineering"),
 przez co \e libgadu może nie być w 100% zgodna z pierwowzorem.
 
+Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1,
+której treść znajduje się w pliku \c COPYING.
 Biblioteka została napisana w języku C i jest niezależna od systemu
 operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z
 POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na
