@@ -32,7 +32,7 @@ int main()
 #ifndef ASYNC
 
 	if (!(h = gg_remind_passwd(uin, 0))) {
-		printf("błąd\n");
+		printf("Błąd przypominania hasła.\n");
 		return 1;
 	}
 	p = h->data;
@@ -70,12 +70,12 @@ int main()
                 if (FD_ISSET(h->fd, &rd) || FD_ISSET(h->fd, &wr)) {
 			if (gg_remind_passwd_watch_fd(h) == -1) {
 				gg_free_remind_passwd(h);
-				fprintf(stderr, "no błąd jak błąd\n");
+				fprintf(stderr, "Błąd połączenia.\n");
 				return 1;
 			}
 			if (h->state == GG_STATE_ERROR) {
 				gg_free_remind_passwd(h);
-				fprintf(stderr, "jakiśtam błąd\n");
+				fprintf(stderr, "Błąd przypominania hasła.\n");
 				return 1;
 			}
 			if (h->state == GG_STATE_DONE) {
