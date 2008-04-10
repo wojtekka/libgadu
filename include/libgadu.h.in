@@ -147,10 +147,10 @@ typedef struct {
  */
 #define gg_common_head(x) \
 	int fd;			/**< Obserwowany deskryptor */ \
-	int check;		/**< Informacja o żądaniu odczytu/zapisu (patrz \c gg_check_t) */ \
-	int state;		/**< Aktualny stan połączenia (patrz \c gg_state_t) */ \
-	int error;		/**< Kod błędu dla \c GG_STATE_ERROR (patrz \c gg_error_t) */ \
-	int type;		/**< Rodzaj sesji (patrz \c gg_session_t) */ \
+	int check;		/**< Informacja o żądaniu odczytu/zapisu (patrz \ref gg_check_t) */ \
+	int state;		/**< Aktualny stan połączenia (patrz \ref gg_state_t) */ \
+	int error;		/**< Kod błędu dla \c GG_STATE_ERROR (patrz \ref gg_error_t) */ \
+	int type;		/**< Rodzaj sesji (patrz \ref gg_session_t) */ \
 	int id;			/**< Identyfikator sesji */ \
 	int timeout;		/**< Czas pozostały do zakończenia stanu */ \
 	int (*callback)(x*); 	/**< Funkcja zwrotna */ \
