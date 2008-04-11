@@ -1,7 +1,5 @@
 /**
 
-\defgroup dcc Połączenia bezpośrednie między klientami
-
 \defgroup dcc6 Połączenia bezpośrednie do wersji Gadu-Gadu 6.x
 \ingroup dcc
 
