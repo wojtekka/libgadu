@@ -346,7 +346,7 @@ int main(int argc, char **argv)
 					exit(1);
 				}
 
-				if ((script[state].event != 0 && ge->type != script[state].event)) {
+				if ((script[state].event != -1 && ge->type != script[state].event)) {
 					error(state, "Invalid event %d\n", ge->type);
 					exit(1);
 				}
@@ -359,6 +359,9 @@ int main(int argc, char **argv)
 				debug("state %d: received event %d\n", state, ge->type);
 				state++;
 				last = time(NULL);
+
+				gg_event_free(ge);
+
 				continue;
 			}
 

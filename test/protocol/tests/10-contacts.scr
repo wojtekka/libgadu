@@ -425,12 +425,6 @@ expect event GG_EVENT_NOTIFY60 (
 
 #-----------------------------------------------------------------------------
 
-send (11 00 00 00, auto, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 04, "Test")
-
-expect event GG_EVENT_NONE
-
-#-----------------------------------------------------------------------------
-
 send (11 00 00 00, auto, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 05, "Test" 00, 22 22 22 00, 05, 7f 00 00 02, 78 56, 29, 64, 00, 04, "Blah", 33 33 33 00, 06, 7f 00 00 03, 21 43, 28, 00, 00)
 
 expect event GG_EVENT_NOTIFY60 (
@@ -464,7 +458,16 @@ expect event GG_EVENT_NOTIFY60 (
 
 send (11 00 00 00, auto, 00*13)
 
-expect event GG_EVENT_NONE
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0
+	notify60[0].status == 0
+	notify60[0].remote_ip == 0.0.0.0
+	notify60[0].remote_port == 0
+	notify60[0].version == 0
+	notify60[0].image_size == 0
+
+	notify60[1].uin == 0
+)
 
 #-----------------------------------------------------------------------------
 # Notify reply (post-7.0)
@@ -523,12 +526,6 @@ expect event GG_EVENT_NOTIFY60 (
 
 #-----------------------------------------------------------------------------
 
-send (18 00 00 00, auto, 11 11 11 00, 02, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 04, "Test")
-
-expect event GG_EVENT_NONE
-
-#-----------------------------------------------------------------------------
-
 send (18 00 00 00, auto, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 05, "Test" 00, 22 22 22 00, 05, 7f 00 00 02, 78 56, 29, 64, 00, 00 00 00 00, 04, "Blah", 33 33 33 00, 06, 7f 00 00 03, 21 43, 28, 00, 00, 00 00 00 00)
 
 expect event GG_EVENT_NOTIFY60 (
@@ -562,5 +559,14 @@ expect event GG_EVENT_NOTIFY60 (
 
 send (18 00 00 00, auto, 00*17)
 
-expect event GG_EVENT_NONE
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0
+	notify60[0].status == 0
+	notify60[0].remote_ip == 0.0.0.0
+	notify60[0].remote_port == 0
+	notify60[0].version == 0
+	notify60[0].image_size == 0
+
+	notify60[1].uin == 0
+)
 
