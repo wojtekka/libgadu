@@ -404,7 +404,7 @@ void serve(void)
 	time_t started[3];
 	int i;
 	char buf[4096];
-	int len;
+	int len = 0;
 
 	for (i = 0; i < 4; i++) {
 		struct sockaddr_in sin;
