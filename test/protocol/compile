@@ -156,6 +156,8 @@ sub parse
 			$entry .= "\t\t.test = $test,\n";
 			if ($1 ne "") {
 				$entry .= "\t\t.event = $1,\n";
+			} else {
+				$entry .= "\t\t.event = -1,\n";
 			}
 			if (defined($2) && ($2 ne "")) {
 				$entry .= "\t\t.check_event = script_check_event_$state,\n";

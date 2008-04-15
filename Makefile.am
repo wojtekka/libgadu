@@ -1,4 +1,4 @@
-SUBDIRS = include src pkgconfig
+SUBDIRS = include src pkgconfig docs test examples
 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@                                                   
 libtool:	$(LIBTOOL_DEPS)
