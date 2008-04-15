@@ -4,8 +4,8 @@
 
 \details
 
-Ze względu na konieczność użycia inżynierii wstecznej, biblioteka nie
-gwarantuje stuprocentowej zgodności z oryginalnym klientem. Poza tym,
+Ze względu na konieczność użycia \ref re "inżynierii wstecznej", biblioteka
+nie gwarantuje stuprocentowej zgodności z oryginalnym klientem. Poza tym,
 część funkcjonalności z braku czasu, zasobów lub zainteresowania nie
 została jeszcze zaimplementowana:
 
