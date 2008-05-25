@@ -10,4 +10,4 @@ script.c:	$(wildcard tests/*.scr) compile
 	./compile tests/*.scr > script.c
 
 clean-local:
-	rm *.log script.c
+	rm -f *.log script.c
