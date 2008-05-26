@@ -219,7 +219,7 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 		if (!bind(fd, (struct sockaddr*) &sin, sizeof(sin)))
 			break;
 
-		if (port++ == 65535) {
+		if (++port == 65536) {
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() no free port found\n");
 			close(fd);
 			errno = ENOENT;
