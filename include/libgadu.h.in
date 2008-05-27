@@ -1926,14 +1926,14 @@ struct gg_dcc7_voice_auth {
 	uint8_t type;			/* 0x00 -> wysylanie ID
 					   0x01 -> potwierdzenie ID
 					*/
-	gg_dcc7_id_t id;		/* identyfikator po³±czenia */
+	gg_dcc7_id_t id;		/* identyfikator poÅ‚Ä…czenia */
 	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
 	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
 } GG_PACKED;
 
-struct gg_dcc7_voice_nodata {	/* wyciszony mikrofon, ten pakiet powinien wychodzic co 1s, gadu-gadu NIE ZRYWA TAKIEGO POLACZENIA */
+struct gg_dcc7_voice_nodata {	/* wyciszony mikrofon, ten pakiet jest wysylany co 1s (jesli chcemy podtrzymac polaczenie) */
 	uint8_t type;			/* 0x02 */
-	gg_dcc7_id_t id;		/* identyfikator po³±czenia */
+	gg_dcc7_id_t id;		/* identyfikator poÅ‚Ä…czenia */
 	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
 	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
 } GG_PACKED;
