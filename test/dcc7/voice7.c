@@ -144,6 +144,9 @@ gsm voice_gsm_enc = NULL, voice_gsm_dec = NULL;
 #if HAVE_SPEEX
 void *voice_speex_enc = NULL;
 void *voice_speex_dec = NULL;
+
+SpeexBits speex_enc_bits; 
+SpeexBits speex_dec_bits;
 #endif
 
 void voice_close()
@@ -168,11 +171,13 @@ void voice_close()
 	if (voice_speex_enc) {
 		speex_encoder_destroy(voice_speex_enc);
 		voice_speex_enc = NULL;
+		speex_bits_destroy(&speex_enc_bits);
 	}
 
 	if (voice_speex_dec) {
 		speex_decoder_destroy(voice_speex_dec);
 		voice_speex_dec = NULL;
+		speex_bits_destroy(&speex_dec_bits);
 	}
 
 #endif
@@ -225,9 +230,11 @@ int voice_open_ext(const char *pathname, int speed, int sample, int channels, in
 
 	if (codec & EKG_CODEC_SPEEX) {
 #if HAVE_SPEEX
-		if (!(voice_speex_enc = speex_encoder_init(&speex_wb_mode)) || !(voice_speex_dec = speex_decoder_init(&speex_nb_mode)))
+		if (!(voice_speex_enc = speex_encoder_init(&speex_wb_mode)) || !(voice_speex_dec = speex_decoder_init(&speex_wb_mode)))
 			goto fail;
 
+		speex_bits_init(&speex_enc_bits);
+		speex_bits_init(&speex_dec_bits);
 #else
 		goto fail;
 #endif
@@ -299,48 +306,63 @@ int voice_record(char *buf, int length, int codec)
 
 int voice_play(const char *buf, int length, int codec)
 {
-	gsm_signal output[160];
-	const char *pos = buf;
-	int ramki_dwie;
-
 	if (length <= 0)
 		return 0;
 
-	switch (codec) {
-		case EKG_CODEC_GSM:
-			ramki_dwie = 33 + 33;
-			break;
+	if (codec == EKG_CODEC_SPEEX) {
+#if HAVE_SPEEX
+		spx_int16_t speex_output[320];
 
-		case EKG_CODEC_NONE:
-		default:
-			return -1;
-	}
-	
+		speex_bits_read_from(&speex_dec_bits, buf, length);
+		speex_decode_int(voice_speex_dec, &speex_dec_bits, speex_output);		/* XXX, != 0 return? */
 
-	while (pos <= (buf + length - ramki_dwie)) {
-		switch (codec) {
-			case EKG_CODEC_GSM:
-				if (gsm_decode(voice_gsm_dec, (unsigned char *) pos, output)) return -1;
-				pos += 33;
-				break;
-		}
-
-		if (write(voice_fd, output, 320) != 320)
+		if (write(voice_fd, speex_output, sizeof(speex_output)) != sizeof(speex_output))
 			return -1;
 
-		switch (codec) {
-			case EKG_CODEC_GSM:
-				if (gsm_decode(voice_gsm_dec, (unsigned char *) pos, output)) return -1;
-				pos += 33;
-				break;
-		}
-
-
-		if (write(voice_fd, output, 320) != 320)
-			return -1;
+		return 0;
+#else
+		printf("voice_play() received speex packet, but HAVE_SPEEX\n");
+		return -1;
+#endif
 	}
 
-	return 0;
+	if (codec == EKG_CODEC_GSM) {
+#if HAVE_GSM
+		const int ramki_dwie = 33 + 33;
+		gsm_signal gsm_output[160];
+
+		const char *pos = buf;
+
+		while (pos <= (buf + length - ramki_dwie)) {
+			switch (codec) {
+				case EKG_CODEC_GSM:
+					if (gsm_decode(voice_gsm_dec, (unsigned char *) pos, gsm_output)) return -1;
+					pos += 33;
+					break;
+			}
+
+			if (write(voice_fd, gsm_output, 320) != 320)
+				return -1;
+
+			switch (codec) {
+				case EKG_CODEC_GSM:
+					if (gsm_decode(voice_gsm_dec, (unsigned char *) pos, gsm_output)) return -1;
+					pos += 33;
+					break;
+			}
+
+
+			if (write(voice_fd, gsm_output, 320) != 320)
+				return -1;
+		}
+		return 0;
+#else
+		printf("voice_play() received gsm packet, but HAVE_GSM\n");
+		return -1;
+#endif
+	}
+
+	return -1;
 }
 
 static void usage(const char *program) {
