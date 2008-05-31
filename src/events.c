@@ -285,15 +285,20 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 		return 0;
 	}
 
-	for (p = (char*) r + sizeof(*r); *p; p++) {
-		if (*p == 0x02 && p == packet_end - 1) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
-			break;
-		}
+	/* znajdź \0 */
+	for (p = (char*) r + sizeof(*r); ; p++) {
 		if (p >= packet_end) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds (0)\n");
 			goto malformed;
 		}
+
+		if (*p == 0x02 && p == packet_end - 1) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
+			break;
+		}
+
+		if (!*p)
+			break;
 	}
 
 	p++;

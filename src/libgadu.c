@@ -590,7 +590,7 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 
 				sess->send_buf = tmp;
 
-				memcpy(sess->send_buf + sess->send_left, buf, length - res);
+				memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
 
 				sess->send_left += length - res;
 
