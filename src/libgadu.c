@@ -558,10 +558,10 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 				res = write(sess->fd, buf + written, length - written);
 
 				if (res == -1) {
-					if (errno == EAGAIN || errno == EINTR)
-						continue;
+					if (errno != EINTR)
+						break;
 
-					break;
+					continue;
 				}
 
 				written += res;
