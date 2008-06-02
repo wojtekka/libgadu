@@ -835,8 +835,8 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 		return -1;
 	}
 
-	if (res == 0 && sess->async)
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() partial write(), %d sent, %d left\n", res, tmp_length - res);
+	if (sess->async)
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() partial write(), %d sent, %d left, %d total left\n", res, tmp_length - res, sess->send_left);
 
 	if (sess->send_buf)
 		sess->check |= GG_CHECK_WRITE;
