@@ -593,8 +593,6 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 				memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
 
 				sess->send_left += length - res;
-
-				return 0;
 			}
 		}
 	}
