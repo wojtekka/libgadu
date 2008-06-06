@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 
 #include <libgadu.h>
+#include "../../include/compat.h"
 
 #define debug(msg...) \
 	do { \
