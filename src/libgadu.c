@@ -1298,7 +1298,7 @@ int gg_change_status(struct gg_session *sess, int status)
 	// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 	
 	if ((sess->protocol_version & 0xff) >= 0x2a && (sess->protocol_version & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
-		status |= 0x20000;
+		status |= GG_STATUS_VOICE_MASK;
 
 	p.status = gg_fix32(status);
 
@@ -1334,11 +1334,29 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 		return -1;
 	}
 
+	// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
+
+	if ((sess->protocol_version & 0xff) >= 0x2a && (sess->protocol_version & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+		status |= GG_STATUS_VOICE_MASK;
+
 	p.status = gg_fix32(status);
 
 	sess->status = status;
 
-	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(descr), NULL);
+	if ((sess->protocol_version & 0xff) >= 0x2d) {
+		char *utf8_descr;
+		int ret;
+	
+	/* XXX, sess->utf8_encoded */
+		if (!(utf8_descr = gg_cp_to_utf8(descr)))
+			return -1;
+
+		ret = gg_send_packet(sess, GG_NEW_STATUS80, &p, sizeof(p), utf8_descr, (strlen(utf8_descr) > GG_STATUS_DESCR_MAXSIZE) ? GG_STATUS_DESCR_MAXSIZE : strlen(utf8_descr), NULL);
+		free(utf8_descr);
+		return ret;
+	}
+
+	return gg_send_packet(sess, GG_NEW_STATUS, &p, sizeof(p), descr, (strlen(descr) > GG_STATUS_DESCR_MAXSIZE_PRE_8_0) ? GG_STATUS_DESCR_MAXSIZE_PRE_8_0 : strlen(descr), NULL);
 }
 
 /**

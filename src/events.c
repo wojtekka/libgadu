@@ -456,6 +456,36 @@ fail:
 	return -1;
 }
 
+static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct gg_session *sess)
+{
+	struct gg_recv_msg80 *r = (struct gg_recv_msg80*) ((char*) h + sizeof(struct gg_header));
+	uint32_t offset_plain;
+	uint32_t offset_attr;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %p);\n", h, e);
+
+	if (!r->seq && !r->msgclass) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() oops, silently ignoring the bait\n");
+		e->type = GG_EVENT_NONE;
+		return 0;
+	}
+
+	offset_plain = gg_fix32(r->offset_plain);
+	offset_attr  = gg_fix32(r->offset_attr);
+
+	if (offset_plain >= h->length || offset_attr >= h->length) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (0)\n");
+		e->type = GG_EVENT_NONE;
+		return 0;
+	}
+
+	/* XXX,
+	 */
+
+	e->type = GG_EVENT_NONE;
+	return 0;
+}
+
 /**
  * \internal Odbiera pakiet od serwera.
  *
@@ -494,6 +524,16 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			break;
 		}
+
+		case GG_RECV_MSG80:
+		{
+			if (h->length >= sizeof(struct gg_recv_msg80))
+				if (gg_handle_recv_msg80(h, e, sess))
+					goto fail;
+
+			break;
+		}
+
 
 		case GG_NOTIFY_REPLY:
 		{
@@ -582,6 +622,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		}
 
 		case GG_NOTIFY_REPLY77:
+		case GG_NOTIFY_REPLY80:
 		{
 			struct gg_notify_reply77 *n = (void*) p;
 			unsigned int length = h->length, i = 0;
@@ -622,13 +663,24 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply77));
 
 					if (descr_len < length) {
-						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
+						char *descr;
+
+						if (!(descr = malloc(descr_len + 1))) {
 							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
 							goto fail;
 						}
 
-						memcpy(e->event.notify60[i].descr, (char*) n + sizeof(struct gg_notify_reply77) + 1, descr_len);
-						e->event.notify60[i].descr[descr_len] = 0;
+						memcpy(descr, (char*) n + sizeof(struct gg_notify_reply77) + 1, descr_len);
+						descr[descr_len] = 0;
+
+					/* XXX, sess->utf8_encoded */
+						if (h->type == GG_NOTIFY_REPLY80) {
+							char *cp_descr = gg_utf8_to_cp(descr);
+							free(descr);
+							descr = cp_descr;
+						}
+
+						e->event.notify60[i].descr = descr;
 
 						/* XXX czas */
 							
@@ -657,6 +709,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		}
 
 		case GG_STATUS77:
+		case GG_STATUS80:
 		{
 			struct gg_status77 *s = (void*) p;
 			uint32_t uin;
@@ -692,6 +745,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				if (buf) {
 					memcpy(buf, (char*) p + sizeof(*s), len);
 					buf[len] = 0;
+				}
+
+				/* XXX, sess->utf8_encoded */
+				if (h->type == GG_STATUS80) {
+					char *cp_buf = gg_utf8_to_cp(buf);
+					free(buf);
+					buf = cp_buf;
 				}
 
 				e->event.status60.descr = buf;

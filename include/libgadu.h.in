@@ -553,6 +553,8 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size);
 
 uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len);
+char *gg_cp_to_utf8(const char *b);
+char *gg_utf8_to_cp(const char *b);
 
 /**
  * Rodzaj zdarzenia.
@@ -1357,7 +1359,8 @@ struct gg_login60 {
 	uint8_t dunno2;			/* 0xbe */
 } GG_PACKED;
 
-#define GG_LOGIN70 0x19
+#define GG_LOGIN70 0x0019
+#define GG_LOGIN80 0x0029
 
 struct gg_login70 {
 	uint32_t uin;			/* mój numerek */
@@ -1393,6 +1396,7 @@ struct gg_pubdir50_reply {
 } GG_PACKED;
 
 #define GG_NEW_STATUS 0x0002
+#define GG_NEW_STATUS80 0x0028
 
 #ifndef DOXYGEN
 
@@ -1433,9 +1437,18 @@ enum {
 /**
  * \ingroup status
  *
+ * Flaga bitowa dostepnosci informujaca ze mozemy voipowac
+ */
+
+#define GG_STATUS_VOICE_MASK 0x20000	/**< czy ma wlaczone audio (7.7) */
+
+/**
+ * \ingroup status
+ *
  * Maksymalna długośc opisu.
  */
-#define GG_STATUS_DESCR_MAXSIZE 70
+#define GG_STATUS_DESCR_MAXSIZE 0xff
+#define GG_STATUS_DESCR_MAXSIZE_PRE_8_0 70
 
 /* GG_S_F() tryb tylko dla znajomych */
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
@@ -1537,6 +1550,7 @@ struct gg_status60 {
 } GG_PACKED;
 
 #define GG_NOTIFY_REPLY77 0x0018
+#define GG_NOTIFY_REPLY80 0x002b
 
 struct gg_notify_reply77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -1550,6 +1564,7 @@ struct gg_notify_reply77 {
 } GG_PACKED;
 
 #define GG_STATUS77 0x0017
+#define GG_STATUS80 0x002a
 
 struct gg_status77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -1944,7 +1959,7 @@ struct gg_dcc7_voice_data {
 	uint32_t len;			/* rozmiar strukturki - 1 (sizeof(type)) */
 	uint32_t packet_id;		/* numerek pakietu */
 	uint32_t datalen;		/* rozmiar danych */
-	char data[];			/* ramki: albo gsm, albo speex, albo melp, albo inne. */
+	/* char data[]; */		/* ramki: albo gsm, albo speex, albo melp, albo inne. */
 } GG_PACKED;
 
 struct gg_dcc7_voice_init {
@@ -1952,12 +1967,35 @@ struct gg_dcc7_voice_init {
 	uint32_t id;			/* nr kroku [0x1 - 0x5] */
 	uint32_t protocol;		/* XXX: wersja protokolu (0x29, 0x2a, 0x2b) */
 	uint32_t len;			/* rozmiar sizeof(protocol)+sizeof(len)+sizeof(data) = 0x08 + sizeof(data) */
-	char data[];			/* reszta danych */
+	/* char data[]; */		/* reszta danych */
 } GG_PACKED;
 
 struct gg_dcc7_voice_init_confirm {
 	uint8_t type;			/* 0x05 */
 	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
+} GG_PACKED;
+
+/* gg80 */
+
+#define GG_SEND_MSG80 0x002d
+
+struct gg_send_msg80 {
+	uint32_t recipient;
+	uint32_t seq;
+	uint32_t msgclass;
+	uint32_t offset_plain;
+	uint32_t offset_attr;
+} GG_PACKED;
+
+#define GG_RECV_MSG80 0x002e
+
+struct gg_recv_msg80 {
+	uint32_t sender;
+	uint32_t seq;
+	uint32_t time;
+	uint32_t msgclass;
+	uint32_t offset_plain;
+	uint32_t offset_attr;
 } GG_PACKED;
 
 #ifdef __cplusplus
