@@ -970,36 +970,6 @@ static int gg_utf8_helper(unsigned char *s, int n, uint16_t *ch)
 		return 3;
 	}
 
-/* XXX, sprawdzic czy potrzebujemy wiecej */
-#if 0
-	if (c < 0xf8 && sizeof(ucs4_t)*8 >= 32) {
-		if (n < 4)
-			return -2;
-		if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40 && (s[3] ^ 0x80) < 0x40 && (c >= 0xf1 || s[1] >= 0x90)))
-			return -1;
-		*pwc = ((ucs4_t) (c & 0x07) << 18) | ((ucs4_t) (s[1] ^ 0x80) << 12) | ((ucs4_t) (s[2] ^ 0x80) << 6) | (ucs4_t) (s[3] ^ 0x80);
-		return 4;
-	}
-	
-	if (c < 0xfc && sizeof(ucs4_t)*8 >= 32) {
-		if (n < 5) 
-			return -2;
-		if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40 && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40 && (c >= 0xf9 || s[1] >= 0x88)))
-			return -1;
-		*pwc = ((ucs4_t) (c & 0x03) << 24) | ((ucs4_t) (s[1] ^ 0x80) << 18) | ((ucs4_t) (s[2] ^ 0x80) << 12) | ((ucs4_t) (s[3] ^ 0x80) << 6) | (ucs4_t) (s[4] ^ 0x80);
-		return 5;
-	}
-	
-	if (c < 0xfe && sizeof(ucs4_t)*8 >= 32) {
-		if (n < 6)
-			return -2;
-		if (!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40 && (s[3] ^ 0x80) < 0x40 && (s[4] ^ 0x80) < 0x40 && (s[5] ^ 0x80) < 0x40 && (c >= 0xfd || s[1] >= 0x84)))
-			return -1;
-		*pwc = ((ucs4_t) (c & 0x01) << 30) | ((ucs4_t) (s[1] ^ 0x80) << 24) | ((ucs4_t) (s[2] ^ 0x80) << 18) | ((ucs4_t) (s[3] ^ 0x80) << 12) | 
-				((ucs4_t) (s[4] ^ 0x80) << 6) | (ucs4_t) (s[5] ^ 0x80);
-		return 6;
-	}
-#endif
 	return -1;
 }
 

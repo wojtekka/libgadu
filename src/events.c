@@ -461,6 +461,7 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	struct gg_recv_msg80 *r = (struct gg_recv_msg80*) ((char*) h + sizeof(struct gg_header));
 	uint32_t offset_plain;
 	uint32_t offset_attr;
+	char *p;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %p);\n", h, e);
 
@@ -473,15 +474,37 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	offset_plain = gg_fix32(r->offset_plain);
 	offset_attr  = gg_fix32(r->offset_attr);
 
-	if (offset_plain >= h->length || offset_attr >= h->length) {
+	if (offset_plain <= sizeof(struct gg_recv_msg80) || offset_plain >= h->length || offset_attr <= sizeof(struct gg_recv_msg80) || offset_attr >= h->length) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (0)\n");
 		e->type = GG_EVENT_NONE;
 		return 0;
 	}
 
-	/* XXX,
-	 */
+	/* znajdź \0 */
+	for (p = (char*) r + offset_plain; ; p++) {
+		if (p >= (char *) r + h->length) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (1)\n");
+			goto malformed;
+		}
 
+		if (!*p)
+			break;
+	}
+
+	p++;
+
+	/* XXX, XHTML i inne takie, kiedy indziej */
+
+	e->type = GG_EVENT_MSG;
+	e->event.msg.msgclass = gg_fix32(r->msgclass);
+	e->event.msg.sender = gg_fix32(r->sender);
+	e->event.msg.time = gg_fix32(r->time);
+	e->event.msg.seq = gg_fix32(r->seq);
+	e->event.msg.message = (unsigned char*) strdup((char*) r + offset_plain);
+
+	return 0;
+
+malformed:
 	e->type = GG_EVENT_NONE;
 	return 0;
 }
