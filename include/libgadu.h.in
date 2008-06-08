@@ -209,7 +209,7 @@ struct gg_session {
 	int recv_done;		/**< Liczba wczytanych bajtów pakietu */
 	int recv_left;		/**< Liczba pozostałych do wczytania bajtów pakietu */
 
-	int protocol_version;	/**< Wersja protokołu */
+	int protocol_version;	/**< Wersja protokołu (bez flag) */
 	char *client_version;	/**< Wersja klienta */
 	int last_sysmsg;	/**< Numer ostatniej wiadomości systemowej */
 
@@ -244,6 +244,8 @@ struct gg_session {
 	struct gg_dcc7 *dcc7_list;	/**< Lista połączeń bezpośrednich skojarzonych z sesją */
 	
 	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_watch_fd() */
+
+	int protocol_flags;	/**< Flagi protokołu */
 };
 
 /**

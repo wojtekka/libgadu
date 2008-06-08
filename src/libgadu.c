@@ -952,9 +952,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->external_addr = p->external_addr;
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 	if (p->era_omnix)
-		sess->protocol_version |= GG_ERA_OMNIX_MASK;
+		sess->protocol_flags |= GG_ERA_OMNIX_MASK;
 	if (p->has_audio)
-		sess->protocol_version |= GG_HAS_AUDIO_MASK;
+		sess->protocol_flags |= GG_HAS_AUDIO_MASK;
 	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
 	sess->last_sysmsg = p->last_sysmsg;
 	sess->image_size = p->image_size;
@@ -1297,7 +1297,7 @@ int gg_change_status(struct gg_session *sess, int status)
 
 	// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 	
-	if ((sess->protocol_version & 0xff) >= 0x2a && (sess->protocol_version & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+	if ((sess->protocol_version >= 0x2a) && (sess->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
 		status |= GG_STATUS_VOICE_MASK;
 
 	p.status = gg_fix32(status);
@@ -1336,14 +1336,14 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 
 	// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 
-	if ((sess->protocol_version & 0xff) >= 0x2a && (sess->protocol_version & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+	if ((sess->protocol_version >= 0x2a) && (sess->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
 		status |= GG_STATUS_VOICE_MASK;
 
 	p.status = gg_fix32(status);
 
 	sess->status = status;
 
-	if ((sess->protocol_version & 0xff) >= 0x2d) {
+	if (sess->protocol_version >= 0x2d) {
 		char *utf8_descr;
 		int ret;
 	
