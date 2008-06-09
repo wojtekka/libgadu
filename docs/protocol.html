@@ -25,7 +25,7 @@ H1, H2, H3 { margin-top: 0px; }
 
 <center>
 <h1>Protokół Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001 - 2007 <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001-2008 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr />
@@ -920,6 +920,15 @@ równocześnie połączy się drugi klient z tym samym numerem (nowe połączeni
 ma wyższy priorytet).
 </p>
 
+<p>
+W nowych wersjach protokołu (zaobserwowano w <tt>0x2a</tt>), po wysłaniu
+pakietu zmieniającego status na niedostępny, serwer może przysłać pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_DISCONNECTING2 0x000d</pre>
+</div>
+
 <hr />
 
 <a name="ch1.10"></a>
@@ -1219,6 +1228,7 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodząca wiadomość</td></tr>
 <tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_DISCONNECTING</tt></td><td>Zerwanie połączenia</td></tr>
 <tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
+<tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_DISCONNECTING2</tt></td><td>Zerwanie połączenia po zmianie stanu na niedostępny</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_PUBDIR50_REPLY</tt></td><td>Odpowiedź katalogu publicznego</td></tr>
 <tr class="tabf2"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu przed GG 7.7</td></tr>
 <tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
