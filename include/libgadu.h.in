@@ -246,6 +246,8 @@ struct gg_session {
 	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_watch_fd() */
 
 	int protocol_flags;	/**< Flagi protokołu */
+
+	int encoding;		/**< Rodzaj kodowania znaków */
 };
 
 /**
@@ -529,9 +531,10 @@ struct gg_login_params {
 	int era_omnix;			/**< Flaga udawania klienta Era Omnix (nieaktualna) */
 #endif
 	int hash_type;			/**< Rodzaj skrótu hasła (domyślnie SHA1) */
+	int encoding;			/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 
 #ifndef DOXYGEN
-	char dummy[5 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
+	char dummy[4 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
@@ -1092,6 +1095,14 @@ extern unsigned long gg_local_ip;
 #define GG_LOGIN_HASH_GG32 0x01	/**< Algorytm Gadu-Gadu */
 #define GG_LOGIN_HASH_SHA1 0x02	/**< Algorytm SHA1 */
 
+/**
+ * \brief Rodzaj kodowania znaków.
+ */
+enum gg_encoding_t {
+	GG_ENCODING_CP1250 = 0,	/**< Kodowanie CP1250 */
+	GG_ENCODING_UTF8,	/**< Kodowanie UTF-8 */
+};
+
 #ifndef DOXYGEN
 
 #define GG_PUBDIR50_WRITE 0x01
@@ -1265,6 +1276,7 @@ char *gg_proxy_auth(void);
 char *gg_base64_encode(const char *buf);
 char *gg_base64_decode(const char *buf);
 int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq);
+const char *gg_find_null(const char *buf, int start, int length);
 
 /**
  * Kolejka odbieranych obrazków.
