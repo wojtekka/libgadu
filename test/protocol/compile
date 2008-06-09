@@ -116,6 +116,7 @@ sub parse
 
 				while (<FILE>) {
 					$line++;
+					next if (/^#/);
 					last if (/^\)/);
 					s/\s*[,;]?\s*$//;
 					s/^\s*//;
