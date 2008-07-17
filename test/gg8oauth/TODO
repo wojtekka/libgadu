@@ -1,0 +1,2 @@
+- Korzystac z konfiguracji w ../config
+- Skopiowac funkcje do libgadu, linkowac sie z libgadu i korzystac z nich.
