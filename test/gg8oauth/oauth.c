@@ -21,8 +21,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "config.h"
-
 #include "hmac.h"
 #include "urlencode.h"
 #include "base64.h"
