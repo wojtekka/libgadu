@@ -18,14 +18,53 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include <curl/curl.h>
+
 #include "oauth.h"
 #include "http.h"
 #include "xml.h"
-#include "config.h"
 #include "urlencode.h"
 
 char *token, *token_secret;
+
+char *config_uin;
+char *config_password;
+
+int config_read(void) {
+	char buf[256];
+	FILE *f;
+
+	if (!(f = fopen("config", "r"))) {
+		if (!(f = fopen("../config", "r")))
+			return -1;
+	}
+
+	while (fgets(buf, sizeof(buf), f)) {
+		while (strlen(buf) > 0 && isspace(buf[strlen(buf) - 1]))
+			buf[strlen(buf) - 1] = 0;
+
+		if (!strncmp(buf, "uin ", 4))
+			config_uin = strdup(buf + 4);
+
+		if (!strncmp(buf, "password ", 9))
+			config_password = strdup(buf + 9);
+	}
+
+	fclose(f);
+
+	if (!config_uin || !config_password)
+		return -1;
+
+	return 0;
+}
+
+void config_free(void)
+{
+	free(config_uin);
+	free(config_password);
+}
 
 #define HTTP_METHOD1 "POST"
 #define HTTP_URL1 "http://api.gadu-gadu.pl/request_token"
@@ -34,7 +73,7 @@ int oauth_request() {
 
 	printf("\033[1m/request_token\033[0m\n\n");
 
-	if (!(auth = gg_oauth_generate_header(HTTP_METHOD1, HTTP_URL1, CONSUMER_KEY, CONSUMER_SECRET, NULL, NULL)))
+	if (!(auth = gg_oauth_generate_header(HTTP_METHOD1, HTTP_URL1, config_uin, config_password, NULL, NULL)))
 		return 0;
 
 	printf("header = '%s'\n", auth);
@@ -67,7 +106,7 @@ int oauth_authorize() {
 	printf("\n\033[1m/authorize\033[0m\n\n");
 	
 	tmp = gg_urlencode_printf("callback_url=http://www.mojageneracja.pl&request_token=%s&uin=%s&password=%s",
-			token, CONSUMER_KEY, CONSUMER_SECRET);
+			token, config_uin, config_password);
 
 	reply = gg_http_fetch(HTTP_AUTH_METHOD, HTTP_AUTH_URL, NULL, tmp);
 
@@ -82,7 +121,7 @@ int oauth_access() {
 	char *auth, *reply;
 	printf("\n\033[1m/access_token\033[0m\n\n");
 
-	if (!(auth = gg_oauth_generate_header(HTTP_METHOD2, HTTP_URL2, CONSUMER_KEY, CONSUMER_SECRET, token, token_secret)))
+	if (!(auth = gg_oauth_generate_header(HTTP_METHOD2, HTTP_URL2, config_uin, config_password, token, token_secret)))
 		return 0;
 
 	printf("header = '%s'\n", auth);
@@ -131,7 +170,7 @@ void oauth_ask(const char *uid)
 
 	printf("\n\033[1m%s\033[0m\n\n", tmp);
 
-	auth = gg_oauth_generate_header(HTTP_METHOD3, tmp, CONSUMER_KEY, CONSUMER_SECRET, token, token_secret);
+	auth = gg_oauth_generate_header(HTTP_METHOD3, tmp, config_uin, config_password, token, token_secret);
 
 	if (auth == NULL) {
 		free(tmp);
@@ -162,6 +201,11 @@ int main(int argc, char **argv)
 	if (argc < 2) {
 		printf("usage: %s <uid1> [uid2] [uid3] [uid4] ....\n", argv[0]);
 		return 1;
+	}
+
+	if (config_read() == -1) {
+		perror("config");
+		exit(1);
 	}
 
 	if (!oauth_init()) {
