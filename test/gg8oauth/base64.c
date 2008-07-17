@@ -60,8 +60,6 @@ char *gg_base64_encode(const char *input, ssize_t len)
 static char gg_base64_charset[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-#warning gg_base64_encode implementation is buggy!
-
 /**
  * Koduje ciąg znaków do base64.
  *
@@ -93,7 +91,7 @@ char *gg_base64_encode(const char *buf, ssize_t len)
 				k = (buf[j] & 252) >> 2;
 				break;
 			case 1:
-				if (j < len)
+				if (j+1 < len)
 					k = ((buf[j] & 3) << 4) | ((buf[j + 1] & 240) >> 4);
 				else
 					k = (buf[j] & 3) << 4;
@@ -101,7 +99,7 @@ char *gg_base64_encode(const char *buf, ssize_t len)
 				j++;
 				break;
 			case 2:
-				if (j < len)
+				if (j+1 < len)
 					k = ((buf[j] & 15) << 2) | ((buf[j + 1] & 192) >> 6);
 				else
 					k = (buf[j] & 15) << 2;
