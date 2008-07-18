@@ -474,9 +474,15 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	offset_plain = gg_fix32(r->offset_plain);
 	offset_attr  = gg_fix32(r->offset_attr);
 
-	if (offset_plain < sizeof(struct gg_recv_msg80) || offset_plain >= h->length || offset_attr <= sizeof(struct gg_recv_msg80) || offset_attr > h->length) {
+	if (offset_plain < sizeof(struct gg_recv_msg80) || offset_plain >= h->length) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (0)\n");
 		goto ignore;
+	}
+
+	if (offset_attr <= sizeof(struct gg_recv_msg80) || offset_attr >= h->length) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, attr out of bounds (1)\n");
+		offset_attr = 0;	/* nie parsuj attr. */
+		/* goto ignore; */
 	}
 
 	if (gg_find_null(packet, offset_plain, h->length) == NULL) {
@@ -802,15 +808,18 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				int len = h->length - sizeof(*s);
 				char *buf = malloc(len + 1);
 
+				/* XXX, jesli malloc() sie nie uda to robic tak samo jak przy GG_NOTIFY_REPLY* ?
+				 * 	- goto fail; (?)
+				 */
 				if (buf) {
 					memcpy(buf, (char*) p + sizeof(*s), len);
 					buf[len] = 0;
-				}
 
-				if (h->type == GG_STATUS80 && sess->encoding != GG_ENCODING_UTF8) {
-					char *cp_buf = gg_utf8_to_cp(buf);
-					free(buf);
-					buf = cp_buf;
+					if (h->type == GG_STATUS80 && sess->encoding != GG_ENCODING_UTF8) {
+						char *cp_buf = gg_utf8_to_cp(buf);
+						free(buf);
+						buf = cp_buf;
+					}
 				}
 
 				e->event.status60.descr = buf;
