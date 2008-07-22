@@ -96,8 +96,8 @@ if test "x$enable_debug" = "xno"; then
 fi
 
 dnl
-dnl  Sprawd¼my, jak± wersjê vsnprintf() dostajemy. Dodatkowa opcja jest
-dnl  dla kompilacji skro¶nej, bo nie mo¿na wtedy korzystaæ z AC_TRY_RUN().
+dnl  SprawdÅºmy, jakÄ… wersjÄ™ vsnprintf() dostajemy. Dodatkowa opcja jest
+dnl  dla kompilacji skroÅ›nej, bo nie moÅ¼na wtedy korzystaÄ‡ z AC_TRY_RUN().
 dnl
 
 AC_ARG_WITH(c99-vsnprintf,
@@ -133,7 +133,7 @@ AC_ARG_WITH(pthread,
   [  --with-pthread          Use pthread in resolver])
 
 if test "x$with_pthread" = "xyes"; then
-	dnl najpierw sprawdzamy czy pomijaæ testy pthreads/shared
+	dnl najpierw sprawdzamy czy pomijaÄ‡ testy pthreads/shared
 	pthreads_shared_skip=0
 	if test "x$lib_shared_enabled" = "xno"; then
 		pthreads_shared_skip=1
@@ -158,7 +158,7 @@ if test "x$with_pthread" = "xyes"; then
 fi
 
 dnl
-dnl  Sprawdzamy, czy jest ,,long long'' na potrzeby obliczeñ czasów DCC
+dnl  Sprawdzamy, czy jest ,,long long'' na potrzeby obliczeÅ„ czasÃ³w DCC
 dnl
 
 AC_MSG_CHECKING([for long long])
