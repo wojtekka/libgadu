@@ -1,7 +1,7 @@
 noinst_PROGRAMS = dcc7
 # noinst_PROGRAMS = dcc7 voice7
 
-LDADD = ../../src/.libs/libgadu.a
+LDADD = ../../src/libgadu.la
 EXTRA_DIST = valgrind
 
 voice7_LDFLAGS = -lgsm -lspeex

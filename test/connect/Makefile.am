@@ -1,5 +1,5 @@
 noinst_PROGRAMS = connect
-LDADD = ../../src/.libs/libgadu.a
+LDADD = ../../src/libgadu.la
 EXTRA_DIST = readme.txt valgrind
 
 clean-local:

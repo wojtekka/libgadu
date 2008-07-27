@@ -1,5 +1,5 @@
 noinst_PROGRAMS = protocol
-LDADD = ../../src/.libs/libgadu.a
+LDADD = ../../src/libgadu.la
 protocol_SOURCES = protocol.c
 noinst_HEADERS = script.h
 nodist_protocol_SOURCES = script.c
