@@ -26,6 +26,7 @@
  * \brief Funkcje wyznaczania skrĂłtu SHA1
  */
 
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
