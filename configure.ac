@@ -186,6 +186,18 @@ if test "x$have_openssl" = "xyes"; then
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
 fi
 
+dnl
+dnl  Sprawdź, czy można korzystać z __funkcji w libc.
+dnl 
+
+AC_SUBST([OPTIONAL_TESTS])
+AC_CHECK_LIB(c, __connect__, [
+	OPTIONAL_TESTS=connect
+],
+[
+	OPTIONAL_TESTS=
+])
+
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile])
 
 AC_OUTPUT
