@@ -191,7 +191,7 @@ dnl  Sprawdź, czy można korzystać z __funkcji w libc.
 dnl 
 
 AC_SUBST([OPTIONAL_TESTS])
-AC_CHECK_LIB(c, __connect__, [
+AC_CHECK_LIB(c, __connect, [
 	OPTIONAL_TESTS=connect
 ],
 [
