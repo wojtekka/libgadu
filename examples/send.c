@@ -34,6 +34,12 @@ int main(int argc, char **argv)
 
 	printf("Połączono.\n");
 
+	if (gg_notify(sess, NULL, 0) == -1) {	/* serwery gg nie pozwalaja wysylac wiadomosci bez powiadomienia o userliscie (przetestowane p.protocol_version [0x15; def] */
+		printf("Połączenie przerwane: %s\n", strerror(errno));
+		gg_free_session(sess);
+		return 1;
+	}
+
 	if (gg_send_message(sess, GG_CLASS_MSG, atoi(argv[3]), (unsigned char*) argv[4]) == -1) {
 		printf("Połączenie przerwane: %s\n", strerror(errno));
 		gg_free_session(sess);
