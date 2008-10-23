@@ -1,4 +1,4 @@
-noinst_PROGRAMS = send httphash conn-async register-sync register-async remind-sync remind-async
+noinst_PROGRAMS = send httphash conn-async register-sync register-async remind-sync remind-async status
 LDADD = ../src/libgadu.la
 
 register_sync_SOURCES = register.c
