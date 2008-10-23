@@ -621,7 +621,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				if (GG_S_D(n->status)) {
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply77));
 
-					if (descr_len < length) {
+					if (sizeof(struct gg_notify_reply77) + descr_len <= length) {
 						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
 							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
 							goto fail;
@@ -744,7 +744,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				if (GG_S_D(n->status)) {
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
 
-					if (descr_len < length) {
+					if (sizeof(struct gg_notify_reply60) + descr_len <= length) {
 						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
 							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
 							goto fail;
