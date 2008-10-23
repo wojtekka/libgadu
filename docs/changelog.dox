@@ -9,6 +9,10 @@ Poprawki dostarczające nową funkcjonalność w większości przypadków nie ma
 wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
 nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_8_2 libgadu 1.8.2
+
+- Brak zmian API/ABI.
+
 \section changelog-1_8_1 libgadu 1.8.1
 
 - Brak zmian API/ABI.
