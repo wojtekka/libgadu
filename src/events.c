@@ -1213,7 +1213,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			sess->fd = -1;
 
 #ifndef GG_CONFIG_HAVE_PTHREAD
-			waitpid(sess->pid, NULL, 0);
+			waitpid(sess->pid, NULL, WNOHANG);
 			sess->pid = -1;
 #else
 			if (sess->resolver) {

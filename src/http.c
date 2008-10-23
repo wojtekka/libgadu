@@ -222,7 +222,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		h->fd = -1;
 
 #ifndef GG_CONFIG_HAVE_PTHREAD
-		waitpid(h->pid, NULL, 0);
+		waitpid(h->pid, NULL, WNOHANG);
 #else
 		if (h->resolver) {
 			gg_resolve_pthread_cleanup(h->resolver, 0);
@@ -498,7 +498,7 @@ void gg_http_stop(struct gg_http *h)
 #else
 	if (h->pid != -1) {
 		kill(h->pid, SIGKILL);
-		waitpid(h->pid, NULL, 0);
+		waitpid(h->pid, NULL, WNOHANG);
 		h->pid = -1;
 	}
 #endif
