@@ -921,13 +921,19 @@ ma wyższy priorytet).
 </p>
 
 <p>
-W nowych wersjach protokołu (zaobserwowano w <tt>0x2a</tt>), po wysłaniu
+W nowych wersjach protokołu (prawdopodobnie od <tt>0x29</tt>), po wysłaniu
 pakietu zmieniającego status na niedostępny, serwer może przysłać pakiet:
 </p>
 
 <div class="c">
 <pre>#define GG_DISCONNECTING2 0x000d</pre>
 </div>
+
+<p>
+Prawdopodobnie jest to potwierdzenie, że serwer odebrał pakiet zmiany stanu
+i klient może zakończyć połączenie mając pewność, że zostanie ustawiony
+żądany opis.
+</p>
 
 <hr />
 
@@ -1910,8 +1916,10 @@ napisz na listę dyskusyjną
 	wszystkiego w porządku, GG_XML_EVENT.</li>
 	<li><b>Marcin Krupowicz</b> (marcin.krupowicz%gmail.com): informacja na 
 	temat tego, że pakiet GG_LOGIN_OK nie zawsze jest zerowej długości.</li>
-	<li><b>Jakub Zawadzki</b> (darkjames%darkjames.ath.cx): nowości
-	w 7.x.</li>
+	<li><b>Jakub Zawadzki</b> (darkjames%darkjames.ath.cx): nowości w
+	7.x.</li>
+	<li><b>Krystian Kołodziej</b> (krystiankolodziej%gmail.com): znaczenie
+	GG_DISCONNECTING2.</li>
 </ul>
 
 <hr />
