@@ -1,0 +1,37 @@
+/**
+
+\defgroup build Kompilacja
+
+\details
+
+Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows
++ Cygwin) przeprowadza się według typowego schematu:
+
+\code
+$ ./configure
+$ make
+# make install
+\endcode
+
+Gdzie ostatnią komendę wykonuje się z prawami administratora. Aby zainstalować
+bibliotekę w katalogu użytkownika, można wykonać polecenia:
+
+\code
+$ ./configure --prefix=/katalog/użytkownika/libgadu
+$ make
+$ make install
+\endcode
+
+Następnie, aby użyć lokalnie zainstalowanej kopii biblioteki, zwykle należy
+dodać do zmiennej \c CFLAGS opcję \c -I/katalog/użytkownika/libgadu/include , a do \c LDFLAGS opcję \c -L/katalog/użytkownika/libgadu/lib.
+
+\section build-cross Kompilacja skrośna
+
+Przy kompilacji skrośnej konieczne jest użycie parametru
+\c --with-c99-vsnprintf lub \c --without-c99-vsnprintf w skrypcie \c configure,
+który mówi o tym, że funkcje rodziny \c sprintf() na docelowej platformie są
+zgodne lub niezgodne ze standardem C99. Jeśli żaden z powyższych parametrów
+nie zostanie użyty, skrypt \c configure spróbuje uruchomić program testowy,
+co przy kompilacji skrośnej się nie powiedzie.
+
+*/

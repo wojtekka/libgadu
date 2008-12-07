@@ -60,6 +60,7 @@ Dokumentację podzielono na następujące działy:
 - Informacje dodatkowe
 	- \ref changelog
 	- \ref re
+	- \ref build
 
 \warning Należy pamiętać, że używanie alternatywnych klientów jest niezgodne
 z regulaminem korzystania z serwisu Gadu-Gadu.
