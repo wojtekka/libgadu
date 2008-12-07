@@ -592,10 +592,6 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type);
 gg_resolver_t gg_http_get_resolver(struct gg_http *gh);
 int gg_http_set_custom_resolver(struct gg_http *gh, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int));
 
-int gg_global_set_resolver(gg_resolver_t type);
-gg_resolver_t gg_global_get_resolver(void);
-int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int));
-
 /**
  * Rodzaj zdarzenia.
  *
