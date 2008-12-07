@@ -554,7 +554,7 @@ struct gg_login_params {
 #endif
 	int hash_type;			/**< Rodzaj skrótu hasła (domyślnie SHA1) */
 	int encoding;			/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
-	gg_resolver_t resolver;		/**< Rodzaj resolvera */
+	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
 
 #ifndef DOXYGEN
 	char dummy[3 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych

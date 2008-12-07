@@ -447,7 +447,7 @@ cleanup:
  * Ustawia sposób rozwiązywania nazw w sesji.
  *
  * \param gs Struktura sesji
- * \param type Sposób rozwiązywania nazw
+ * \param type Sposób rozwiązywania nazw (patrz \ref build-resolver)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
@@ -531,7 +531,7 @@ int gg_session_set_custom_resolver(struct gg_session *gs, int (*resolver_start)(
  * Ustawia sposób rozwiązywania nazw połączenia HTTP.
  *
  * \param gh Struktura połączenia
- * \param type Sposób rozwiązywania nazw
+ * \param type Sposób rozwiązywania nazw (patrz \ref build-resolver)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
