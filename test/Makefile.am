@@ -1,3 +1,3 @@
 SUBDIRS = protocol dcc7 $(OPTIONAL_TESTS)
-DIST_SUBDIRS = protocol dcc7 connect
+DIST_SUBDIRS = protocol dcc7 resolver connect
 EXTRA_DIST = config.sample

@@ -493,95 +493,6 @@ int gg_http_hash(const char *format, ...)
 	return (b < 0 ? -b : b);
 }
 
-/**
- * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
- *
- * Jeśli dany system dostarcza \c gethostbyname_r, używa się tej wersji, jeśli
- * nie, to zwykłej \c gethostbyname.
- *
- * \param hostname Nazwa serwera
- *
- * \return Zaalokowana struktura \c in_addr lub NULL w przypadku błędu.
- */
-struct in_addr *gg_gethostbyname(const char *hostname)
-{
-	struct in_addr *addr = NULL;
-
-#ifdef HAVE_GETHOSTBYNAME_R
-	char *tmpbuf = NULL, *buf = NULL;
-	struct hostent *hp = NULL, *hp2 = NULL;
-	int h_errnop, ret;
-	size_t buflen = 1024;
-	int new_errno;
-
-	new_errno = ENOMEM;
-
-	if (!(addr = malloc(sizeof(struct in_addr))))
-		goto cleanup;
-
-	if (!(hp = calloc(1, sizeof(*hp))))
-		goto cleanup;
-
-	if (!(buf = malloc(buflen)))
-		goto cleanup;
-
-	tmpbuf = buf;
-
-	while ((ret = gethostbyname_r(hostname, hp, buf, buflen, &hp2, &h_errnop)) == ERANGE) {
-		buflen *= 2;
-
-		if (!(tmpbuf = realloc(buf, buflen)))
-			break;
-
-		buf = tmpbuf;
-	}
-
-	if (ret)
-		new_errno = h_errnop;
-
-	if (ret || !hp2 || !tmpbuf)
-		goto cleanup;
-
-	memcpy(addr, hp->h_addr, sizeof(struct in_addr));
-
-	free(buf);
-	free(hp);
-
-	return addr;
-
-cleanup:
-	errno = new_errno;
-
-	if (addr)
-		free(addr);
-	if (hp)
-		free(hp);
-	if (buf)
-		free(buf);
-
-	return NULL;
-#else
-	struct hostent *hp;
-
-	if (!(addr = malloc(sizeof(struct in_addr)))) {
-		goto cleanup;
-	}
-
-	if (!(hp = gethostbyname(hostname)))
-		goto cleanup;
-
-	memcpy(addr, hp->h_addr, sizeof(struct in_addr));
-
-	return addr;
-
-cleanup:
-	if (addr)
-		free(addr);
-
-	return NULL;
-#endif
-}
-
 #ifdef ASSIGN_SOCKETS_TO_THREADS
 
 typedef struct gg_win32_thread {
@@ -1030,13 +941,13 @@ illegal:
 }
 
 /**
- * \internal Szuka znaku \0 w buforze o ograniczonym rozmiarze.
+ * \internal Szuka znaku \\0 w buforze o ograniczonym rozmiarze.
  *
  * \param buf Bufor
  * \param start Początkowy offset poszukiwań
  * \param length Rozmiar bufora
  *
- * \return Wskaźnik na znak \0 lub \c NULL jeśli nie znaleziono.
+ * \return Wskaźnik na znak \\0 lub \c NULL jeśli nie znaleziono.
  */
 const char *gg_find_null(const char *buf, int start, int length)
 {

@@ -28,7 +28,6 @@
  */
 
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -38,9 +37,6 @@
 #include "libgadu.h"
 
 #include <errno.h>
-#ifdef GG_CONFIG_HAVE_PTHREAD
-#  include <pthread.h>
-#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1212,15 +1208,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			close(sess->fd);
 			sess->fd = -1;
 
-#ifndef GG_CONFIG_HAVE_PTHREAD
-			waitpid(sess->pid, NULL, WNOHANG);
-			sess->pid = -1;
-#else
-			if (sess->resolver) {
-				gg_resolve_pthread_cleanup(sess->resolver, 0);
-				sess->resolver = NULL;
-			}
-#endif
+			sess->resolver_cleanup(&sess->resolver, 0);
 
 			if (failed) {
 				errno = errno2;

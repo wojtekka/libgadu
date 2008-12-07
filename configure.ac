@@ -1,7 +1,7 @@
 dnl $Id$
 
 AC_INIT(src/libgadu.c)
-AM_INIT_AUTOMAKE(libgadu, 1.8.0)
+AM_INIT_AUTOMAKE(libgadu, 1.9.0-pre)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
@@ -52,56 +52,13 @@ fi
 AC_DEFINE([GG_LIBGADU_VERSION], [], [Library version])
 AC_DEFINE_UNQUOTED(GG_LIBGADU_VERSION, "${VERSION}")
 
-dnl SunOS
-
-AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
-AC_CHECK_LIB(socket, socket, LIBS="$LIBS -lsocket")
-
-dnl BeOS
-
-AC_ARG_WITH(bind,
-	[  --without-bind          Disable linking with libbind when found])
-
-if test "x$with_bind" != "xno"; then
-	AC_CHECK_LIB(bind, __inet_addr, LIBS="$LIBS -lbind")
-fi
-
-dnl threadsafe
-
-AC_CHECK_FUNCS([gethostbyname_r], [AC_DEFINE([GG_CONFIG_HAVE_GETHOSTBYNAME_R], [], [Defined if this machine has gethostbyname_r().])])
-
-AC_MSG_CHECKING([for va_copy])
-AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; va_copy(a, b);], 
-[
-	AC_MSG_RESULT([yes])
-	AC_DEFINE([GG_CONFIG_HAVE_VA_COPY], [], [Defined if this machine has va_copy().])
-], [
-	AC_MSG_RESULT([no])
-])
-
-AC_MSG_CHECKING([for __va_copy])
-AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);], 
-[
-	AC_MSG_RESULT([yes])
-	AC_DEFINE([GG_CONFIG_HAVE___VA_COPY], [], [Defined if this machine has __va_copy().])
-], [
-	AC_MSG_RESULT([no])
-])
-
-AC_ARG_ENABLE(debug, 
-	[  --disable-debug         Compile without debugging support])
-
-if test "x$enable_debug" = "xno"; then 
-	AC_MSG_WARN([--disable-debug is obsolete.])
-fi
-
 dnl
 dnl  Sprawdźmy, jaką wersję vsnprintf() dostajemy. Dodatkowa opcja jest
 dnl  dla kompilacji skrośnej, bo nie można wtedy korzystać z AC_TRY_RUN().
 dnl
 
 AC_ARG_WITH(c99-vsnprintf,
-	[  --with-c99-vsnprintf    Target system has C99-compatible vsnprintf()])
+	[  --with-c99-vsnprintf    target system has C99-compatible vsnprintf()])
 
 if test "x$with_c99_vsnprintf" = "xyes"; then
 	AC_DEFINE([GG_CONFIG_HAVE_C99_VSNPRINTF], [], [Defined if this machine has C99-compiliant vsnprintf().])
@@ -126,18 +83,77 @@ if test "x$with_c99_vsnprintf" = "x"; then
 fi
 
 dnl
+dnl  Sprawdzamy, czy jest ,,long long'' na potrzeby obliczeń czasów DCC
+dnl
+
+AC_MSG_CHECKING([for long long])
+
+AC_TRY_COMPILE([],
+[
+	long long a = 1LL;
+	unsigned long long b = 1LL;
+], [
+	AC_MSG_RESULT([yes])
+	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
+])
+
+dnl
+dnl  SunOS
+dnl
+
+AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
+AC_CHECK_LIB(socket, socket, LIBS="$LIBS -lsocket")
+
+dnl
+dnl  BeOS
+dnl
+
+AC_ARG_WITH(bind,
+	[  --without-bind          do not use libbind even if found])
+
+if test "x$with_bind" != "xno"; then
+	AC_CHECK_LIB(bind, __inet_addr, LIBS="$LIBS -lbind")
+fi
+
+dnl
+dnl  threadsafe
+dnl
+
+AC_CHECK_FUNCS([gethostbyname_r], [AC_DEFINE([GG_CONFIG_HAVE_GETHOSTBYNAME_R], [], [Defined if this machine has gethostbyname_r().])])
+
+AC_MSG_CHECKING([for va_copy])
+AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; va_copy(a, b);], 
+[
+	AC_MSG_RESULT([yes])
+	AC_DEFINE([GG_CONFIG_HAVE_VA_COPY], [], [Defined if this machine has va_copy().])
+], [
+	AC_MSG_RESULT([no])
+])
+
+AC_MSG_CHECKING([for __va_copy])
+AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);], 
+[
+	AC_MSG_RESULT([yes])
+	AC_DEFINE([GG_CONFIG_HAVE___VA_COPY], [], [Defined if this machine has __va_copy().])
+], [
+	AC_MSG_RESULT([no])
+])
+
+AC_ARG_ENABLE(debug, 
+	[  --disable-debug         compile without debugging support])
+
+if test "x$enable_debug" = "xno"; then 
+	AC_MSG_WARN([--disable-debug is obsolete.])
+fi
+
+dnl
 dnl  Resolver libgadu oparty na pthread
 dnl
 
 AC_ARG_WITH(pthread,
-  [  --with-pthread          Use pthread in resolver])
+  [  --without-pthread       do not use pthread resolver even if possible])
 
-if test "x$with_pthread" = "xyes"; then
-	dnl najpierw sprawdzamy czy pomijać testy pthreads/shared
-	pthreads_shared_skip=0
-	if test "x$lib_shared_enabled" = "xno"; then
-		pthreads_shared_skip=1
-	fi
+if test "x$with_pthread" != "xno"; then
 	ACX_PTHREAD(
 	[
 		dnl workaround dla pkgconfiga
@@ -153,24 +169,15 @@ if test "x$with_pthread" = "xyes"; then
 
 		AC_DEFINE([GG_CONFIG_HAVE_PTHREAD], [], [Defined if libgadu was compiled and linked with pthread support.])
 	], [
-		AC_MSG_ERROR([Your system is not supporting pthreads])
-	], [$pthreads_shared_skip])
+		if test "x$with_pthread" = "xyes"; then
+			AC_MSG_ERROR([Your system is not supporting pthreads])
+		fi
+	])
 fi
 
-dnl
-dnl  Sprawdzamy, czy jest ,,long long'' na potrzeby obliczeń czasów DCC
-dnl
-
-AC_MSG_CHECKING([for long long])
-
-AC_TRY_COMPILE([],
-[
-	long long a = 1LL;
-	unsigned long long b = 1LL;
-], [
-	AC_MSG_RESULT([yes])
-	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
-])
+if test "x$with_pthread" = "xyes"; then
+	AC_DEFINE([GG_CONFIG_PTHREAD_DEFAULT], [], [Defined if pthread resolver is the default one.])
+fi
 
 dnl
 dnl  Sprawdzamy OpenSSL
@@ -192,12 +199,12 @@ dnl
 
 AC_SUBST([OPTIONAL_TESTS])
 AC_CHECK_LIB(c, __connect, [
-	OPTIONAL_TESTS=connect
+	OPTIONAL_TESTS="connect resolver"
 ],
 [
-	OPTIONAL_TESTS=
+	OPTIONAL_TESTS=""
 ])
 
-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile test/resolver/Makefile])
 
 AC_OUTPUT

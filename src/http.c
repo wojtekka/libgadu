@@ -25,20 +25,17 @@
  */
 
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "compat.h"
 #include "libgadu.h"
+#include "resolver.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <netdb.h>
-#ifdef GG_CONFIG_HAVE_PTHREAD
-#  include <pthread.h>
-#endif
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -91,6 +88,8 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 	h->fd = -1;
 	h->type = GG_SESSION_HTTP;
 
+	gg_http_set_resolver(h, GG_RESOLVER_DEFAULT);
+
 	if (gg_proxy_enabled) {
 		char *auth = gg_proxy_auth();
 
@@ -117,11 +116,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 	gg_debug(GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", h->query);
 
 	if (async) {
-#ifndef GG_CONFIG_HAVE_PTHREAD
-		if (gg_resolve(&h->fd, &h->pid, hostname)) {
-#else
-		if (gg_resolve_pthread(&h->fd, &h->resolver, hostname)) {
-#endif
+		if (h->resolver_start(&h->fd, &h->resolver, hostname) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() resolver failed\n");
 			gg_http_free(h);
 			errno = ENOENT;
@@ -134,19 +129,16 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		h->check = GG_CHECK_READ;
 		h->timeout = GG_DEFAULT_TIMEOUT;
 	} else {
-		struct in_addr *hn, a;
+		struct in_addr addr;
 
-		if (!(hn = gg_gethostbyname(hostname))) {
+		if (gg_gethostbyname(hostname, &addr, 0) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() host not found\n");
 			gg_http_free(h);
 			errno = ENOENT;
 			return NULL;
-		} else {
-			a.s_addr = hn->s_addr;
-			free(hn);
 		}
 
-		if (!(h->fd = gg_connect(&a, port, 0)) == -1) {
+		if (!(h->fd = gg_connect(&addr, port, 0)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			gg_http_free(h);
 			return NULL;
@@ -221,14 +213,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		close(h->fd);
 		h->fd = -1;
 
-#ifndef GG_CONFIG_HAVE_PTHREAD
-		waitpid(h->pid, NULL, WNOHANG);
-#else
-		if (h->resolver) {
-			gg_resolve_pthread_cleanup(h->resolver, 0);
-			h->resolver = NULL;
-		}
-#endif
+		h->resolver_cleanup(&h->resolver, 0);
 
 		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(a), h->port);
 
@@ -490,18 +475,7 @@ void gg_http_stop(struct gg_http *h)
 		h->fd = -1;
 	}
 
-#ifdef GG_CONFIG_HAVE_PTHREAD
-	if (h->resolver) {
-		gg_resolve_pthread_cleanup(h->resolver, 0);
-		h->resolver = NULL;
-	}
-#else
-	if (h->pid != -1) {
-		kill(h->pid, SIGKILL);
-		waitpid(h->pid, NULL, WNOHANG);
-		h->pid = -1;
-	}
-#endif
+	h->resolver_cleanup(&h->resolver, 1);
 }
 
 /**
