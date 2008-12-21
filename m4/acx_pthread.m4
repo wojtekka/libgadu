@@ -6,7 +6,8 @@ dnl dependency from AC_CANONICAL_HOST
 dnl
 dnl Checks for GCC shared/pthread inconsistency added by
 dnl Marcin Owsiany <marcin@owsiany.pl>
-AC_DEFUN([ACX_PTHREAD], [
+AC_DEFUN([ACX_PTHREAD],
+[AC_REQUIRE([AC_PROG_LD_GNU])dnl
 AC_LANG_SAVE
 AC_LANG_C
 acx_pthread_ok=no
@@ -202,15 +203,23 @@ if test "x$acx_pthread_ok" = xyes; then
 		save_CFLAGS="$CFLAGS"
 		save_LIBS="$LIBS"
 		save_CC="$CC"
-		# Try with the flags determined by the earlier checks.
-		#
+
 		# -Wl,-z,defs forces link-time symbol resolution, so that the
-		# linking checks with -shared actually have any value
+		# linking checks with -shared actually has any value. However
+		# linkers other than GNU ld might not support this flag.
+		AC_PROG_LD_GNU
+		if test x"$with_gnu_ld" = xyes; then
+			no_undefined_flag="-Wl,-z,defs"
+		else
+			no_undefined_flag=""
+		fi
+
+		# Try with the flags determined by the earlier checks.
 		#
 		# FIXME: -fPIC is required for -shared on many architectures,
 		# so we specify it here, but the right way would probably be to
 		# properly detect whether it is actually required.
-		CFLAGS="-shared -fPIC -Wl,-z,defs $CFLAGS $PTHREAD_CFLAGS"
+		CFLAGS="-shared -fPIC $no_undefined_flag $CFLAGS $PTHREAD_CFLAGS"
 		LIBS="$PTHREAD_LIBS $LIBS"
 		CC="$PTHREAD_CC"
 
