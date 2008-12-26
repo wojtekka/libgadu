@@ -127,7 +127,7 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 		}
 
 		if (ret == 0 && he_ptr != NULL) {
-			memcpy(addr, he.h_addr, sizeof(struct in_addr));
+			memcpy(addr, he_ptr->h_addr, sizeof(struct in_addr));
 #ifdef GG_CONFIG_HAVE_PTHREAD
 			if (pthread)
 				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
