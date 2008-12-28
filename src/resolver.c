@@ -32,8 +32,10 @@
 #include <netdb.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "libgadu.h"

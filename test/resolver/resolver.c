@@ -1,5 +1,8 @@
 #include <unistd.h>
 #include <libgadu.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
@@ -67,6 +70,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 int connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
 {
 	connect_flag = 1;
+	return 0;
 }
 
 int test(int resolver, int delay)
