@@ -21,7 +21,7 @@ int main(void)
 	struct timeval tv;
 	struct gg_event *e;
 	fd_set rd, wd;
-	time_t last, now;
+	time_t last = 0, now;
 	int ret;
 
 	gg_debug_level = ~0;
