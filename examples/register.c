@@ -28,11 +28,13 @@ int main(void)
 	gg_debug_level = 255;
 	
 	printf("e-mail: ");
-	fgets(email, 99, stdin);
+	if (fgets(email, 99, stdin) == NULL)
+		return 1;
 	if (email[strlen(email)-1] == '\n')
 		email[strlen(email)-1] = 0;
 	printf("password: ");
-	fgets(password, 99, stdin);
+	if (fgets(password, 99, stdin) == NULL)
+		return 1;
 	if (password[strlen(password)-1] == '\n')
 		password[strlen(password)-1] = 0;
 
