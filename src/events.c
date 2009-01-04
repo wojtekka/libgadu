@@ -1827,9 +1827,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				ret = gg_send_packet(sess, GG_LOGIN70, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			}
 
-			free(sess->initial_descr);
-			sess->initial_descr = NULL;
-
 			if (ret == -1) {
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
 				errno2 = errno;
@@ -1878,6 +1875,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->check = GG_CHECK_READ;
 				sess->timeout = -1;
 				sess->status = (sess->initial_status) ? sess->initial_status : GG_STATUS_AVAIL;
+				free(sess->status_descr);
+				sess->status_descr = sess->initial_descr;
+				sess->initial_descr = NULL;
 				free(h);
 				break;
 			}
