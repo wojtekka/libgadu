@@ -575,10 +575,13 @@ uin_t gg_session_get_uin(struct gg_session *gs);
 int gg_session_set_password(struct gg_session *gs, const char *password);
 const char *gg_session_get_password(struct gg_session *gs);
 int gg_session_connect(struct gg_session *gs);
+int gg_session_disconnect(struct gg_session *gs);
 int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time);
 int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time);
 int gg_session_set_protocol_version(struct gg_session *gs, int protocol);
 int gg_session_get_protocol_version(struct gg_session *gs);
+int gg_session_set_async(struct gg_session *gs, int value);
+int gg_session_get_async(struct gg_session *gs);
 
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
