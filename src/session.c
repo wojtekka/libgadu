@@ -73,8 +73,9 @@ struct gg_session *gg_session_new(void)
 	gs->pid = -1;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
 
-	// Funkcja uaktualni stałe dla danej wersji protokołu
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
+
+	gg_session_set_resolver(gs, GG_RESOLVER_DEFAULT);
 	
 	return gs;
 }
@@ -767,6 +768,66 @@ int gg_session_connect(struct gg_session *gs)
 
 fail:
 	return -1;
+}
+
+/**
+ * Kończy połączenie z serwerem.
+ *
+ * Funkcja nie zwalnia zasobów, więc po jej wywołaniu należy użyć
+ * \c gg_free_session(). Jeśli chce się ustawić opis niedostępności, należy
+ * wcześniej wywołać funkcję \c gg_change_status_descr() lub
+ * \c gg_change_status_descr_time().
+ *
+ * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
+ * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
+ * utracone przy zrywaniu połączenia.
+ *
+ * \param gs Struktura sesji
+ *
+ * \ingroup login
+ */
+int gg_session_disconnect(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	gg_debug_session(gs, GG_DEBUG_FUNCTION, "** gg_session_disconnect(%p);\n", gs);
+
+	if (!GG_S_NA(gs->status) && gs->status_descr != NULL)
+		gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, gs->status_descr, gs->status_time);
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+	if (gs->ssl)
+		SSL_shutdown(gs->ssl);
+#endif
+
+	gs->resolver_cleanup(&gs->resolver, 1);
+
+	if (gs->fd != -1) {
+		shutdown(gs->fd, SHUT_RDWR);
+		close(gs->fd);
+		gs->fd = -1;
+	}
+
+	if (gs->send_buf) {
+		free(gs->send_buf);
+		gs->send_buf = NULL;
+		gs->send_left = 0;
+	}
+
+	return 0;
+}
+
+/**
+ * \internal Stub funkcji \c gg_session_disconnect() dla zachowania ABI. 
+ *
+ * \param gs Struktura sesji
+ */
+void gg_logoff(struct gg_session *gs)
+{
+	gg_session_disconnect(gs);
 }
 
 /**

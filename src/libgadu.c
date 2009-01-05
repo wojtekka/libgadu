@@ -649,52 +649,6 @@ int gg_ping(struct gg_session *sess)
 }
 
 /**
- * Kończy połączenie z serwerem.
- *
- * Funkcja nie zwalnia zasobów, więc po jej wywołaniu należy użyć
- * \c gg_free_session(). Jeśli chce się ustawić opis niedostępności, należy
- * wcześniej wywołać funkcję \c gg_change_status_descr() lub
- * \c gg_change_status_descr_time().
- *
- * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
- * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
- * utracone przy zrywaniu połączenia.
- *
- * \param sess Struktura sesji
- *
- * \ingroup login
- */
-void gg_logoff(struct gg_session *sess)
-{
-	if (!sess)
-		return;
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_logoff(%p);\n", sess);
-
-	if (GG_S_NA(sess->status & ~GG_STATUS_FRIENDS_MASK))
-		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
-
-#ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl)
-		SSL_shutdown(sess->ssl);
-#endif
-
-	sess->resolver_cleanup(&sess->resolver, 1);
-
-	if (sess->fd != -1) {
-		shutdown(sess->fd, SHUT_RDWR);
-		close(sess->fd);
-		sess->fd = -1;
-	}
-
-	if (sess->send_buf) {
-		free(sess->send_buf);
-		sess->send_buf = NULL;
-		sess->send_left = 0;
-	}
-}
-
-/**
  * Zmienia status użytkownika.
  *
  * \param sess Struktura sesji
