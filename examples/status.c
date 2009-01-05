@@ -11,7 +11,6 @@
 int main(int argc, char **argv)
 {
 	struct gg_session *gs;
-	struct gg_login_params glp;
 
 	if (argc < 4) {
 		fprintf(stderr, "użycie: %s <mójnumerek> <mojehasło> <opis>\n", argv[0]);
@@ -20,17 +19,23 @@ int main(int argc, char **argv)
 
 	gg_debug_level = 255;
 
-	memset(&glp, 0, sizeof(glp));
-	glp.uin = atoi(argv[1]);
-	glp.password = argv[2];
-//	glp.encoding = GG_ENCODING_UTF8;
-//	glp.protocol_version = 0x2d;
-	glp.status = GG_STATUS_INVISIBLE_DESCR;
-	glp.status_descr = argv[3];
+	gs = gg_session_new();
+
+	if (gs == NULL) {
+		perror("gg_session_new");
+		gg_session_free(gs);
+		return 1;
+	}
+
+	gg_session_set_uin(gs, atoi(argv[1]));
+	gg_session_set_password(gs, argv[2]);
+//	gg_session_set_encoding(gs, GG_ENCODING_UTF8);
+//	gg_session_set_protocol_version(gs, 0x2d);
+	gg_session_set_status(gs, GG_STATUS_INVISIBLE_DESCR, argv[3], 0);
 	
-	if (!(gs = gg_login(&glp))) {
-		printf("Nie udało się połączyć: %s\n", strerror(errno));
-		gg_free_session(gs);
+	if (gg_session_connect(gs) == -1) {
+		perror("gg_session_connect");
+		gg_session_free(gs);
 		return 1;
 	}
 
@@ -38,14 +43,16 @@ int main(int argc, char **argv)
 
 	printf("Połączono.\n");
 
-	if (gg_change_status_descr(gs, GG_STATUS_NOT_AVAIL_DESCR, argv[3]) == -1) {
-		printf("Połączenie przerwane: %s\n", strerror(errno));
-		gg_free_session(gs);
+	getchar();
+
+	if (gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, argv[3], 0) == -1) {
+		perror("gg_session_set_status");
+		gg_session_free(gs);
 		return 1;
 	}
 
-	gg_logoff(gs);
-	gg_free_session(gs);
+	gg_session_disconnect(gs);
+	gg_session_free(gs);
 
 	return 0;
 }

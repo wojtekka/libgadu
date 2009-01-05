@@ -11,9 +11,7 @@
 
 int main(int argc, char **argv)
 {
-	struct gg_session *sess;
-	struct gg_event *e;
-	struct gg_login_params p;
+	struct gg_session *gs;
 
 	if (argc < 5) {
 		fprintf(stderr, "użycie: %s <mójnumerek> <mojehasło> <numerek> <wiadomość>\n", argv[0]);
@@ -22,51 +20,60 @@ int main(int argc, char **argv)
 
 	gg_debug_level = 255;
 
-	memset(&p, 0, sizeof(p));
-	p.uin = atoi(argv[2]);
-	p.password = argv[1];
+	gs = gg_session_new();
+
+	if (gs == NULL) {
+		perror("gg_session_new");
+		gg_session_free(gs);
+		return 1;
+	}
+
+	gg_session_set_uin(gs, atoi(argv[2]));
+	gg_session_set_password(gs, argv[1]);
 	
-	if (!(sess = gg_login(&p))) {
-		printf("Nie udało się połączyć: %s\n", strerror(errno));
-		gg_free_session(sess);
+	if (gg_session_connect(gs) == -1) {
+		perror("gg_session_connect");
+		gg_session_free(gs);
 		return 1;
 	}
 
-	printf("Połączono.\n");
-
-	if (gg_notify(sess, NULL, 0) == -1) {	/* serwery gg nie pozwalaja wysylac wiadomosci bez powiadomienia o userliscie (przetestowane p.protocol_version [0x15; def] */
-		printf("Połączenie przerwane: %s\n", strerror(errno));
-		gg_free_session(sess);
+	if (gg_notify(gs, NULL, 0) == -1) {
+		perror("gg_notify");
+		gg_session_free(gs);
 		return 1;
 	}
 
-	if (gg_send_message(sess, GG_CLASS_MSG, atoi(argv[3]), (unsigned char*) argv[4]) == -1) {
-		printf("Połączenie przerwane: %s\n", strerror(errno));
-		gg_free_session(sess);
+	if (gg_send_message(gs, GG_CLASS_MSG, atoi(argv[3]), (unsigned char*) argv[4]) == -1) {
+		perror("gg_send_message");
+		gg_session_free(gs);
 		return 1;
 	}
 
 	/* poniższą część można olać, ale poczekajmy na potwierdzenie */
 
 	while (0) {
-		if (!(e = gg_watch_fd(sess))) {
-			printf("Połączenie przerwane: %s\n", strerror(errno));
-			gg_logoff(sess);
-			gg_free_session(sess);
+		struct gg_event *ge;
+
+		ge = gg_watch_fd(gs);
+
+		if (ge == NULL) {
+			perror("gg_watch_fd");
+			gg_session_free(gs);
 			return 1;
 		}
 
-		if (e->type == GG_EVENT_ACK) {
+		if (ge->type == GG_EVENT_ACK) {
 			printf("Wysłano.\n");
-			gg_free_event(e);
+			gg_event_free(ge);
 			break;
 		}
 
-		gg_free_event(e);
+		gg_event_free(ge);
 	}
 
-	gg_logoff(sess);
-	gg_free_session(sess);
+	gg_session_disconnect(gs);
+
+	gg_session_free(gs);
 
 	return 0;
 }

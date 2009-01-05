@@ -14,38 +14,53 @@
 #include <time.h>
 #include "libgadu.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-	struct gg_login_params p;
-	struct gg_session *sess;
-	struct timeval tv;
-	struct gg_event *e;
-	fd_set rd, wd;
-	time_t last = 0, now;
-	int ret;
+	struct gg_session *gs;
+	time_t last = 0;
 
-	gg_debug_level = ~0;
+	if (argc < 3) {
+		printf("użycie: %s <uin> <hasło>\n", argv[0]);
+		return 1;
+	}
+
+	gg_debug_level = 255;
 	
-	memset(&p, 0, sizeof(p));
-	p.uin = 123456;
-	p.password = "qwerty";
-	p.async = 1;
-	
-	sess = gg_login(&p);
+	gs = gg_session_new();
+
+	if (gs == NULL) {
+		perror("gg_session_new");
+		return 1;
+	}
+
+	gg_session_set_uin(gs, atoi(argv[1]));
+	gg_session_set_password(gs, argv[2]);
+	gg_session_set_async(gs, 1);
+
+	if (gg_session_connect(gs) == -1) {
+		perror("gg_session_connect");
+		gg_session_free(gs);
+		return 1;
+	}
 
 	for (;;) {
+		struct timeval tv;
+		fd_set rd, wd;
+		int ret;
+		time_t now;
+
 		FD_ZERO(&rd);
 		FD_ZERO(&wd);
 
-		if ((sess->check & GG_CHECK_READ))
-			FD_SET(sess->fd, &rd);
-		if ((sess->check & GG_CHECK_WRITE))
-			FD_SET(sess->fd, &wd);
+		if ((gs->check & GG_CHECK_READ))
+			FD_SET(gs->fd, &rd);
+		if ((gs->check & GG_CHECK_WRITE))
+			FD_SET(gs->fd, &wd);
 
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 		
-		ret = select(sess->fd + 1, &rd, &wd, NULL, &tv);
+		ret = select(gs->fd + 1, &rd, &wd, NULL, &tv);
 
 		if (ret == -1) {
 			perror("select");
@@ -55,40 +70,44 @@ int main(void)
 		now = time(NULL);
 
 		if (now != last) {
-			if (sess->timeout != -1 && sess->timeout-- == 0 && !sess->soft_timeout) {
+			if (gs->timeout != -1 && gs->timeout-- == 0 && !gs->soft_timeout) {
 				printf("Przekroczenie czasu operacji.\n");
-				gg_free_session(sess);
+				gg_session_free(gs);
 				return 1;
 			}
 		}
 	
-		if (sess && (FD_ISSET(sess->fd, &rd) || FD_ISSET(sess->fd, &wd) || (sess->timeout == 0 && sess->soft_timeout))) {
-			if (!(e = gg_watch_fd(sess))) {
+		if (gs != NULL && (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wd) || (gs->timeout == 0 && gs->soft_timeout))) {
+			struct gg_event *ge;
+
+			ge = gg_watch_fd(gs);
+
+			if (ge == NULL) {
 				printf("Połączenie zerwane.\n");
-				gg_free_session(sess);
+				gg_session_free(gs);
 				return 1;
 			}
 
-			if (e->type == GG_EVENT_CONN_SUCCESS) {
+			if (ge->type == GG_EVENT_CONN_SUCCESS) {
 				printf("Połączono z serwerem.\n");
-				gg_free_event(e);
-				gg_logoff(sess);
-				gg_free_session(sess);
-				return 0;
+				gg_event_free(ge);
+				break;
 			}
 
-			if (e->type == GG_EVENT_CONN_FAILED) {
+			if (ge->type == GG_EVENT_CONN_FAILED) {
 				printf("Błąd połączenia.\n");
-				gg_free_event(e);
-				gg_logoff(sess);
-				gg_free_session(sess);
+				gg_event_free(ge);
+				gg_session_free(gs);
 				return 1;
 			}
 
-			gg_free_event(e);
+			gg_event_free(ge);
 		}
 	}
 	
-	return 1;
+	gg_session_disconnect(gs);
+	gg_session_free(gs);
+
+	return 0;
 }
 
