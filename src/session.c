@@ -385,6 +385,13 @@ int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value
 				gs->protocol_flags &= ~GG_HAS_AUDIO_MASK;
 			break;
 
+		case GG_SESSION_FLAG_CLEAR_PASSWORD:
+			if (value)
+				gs->flags |= (1 << flag);
+			else
+				gs->flags &= ~(1 << flag);
+			break;
+
 		default:
 			errno = EINVAL;
 			return -1;
@@ -406,6 +413,9 @@ int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 
 		case GG_SESSION_FLAG_AUDIO:
 			return (gs->protocol_flags & GG_HAS_AUDIO_MASK) ? 1 : 0;
+
+		case GG_SESSION_FLAG_CLEAR_PASSWORD:
+			return (gs->flags & (1 << flag)) ? 1 : 0;
 
 		default:
 			errno = EINVAL;
@@ -446,15 +456,13 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 	} else {
 		struct gg_new_status p;
 		uint32_t new_time;
-//		int descr_len = 0;
-//		int descr_len_max;
 		int packet_type;
 		int append_null = 0;
 		int res;
 
 		// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 
-		if ((gs->protocol_version >= 0x2a) && (gs->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+		if (GG_SESSION_PROTOCOL_7_7(gs) && (gs->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
 			status |= GG_STATUS_VOICE_MASK;
 
 		p.status = gg_fix32(status);
@@ -507,6 +515,66 @@ int gg_session_get_status(struct gg_session *gs, int *status, const char **descr
 		*time = gs->status_time;
 
 	return 0;
+}
+
+int gg_session_get_fd(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return gs->fd;
+}
+
+int gg_session_get_check(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return gs->check;
+}
+
+int gg_session_get_timeout(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return gs->timeout;
+}
+
+int gg_session_is_disconnected(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return (gs->state == GG_STATE_IDLE);
+}
+
+int gg_session_is_connecting(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return (gs->state != GG_STATE_IDLE && gs->state != GG_STATE_CONNECTED);
+}
+
+int gg_session_is_connected(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return (gs->state == GG_STATE_CONNECTED);
 }
 
 /**
@@ -663,7 +731,7 @@ int gg_session_connect(struct gg_session *gs)
 	char *hostname;
 	int port;
 
-	if (gs == NULL) {
+	if (gs == NULL || gs->uin == 0 || gs->password == NULL) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -816,6 +884,8 @@ int gg_session_disconnect(struct gg_session *gs)
 		gs->send_buf = NULL;
 		gs->send_left = 0;
 	}
+
+	gs->state = GG_STATE_IDLE;
 
 	return 0;
 }

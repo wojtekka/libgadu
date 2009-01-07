@@ -270,6 +270,8 @@ struct gg_session {
 	char *status_descr;		/**< Aktualny opis statusu */
 	time_t status_time;		/**< Aktualny czas powrotu */
 	unsigned int max_descr_length;	/**< Maksymalna długość opisu */
+
+	uint32_t flags;			/**< Flagi */
 };
 
 /**
@@ -582,6 +584,8 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol);
 int gg_session_get_protocol_version(struct gg_session *gs);
 int gg_session_set_async(struct gg_session *gs, int value);
 int gg_session_get_async(struct gg_session *gs);
+int gg_session_get_fd(struct gg_session *gs);
+int gg_session_get_check(struct gg_session *gs);
 
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
@@ -1166,6 +1170,8 @@ typedef enum {
 typedef enum {
 	GG_SESSION_FLAG_ERA_OMNIX = 0,	/**< Połączenie Era Omnix */
 	GG_SESSION_FLAG_AUDIO,		/**< Obsługa połączeń głosowych */
+	GG_SESSION_FLAG_CLEAR_PASSWORD,	/**< Czyszczenie hasła po każdym połączeniu */
+
 	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
 } gg_session_flag_t;
 

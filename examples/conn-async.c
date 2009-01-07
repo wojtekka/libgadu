@@ -46,21 +46,24 @@ int main(int argc, char **argv)
 	for (;;) {
 		struct timeval tv;
 		fd_set rd, wd;
-		int ret;
+		int ret, fd, check;
 		time_t now;
 
 		FD_ZERO(&rd);
 		FD_ZERO(&wd);
 
-		if ((gs->check & GG_CHECK_READ))
-			FD_SET(gs->fd, &rd);
-		if ((gs->check & GG_CHECK_WRITE))
-			FD_SET(gs->fd, &wd);
+		fd = gg_session_get_fd(gs);
+		check = gg_session_get_check(gs);
+
+		if ((check & GG_CHECK_READ))
+			FD_SET(fd, &rd);
+		if ((check & GG_CHECK_WRITE))
+			FD_SET(fd, &wd);
 
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 		
-		ret = select(gs->fd + 1, &rd, &wd, NULL, &tv);
+		ret = select(fd + 1, &rd, &wd, NULL, &tv);
 
 		if (ret == -1) {
 			perror("select");
@@ -77,7 +80,7 @@ int main(int argc, char **argv)
 			}
 		}
 	
-		if (gs != NULL && (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wd) || (gs->timeout == 0 && gs->soft_timeout))) {
+		if (gs != NULL && (FD_ISSET(fd, &rd) || FD_ISSET(fd, &wd) || (gs->timeout == 0 && gs->soft_timeout))) {
 			struct gg_event *ge;
 
 			ge = gg_watch_fd(gs);

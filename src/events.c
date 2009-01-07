@@ -1787,8 +1787,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			free(h);
 
-			free(sess->password);
-			sess->password = NULL;
+			if (sess->password != NULL && (sess->flags & (1 << GG_SESSION_FLAG_CLEAR_PASSWORD))) {
+				memset(sess->password, 0, strlen(sess->password));
+				free(sess->password);
+				sess->password = NULL;
+			}
 
 			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
 				struct sockaddr_in sin;
