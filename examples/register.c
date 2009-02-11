@@ -30,12 +30,12 @@ int main(void)
 	printf("e-mail: ");
 	if (fgets(email, 99, stdin) == NULL)
 		return 1;
-	if (email[strlen(email)-1] == '\n')
+	if (strlen(email) > 0 && email[strlen(email)-1] == '\n')
 		email[strlen(email)-1] = 0;
 	printf("password: ");
 	if (fgets(password, 99, stdin) == NULL)
 		return 1;
-	if (password[strlen(password)-1] == '\n')
+	if (strlen(password) > 0 && password[strlen(password)-1] == '\n')
 		password[strlen(password)-1] = 0;
 
 #ifndef ASYNC
