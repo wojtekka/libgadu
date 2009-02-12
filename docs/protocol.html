@@ -25,7 +25,7 @@ H1, H2, H3 { margin-top: 0px; }
 
 <center>
 <h1>Protokół Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001-2008 <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001-2009 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr />
@@ -321,6 +321,7 @@ Liczba oznaczająca wersję może być jedną z poniższych:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Wartość</b></td><td><b>Wersje klientów</b></td></tr>
+<tr class="tabf"><td><tt>0x2d</tt></td><td>8.0 (build 4881)</td></tr>
 <tr class="tabf"><td><tt>0x2a</tt></td><td>7.7 (build 3315)</td></tr>
 <tr class="tabf"><td><tt>0x29</tt></td><td>7.6 (build 1688)</td></tr>
 <tr class="tabf"><td><tt>0x28</tt></td><td>7.5.0 (build 2201)</td></tr>
@@ -1201,10 +1202,10 @@ Pakiety wysyłane:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Wartość</b></td><td><b>Etykieta</b></td><td><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>0x0002</tt></td><td><tt>GG_NEW_STATUS</tt></td><td>Zmiana stanu</td></tr>
+<tr class="tabf2"><td><tt>0x0002</tt></td><td><tt>GG_NEW_STATUS</tt></td><td>Zmiana stanu przed GG 8.0</td></tr>
 <tr class="tabf2"><td><tt>0x0007</tt></td><td><tt>GG_PONG</tt></td><td>Pong</td></tr>
 <tr class="tabf"><td><tt>0x0008</tt></td><td><tt>GG_PING</tt></td><td>Ping</td></tr>
-<tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_SEND_MSG</tt></td><td>Wysłanie wiadomości</td></tr>
+<tr class="tabf2"><td><tt>0x000b</tt></td><td><tt>GG_SEND_MSG</tt></td><td>Wysłanie wiadomości przed GG 8.0</td></tr>
 <tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_LOGIN</tt></td><td>Logowanie przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_ADD_NOTIFY</tt></td><td>Dodanie do listy kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_REMOVE_NOTIFY</tt></td><td>Usunięcie z listy kontaktów</td></tr>
@@ -1213,9 +1214,20 @@ Pakiety wysyłane:
 <tr class="tabf"><td><tt>0x0012</tt></td><td><tt>GG_LIST_EMPTY</tt></td><td>Lista kontaktów jest pusta</td></tr>
 <tr class="tabf2"><td><tt>0x0013</tt></td><td><tt>GG_LOGIN_EXT</tt></td><td>Logowanie przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_PUBDIR50_REQUEST</tt></td><td>Zapytanie katalogu publicznego</td></tr>
-<tr class="tabf2"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie</td></tr>
-<tr class="tabf"><td><tt>0x0016</tt></td><td><tt>GG_USERLIST_REQUEST</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
-<tr class="tabf"><td><tt>0x0019</tt></td><td><tt>GG_LOGIN70</tt></td><td>Logowanie</td></tr>
+<tr class="tabf2"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie przed GG 7.7</td></tr>
+<tr class="tabf2"><td><tt>0x0016</tt></td><td><tt>GG_USERLIST_REQUEST</tt></td><td>Zapytanie listy kontaktów na serwerze przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf2"><td><tt>0x0019</tt></td><td><tt>GG_LOGIN70</tt></td><td>Logowanie przed GG 8.0</td></tr>
+<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_DUNNO1</tt></td><td></td></tr>
+<tr class="tabf"><td><tt>0x0020</tt></td><td><tt>GG_DCC7_NEW</tt></td><td>Informacje o chęci nawiązania połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0021</tt></td><td><tt>GG_DCC7_ACCEPT</tt></td><td>Zaakceptowanie połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0022</tt></td><td><tt>GG_DCC7_REJECT</tt></td><td>Odrzucenie połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0023</tt></td><td><tt>GG_DCC7_ID_REQUEST</tt></td><td></td></tr>
+<tr class="tabf2"><td><tt>0x0028</tt></td><td><tt>GG_NEW_STATUS80BETA</tt></td><td>Zmiana stanu przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf2"><td><tt>0x0029</tt></td><td><tt>GG_LOGIN80BETA</tt></td><td>Logowanie przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf"><td><tt>0x002d</tt></td><td><tt>GG_SEND_MSG80</tt></td><td>Wysłanie wiadomości</td></tr>
+<tr class="tabf"><td><tt>0x002f</tt></td><td><tt>GG_USERLIST_REQUEST80</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0031</tt></td><td><tt>GG_LOGIN80</tt></td><td>Logowanie</td></tr>
+<tr class="tabf"><td><tt>0x0038</tt></td><td><tt>GG_NEW_STATUS80</tt></td><td>Zmiana stanu</td></tr>
 </table>
 
 <p>
@@ -1226,23 +1238,36 @@ Pakiety odbierane:
 <tr class="tabh"><td><b>Wartość</b></td><td><b>Etykieta</b></td><td><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td><tt>0x0001</tt></td><td><tt>GG_WELCOME</tt></td><td>Liczba do wyznaczenie hashu hasła</td></tr>
 <tr class="tabf2"><td><tt>0x0002</tt></td><td><tt>GG_STATUS</tt></td><td>Zmiana stanu przed GG 6.0</td></tr>
-<tr class="tabf"><td><tt>0x0003</tt></td><td><tt>GG_LOGIN_OK</tt></td><td>Logowanie powiodło się</td></tr>
+<tr class="tabf2"><td><tt>0x0003</tt></td><td><tt>GG_LOGIN_OK</tt></td><td>Logowanie powiodło się przed Nowym Gadu-Gadu</td></tr>
 <tr class="tabf"><td><tt>0x0005</tt></td><td><tt>GG_SEND_MSG_ACK</tt></td><td>Potwierdzenie wiadomości</td></tr>
 <tr class="tabf2"><td><tt>0x0007</tt></td><td><tt>GG_PONG</tt></td><td>Pong</td></tr>
 <tr class="tabf2"><td><tt>0x0008</tt></td><td><tt>GG_PING</tt></td><td>Ping</td></tr>
 <tr class="tabf"><td><tt>0x0009</tt></td><td><tt>GG_LOGIN_FAILED</tt></td><td>Logowanie nie powiodło się</td></tr>
-<tr class="tabf"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodząca wiadomość</td></tr>
+<tr class="tabf2"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodząca wiadomość przed GG 8.0</td></tr>
 <tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_DISCONNECTING</tt></td><td>Zerwanie połączenia</td></tr>
 <tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
 <tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_DISCONNECTING2</tt></td><td>Zerwanie połączenia po zmianie stanu na niedostępny</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_PUBDIR50_REPLY</tt></td><td>Odpowiedź katalogu publicznego</td></tr>
 <tr class="tabf2"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu przed GG 7.7</td></tr>
-<tr class="tabf"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
+<tr class="tabf2"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze przed nowym Gadu-Gadu</td></tr>
 <tr class="tabf2"><td><tt>0x0011</tt></td><td><tt>GG_NOTIFY_REPLY60</tt></td><td>Stan listy kontaktów przed GG 7.7</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_NEED_EMAIL</tt></td><td>Logowanie powiodło się, ale powinniśmy uzupełnić adres e-mail w katalogu publicznym</td></tr>
-<tr class="tabf"><td><tt>0x0017</tt></td><td><tt>GG_STATUS77</tt></td><td>Zmiana stanu</td></tr>
-<tr class="tabf"><td><tt>0x0018</tt></td><td><tt>GG_NOTIFY_REPLY77</tt></td><td>Stan listy kontaktów</td></tr>
+<tr class="tabf2"><td><tt>0x0017</tt></td><td><tt>GG_STATUS77</tt></td><td>Zmiana stanu przed GG 8.0</td></tr>
+<tr class="tabf2"><td><tt>0x0018</tt></td><td><tt>GG_NOTIFY_REPLY77</tt></td><td>Stan listy kontaktów przed GG 8.0</td></tr>
+<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_DUNNO1</tt></td><td></td></tr>
+<tr class="tabf"><td><tt>0x0020</tt></td><td><tt>GG_DCC7_NEW</tt></td><td>Informacje o chęci nawiązania połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0021</tt></td><td><tt>GG_DCC7_ACCEPT</tt></td><td>Zaakceptowanie połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0022</tt></td><td><tt>GG_DCC7_REJECT</tt></td><td>Odrzucenie połączenia DCC</td></tr>
+<tr class="tabf"><td><tt>0x0023</tt></td><td><tt>GG_DCC7_ID_REPLY</tt></td><td></td></tr>
 <tr class="tabf"><td><tt>0x0027</tt></td><td><tt>GG_XML_EVENT</tt></td><td>Odebrano wiadomość systemową</td></tr>
+<tr class="tabf2"><td><tt>0x002a</tt></td><td><tt>GG_STATUS80BETA</tt></td><td>Zmiana stanu przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf"><td><tt>0x002b</tt></td><td><tt>GG_NOTIFY_REPLY80BETA</tt></td><td>Stan listy kontaktów przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf"><td><tt>0x002c</tt></td><td><tt>GG_XML_ACTION</tt></td><td></td></tr>
+<tr class="tabf"><td><tt>0x002e</tt></td><td><tt>GG_RECV_MSG80</tt></td><td>Przychodząca wiadomość</td></tr>
+<tr class="tabf"><td><tt>0x0030</tt></td><td><tt>GG_USERLIST_REPLY80</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0035</tt></td><td><tt>GG_LOGIN_OK80</tt></td><td>Logowanie powiodło się</td></tr>
+<tr class="tabf"><td><tt>0x0036</tt></td><td><tt>GG_STATUS80</tt></td><td>Zmiana stanu</td></tr>
+<tr class="tabf"><td><tt>0x0037</tt></td><td><tt>GG_NOTIFY_REPLY80</tt></td><td>Stan listy kontaktów</td></tr>
 </table>
 
 <hr />
