@@ -9,6 +9,7 @@ BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
 .tabf2 { background-color: white; color: silver; }
+.check { background-color: white; color: silver; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
 .example { font-family: monospace; padding: 0.7em; background-color: #c0f0f0; border: 1px solid #80a0a0; }
@@ -107,7 +108,7 @@ protokołu TCP/IP. Każdy pakiet zawiera na początku dwa stałe pola:
 <p>
 Wszystkie zmienne liczbowe są zgodne z kolejnością bajtów maszyn Intela,
 czyli Little-Endian. Wszystkie teksty są kodowane przy użyciu zestawu
-znaków CP1250 (windows-1250). Linie kończą się znakami <tt>\r\n</tt>.
+znaków UTF-8. Linie kończą się znakami <tt>\r\n</tt>.
 </p>
 
 <p>
@@ -245,25 +246,34 @@ się do funkcji skrótu:
 Kiedy mamy już tą wartość możemy odesłać pakiet logowania:
 </p>
 
-<div class="c">
-<pre>#define GG_LOGIN70 0x0019
+<div class="check">
+<pre>W local_ip, local_port, external_ip, external_port oryginalny klient wrzuca 0x00</pre>
+<pre>unknown2 to jest prawdopodobnie to co zostało po version - mapa bitowa (np. dla GG_HAS_AUDIO_MASK)</pre>
+</div>
 
-struct gg_login70 {
+<div class="c">
+<pre>#define GG_LOGIN80 0x0031
+
+struct gg_login80 {
         int uin;              <i>/* mój numerek */</i>
+        char lang[2];         <i>/* pl */</i>
         char hash_type;       <i>/* rodzaj funkcji skrótu hasła */</i>
         char hash[64];        <i>/* skrót hasła */</i>
         int status;           <i>/* status na dzień dobry */</i>
-        int version;          <i>/* moja wersja klienta */</i>
-        char unknown1;        <i>/* 0x00 */</i>
+        int unknown1;         <i>/* 0x00 */</i>
+        int unknown2;         <i>/* 07 00 00 00 */</i>
         int local_ip;         <i>/* mój adres ip */</i>
-	short local_port;     <i>/* port, na którym słucham */</i>
+        short local_port;     <i>/* port, na którym słucham */</i>
         int external_ip;      <i>/* zewnętrzny adres ip */</i>
         short external_port;  <i>/* zewnętrzny port */</i>
-	char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
-        char unknown2;        <i>/* 0xbe */</i>
-	char description[];   <i>/* opis, nie musi wystąpić */</i>
-	int time;             <i>/* czas, nie musi wystąpić */</i>
+        char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
+        char unknown2;        <i>/* 0x64 */</i>
+        int version_len;      <i>/* długość ciągu z wersją (0x21) */</i>
+        char version[];       <i>/* Gadu-Gadu Client build 8.0.0.7669 bez \0 */</i>
+        int description_len;  <i>/* długość ciągu z opisem */</i>
+        char description[];   <i>/* opis, nie musi wystąpić bez \0 */</i>
 };</pre>
+
 </div>
 
 <p>
@@ -316,74 +326,22 @@ są dostępne dla większości współczesnych systemów operacyjnych.
 </p>
 
 <p>
-Liczba oznaczająca wersję może być jedną z poniższych:
-</p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td><b>Wartość</b></td><td><b>Wersje klientów</b></td></tr>
-<tr class="tabf"><td><tt>0x2d</tt></td><td>8.0 (build 4881)</td></tr>
-<tr class="tabf"><td><tt>0x2a</tt></td><td>7.7 (build 3315)</td></tr>
-<tr class="tabf"><td><tt>0x29</tt></td><td>7.6 (build 1688)</td></tr>
-<tr class="tabf"><td><tt>0x28</tt></td><td>7.5.0 (build 2201)</td></tr>
-<tr class="tabf"><td><tt>0x27</tt></td><td>7.0 (build 22)</td></tr>
-<tr class="tabf"><td><tt>0x26</tt></td><td>7.0 (build 20)</td></tr>
-<tr class="tabf"><td><tt>0x25</tt></td><td>7.0 (build 1)</td></tr>
-<tr class="tabf"><td><tt>0x24</tt></td><td>6.1 (build 155) lub 7.6 (build 1359)</td></tr>
-<tr class="tabf"><td><tt>0x22</tt></td><td>6.0 (build 140)</td></tr>
-<tr class="tabf"><td><tt>0x21</tt></td><td>6.0 (build 133)</td></tr>
-<tr class="tabf"><td><tt>0x20</tt></td><td>6.0</td></tr>
-<tr class="tabf"><td><tt>0x1e</tt></td><td>5.7 beta (build 121)</td></tr>
-<tr class="tabf"><td><tt>0x1c</tt></td><td>5.7 beta</td></tr>
-<tr class="tabf"><td><tt>0x1b</tt></td><td>5.0.5</td></tr>
-<tr class="tabf"><td><tt>0x19</tt></td><td>5.0.3</td></tr>
-<tr class="tabf"><td><tt>0x18</tt></td><td>5.0.1, 5.0.0, 4.9.3</td></tr>
-<tr class="tabf"><td><tt>0x17</tt></td><td>4.9.2</td></tr>
-<tr class="tabf"><td><tt>0x16</tt></td><td>4.9.1</td></tr>
-<tr class="tabf"><td><tt>0x15</tt></td><td>4.8.9</td></tr>
-<tr class="tabf"><td><tt>0x14</tt></td><td>4.8.3, 4.8.1</td></tr>
-<tr class="tabf"><td><tt>0x11</tt></td><td>4.6.10, 4.6.1</td></tr>
-<tr class="tabf"><td><tt>0x10</tt></td><td>4.5.22, 4.5.21, 4.5.19, 4.5.17, 4.5.15</td></tr>
-<tr class="tabf"><td><tt>0x0f</tt></td><td>4.5.12</td></tr>
-<tr class="tabf"><td><tt>0x0b</tt></td><td>4.0.30, 4.0.29, 4.0.28, 4.0.25</td></tr>
-</table>
-
-<p>
-Oczywiście nie są to wszystkie możliwe wersje klientów, lecz te, które
-zostały zauważone i odnotowane. W każdym razie, tak czy inaczej należy
-się przedstawić jako co najmniej wersja 6.0, ponieważ tej wersji protokołu
-dotyczy poniższy dokument.
-</p>
-
-<p>
-Jeśli klient ma kartę dźwiękową i jest w stanie obsługiwać rozmowy głosowe,
-do wersji dodawana jest wartość:
-</p>
-
-<div class="c">
-<pre>#define GG_HAS_AUDIO_MASK 0x40000000</pre>
-</div>
-
-<p>
-Jeśli osoba korzysta z bramki Era Omnix, do wersji dodawana jest wartość:
-</p>
-
-<div class="c">
-<pre>#define GG_ERA_OMNIX_MASK 0x04000000</pre>
-</div>
-
-<p>
 Jeśli autoryzacja się powiedzie, dostaniemy w odpowiedzi pakiet:
 </p>
 
 <div class="c">
-<pre>#define GG_LOGIN_OK 0x0003</pre>
+<pre>#define GG_LOGIN80_OK 0x0035
+
+struct gg_login80_ok {
+	int unknown1;	<i>/* 01 00 00 00 */</i>
+};</pre>
 </div>
 
+<div class="check">
+<pre>GG_NEED_EMAIL aktualne?</pre>
+</div>
 <p>
-o długości równej 0 lub 1 (dla wersji klienta powyżej 6.0 (build 140) 
-w pakiecie będzie znajdowało się jednobajtowe pole o wartości 0x1F, 
-którego przeznaczenie nie jest jeszcze poznane). Możemy także dostać 
-pakiet:
+Możemy także dostać pakiet:
 </p>
 
 <div class="c">
@@ -411,12 +369,13 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 </p>
 
 <div class="c">
-<pre>#define GG_NEW_STATUS 0x0002
+<pre>#define GG_NEW_STATUS80 0x0038
 	
-struct gg_new_status {
+struct gg_new_status80 {
 	int status;		<i>/* na jaki zmienić? */</i>
+	int unknown1;           <i>/* 0x00 */</i>
+	int description_len;    <i>/* długość opisu */</i>
 	char description[];	<i>/* opis, nie musi wystąpić */</i>
-	int time;		<i>/* czas, nie musi wystąpić */</i>
 }</pre>
 </div>
 
@@ -446,10 +405,8 @@ Jeśli ma być widoczny tylko dla przyjaciół, należy dodać
 </p>
 
 <p>
-Jeśli wybieramy stan opisowy, należy dołączyć ciąg znaków zakończony
-zerem oraz ewentualny czas powrotu w postaci ilości sekund od 1 stycznia
-1970r (UTC). Maksymalna długość opisu wynosi 70 znaków plus zero plus
-4 bajty na godzinę powrotu, co razem daje 75 bajtów.
+Maksymalna długość opisu wynosi 255 bajtów, należy pamiętać że znak w UTF-8
+czasami zajmuje więcej niż 1 bajt.
 </p>
 
 <hr />
