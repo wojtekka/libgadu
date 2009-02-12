@@ -150,32 +150,19 @@ połączyć się z <tt>appmsg.gadu-gadu.pl</tt> i wysłać:
 </p>
 
 <div class="http">
-<pre>GET /appsvc/appmsg4.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMOŚĆ</b>
-Accept: image/gif, image/jpeg, image/pjpeg, <b>...</b>
-Accept-Language: pl
-User-Agent: <b>PRZEGLĄDARKA</b>
-Pragma: no-cache
+<pre>GET /appsvc/appmsg_ver8.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMOŚĆ</b>
+Connection: Keep-Alive
 Host: appmsg.gadu-gadu.pl</pre>
 </div>
 
 <p>
 <b>NUMER</b> jest numerem Gadu-Gadu. <b>WERSJA</b> jest wersją klienta
 w postaci &bdquo;<tt>A, B, C, D</tt>&rdquo; (na przykład
-&bdquo;<tt>5, 0, 5, 107</tt>&rdquo; dla wersji 5.0.5 build 107).
+&bdquo;<tt>8, 0, 0, 7669</tt>&rdquo; dla wersji 8.0.0 build 7669).
 <b>FORMAT</b> określa czy wiadomość systemowa będzie przesyłana czystym
 tekstem (brak zmiennej &bdquo;fmt&rdquo;) czy w HTMLu (wartość &bdquo;<tt>2</tt>&rdquo;).
 <b>WIADOMOŚĆ</b> jest numerem ostatnio otrzymanej wiadomości systemowej.
-<b>PRZEGLĄDARKA</b> może być jednym z poniższych tekstów:
 </p>
-
-<ul>
-<li><tt>Mozilla/4.04 [en] (Win95; I ;Nav)</tt></li>
-<li><tt>Mozilla/4.7 [en] (Win98; I)</tt></li>
-<li><tt>Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)</tt></li>
-<li><tt>Mozilla/4.0 (compatible; MSIE 5.0; Windows NT)</tt></li>
-<li><tt>Mozilla/4.0 (compatible; MSIE 5.0; Windows 98; DigExt)</tt></li>
-<li><tt>Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)</tt></li>
-</ul>
 
 <p>
 Na postawione w ten sposób zapytanie, serwer powinien odpowiedzieć
@@ -270,7 +257,7 @@ struct gg_login80 {
         char unknown2;        <i>/* 0x64 */</i>
         int version_len;      <i>/* długość ciągu z wersją (0x21) */</i>
         char version[];       <i>/* Gadu-Gadu Client build 8.0.0.7669 bez \0 */</i>
-        int description_len;  <i>/* długość ciągu z opisem */</i>
+        int description_size; <i>/* rozmiar opisu */</i>
         char description[];   <i>/* opis, nie musi wystąpić bez \0 */</i>
 };</pre>
 
@@ -374,7 +361,7 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 struct gg_new_status80 {
 	int status;		<i>/* na jaki zmienić? */</i>
 	int unknown1;           <i>/* 0x00 */</i>
-	int description_len;    <i>/* długość opisu */</i>
+	int description_size;   <i>/* rozmiar opisu */</i>
 	char description[];	<i>/* opis, nie musi wystąpić */</i>
 }</pre>
 </div>
@@ -464,25 +451,30 @@ Jeśli nie mamy nikogo na liście wysyłamy następujący pakiet o zerowej dług
 </div>
 
 <p>
-Jeśli ktoś jest, serwer odpowie pakietem <tt>GG_NOTIFY_REPLY77</tt>
-zawierającym jedną lub więcej struktur <tt>gg_notify_reply77</tt>:
+Jeśli ktoś jest, serwer odpowie pakietem <tt>GG_NOTIFY_REPLY80</tt>
+zawierającym jedną lub więcej struktur <tt>gg_notify_reply80</tt>:
 </p>
 
+<div class="check">
+<pre>Sprawdzić czy w uin wystepują flagi w MSB - może zwiększyli liczbe numerków</pre>
+<pre>status - na pewno int?</pre>
+<pre>W remote_ip, remote_port 0x00</pre>
+</div>
+
 <div class="c">
-<pre>#define GG_NOTIFY_REPLY77 0x0018
+<pre>#define GG_NOTIFY_REPLY80 0x37
 	
-struct gg_notify_reply77 {
-	int uin;		/* numerek plus flagi w najstarszym bajcie */
-	char status;		/* status danej osoby */
-	int remote_ip;		/* adres IP bezpośrednich połączeń */
-	short remote_port;	/* port bezpośrednich połączeń */
-	char version;		/* wersja klienta */
-	char image_size;	/* maksymalny rozmiar obrazków w KB */
-	char unknown1;		/* 0x00 */
-	int unknown2;		/* 0x00000000 */
-	char description_size;	/* rozmiar opisu i czasu, nie musi wystąpić */
-	char description[];	/* opis, nie musi wystąpić */
-	int time;		/* czas, nie musi wystąpić */
+struct gg_notify_reply80 {
+	int uin;		<i>/* numerek plus flagi w najstarszym bajcie */</i>
+	int status;		<i>/* status danej osoby */</i>
+	int remote_ip;		<i>/* adres IP bezpośrednich połączeń */</i>
+	short remote_port;	<i>/* port bezpośrednich połączeń */</i>
+	int unknown1;		<i>/* 0x00000000 */</i>
+	char image_size;	<i>/* maksymalny rozmiar obrazków w KB */</i>
+	char unknown2;		<i>/* 0x00 */</i>
+	int unknown3;		<i>/* 0x00000000 */</i>
+	int description_size;	<i>/* rozmiar opisu */</i>
+	char description[];	<i>/* opis, nie musi wystąpić */</i>
 };</pre>
 </div>
 
@@ -547,25 +539,31 @@ struct gg_remove_notify {
 Jeśli ktoś opuści Gadu-Gadu lub zmieni stan, otrzymamy jeden z pakietów:
 </p>
 
+<div class="check">
+<pre>Sprawdzić czy w uin wystepują flagi w MSB - może zwiększyli liczbe numerków</pre>
+<pre>status - na pewno int?</pre>
+<pre>W remote_ip, remote_port 0x00</pre>
+</div>
+
 <div class="c">
-<pre>#define GG_STATUS77 0x0017
+<pre>#define GG_STATUS80 0x0036
 	
-struct gg_status77 {
+struct gg_status80 {
 	int uin;	        <i>/* numer plus flagi w najstarszym bajcie */</i>
-	char status;	        <i>/* nowy stan */</i>
+	int status;	        <i>/* nowy stan */</i>
 	int remote_ip;		<i>/* adres IP bezpośrednich połączeń */</i>
 	short remote_port;	<i>/* port bezpośrednich połączeń */</i>
-	char version;		<i>/* wersja klienta */</i>
+	int unknown1;		<i>/* 0x00000000 */</i>
 	char image_size;	<i>/* maksymalny rozmiar grafiki */</i>
-	char unknown1;		<i>/* 0x00 */</i>
-	int unknown2;		<i>/* 0x00000000 */</i>
+	char unknown2;		<i>/* 0xbe */</i>
+	int unknown3;		<i>/* 0x00000000 */</i>
+	int description_size;	<i>/* rozmiar opisu */</i>
 	char description[];	<i>/* opis, nie musi wystąpić */</i>
-	int time;		<i>/* czas, nie musi wystąpić */</i>
 };</pre>
 </div>
 
 <p>
-Znaczenie pól jest takie samo jak w <tt>struct gg_notify_reply77</tt>.
+Znaczenie pól jest takie samo jak w <tt>struct gg_notify_reply80</tt>.
 </p>
 
 <hr />
@@ -578,14 +576,20 @@ Wiadomości wysyła się następującym typem pakietu:
 </p>
 
 <div class="c">
-<pre>#define GG_SEND_MSG 0x000b
+<pre>#define GG_SEND_MSG80 0x002d
 
-struct gg_send_msg {
+struct gg_send_msg80 {
 	int recipient;		<i>/* numer odbiorcy */</i>
 	int seq;		<i>/* numer sekwencyjny */</i>
 	int class;		<i>/* klasa wiadomości */</i>
-	char message[];		<i>/* treść */</i>
+	int offset_plain;	<i>/* offset do wiadomośći */</i>
+	int offset_attributes;	<i>/* offset do atrybutów */</i>
+	char html_message[];	<i>/* treść w HTMLu */</i>
+
+	char *message;		<i>/* treść */</i>
+	char *attributes;	<i>/* atrybuty tekstu */</i>
 };</pre>
+
 </div>
 
 <p>
@@ -650,8 +654,7 @@ Na przykład, by wysłać do dwóch osób, należy wysłać pakiet:
 </table>
 
 <p>
-Od wersji 4.8.1 możliwe jest również dodawanie do wiadomości różnych
-atrybutów tekstu, jak pogrubienie czy kolory. Niezbędne jest dołączenie
+Możliwe jest również dodawanie do wiadomości różnych atrybutów tekstu, jak pogrubienie czy kolory. Niezbędne jest dołączenie
 następującej struktury:
 </p>
 
@@ -818,15 +821,21 @@ Wiadomości serwer przysyła za pomocą pakietu:
 </p>
 
 <div class="c">
-<pre>#define GG_RECV_MSG 0x000a
-	
-struct gg_recv_msg {
+<pre>#define GG_RECV_MSG80 0x002e
+
+struct gg_recv_msg80 {
 	int sender;		<i>/* numer nadawcy */</i>
 	int seq;		<i>/* numer sekwencyjny */</i>
 	int time;		<i>/* czas nadania */</i>
 	int class;		<i>/* klasa wiadomości */</i>
-	char message[];		<i>/* treść wiadomości */</i>
+	int offset_plain;	<i>/* offset do wiadomośći */</i>
+	int offset_attributes;	<i>/* offset do atrybutów */</i>
+	char html_message[];	<i>/* treść w HTMLu */</i>
+
+	char *message;		<i>/* treść */</i>
+	char *attributes;	<i>/* atrybuty tekstu */</i>
 };</pre>
+
 </div>
 
 <p>
@@ -929,6 +938,15 @@ Przykładowy kod:
 
 <a name="ch1.11"></a>
 <h3>1.11. Katalog publiczny</h3>
+
+<div class="check">
+<p>Nowe Gadu-Gadu korzysta z OAutha do odczytu oraz modyfikacji danych publicznych, protokół opisany na:
+<a href="http://dev.gadu-gadu.pl/api/pages/gaduapi.html">http://dev.gadu-gadu.pl/api/pages/gaduapi.html</a>
+</p>
+<p>Nowe Gadu-Gadu korzysta z wyszukiwarki po HTTP dostępna na:
+<a href="http://ipubdir.gadu-gadu.pl">http://ipubdir.gadu-gadu.pl</a>
+</p>
+</div>
 
 <p>
 Od wersji 5.0.2 zmieniono sposób dostępu do katalogu publicznego &mdash; stał
@@ -1043,6 +1061,10 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i płci znalezionych osób.
 
 <a name="ch1.12"></a>
 <h3>1.12. Lista kontaktów</h3>
+
+<div class="check">
+<p>Nieaktualny opis sprawdzić jak działa GG_USERLIST_REQUEST80, GG_USERLIST_REPLY80</p>
+</div>
 
 <p>
 Od wersji 6.0 lista kontaktów na serwerze stała częścią sesji, zamiast
