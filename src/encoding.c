@@ -116,7 +116,7 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
 {
 	char *result;
 	int i, j, len, uc_left = 0;
-	uint32_t uc = 0;
+	uint32_t uc = 0, uc_min;
 
 	for (i = 0, len = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)); i++) {
 		if ((src[i] & 0xc0) == 0xc0) {
@@ -135,31 +135,30 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
 		return NULL;
 
 	for (i = 0, j = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)) && (j < len); i++) {
-		if ((src[i] & 0xfe) == 0xfc) {
+		if ((unsigned char) src[i] >= 0xf5) {
 			if (uc_left != 0) 
 				result[j++] = '?';
-			uc = src[i] & 0x01;
-			uc_left = 5;
-		} else if ((src[i] & 0xfc) == 0xf8) {
-			if (uc_left != 0) 
-				result[j++] = '?';
-			uc = src[i] & 0x03;
-			uc_left = 4;
+			/* Restricted sequences */
+			result[j++] = '?';
+			uc_left = 0;
 		} else if ((src[i] & 0xf8) == 0xf0) {
 			if (uc_left != 0) 
 				result[j++] = '?';
 			uc = src[i] & 0x07;
 			uc_left = 3;
+			uc_min = 0x10000;
 		} else if ((src[i] & 0xf0) == 0xe0) {
 			if (uc_left != 0) 
 				result[j++] = '?';
 			uc = src[i] & 0x0f;
 			uc_left = 2;
+			uc_min = 0x800;
 		} else if ((src[i] & 0xe0) == 0xc0) {
 			if (uc_left != 0) 
 				result[j++] = '?';
 			uc = src[i] & 0x1f;
 			uc_left = 1;
+			uc_min = 0x80;
 		} else if ((src[i] & 0xc0) == 0x80) {
 			if (uc_left > 0) {
 				uc <<= 6;
@@ -167,22 +166,34 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
 				uc_left--;
 
 				if (uc_left == 0) {
+					int valid = 0;
 					int k;
-					for (k = 0; k < 128; k++) {
-						if (uc == table_cp1250[k]) {
-							result[j++] = k + 128;
-							break;
+
+					if (uc >= uc_min) {
+						for (k = 0; k < 128; k++) {
+							if (uc == table_cp1250[k]) {
+								result[j++] = k + 128;
+								valid = 1;
+								break;
+							}
 						}
 					}
 
-					if (k == 128)
+					if (!valid && uc != 0xfeff)	/* Byte Order Mark */
 						result[j++] = '?';
 				}
 			}
 		} else {
+			if (uc_left != 0) {
+				result[j++] = '?';
+				uc_left = 0;
+			}
 			result[j++] = src[i];
 		}
 	}
+
+	if ((uc_left != 0) && (src[i] == 0))
+		result[j++] = '?';
 
 	result[j] = 0;
 
