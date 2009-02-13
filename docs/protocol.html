@@ -243,7 +243,7 @@ Kiedy mamy już tą wartość możemy odesłać pakiet logowania:
 
 struct gg_login80 {
         int uin;              <i>/* mój numerek */</i>
-        char lang[2];         <i>/* pl */</i>
+        char language[2];     <i>/* język: pl */</i>
         char hash_type;       <i>/* rodzaj funkcji skrótu hasła */</i>
         char hash[64];        <i>/* skrót hasła */</i>
         int status;           <i>/* status na dzień dobry */</i>
@@ -467,9 +467,9 @@ zawierającym jedną lub więcej struktur <tt>gg_notify_reply80</tt>:
 struct gg_notify_reply80 {
 	int uin;		<i>/* numerek plus flagi w najstarszym bajcie */</i>
 	int status;		<i>/* status danej osoby */</i>
+	int unknown1;		<i>/* 0x00000000 */</i>
 	int remote_ip;		<i>/* adres IP bezpośrednich połączeń */</i>
 	short remote_port;	<i>/* port bezpośrednich połączeń */</i>
-	int unknown1;		<i>/* 0x00000000 */</i>
 	char image_size;	<i>/* maksymalny rozmiar obrazków w KB */</i>
 	char unknown2;		<i>/* 0x00 */</i>
 	int unknown3;		<i>/* 0x00000000 */</i>
@@ -551,9 +551,9 @@ Jeśli ktoś opuści Gadu-Gadu lub zmieni stan, otrzymamy jeden z pakietów:
 struct gg_status80 {
 	int uin;	        <i>/* numer plus flagi w najstarszym bajcie */</i>
 	int status;	        <i>/* nowy stan */</i>
+	int unknown1;		<i>/* 0x00000000 */</i>
 	int remote_ip;		<i>/* adres IP bezpośrednich połączeń */</i>
 	short remote_port;	<i>/* port bezpośrednich połączeń */</i>
-	int unknown1;		<i>/* 0x00000000 */</i>
 	char image_size;	<i>/* maksymalny rozmiar grafiki */</i>
 	char unknown2;		<i>/* 0xbe */</i>
 	int unknown3;		<i>/* 0x00000000 */</i>
@@ -1063,7 +1063,7 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i płci znalezionych osób.
 <h3>1.12. Lista kontaktów</h3>
 
 <div class="check">
-<p>Nieaktualny opis sprawdzić jak działa GG_USERLIST_REQUEST80, GG_USERLIST_REPLY80</p>
+<pre>Sprawdzić czy wszystkie #define dalej są potrzebne</pre>
 </div>
 
 <p>
@@ -1073,7 +1073,7 @@ użyć pakietu:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_REQUEST 0x0016
+<pre>#define GG_USERLIST_REQUEST80 0x002f
 	
 struct gg_userlist_request {
 	char type;		<i>/* rodzaj zapytania */</i>
@@ -1091,38 +1091,16 @@ Pole <tt>type</tt> oznacza rodzaj zapytania:
 #define GG_USERLIST_GET 0x02            <i>/* import listy */</i></pre>
 </div>
 
-<p>
-W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera tekst
-złożony z dowolnej liczby linii postaci:
-</p>
-
-<div class="example">
-<pre>imię;nazwisko;pseudonim;wyświetlane;telefon_komórkowy;grupa;uin;adres_email;dostę
-pny;ścieżka_dostępny;wiadomość;ścieżka_wiadomość;ukrywanie;telefon_domowy</pre>
+<div class="check">
+<pre>Wygląda na to że format opisany na http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html się zdeaktualizował :)</pre>
 </div>
 
 <p>
-Funkcje mniej oczywistych pól to:
-</p>
-
-<ul>
-
-<li><tt>dostępny</tt> określa dźwięki związane z pojawieniem się danej osoby
-i przyjmuje wartości <tt>0</tt> (użyte zostaną ustawienia globalne), <tt>1</tt>
-(dźwięk powiadomienia zostanie wyłączony), <tt>2</tt> (zostanie odtworzony
-plik określony w polu <tt>ścieżka_dostępny</tt>).<br />&nbsp;</li>
-
-<li><tt>wiadomość</tt> działa podobnie jak <tt>dostępny</tt>, ale określa
-dźwięk dla przychodzącej wiadomości.<br />&nbsp;</li>
-
-<li><tt>ukrywanie</tt> określa czy będziemy dostępni (<tt>0</tt>) czy
-niedostępni (<tt>1</tt>) dla danej osoby w trybie tylko dla znajomych.</li>
-
-</ul>
-
-<p>
-Pole niewypełnione może zostać puste, a w przypadku pól liczbowych, przyjąć
-wartość <tt>0</tt>.
+W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera dokument XML opisany na:
+<a href="http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html">http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html</a>
+skompresowany algorytmem deflate.<br>
+Wolnodostępna implementacja algorytmu znajduje się w biblotece <a href="http://www.zlib.net/">zlib</a><br>
+oryginalny klient do deflateInit() podaje maksymalny poziom kompresji - 9 
 </p>
 
 <p>
@@ -1137,7 +1115,7 @@ Na zapytania dotyczące listy kontaktów serwer odpowiada pakietem:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_REPLY 0x0010
+<pre>#define GG_USERLIST_REPLY80 0x0030
 	
 struct gg_userlist_reply {
 	char type;		<i>/* rodzaj zapytania */</i>
@@ -1167,7 +1145,12 @@ pakietem <tt>GG_USERLIST_GET_REPLY</tt>.
 </p>
 
 <p>
-Aby usunąć listę kontaktów z serwera należy wysłać pustą listę kontaktów.
+Aby usunąć listę kontaktów z serwera oryginalny klient kompresuje spację " "
+czego wynikiem jest
+<div class="example">
+<pre>78 da 53 00 00 00 21 00 21</pre>
+</div>
+w polu <tt>request</tt>
 </p>
 
 <hr />
