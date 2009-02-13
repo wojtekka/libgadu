@@ -189,14 +189,6 @@ wiadomość systemowa, lub jeśli linia zaczyna się od znaku &bdquo;<tt>@</tt>&
 adres strony, którą należy otworzyć w przeglądarce.
 </p>
 
-<p>
-Jeśli klient chce się łączyć za pomocą protokołu TLSv1, wysyła zapytanie
-do innego skryptu (&bdquo;<tt>appmsg3.asp</tt>&rdquo;) i otrzymuje w odpowiedzi adres
-serwera oraz port 443. Protokół jest identyczny, z tym wyjątkiem, że cała
-transmisja jest szyfrowana. Dobrym zwyczajem jest również sprawdzane
-autentyczności certyfikatu, by uniknąć ataków typu man-in-the-middle.
-</p>
-
 <div class="http">
 <pre>GET /appsvc/appmsg3.asp?fmnumber=<b>NUMER</b>&amp;version=<b>WERSJA</b>&amp;fmt=<b>FORMAT</b>&amp;lastmsg=<b>WIADOMOŚĆ</b>
 Host: appmsg.gadu-gadu.pl
@@ -278,7 +270,7 @@ Gadu-Gadu i zwraca 32-bitową wartość dla danego ziarna i hasła. Jego
 implementacja w języku C wygląda następująco:
 </p>
 
-<div class="example">
+<div class="c">
 <pre>int gg_login_hash(unsigned char *password, unsigned int seed)
 {
 	unsigned int x, y, z;
@@ -921,7 +913,7 @@ np. przedłużenia konta w mobilnym GG, czy nowej wiadomości na poczcie głosow
 Przykładowy kod:
 </p>
 
-<div class="c">
+<div class="example">
 <pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;event xmlns:ev="www.gadu-gadu.pl/Event/1.0" id ="" type="realtime" creation_time="1194732873" ttl="60"&gt;
 &lt;ev:actions&gt;
@@ -1141,8 +1133,8 @@ pakietem <tt>GG_USERLIST_GET_REPLY</tt>.
 </p>
 
 <p>
-Aby usunąć listę kontaktów z serwera oryginalny klient kompresuje spację " "
-czego wynikiem jest
+Aby usunąć listę kontaktów z serwera oryginalny klient wysyła spację jako listę kontaktów
+czego wynikiem jest:
 <div class="example">
 <pre>78 da 53 00 00 00 21 00 21</pre>
 </div>
