@@ -1746,7 +1746,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			struct gg_header *h;
 			struct gg_welcome *w;
-			struct gg_login70 l;
 			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
 			uint8_t hash_buf[64];
@@ -1817,11 +1816,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			switch (sess->hash_type) {
 				case GG_LOGIN_HASH_GG32:
 				{
-					unsigned int hash;
+					uint32_t hash;
 
 					hash = gg_fix32(gg_login_hash(password, w->key));
 					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
-					memcpy(l.hash, &hash, sizeof(hash));
+					memcpy(hash_buf, &hash, sizeof(hash));
 
 					break;
 				}
@@ -1918,7 +1917,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l70.dunno2 = 0xbe;
 
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN70, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+				ret = gg_send_packet(sess, GG_LOGIN70, &l70, sizeof(l70), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
 			}
 
 			if (ret == -1) {

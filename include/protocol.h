@@ -23,8 +23,6 @@
 
 #include "libgadu.h"
 
-#ifndef GG_LOGIN80
-
 #define GG_LOGIN80 0x0031
 
 struct gg_login80 {
