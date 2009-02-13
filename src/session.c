@@ -40,6 +40,8 @@
 #include "libgadu.h"
 #include "resolver.h"
 #include "session.h"
+#include "protocol.h"
+#include "encoding.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -423,9 +425,44 @@ int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 	}
 }
 
-int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time)
+static int gg_session_set_status_8(struct gg_session *gs, int status, const char *descr)
 {
-	char *tmp = NULL;
+	char *tmp;
+	int res = 0;
+
+	if (descr != NULL)
+		tmp = gg_encoding_convert(descr, gs->encoding, GG_ENCODING_UTF8, -1, gs->max_descr_length);
+
+	if (gs->state != GG_STATE_CONNECTED) {
+		gs->initial_status = status;
+		free(gs->initial_descr);
+		gs->initial_descr = tmp;
+	} else {
+		struct gg_new_status80 p;
+
+		p.status = gg_fix32(status);
+		p.dunno1 = 0;
+		p.descr_len = (tmp != NULL) ? strlen(tmp) : 0;
+
+		gs->status = status;
+		free(gs->status_descr);
+		gs->status_descr = tmp;
+
+		res = gg_send_packet(gs,
+				     GG_NEW_STATUS80,
+				     &p,
+				     sizeof(p),
+				     (tmp != NULL) ? tmp : NULL,
+				     (tmp != NULL) ? strlen(tmp) : 0,
+				     NULL);
+	}
+
+	return res;
+}
+
+static int gg_session_set_status_7(struct gg_session *gs, int status, const char *descr, time_t time)
+{
+	char *tmp;
 	int res = 0;
 
 	if (gs == NULL) {
@@ -433,19 +470,8 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 		return -1;
 	}
 
-	if (descr != NULL) {
-		// TODO: konwersja CP1250<->UTF-8
-
-		tmp = strdup(descr);
-		
-		if (tmp == NULL)
-			return -1;
-
-		// TODO: nie ciąć w środku znaku utf-8
-
-		if (strlen(tmp) > gs->max_descr_length)
-			tmp[gs->max_descr_length] = 0;
-	}
+	if (descr != NULL)
+		tmp = gg_encoding_convert(descr, gs->encoding, GG_ENCODING_CP1250, -1, gs->max_descr_length);
 
 	gs->status_time = time;
 
@@ -456,9 +482,6 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 	} else {
 		struct gg_new_status p;
 		uint32_t new_time;
-		int packet_type;
-		int append_null = 0;
-		int res;
 
 		// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 
@@ -471,31 +494,35 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 		free(gs->status_descr);
 		gs->status_descr = tmp;
 
-		if (GG_SESSION_PROTOCOL_8_0(gs)) {
-			packet_type = GG_NEW_STATUS80;
-			append_null = 1;
-		} else {
-			packet_type = GG_NEW_STATUS;
-			append_null = (time != 0);
-		}
-
-		if (time)
-			new_time = gg_fix32(time);
+		new_time = gg_fix32(time);
 
 		res = gg_send_packet(gs,
-				     packet_type,
+				     GG_NEW_STATUS,
 				     &p,
 				     sizeof(p),
 				     (tmp) ? tmp : NULL,
 				     (tmp) ? strlen(tmp) : 0,	// TODO: unicode
-				     (append_null) ? "\0" : NULL,
-				     (append_null) ? 1 : 0,
+				     (time != 0) ? "\0" : NULL,
+				     (time != 0) ? 1 : 0,
 				     (time) ? &new_time : NULL,
 				     (time) ? sizeof(new_time) : 0,
 				     NULL);
 	}
 
 	return res;
+}
+
+int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (GG_SESSION_PROTOCOL_8_0(gs))
+		return gg_session_set_status_8(gs, status, descr);
+	else
+		return gg_session_set_status_7(gs, status, descr, time);
 }
 
 int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time)

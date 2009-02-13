@@ -1,2 +1,2 @@
 nodist_include_HEADERS = libgadu.h
-noinst_HEADERS = compat.h resolver.h session.h
+noinst_HEADERS = compat.h resolver.h session.h encoding.h

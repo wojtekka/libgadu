@@ -604,8 +604,6 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size);
 
 uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len);
-char *gg_cp_to_utf8(const char *b);
-char *gg_utf8_to_cp(const char *b);
 
 int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type);
 gg_resolver_t gg_session_get_resolver(struct gg_session *gs);
@@ -1438,7 +1436,6 @@ struct gg_login60 {
 } GG_PACKED;
 
 #define GG_LOGIN70 0x0019
-#define GG_LOGIN80 0x0029
 
 struct gg_login70 {
 	uint32_t uin;			/* mój numerek */
@@ -1474,7 +1471,6 @@ struct gg_pubdir50_reply {
 } GG_PACKED;
 
 #define GG_NEW_STATUS 0x0002
-#define GG_NEW_STATUS80 0x0028
 
 #ifndef DOXYGEN
 
@@ -1628,7 +1624,6 @@ struct gg_status60 {
 } GG_PACKED;
 
 #define GG_NOTIFY_REPLY77 0x0018
-#define GG_NOTIFY_REPLY80 0x002b
 
 struct gg_notify_reply77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -1642,7 +1637,6 @@ struct gg_notify_reply77 {
 } GG_PACKED;
 
 #define GG_STATUS77 0x0017
-#define GG_STATUS80 0x002a
 
 struct gg_status77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -2051,29 +2045,6 @@ struct gg_dcc7_voice_init {
 struct gg_dcc7_voice_init_confirm {
 	uint8_t type;			/* 0x05 */
 	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
-} GG_PACKED;
-
-/* gg80 */
-
-#define GG_SEND_MSG80 0x002d
-
-struct gg_send_msg80 {
-	uint32_t recipient;
-	uint32_t seq;
-	uint32_t msgclass;
-	uint32_t offset_plain;
-	uint32_t offset_attr;
-} GG_PACKED;
-
-#define GG_RECV_MSG80 0x002e
-
-struct gg_recv_msg80 {
-	uint32_t sender;
-	uint32_t seq;
-	uint32_t time;
-	uint32_t msgclass;
-	uint32_t offset_plain;
-	uint32_t offset_attr;
 } GG_PACKED;
 
 #ifdef __cplusplus
