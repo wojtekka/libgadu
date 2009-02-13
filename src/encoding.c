@@ -103,7 +103,7 @@ static char *gg_encoding_convert_cp1250_utf8(const char *src, int src_length, in
 				break;
 			result[j++] = 0xc0 | ((uc >> 12) & 0x1f);
 			result[j++] = 0x80 | ((uc >> 6) & 0x3f);
-			result[j++] = 0x80 | ((uc >> 6) & 0x3f);
+			result[j++] = 0x80 | (uc & 0x3f);
 		}
 	}
 
