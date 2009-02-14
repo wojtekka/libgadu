@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 <style type="text/css">
-BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
+body { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tab { background-color: #a0a0a0; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
@@ -13,8 +13,7 @@ BODY { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
 .example { font-family: monospace; padding: 0.7em; background-color: #c0f0f0; border: 1px solid #80a0a0; }
-PRE { margin: 0px; }
-H1, H2, H3 { margin-top: 0px; }
+pre { margin: 0px; }
 </style>
 <title>Protokół Gadu-Gadu</title>
 </head>
@@ -522,9 +521,9 @@ struct gg_send_msg80 {
 	int class;		<i>/* klasa wiadomości */</i>
 	int offset_plain;	<i>/* położenie treści czystym tekstem */</i>
 	int offset_attributes;	<i>/* położenie atrybutów */</i>
-	char html_message[];	<i>/* treść w HTML-u (zakończona \0)*/</i>
+	char html_message[];	<i>/* treść w formacie HTML (zakończona \0) */</i>
 	char plain_message[];	<i>/* treść czystym tekstem (zakończona \0) */</i>
-	char attributes[];	<i>/* atrybuty tekstu */</i>
+	char attributes[];	<i>/* atrybuty wiadomości */</i>
 };</pre>
 
 </div>
@@ -551,8 +550,9 @@ Klasa wiadomości jest mapą bitową (domyślna wartość to <tt>0x08</tt>):
 <p>
 Długość treści wiadomości nie powinna przekraczać 2000 znaków. Oryginalny
 klient zezwala na wysłanie do 1989 znaków. Treść w formacie HTML jest kodowana
-UTF-8. Przykładowo, kod HTML zwykłego tekstu pisanego domyślnymi atrybutami
-wygląda następująco:
+UTF-8. Treść zapisana czystym tekstem jest kodowana zestawem znaków CP1250.
+W obu przypadkach, mimo domyślnych atrybutów tekstu, oryginalny klient dodaje
+informacje o formatowaniu tekstu. Dla HTML wygląda to następująco:
 </p>
 
 <div class="http">
@@ -560,19 +560,35 @@ wygląda następująco:
 </div>
 
 <p>
+Dla czystego tekstu dodawane są informacje o tym, że tekst ma kolor czarny:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Bajty</b></td><td><b>Opis</b></td></tr>
+<tr class="tabf"><td><tt>0x02</tt></td><td>Flaga formatowania tekstu</td></tr>
+<tr class="tabf"><td><tt>0x06 0x00</tt></td><td>Długość bloku formatowania wynosi 6 bajtów</td></tr>
+<tr class="tabf"><td><tt>0x08</tt></td><td>Tekst kolorowy</td></tr>
+<tr class="tabf"><td><tt>0x00 0x00 0x00</tt></td><td>Kolor czarny</td></tr>
+</table>
+
+<a name="ch1.6.1"></a>
+<h4>1.6.1. Konferencje</h4>
+
+<p>
 Podczas konferencji ta sama wiadomość jest wysyłana do wszystkich odbiorców,
 a do sekcji atrybutów dołączana jest lista pozostałych uczestników konferencji.
-Dla przykładu, jeśli w konferencji biorą udział osoby o numerach 1, 2, 3 i 4,
-to osoba o numerze 1 wysyła wiadomość do numeru 2 z listą zawierającą numery
-3 i 4, do numeru 3 z listą 2 i 4, a do numeru 4 z listą 2 i 3. Lista
-uczestników konferencji jest przekazywana za pomocą struktury:
+Dla przykładu, jeśli w konferencji biorą udział Ala, Bartek, Celina i Darek,
+to osoba Ala wysyła wysyła do Bartka wiadomość z listą zawierającą numery
+Celiny i Darka, do Celiny z numerami Bartka i Darka, a do Darka z numerami
+Bartka i Celiny. Lista pozostałych uczestników konferencji jest przekazywana
+za pomocą struktury:
 </p>
 
 <div class="c">
 <pre>struct gg_msg_recipients {
-	char flag;		<i>/* == 1 */</i>
-	int count;		<i>/* ilość odbiorców */</i>
-	int recipients[];	<i>/* tablica odbiorców */</i>
+	char flag;		<i>/* 0x01 */</i>
+	int count;		<i>/* liczba odbiorców */</i>
+	int recipients[];	<i>/* lista odbiorców */</i>
 };</pre>
 </div>
 
@@ -586,17 +602,20 @@ wiadomością o treści:
 <tr class="tabf"><td><tt>0x01</tt></td><td>Flaga wiadomości konferencyjnej</td></tr>
 <tr class="tabf"><td><tt>0x02 0x00 0x00 0x00</tt></td><td>Liczba pozostałych uczestników</td></tr>
 <tr class="tabf"><td><tt>0xXX 0xXX 0xXX 0xXX</tt></td><td>Numer uczestnika #2</td></tr>
-<tr class="tabf"><td><tt>0xXX 0xXX 0xXX 0xXX</tt></td><td>Numer uczestnika #3</td></tr>
+<tr class="tabf"><td><tt>0xYY 0xYY 0xYY 0xYY</tt></td><td>Numer uczestnika #3</td></tr>
 </table>
 
+<a name="ch1.6.2"></a>
+<h4>1.6.2. Formatowanie tekstu</h4>
+
 <p>
-Możliwe jest również dodawanie do wiadomości różnych atrybutów tekstu, jak pogrubienie czy kolory. Niezbędne jest dołączenie
-następującej struktury:
+Możliwe jest również dodawanie do wiadomości różnych atrybutów tekstu, jak
+pogrubienie czy kolory. Niezbędne jest dołączenie następującej struktury:
 </p>
 
 <div class="c">
 <pre>struct gg_msg_richtext {
-	char flag;	<i>/* == 2 */</i>
+	char flag;	<i>/* 0x02 */</i>
 	short length;	<i>/* długość dalszej części */</i>
 };</pre>
 </div>
@@ -610,8 +629,8 @@ określonej polem <tt>length</tt>:
 <pre>struct gg_msg_richtext_format {
 	short position;	<i>/* pozycja atrybutu w tekście */</i>
 	char font;	<i>/* atrybuty czcionki */</i>
-	char rgb[3];	<i>/* kolor czcionki, nie musi wystąpić */</i>
-	struct gg_msg_richtext_image image; <i>/* nie musi wystąpić */</i>
+	char rgb[3];	<i>/* kolor czcionki (nie musi wystąpić) */</i>
+	struct gg_msg_richtext_image image; <i>/* obrazek (nie musi wystąpić) */</i>
 };</pre>
 </div>
 
@@ -633,8 +652,8 @@ następujące znaczenie:
 
 <p>
 Jeśli wiadomość zawiera obrazek, przesyłana jest jego suma kontrolna CRC32
-i rozmiar. Dzięki temu nie trzeba za każdym razem wysyłać każdego obrazka &mdash;
-klienty je zachowują. Struktura <tt>gg_msg_richtext_image</tt> opisująca
+i rozmiar. Dzięki temu nie trzeba za każdym razem wysyłać każdego obrazka
+&mdash; klienty je zachowują. Struktura <tt>gg_msg_richtext_image</tt> opisująca
 obrazek umieszczony w wiadomości wygląda następująco:
 </p>
 
@@ -647,8 +666,32 @@ obrazek umieszczony w wiadomości wygląda następująco:
 </div>
 
 <p>
-Gdy klient nie pamięta obrazka o podanych parametrach, wysyła pustą wiadomość
-o klasie <tt>GG_CLASS_MSG</tt> z dołączoną strukturą
+Przykładowo, by przesłać tekst &bdquo;ala <b>ma</b> kota&rdquo;, należy
+dołączyć do wiadomości następującą sekwencję bajtów:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Bajty</b></td><td><b>Opis</b></td></tr>
+<tr class="tabf"><td><tt>0x02</tt></td><td>Flaga formatowania tekstu</td></tr>
+<tr class="tabf"><td><tt>0x06 0x00</tt></td><td>Długość bloku formatowania wynosi 6 bajtów</td></tr>
+<tr class="tabf"><td><tt>0x04 0x00</tt></td><td>Atrybut tekstu od pozycji 4</td></tr>
+<tr class="tabf"><td><tt>0x01</tt></td><td>Tekst pogrubiony</td></tr>
+<tr class="tabf"><td><tt>0x06 0x00</tt></td><td>Atrybut tekstu od pozycji 6</td></tr>
+<tr class="tabf"><td><tt>0x00</tt></td><td>Tekst normalny</td></tr>
+</table>
+
+<p>
+W przypadku gdy wiadomość zawiera zarówno informacje o uczestnikach konferencji,
+jaki i o formatowaniu, najpierw informacje o konferencji powinny znajdować się
+przed formatowaniem.
+</p>
+
+<a name="ch1.6.3"></a>
+<h4>1.6.3. Przesyłanie obrazków</h4>
+
+<p>
+Gdy klient nie posiada w pamięci podręcznej obrazka o podanych parametrach,
+wysyła pustą wiadomość o klasie <tt>GG_CLASS_MSG</tt> z dołączoną strukturą
 <tt>gg_msg_image_request</tt>:
 </p>
 
@@ -661,21 +704,21 @@ o klasie <tt>GG_CLASS_MSG</tt> z dołączoną strukturą
 </div>
 
 <p>
-Przykładowa treść wiadomości z prośbą o wysłanie obrazka o długości 258 bajtów
-i sumie kontrolnej 0x12345678 to:
+Przykładowa treść wiadomości z prośbą o wysłanie obrazka o długości 10000
+bajtów i sumie kontrolnej 0x12345678 to:
 </p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bajty</b></td><td><b>Opis</b></td></tr>
 <tr class="tabf"><td><tt>0x04</tt></td><td>Flaga pobrania obrazka</td></tr>
-<tr class="tabf"><td><tt>0x02 0x01 0x00 0x00</tt></td><td>Rozmiar obrazka w bajtach</td></tr>
+<tr class="tabf"><td><tt>0x10 0x27 0x00 0x00</tt></td><td>Rozmiar obrazka w bajtach</td></tr>
 <tr class="tabf"><td><tt>0x78 0x56 0x34 0x12</tt></td><td>Suma kontrolna</td></tr>
 </table>
 
 <p>
 W odpowiedzi, drugi klient wysyła obrazek za pomocą wiadomości o zerowej
-długości (należy pamiętać o kończącym bajcie o wartości 0x00) z dołączoną
-strukturą <tt>gg_msg_image_reply</tt>:
+długości (należy pamiętać o kończącym bajcie o wartości <tt>0x00</tt>)
+z dołączoną strukturą <tt>gg_msg_image_reply</tt>:
 </p>
 
 <div class="c">
@@ -683,18 +726,18 @@ strukturą <tt>gg_msg_image_reply</tt>:
 	char flag;      	<i>/* 0x05 lub 0x06 */</i>
 	int size;       	<i>/* rozmiar */</i>
 	int crc32;      	<i>/* suma kontrolna */</i>
-	char filename[];	<i>/* nazwa pliku, nie musi wystąpić */</i>
-	char image[];		<i>/* zawartość obrazka, nie musi wystąpić */</i>
+	char filename[];	<i>/* nazwa pliku (nie musi wystąpić) */</i>
+	char image[];		<i>/* zawartość obrazka (nie musi wystąpić) */</i>
 };</pre>
 </div>
 
 <p>
 Jeśli długość struktury <tt>gg_msg_image_reply</tt> jest dłuższa niż 1909
 bajtów, treść obrazka jest dzielona na kilka pakietów nie przekraczających
-1909 bajtów. Pierwszy pakiet ma pole <tt>flag</tt> równe 0x05 i ma wypełnione
-pole <tt>filename</tt>, a w kolejnych pole <tt>flag</tt> jest równe 0x06
-i pole <tt>filename</tt> w ogóle nie występuje (nawet bajt zakończenia ciągu
-znaków).
+1909 bajtów. Pierwszy pakiet ma pole <tt>flag</tt> równe <tt>0x05</tt> i ma
+wypełnione pole <tt>filename</tt>, a w kolejnych pole <tt>flag</tt> jest równe
+<tt>0x06</tt> i pole <tt>filename</tt> w ogóle nie występuje (nawet bajt
+zakończenia ciągu znaków).
 </p>
 
 <p>
@@ -702,20 +745,8 @@ Jeśli otrzymamy pakiet bez pola <tt>filename</tt> oraz <tt>image</tt>, oznacza
 to, że klient nie posiada żądanego obrazka.
 </p>
 
-<p>
-Przykładowo, by przesłać tekst &bdquo;ala <b>ma</b> kota&rdquo;, należy dołączyć do
-wiadomości następującą sekwencję bajtów:
-</p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td><b>Bajty</b></td><td><b>Opis</b></td></tr>
-<tr class="tabf"><td><tt>0x02</tt></td><td>Flaga formatowania tekstu</td></tr>
-<tr class="tabf"><td><tt>0x06 0x00</tt></td><td>Długość bloku formatowania wynosi 6 bajtów</td></tr>
-<tr class="tabf"><td><tt>0x04 0x00</tt></td><td>Atrybut tekstu od pozycji 4</td></tr>
-<tr class="tabf"><td><tt>0x01</tt></td><td>Tekst pogrubiony</td></tr>
-<tr class="tabf"><td><tt>0x06 0x00</tt></td><td>Atrybut tekstu od pozycji 6</td></tr>
-<tr class="tabf"><td><tt>0x00</tt></td><td>Tekst normalny</td></tr>
-</table>
+<a name="ch1.6.4"></a>
+<h4>1.6.4. Potwierdzenie</h4>
 
 <p>
 Serwer po otrzymaniu wiadomości odsyła potwierdzenie, które przy okazji
@@ -764,12 +795,11 @@ struct gg_recv_msg80 {
 	int seq;		<i>/* numer sekwencyjny */</i>
 	int time;		<i>/* czas nadania */</i>
 	int class;		<i>/* klasa wiadomości */</i>
-	int offset_plain;	<i>/* offset do wiadomośći */</i>
-	int offset_attributes;	<i>/* offset do atrybutów */</i>
-	char html_message[];	<i>/* treść w HTMLu */</i>
-
-	char *message;		<i>/* treść */</i>
-	char *attributes;	<i>/* atrybuty tekstu */</i>
+	int offset_plain;	<i>/* położenie treści czystym tekstem */</i>
+	int offset_attributes;	<i>/* położenie atrybutów */</i>
+	char html_message[];	<i>/* treść w formacie HTML (zakończona \0) */</i>
+	char plain_message;	<i>/* treść czystym tekstem (zakończona \0) */</i>
+	char attributes[];	<i>/* atrybuty wiadomości */</i>
 };</pre>
 
 </div>
@@ -780,8 +810,8 @@ Czas nadania jest zapisany w postaci UTC, jako ilości sekund od 1 stycznie
 </p>
 
 <p>
-W przypadku pakietów &bdquo;konferencyjnych&rdquo; na końcu pakietu doklejona jest
-struktura identyczna z <tt>gg_msg_recipients</tt> zawierająca pozostałych
+W przypadku pakietów &bdquo;konferencyjnych&rdquo; na końcu pakietu doklejona
+jest struktura identyczna z <tt>gg_msg_recipients</tt> zawierająca pozostałych
 rozmówców.
 </p>
 
@@ -1013,7 +1043,7 @@ użyć pakietu:
 	
 struct gg_userlist_request {
 	char type;		<i>/* rodzaj zapytania */</i>
-	char request[];		<i>/* treść, nie musi wystąpić */</i>
+	char request[];		<i>/* treść (nie musi wystąpić) */</i>
 };</pre>
 </div>
 
@@ -1028,11 +1058,12 @@ Pole <tt>type</tt> oznacza rodzaj zapytania:
 </div>
 
 <p>
-W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera dokument XML opisany na:
-<a href="http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html">http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html</a>
-skompresowany algorytmem deflate.<br>
-Wolnodostępna implementacja algorytmu znajduje się w biblotece <a href="http://www.zlib.net/">zlib</a><br>
-oryginalny klient do deflateInit() podaje maksymalny poziom kompresji - 9 
+W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera dokument
+XML opisany na stronie
+<a href="http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html">http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html</a> skompresowany algorytmem 
+<a href="http://pl.wikipedia.org/wiki/Deflate">Deflate</a>. Wolnodostępna
+implementacja algorytmu, używana również przez oryginalnego klienta, znajduje
+się w biblotece <a href="http://www.zlib.net/">zlib</a>. 
 </p>
 
 <p>
@@ -1051,7 +1082,7 @@ Na zapytania dotyczące listy kontaktów serwer odpowiada pakietem:
 	
 struct gg_userlist_reply {
 	char type;		<i>/* rodzaj zapytania */</i>
-	char reply[];		<i>/* treść, nie musi wystąpić */</i>
+	char reply[];		<i>/* treść (nie musi wystąpić) */</i>
 };</pre>
 </div>
 
@@ -1836,7 +1867,7 @@ napisz na listę dyskusyjną
 	<li><b>Marcin Krupowicz</b> (marcin.krupowicz%gmail.com): informacja na 
 	temat tego, że pakiet GG_LOGIN_OK nie zawsze jest zerowej długości.</li>
 	<li><b>Jakub Zawadzki</b> (darkjames%darkjames.ath.cx): nowości w
-	7.x.</li>
+	7.x i 8.x.</li>
 	<li><b>Krystian Kołodziej</b> (krystiankolodziej%gmail.com): znaczenie
 	GG_DISCONNECTING2.</li>
 </ul>
