@@ -1878,6 +1878,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l80.hash_type = sess->hash_type;
 				memcpy(l80.hash, hash_buf, sizeof(l80.hash));
 				l80.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
+				l80.dunno1 = 0;
 				l80.dunno2 = gg_fix32(0x00000007);
 				l80.image_size = sess->image_size;
 				l80.dunno3 = 0x64;
@@ -1906,11 +1907,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l70.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 				l70.version = gg_fix32(sess->protocol_version | sess->protocol_flags);
 				if (sess->external_addr && sess->external_port > 1023) {
-					l70.local_ip = local_ip;
-					l70.local_port = gg_fix16(gg_dcc_port);
-				} else {
 					l70.local_ip = sess->external_addr;
 					l70.local_port = gg_fix16(sess->external_port);
+				} else {
+					l70.local_ip = local_ip;
+					l70.local_port = gg_fix16(gg_dcc_port);
 				}
 
 				l70.image_size = sess->image_size;
