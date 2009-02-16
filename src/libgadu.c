@@ -721,7 +721,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
 
-	return gg_send_message_richtext(sess, msgclass, recipient, message, NULL, 0);
+	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, NULL, 0);
 }
 
 /**
@@ -743,36 +743,9 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
  */
 int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
 {
-	struct gg_send_msg s;
-
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	if (!message) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	s.recipient = gg_fix32(recipient);
-	if (!sess->seq)
-		sess->seq = 0x01740000 | (rand() & 0xffff);
-	s.seq = gg_fix32(sess->seq);
-	s.msgclass = gg_fix32(msgclass);
-	sess->seq += (rand() % 0x300) + 0x300;
-
-	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
-		return -1;
-
-	return gg_fix32(s.seq);
+	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, format, formatlen);
 }
 
 /**
@@ -819,9 +792,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
 {
 	struct gg_send_msg s;
-	struct gg_msg_recipients r;
-	int i, j, k;
-	uin_t *recps;
+	time_t now;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
 
@@ -835,43 +806,63 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		return -1;
 	}
 
-	if (!message || recipients_count <= 0 || recipients_count > 0xffff || !recipients) {
+	if (message == NULL || recipients_count < 1 || recipients_count > 0xffff || (recipients_count > 0 && recipients == NULL)) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	r.flag = 0x01;
-	r.count = gg_fix32(recipients_count - 1);
+	// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka wiadomości
+	// w ciągu jednej sekundy, zwiększamy poprzednią wartość, żeby każda
+	// wiadomość miała unikalny numer.
 
-	if (!sess->seq)
-		sess->seq = 0x01740000 | (rand() & 0xffff);
+	now = time(NULL);
+
+	if (now > sess->seq)
+		sess->seq = now;
+	else
+		sess->seq++;
+
 	s.seq = gg_fix32(sess->seq);
 	s.msgclass = gg_fix32(msgclass);
 
-	recps = malloc(sizeof(uin_t) * recipients_count);
-	if (!recps)
-		return -1;
+	if (recipients_count > 1) {
+		struct gg_msg_recipients r;
+		uin_t *recps;
+		int i, j, k;
 
-	for (i = 0; i < recipients_count; i++) {
+		r.flag = 0x01;
+		r.count = gg_fix32(recipients_count - 1);
 
-		s.recipient = gg_fix32(recipients[i]);
+		if (recipients_count > 0) {
+			recps = malloc(sizeof(uin_t) * recipients_count);
+			if (!recps)
+				return -1;
+		}
 
-		for (j = 0, k = 0; j < recipients_count; j++)
-			if (recipients[j] != recipients[i]) {
-				recps[k] = gg_fix32(recipients[j]);
-				k++;
+		for (i = 0; i < recipients_count; i++) {
+
+			s.recipient = gg_fix32(recipients[i]);
+
+			for (j = 0, k = 0; j < recipients_count; j++) {
+				if (recipients[j] != recipients[i]) {
+					recps[k] = gg_fix32(recipients[j]);
+					k++;
+				}
 			}
 
-		if (!i)
-			sess->seq += (rand() % 0x300) + 0x300;
-
-		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
-			free(recps);
-			return -1;
+			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
+				free(recps);
+				return -1;
+			}
 		}
-	}
 
-	free(recps);
+		free(recps);
+	} else {
+		s.recipient = gg_fix32(recipients[0]);
+
+		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
+			return -1;
+	}
 
 	return gg_fix32(s.seq);
 }
