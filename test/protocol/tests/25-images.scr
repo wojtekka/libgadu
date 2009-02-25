@@ -74,7 +74,8 @@ call {
 	gg_image_reply(session, 0x123456, "test.txt", "Test", 4);
 }
 
-expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 04 00 00 00, 32 d1 4d 78, "test.txt" 00, "Test")
+#expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 04 00 00 00, 32 d1 4d 78, "test.txt" 00, "Test")
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 04 00 00 00, 32 d1 4d 78, "784dd13200000004" 00, "Test")
 
 #-----------------------------------------------------------------------------
 # Sending multipart reply
@@ -88,7 +89,9 @@ call {
 	gg_image_reply(session, 0x123456, "multipart.txt", tmp, sizeof(tmp));
 }
 
-expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 00 08 00 00, 39 20 df d5, "multipart.txt" 00, 41*1886)
+#expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 00 08 00 00, 39 20 df d5, "multipart.txt" 00, 41*1886)
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 05, 00 08 00 00, 39 20 df d5, "d5df203900000800" 00, 41*1922)
 
-expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 06, 00 08 00 00, 39 20 df d5, 41*162)
+#expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 06, 00 08 00 00, 39 20 df d5, 41*152)
+expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 06, 00 08 00 00, 39 20 df d5, 41*126)
 
