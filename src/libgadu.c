@@ -1015,7 +1015,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	struct gg_msg_image_reply *r;
 	struct gg_send_msg s;
 	const char *tmp;
-	char buf[1910];
+	char buf[1922+64];	// XXX dodać stałe
 	int res = -1;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_image_reply(%p, %d, \"%s\", %p, %d);\n", sess, recipient, filename, image, size);
@@ -1059,15 +1059,17 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 		int buflen, chunklen;
 
 		/* \0 + struct gg_msg_image_reply */
-		buflen = sizeof(struct gg_msg_image_reply) + 1;
+		buflen = 1 + sizeof(struct gg_msg_image_reply);
 
 		/* w pierwszym kawałku jest nazwa pliku */
 		if (r->flag == 0x05) {
-			strcpy(buf + buflen, filename);
-			buflen += strlen(filename) + 1;
+			char tmp[17];
+			sprintf(tmp, "%08x%08x", gg_crc32(0, (unsigned char*) image, size), size);
+			strcpy(buf + buflen, tmp);
+			buflen += 17;
 		}
 
-		chunklen = (size >= sizeof(buf) - buflen) ? (sizeof(buf) - buflen) : size;
+		chunklen = (size >= 1922) ? 1922 : size;
 
 		memcpy(buf + buflen, image, chunklen);
 		size -= chunklen;
