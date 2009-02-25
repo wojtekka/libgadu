@@ -586,6 +586,7 @@ int gg_session_set_async(struct gg_session *gs, int value);
 int gg_session_get_async(struct gg_session *gs);
 int gg_session_get_fd(struct gg_session *gs);
 int gg_session_get_check(struct gg_session *gs);
+int gg_session_get_ping_period(struct gg_session *gs);
 
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
@@ -753,6 +754,8 @@ struct gg_event_msg {
 	int formats_length;	/**< Długość informacji o formatowaniu tekstu */
 	void *formats;		/**< Informacje o formatowaniu tekstu */
 	uint32_t seq;		/**< Numer sekwencyjny wiadomości */
+
+	char *xhtml_message;	/**< Treść wiadomości w formacie XHTML */
 };
 
 /**
