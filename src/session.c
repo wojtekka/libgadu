@@ -501,7 +501,7 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 				     &p,
 				     sizeof(p),
 				     (tmp) ? tmp : NULL,
-				     (tmp) ? strlen(tmp) : 0,	// TODO: unicode
+				     (tmp) ? strlen(tmp) : 0,
 				     (time != 0) ? "\0" : NULL,
 				     (time != 0) ? 1 : 0,
 				     (time) ? &new_time : NULL,
@@ -602,6 +602,19 @@ int gg_session_is_connected(struct gg_session *gs)
 	}
 
 	return (gs->state == GG_STATE_CONNECTED);
+}
+
+int gg_session_get_ping_period(struct gg_session *gs)
+{
+	if (gs == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (GG_SESSION_PROTOCOL_8_0(gs))
+		return 256;
+	else
+		return 60;	// XXX: sprawdzić
 }
 
 /**
