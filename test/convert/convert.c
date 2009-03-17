@@ -128,5 +128,9 @@ int main(void)
 
 	test_cp1250("za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1", -1, -1, "zażółć gęślą jaźń");
 
+	// TODO ograniczanie stringów
+	
+	printf("okay\n");
+
 	return 0;
 }
