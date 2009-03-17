@@ -171,6 +171,10 @@ struct gg_image_queue;
 
 struct gg_dcc7;
 
+struct gg_message;
+
+typedef struct gg_message gg_message_t;
+
 /**
  * Sposób rozwiązywania nazw serwerów.
  */
@@ -587,6 +591,7 @@ int gg_session_get_async(struct gg_session *gs);
 int gg_session_get_fd(struct gg_session *gs);
 int gg_session_get_check(struct gg_session *gs);
 int gg_session_get_ping_period(struct gg_session *gs);
+uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm);
 
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);

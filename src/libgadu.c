@@ -39,6 +39,7 @@
 #include "compat.h"
 #include "libgadu.h"
 #include "resolver.h"
+#include "message.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -719,9 +720,12 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
  */
 int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message)
 {
+	gg_message_t gm;
+
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
 
-	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, NULL, 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, message, NULL, NULL, 0);
+	return gg_session_send_message(sess, &gm);
 }
 
 /**
@@ -743,9 +747,12 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
  */
 int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
 {
+	gg_message_t gm;
+
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
-	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, format, formatlen);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, message, NULL, (format != NULL) ? format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	return gg_session_send_message(sess, &gm);
 }
 
 /**
@@ -756,7 +763,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
  *
  * \param sess Struktura sesji
  * \param msgclass Klasa wiadomości
- * \param recipients_count Liczba adresatów
+ * \param recipient_count Liczba adresatów
  * \param recipients Wskaźnik do tablicy z numerami adresatów
  * \param message Treść wiadomości
  *
@@ -764,11 +771,14 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
  *
  * \ingroup messages
  */
-int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
+int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipient_count, uin_t *recipients, const unsigned char *message)
 {
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipients_count, recipients, message);
+	gg_message_t gm;
 
-	return gg_send_message_confer_richtext(sess, msgclass, recipients_count, recipients, message, NULL, 0);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipient_count, recipients, message);
+
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, message, NULL, NULL, 0);
+	return gg_session_send_message(sess, &gm);
 }
 
 /**
@@ -779,7 +789,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
  *
  * \param sess Struktura sesji
  * \param msgclass Klasa wiadomości
- * \param recipients_count Liczba adresatów
+ * \param recipient_count Liczba adresatów
  * \param recipients Wskaźnik do tablicy z numerami adresatów
  * \param message Treść wiadomości
  * \param format Informacje o formatowaniu
@@ -789,82 +799,14 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
  * 
  * \ingroup messages
  */
-int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
+int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipient_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
 {
-	struct gg_send_msg s;
-	time_t now;
+	gg_message_t gm;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipient_count, recipients, message, format, formatlen);
 
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	if (message == NULL || recipients_count < 1 || recipients_count > 0xffff || (recipients_count > 0 && recipients == NULL)) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka wiadomości
-	// w ciągu jednej sekundy, zwiększamy poprzednią wartość, żeby każda
-	// wiadomość miała unikalny numer.
-
-	now = time(NULL);
-
-	if (now > sess->seq)
-		sess->seq = now;
-	else
-		sess->seq++;
-
-	s.seq = gg_fix32(sess->seq);
-	s.msgclass = gg_fix32(msgclass);
-
-	if (recipients_count > 1) {
-		struct gg_msg_recipients r;
-		uin_t *recps;
-		int i, j, k;
-
-		r.flag = 0x01;
-		r.count = gg_fix32(recipients_count - 1);
-
-		if (recipients_count > 0) {
-			recps = malloc(sizeof(uin_t) * recipients_count);
-			if (!recps)
-				return -1;
-		}
-
-		for (i = 0; i < recipients_count; i++) {
-
-			s.recipient = gg_fix32(recipients[i]);
-
-			for (j = 0, k = 0; j < recipients_count; j++) {
-				if (recipients[j] != recipients[i]) {
-					recps[k] = gg_fix32(recipients[j]);
-					k++;
-				}
-			}
-
-			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
-				free(recps);
-				return -1;
-			}
-		}
-
-		free(recps);
-	} else {
-		s.recipient = gg_fix32(recipients[0]);
-
-		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
-			return -1;
-	}
-
-	return gg_fix32(s.seq);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, message, NULL, (format != NULL) ? format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	return gg_session_send_message(sess, &gm);
 }
 
 /**
@@ -1142,9 +1084,12 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
 			return -1;
 
-		for (u = userlist, t = types, i = 0; i < part_count; u++, t++, i++) {
+		for (u = userlist, t = types, i = 0; i < part_count; u++, i++) {
 			n[i].uin = gg_fix32(*u);
-			n[i].dunno1 = *t;
+			if (t != NULL)
+				n[i].dunno1 = *(t++);
+			else
+				n[i].dunno1 = GG_USER_NORMAL;
 		}
 
 		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
@@ -1155,7 +1100,8 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 
 		count -= part_count;
 		userlist += part_count;
-		types += part_count;
+		if (types != NULL)
+			types += part_count;
 
 		free(n);
 	}
@@ -1179,57 +1125,7 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
  */
 int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
 {
-	struct gg_notify *n;
-	uin_t *u;
-	int i, res = 0;
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_notify(%p, %p, %d);\n", sess, userlist, count);
-
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	if (!userlist || !count)
-		return gg_send_packet(sess, GG_LIST_EMPTY, NULL);
-
-	while (count > 0) {
-		int part_count, packet_type;
-
-		if (count > 400) {
-			part_count = 400;
-			packet_type = GG_NOTIFY_FIRST;
-		} else {
-			part_count = count;
-			packet_type = GG_NOTIFY_LAST;
-		}
-
-		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
-			return -1;
-
-		for (u = userlist, i = 0; i < part_count; u++, i++) {
-			n[i].uin = gg_fix32(*u);
-			n[i].dunno1 = GG_USER_NORMAL;
-		}
-
-		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
-			res = -1;
-			free(n);
-			break;
-		}
-
-		free(n);
-
-		userlist += part_count;
-		count -= part_count;
-	}
-
-	return res;
+	return gg_notify_ex(sess, userlist, NULL, count);
 }
 
 /**
@@ -1400,6 +1296,175 @@ int gg_userlist_request(struct gg_session *sess, char type, const char *request)
 	sess->userlist_blocks++;
 
 	return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
+}
+
+/**
+ * Łączy się z serwerem Gadu-Gadu.
+ *
+ * Przy połączeniu synchronicznym funkcja zakończy działanie po nawiązaniu
+ * połączenia lub gdy wystąpi błąd. Po udanym połączeniu należy wywoływać
+ * funkcję \c gg_watch_fd(), która odbiera informacje od serwera i zwraca
+ * informacje o zdarzeniach.
+ *
+ * Przy połączeniu asynchronicznym funkcja rozpocznie procedurę połączenia
+ * i zwróci zaalokowaną strukturę. Pole \c fd struktury \c gg_session zawiera
+ * deskryptor, który należy obserwować funkcją \c select, \c poll lub za
+ * pomocą mechanizmów użytej pętli zdarzeń (Glib, Qt itp.). Pole \c check
+ * jest maską bitową mówiącą, czy biblioteka chce być informowana o możliwości
+ * odczytu danych (\c GG_CHECK_READ) czy zapisu danych (\c GG_CHECK_WRITE).
+ * Po zaobserwowaniu zmian na deskryptorze należy wywołać funkcję
+ * \c gg_watch_fd(). Podczas korzystania z połączeń asynchronicznych, w trakcie
+ * połączenia może zostać stworzony dodatkowy proces rozwiązujący nazwę
+ * serwera -- z tego powodu program musi poprawnie obsłużyć sygnał SIGCHLD.
+ *
+ * \note Po nawiązaniu połączenia z serwerem należy wysłać listę kontaktów
+ * za pomocą funkcji \c gg_notify() lub \c gg_notify_ex().
+ *
+ * \param p Struktura opisująca parametry połączenia. Wymagane pola: uin,
+ *          password, async.
+ *
+ * \return Wskaźnik do zaalokowanej struktury sesji \c gg_session lub NULL
+ *         w przypadku błędu.
+ *
+ * \ingroup login
+ */
+struct gg_session *gg_login(const struct gg_login_params *p)
+{
+	struct gg_session *gs = NULL;
+
+	if (p == NULL) {
+		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
+		errno = EFAULT;
+		return NULL;
+	}
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p: [uin=%u, async=%d, ...]);\n", p, p->uin, p->async);
+
+	gs = gg_session_new();
+
+	if (gs == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for session data\n");
+		return NULL;
+	}
+
+	if (gg_session_set_uin(gs, p->uin) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid uin\n");
+		goto fail;
+	}
+
+	if (gg_session_set_password(gs, p->password) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory or invalid password\n");
+		goto fail;
+	}
+
+	gg_session_set_async(gs, p->async);
+
+	if (p->status != 0 || p->status_descr != NULL)
+		gg_session_set_status(gs, p->status, p->status_descr, 0);
+
+	if (p->hash_type != 0 && gg_session_set_hash_type(gs, p->hash_type)) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unknown hash type (%d)\n", p->hash_type);
+		errno = EFAULT;
+		goto fail;
+	}
+
+	gg_session_set_server(gs, p->server_addr, p->server_port);
+
+	if (p->protocol_version != 0)
+		gg_session_set_protocol_version(gs, p->protocol_version);
+
+	if (p->client_version != NULL)
+		gg_session_set_client_version(gs, p->client_version);
+
+	gg_session_set_external_address(gs, p->external_addr, p->external_port);
+
+	gg_session_set_last_message(gs, p->last_sysmsg);
+
+	if (p->image_size != 0)
+		gg_session_set_image_size(gs, p->image_size);
+
+	gg_session_set_flag(gs, GG_SESSION_FLAG_ERA_OMNIX, p->era_omnix);
+
+	gg_session_set_flag(gs, GG_SESSION_FLAG_AUDIO, p->has_audio);
+
+	gg_session_set_encoding(gs, p->encoding);
+
+	if (gg_session_set_resolver(gs, p->resolver) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unsupported resolver type (%d)\n", p->resolver);
+		errno = EFAULT;
+		goto fail;
+	}
+
+	if (p->tls == 1) {
+#ifdef GG_CONFIG_HAVE_OPENSSL
+		char buf[1024];
+
+		OpenSSL_add_ssl_algorithms();
+
+		if (!RAND_status()) {
+			char rdata[1024];
+			struct {
+				time_t time;
+				void *ptr;
+			} rstruct;
+
+			time(&rstruct.time);
+			rstruct.ptr = (void *) &rstruct;
+
+			RAND_seed((void *) rdata, sizeof(rdata));
+			RAND_seed((void *) &rstruct, sizeof(rstruct));
+		}
+
+		gs->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
+
+		if (!gs->ssl_ctx) {
+			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_CTX_new() failed: %s\n", buf);
+			goto fail;
+		}
+
+		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
+
+		gs->ssl = SSL_new(gs->ssl_ctx);
+
+		if (gs->ssl == NULL) {
+			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_new() failed: %s\n", buf);
+			goto fail;
+		}
+#else
+		gg_debug(GG_DEBUG_MISC, "// gg_login() client requested TLS but no support compiled in\n");
+#endif
+	}
+
+	if (gg_session_connect(gs) == -1)
+		goto fail;
+
+	return gs;
+
+fail:
+	gg_session_free(gs);
+	return NULL;
+}
+
+/**
+ * \internal Stub funkcji \c gg_session_disconnect() dla zachowania ABI. 
+ *
+ * \param gs Struktura sesji
+ */
+void gg_logoff(struct gg_session *gs)
+{
+	gg_session_disconnect(gs);
+}
+
+/**
+ * \internal Stub funkcji \c gg_session_free() dla zachowania ABI. 
+ *
+ * \param sess Struktura sesji
+ */
+void gg_free_session(struct gg_session *gs)
+{
+	return gg_session_free(gs);
 }
 
 /* @} */

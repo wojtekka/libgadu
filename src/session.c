@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2008 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -42,6 +42,7 @@
 #include "session.h"
 #include "protocol.h"
 #include "encoding.h"
+#include "message.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -465,11 +466,6 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 	char *tmp;
 	int res = 0;
 
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
-
 	if (descr != NULL)
 		tmp = gg_encoding_convert(descr, gs->encoding, GG_ENCODING_CP1250, -1, gs->max_descr_length);
 
@@ -514,10 +510,7 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 
 int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (GG_SESSION_PROTOCOL_8_0(gs))
 		return gg_session_set_status_8(gs, status, descr);
@@ -617,155 +610,6 @@ int gg_session_get_ping_period(struct gg_session *gs)
 		return 60;	// XXX: sprawdzić
 }
 
-/**
- * Łączy się z serwerem Gadu-Gadu.
- *
- * Przy połączeniu synchronicznym funkcja zakończy działanie po nawiązaniu
- * połączenia lub gdy wystąpi błąd. Po udanym połączeniu należy wywoływać
- * funkcję \c gg_watch_fd(), która odbiera informacje od serwera i zwraca
- * informacje o zdarzeniach.
- *
- * Przy połączeniu asynchronicznym funkcja rozpocznie procedurę połączenia
- * i zwróci zaalokowaną strukturę. Pole \c fd struktury \c gg_session zawiera
- * deskryptor, który należy obserwować funkcją \c select, \c poll lub za
- * pomocą mechanizmów użytej pętli zdarzeń (Glib, Qt itp.). Pole \c check
- * jest maską bitową mówiącą, czy biblioteka chce być informowana o możliwości
- * odczytu danych (\c GG_CHECK_READ) czy zapisu danych (\c GG_CHECK_WRITE).
- * Po zaobserwowaniu zmian na deskryptorze należy wywołać funkcję
- * \c gg_watch_fd(). Podczas korzystania z połączeń asynchronicznych, w trakcie
- * połączenia może zostać stworzony dodatkowy proces rozwiązujący nazwę
- * serwera -- z tego powodu program musi poprawnie obsłużyć sygnał SIGCHLD.
- *
- * \note Po nawiązaniu połączenia z serwerem należy wysłać listę kontaktów
- * za pomocą funkcji \c gg_notify() lub \c gg_notify_ex().
- *
- * \param p Struktura opisująca parametry połączenia. Wymagane pola: uin,
- *          password, async.
- *
- * \return Wskaźnik do zaalokowanej struktury sesji \c gg_session lub NULL
- *         w przypadku błędu.
- *
- * \ingroup login
- */
-struct gg_session *gg_login(const struct gg_login_params *p)
-{
-	struct gg_session *gs = NULL;
-
-	if (p == NULL) {
-		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
-		errno = EFAULT;
-		return NULL;
-	}
-
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p: [uin=%u, async=%d, ...]);\n", p, p->uin, p->async);
-
-	gs = gg_session_new();
-
-	if (gs == NULL) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for session data\n");
-		return NULL;
-	}
-
-	if (gg_session_set_uin(gs, p->uin) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid uin\n");
-		goto fail;
-	}
-
-	if (gg_session_set_password(gs, p->password) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory or invalid password\n");
-		goto fail;
-	}
-
-	gg_session_set_async(gs, p->async);
-
-	if (p->status != 0 || p->status_descr != NULL)
-		gg_session_set_status(gs, p->status, p->status_descr, 0);
-
-	if (p->hash_type != 0 && gg_session_set_hash_type(gs, p->hash_type)) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unknown hash type (%d)\n", p->hash_type);
-		errno = EFAULT;
-		goto fail;
-	}
-
-	gg_session_set_server(gs, p->server_addr, p->server_port);
-
-	if (p->protocol_version != 0)
-		gg_session_set_protocol_version(gs, p->protocol_version);
-
-	if (p->client_version != NULL)
-		gg_session_set_client_version(gs, p->client_version);
-
-	gg_session_set_external_address(gs, p->external_addr, p->external_port);
-
-	gg_session_set_last_message(gs, p->last_sysmsg);
-
-	if (p->image_size != 0)
-		gg_session_set_image_size(gs, p->image_size);
-
-	gg_session_set_flag(gs, GG_SESSION_FLAG_ERA_OMNIX, p->era_omnix);
-
-	gg_session_set_flag(gs, GG_SESSION_FLAG_AUDIO, p->has_audio);
-
-	gg_session_set_encoding(gs, p->encoding);
-
-	if (gg_session_set_resolver(gs, p->resolver) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unsupported resolver type (%d)\n", p->resolver);
-		errno = EFAULT;
-		goto fail;
-	}
-
-	if (p->tls == 1) {
-#ifdef GG_CONFIG_HAVE_OPENSSL
-		char buf[1024];
-
-		OpenSSL_add_ssl_algorithms();
-
-		if (!RAND_status()) {
-			char rdata[1024];
-			struct {
-				time_t time;
-				void *ptr;
-			} rstruct;
-
-			time(&rstruct.time);
-			rstruct.ptr = (void *) &rstruct;
-
-			RAND_seed((void *) rdata, sizeof(rdata));
-			RAND_seed((void *) &rstruct, sizeof(rstruct));
-		}
-
-		gs->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
-
-		if (!gs->ssl_ctx) {
-			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_CTX_new() failed: %s\n", buf);
-			goto fail;
-		}
-
-		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
-
-		gs->ssl = SSL_new(gs->ssl_ctx);
-
-		if (gs->ssl == NULL) {
-			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_new() failed: %s\n", buf);
-			goto fail;
-		}
-#else
-		gg_debug(GG_DEBUG_MISC, "// gg_login() client requested TLS but no support compiled in\n");
-#endif
-	}
-
-	if (gg_session_connect(gs) == -1)
-		goto fail;
-
-	return gs;
-
-fail:
-	gg_session_free(gs);
-	return NULL;
-}
-
 int gg_session_connect(struct gg_session *gs)
 {
 	char *hostname;
@@ -799,7 +643,7 @@ int gg_session_connect(struct gg_session *gs)
 		if (!gs->server_addr) {
 			if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 				if (gg_gethostbyname(hostname, &addr, 0) == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_login() host \"%s\" not found\n", hostname);
+					gg_debug(GG_DEBUG_MISC, "// gg_session_connect() host \"%s\" not found\n", hostname);
 					return -1;
 				}
 			}
@@ -814,7 +658,7 @@ int gg_session_connect(struct gg_session *gs)
 			gs->proxy_addr = addr.s_addr;
 
 		if ((gs->fd = gg_connect(&addr, port, 0)) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 
 			/* nie wyszło? próbujemy portu 443. */
 			if (gs->server_addr) {
@@ -823,7 +667,7 @@ int gg_session_connect(struct gg_session *gs)
 				if ((gs->fd = gg_connect(&addr, GG_HTTPS_PORT, 0)) == -1) {
 					/* ostatnia deska ratunku zawiodła?
 					 * w takim razie zwijamy manatki. */
-					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_login() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 					goto fail;
 				}
 			} else {
@@ -840,13 +684,13 @@ int gg_session_connect(struct gg_session *gs)
 			struct gg_event *e;
 
 			if (!(e = gg_watch_fd(gs))) {
-				gg_debug(GG_DEBUG_MISC, "// gg_login() critical error in gg_watch_fd()\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_session_connect() critical error in gg_watch_fd()\n");
 				return -1;
 			}
 
 			if (e->type == GG_EVENT_CONN_FAILED) {
 				errno = EACCES;
-				gg_debug(GG_DEBUG_MISC, "// gg_login() could not login\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_session_connect() could not login\n");
 				gg_event_free(e);
 				return -1;
 			}
@@ -859,12 +703,12 @@ int gg_session_connect(struct gg_session *gs)
 
 	if (!gs->server_addr || gg_proxy_enabled) {
 		if (gs->resolver_start(&gs->fd, &gs->resolver, hostname) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_login() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
 			return -1;
 		}
 	} else {
 		if ((gs->fd = gg_connect(&gs->server_addr, gs->port, gs->async)) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_login() direct connection failed (errno=%d, %s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() direct connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			return -1;
 		}
 		gs->state = GG_STATE_CONNECTING_GG;
@@ -930,14 +774,152 @@ int gg_session_disconnect(struct gg_session *gs)
 	return 0;
 }
 
-/**
- * \internal Stub funkcji \c gg_session_disconnect() dla zachowania ABI. 
- *
- * \param gs Struktura sesji
- */
-void gg_logoff(struct gg_session *gs)
+uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 {
-	gg_session_disconnect(gs);
+	struct gg_send_msg s;
+	unsigned char *attr = NULL, attr_buf[3];
+
+	// XXX konwersja z XHTML na plaintext
+	if (gm->text == NULL) {
+		errno = EINVAL;
+		return (uint32_t) -1;
+	}
+
+	if (gm->seq != (uint32_t) -1)
+		s.seq = gg_fix32(gm->seq);
+	else
+		s.seq = gg_fix32(rand());
+
+	s.msgclass = gg_fix32(gm->msgclass);
+
+	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
+		attr_buf[0] = 0x02;
+		attr_buf[1] = gm->attributes_length & 255;
+		attr_buf[2] = (gm->attributes_length >> 8) & 255;
+		attr = attr_buf;
+	}
+
+	if (gm->recipient_count > 1) {
+		struct gg_msg_recipients r;
+		uin_t *recipients;
+		int i, j, k;
+
+		r.flag = 0x01;
+		r.count = gg_fix32(gm->recipient_count - 1);
+
+		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
+
+		if (recipients == NULL)
+			return (uint32_t) -1;
+
+		for (i = 0; i < gm->recipient_count; i++) {
+
+			s.recipient = gg_fix32(gm->recipients[i]);
+
+			for (j = 0, k = 0; j < gm->recipient_count; j++) {
+				if (gm->recipients[j] != gm->recipients[i])
+					recipients[k++] = gg_fix32(gm->recipients[j]);
+			}
+
+			if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), gm->text, strlen((char*) gm->text) + 1, &r, sizeof(r), recipients, (gm->recipient_count - 1) * sizeof(uin_t), attr, 3, gm->attributes, gm->attributes_length, NULL) == -1) {
+				free(recipients);
+				return (uint32_t) -1;
+			}
+		}
+
+		free(recipients);
+	} else {
+		s.recipient = gg_fix32(gm->recipients[0]);
+
+		if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), gm->text, strlen((char*) gm->text) + 1, attr, 3, gm->attributes, gm->attributes_length, NULL) == -1)
+			return (uint32_t) -1;
+	}
+
+	return gg_fix32(s.seq);
+}
+
+uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *gm)
+{
+/*
+ 	struct gg_send_msg s;
+	time_t now;
+
+	// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka wiadomości
+	// w ciągu jednej sekundy, zwiększamy poprzednią wartość, żeby każda
+	// wiadomość miała unikalny numer.
+
+	now = time(NULL);
+
+	if (now > sess->seq)
+		sess->seq = now;
+	else
+		sess->seq++;
+
+	s.seq = gg_fix32(sess->seq);
+	s.msgclass = gg_fix32(msgclass);
+
+	if (recipients_count > 1) {
+		struct gg_msg_recipients r;
+		uin_t *recps;
+		int i, j, k;
+
+		r.flag = 0x01;
+		r.count = gg_fix32(recipients_count - 1);
+
+		if (recipients_count > 0) {
+			recps = malloc(sizeof(uin_t) * recipients_count);
+			if (!recps)
+				return -1;
+		}
+
+		for (i = 0; i < recipients_count; i++) {
+
+			s.recipient = gg_fix32(recipients[i]);
+
+			for (j = 0, k = 0; j < recipients_count; j++) {
+				if (recipients[j] != recipients[i]) {
+					recps[k] = gg_fix32(recipients[j]);
+					k++;
+				}
+			}
+
+			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
+				free(recps);
+				return -1;
+			}
+		}
+
+		free(recps);
+	} else {
+		s.recipient = gg_fix32(recipients[0]);
+
+		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
+			return -1;
+	}
+
+	return gg_fix32(s.seq);
+*/
+	return (uint32_t) -1;
+}
+
+uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
+{
+	GG_SESSION_CHECK(gs, (uint32_t) -1);
+
+	if (gs->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return (uint32_t) -1;
+	}
+
+	if (gm->recipient_count < 1) {
+		errno = EINVAL;
+		return (uint32_t) -1;
+	}
+
+	if (GG_SESSION_PROTOCOL_8_0(gs))
+		return gg_session_send_message_8(gs, gm);
+	else
+		return gg_session_send_message_7(gs, gm);
 }
 
 /**
@@ -985,16 +967,6 @@ void gg_session_free(struct gg_session *sess)
 		dcc->sess = NULL;
 
 	free(sess);
-}
-
-/**
- * \internal Stub funkcji \c gg_session_free() dla zachowania ABI. 
- *
- * \param sess Struktura sesji
- */
-void gg_free_session(struct gg_session *gs)
-{
-	return gg_session_free(gs);
 }
 
 /**

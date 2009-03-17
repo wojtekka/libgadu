@@ -1,7 +1,5 @@
-/* $Id$ */
-
 /*
- *  (C) Copyright 2008 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -18,16 +16,30 @@
  *  USA.
  */
 
-#ifndef LIBGADU_SESSION_H
-#define LIBGADU_SESSION_H
+#ifndef LIBGADU_MESSAGE_H
+#define LIBGADU_MESSAGE_H
 
-#define GG_SESSION_CHECK(gs, result) \
-	if ((gs) == NULL) { \
+#include <sys/types.h>
+#include <inttypes.h>
+#include "libgadu.h"
+
+struct gg_message {
+	uin_t *recipients;
+	unsigned int recipient_count;
+	char *text;
+	char *xhtml;
+	char *attributes;
+	size_t attributes_length;
+	uint32_t msgclass;
+	uint32_t seq;
+};
+
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length);
+
+#define GG_MESSAGE_CHECK(gm, result) \
+	if ((gm) == NULL) { \
 		errno = EINVAL; \
 		return (result); \
 	}
 
-#define GG_SESSION_PROTOCOL_7_7(gs) ((gs)->protocol_version >= 0x2a)
-#define GG_SESSION_PROTOCOL_8_0(gs) ((gs)->protocol_version >= 0x2d)
-
-#endif /* LIBGADU_SESSION_H */
+#endif /* LIBGADU_MESSAGE_H */
