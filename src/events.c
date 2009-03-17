@@ -410,6 +410,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	char *payload = (char*) r + sizeof(struct gg_recv_msg);
 	char *payload_end = (char*) r + h->length;
 	char *tmp;
+	size_t length;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %p);\n", h, e);
 
@@ -421,6 +422,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	// jednobajtowa wiadomość o treści \x02 to żądanie połączenia DCC
 	if (*payload == 0x02 && payload == payload_end - 1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
+		length = 1;
 	} else {
 		const char *options = gg_find_null((char*) r, sizeof(struct gg_recv_msg), h->length);
 
@@ -428,7 +430,9 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds (0)\n");
 			goto malformed;
 		}
-			
+		
+		length = (size_t) (options - payload);
+
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end)) {
 			case -1:	// handled
 				return 0;
@@ -447,12 +451,12 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 
-	tmp = gg_encoding_convert((char*) r + sizeof(*r), GG_ENCODING_CP1250, sess->encoding, -1, -1);
+	tmp = gg_encoding_convert((char*) r + sizeof(*r), GG_ENCODING_CP1250, sess->encoding, length, -1);
 	if (tmp == NULL)
 		goto fail;
 	e->event.msg.message = (unsigned char*) tmp;
 
-	tmp = gg_encoding_convert((char*) r + sizeof(*r), GG_ENCODING_CP1250, sess->encoding, -1, -1);
+	tmp = strdup(tmp);
 	if (tmp == NULL)
 		goto fail;
 	e->event.msg.xhtml_message = tmp;
