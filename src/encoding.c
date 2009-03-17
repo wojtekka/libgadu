@@ -54,12 +54,14 @@ static const uint16_t table_cp1250[] = {
         0x0159, 0x016f, 0x00fa, 0x0171, 0x00fc, 0x00fd, 0x0163, 0x02d9,
 };
 
+// src_length nigdy -1
+// dst_length może być -1
 static char *gg_encoding_convert_cp1250_utf8(const char *src, int src_length, int dst_length)
 {
 	int i, j, len;
 	char *result = NULL;
 
-	for (i = 0, len = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)); i++) {
+	for (i = 0, len = 0; (src[i] != 0) && (i < src_length); i++) {
 		uint16_t uc;
 
 		if ((unsigned char) src[i] < 0x80)
@@ -83,7 +85,7 @@ static char *gg_encoding_convert_cp1250_utf8(const char *src, int src_length, in
 	if (result == NULL) 
 		return NULL;
 
-	for (i = 0, j = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)) && (j < len); i++) {
+	for (i = 0, j = 0; (src[i] != 0) && (i < src_length) && (j < len); i++) {
 		uint16_t uc;
 
 		if ((unsigned char) src[i] < 0x80)
@@ -112,13 +114,15 @@ static char *gg_encoding_convert_cp1250_utf8(const char *src, int src_length, in
 	return result;
 }
 
+// src_length nigdy -1
+// dst_length może być -1
 static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, int dst_length)
 {
 	char *result;
 	int i, j, len, uc_left = 0;
 	uint32_t uc = 0, uc_min;
 
-	for (i = 0, len = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)); i++) {
+	for (i = 0, len = 0; (src[i] != 0) && (i < src_length); i++) {
 		if ((src[i] & 0xc0) == 0xc0) {
 			len++;
 		} else if ((src[i] & 0x80) == 0x00) {
@@ -134,7 +138,7 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
 	if (result == NULL)
 		return NULL;
 
-	for (i = 0, j = 0; (src[i] != 0) && ((src_length == -1) || (i < src_length)) && (j < len); i++) {
+	for (i = 0, j = 0; (src[i] != 0) && (i < src_length) && (j < len); i++) {
 		if ((unsigned char) src[i] >= 0xf5) {
 			if (uc_left != 0) 
 				result[j++] = '?';
@@ -209,16 +213,20 @@ char *gg_encoding_convert(const char *src, gg_encoding_t src_encoding, gg_encodi
 		return NULL;
 	}
 
+	// specjalny przypadek obsługiwany ekspresowo
+	if ((dst_encoding == src_encoding) && (dst_length == -1) && (src_length == -1))
+		return strdup(src);
+
 	if (src_length == -1)
 		src_length = strlen(src);
-
-	if ((dst_encoding == src_encoding) && ((dst_length == -1) || (strlen(src) <= dst_length)) && (strlen(src) <= src_length))
-		return strdup(src);
 
 	if (dst_encoding == src_encoding) {
 		int len;
 
-		len = (src_length < dst_length) ? src_length : dst_length;
+		if (dst_length == -1)
+			len = src_length;
+		else
+			len = (src_length < dst_length) ? src_length : dst_length;
 
 		result = malloc(len + 1);
 
