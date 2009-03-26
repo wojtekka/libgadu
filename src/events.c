@@ -456,16 +456,10 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 		goto fail;
 	e->event.msg.message = (unsigned char*) tmp;
 
-	tmp = strdup(tmp);
-	if (tmp == NULL)
-		goto fail;
-	e->event.msg.xhtml_message = tmp;
-
 	return 0;
 
 fail:
 	free(e->event.msg.message);
-	free(e->event.msg.xhtml_message);
 	free(e->event.msg.recipients);
 	free(e->event.msg.formats);
 	return -1;
@@ -501,7 +495,7 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 
 	if (!r->seq && !r->msgclass) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() oops, silently ignoring the bait\n");
-		goto ignore;
+		goto malformed;
 	}
 
 	offset_plain = gg_fix32(r->offset_plain);
@@ -509,18 +503,17 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 
 	if (offset_plain < sizeof(struct gg_recv_msg80) || offset_plain >= h->length) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (0)\n");
-		goto ignore;
+		goto malformed;
 	}
 
 	if (offset_attr <= sizeof(struct gg_recv_msg80) || offset_attr >= h->length) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, attr out of bounds (1)\n");
 		offset_attr = 0;	/* nie parsuj attr. */
-		/* goto ignore; */
 	}
 
 	if (gg_find_null(packet, offset_plain, h->length) == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (2)\n");
-		goto ignore;
+		goto malformed;
 	}
 
 	e->type = GG_EVENT_MSG;
@@ -529,12 +522,40 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 	e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
-	e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
+
+	if (offset_plain > sizeof(*r))
+		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
+	else
+		e->event.msg.xhtml_message = NULL;
+
+	if (offset_attr != 0) {
+		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + h->length)) {
+			case -1:	// handled
+				return 0;
+
+			case -2:	// failed
+				goto fail;
+
+			case -3:	// malformed
+				goto malformed;
+		}
+	}
 
 	return 0;
 
-ignore:
+fail:
+	free(e->event.msg.message);
+	free(e->event.msg.xhtml_message);
+	free(e->event.msg.recipients);
+	free(e->event.msg.formats);
+	return -1;
+
+malformed:
 	e->type = GG_EVENT_NONE;
+	free(e->event.msg.message);
+	free(e->event.msg.xhtml_message);
+	free(e->event.msg.recipients);
+	free(e->event.msg.formats);
 	return 0;
 }
 
