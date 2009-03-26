@@ -518,12 +518,8 @@ void *gg_recv_packet(struct gg_session *sess)
 	sess->recv_left = 0;
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet(%.2x)", h.type);
-		for (i = 0; i < sizeof(h) + h.length; i++)
-			gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) buf[i]);
-		gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
+		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet()\n");
+		gg_debug_session_dump(sess, GG_DEBUG_DUMP, buf, sizeof(h) + h.length);
 	}
 
 	return buf;
@@ -593,12 +589,8 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
-		for (i = 0; i < tmp_length; ++i)
-			gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) tmp[i]);
-		gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
+		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet()\n");
+		gg_debug_session_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
 	}
 
 	res = gg_write(sess, tmp, tmp_length);
@@ -724,7 +716,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, message, NULL, NULL, 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, NULL, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -751,7 +743,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, message, NULL, (format != NULL) ? format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -777,7 +769,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipient_
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipient_count, recipients, message);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, message, NULL, NULL, 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, NULL, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -805,7 +797,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipient_count, recipients, message, format, formatlen);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, message, NULL, (format != NULL) ? format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
 	return gg_session_send_message(sess, &gm);
 }
 

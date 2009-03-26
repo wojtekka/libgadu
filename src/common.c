@@ -118,6 +118,33 @@ void gg_debug_session(struct gg_session *sess, int level, const char *format, ..
 	errno = old_errno;
 }
 
+void gg_debug_session_dump(struct gg_session *sess, int level, const unsigned char *buf, int len)
+{
+	int i, j;
+
+	for (i = 0; i < len; i += 16) {
+		gg_debug_session(sess, level, "%.4x: ", i);
+
+		for (j = 0; j < 16; j++)
+			gg_debug_session(sess, level, (i + j < len) ? " %02x" : "   ", buf[i + j]);
+
+		gg_debug_session(sess, level, "  ");
+
+		for (j = 0; j < 16; j++) {
+			unsigned char ch;
+
+			ch = buf[i + j];
+
+			if (ch < 32 || ch > 126)
+				ch = '.';
+
+			gg_debug_session(sess, level, (i + j < len) ? "%c" : " ", ch);
+		}
+
+		gg_debug_session(sess, level, "\n");
+	}
+}
+
 #endif
 
 /**

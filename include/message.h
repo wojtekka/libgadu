@@ -27,19 +27,23 @@ struct gg_message {
 	uin_t *recipients;
 	unsigned int recipient_count;
 	char *text;
-	char *xhtml;
+	char *html;
 	char *attributes;
 	size_t attributes_length;
 	uint32_t msgclass;
 	uint32_t seq;
 };
 
-int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length);
-
 #define GG_MESSAGE_CHECK(gm, result) \
 	if ((gm) == NULL) { \
 		errno = EINVAL; \
 		return (result); \
 	}
+
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length);
+
+char *gg_message_text_to_html(const char *text, const char *attributes, size_t attributes_length);
+
+char *gg_message_html_to_text(const char *html);
 
 #endif /* LIBGADU_MESSAGE_H */

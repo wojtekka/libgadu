@@ -75,6 +75,7 @@ struct gg_session *gg_session_new(void)
 	gs->destroy = gg_session_free;
 	gs->pid = -1;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
+	gs->encoding = GG_ENCODING_UTF8;
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
@@ -777,12 +778,37 @@ int gg_session_disconnect(struct gg_session *gs)
 uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 {
 	struct gg_send_msg s;
-	unsigned char *attr = NULL, attr_buf[3];
+	unsigned char *attr_header = NULL, attr_buf[3];
+	char *text = NULL;
 
-	// XXX konwersja z XHTML na plaintext
-	if (gm->text == NULL) {
+	if (gm->text != NULL) {
+		if (gs->encoding != GG_ENCODING_CP1250) {
+			text = gg_encoding_convert(gm->text, gs->encoding, GG_ENCODING_CP1250, -1, -1);
+			goto failure;
+		} else {
+			text = gm->text;
+		}
+	} else if (gm->text == NULL && gm->html != NULL) {
+		text = gg_message_html_to_text(gm->html);
+
+		if (text == NULL)
+			goto failure;
+
+		if (gs->encoding != GG_ENCODING_CP1250) {
+			char *tmp;
+
+			tmp = gg_encoding_convert(text, gs->encoding, GG_ENCODING_CP1250, -1, -1);
+
+			free(text);
+
+			if (tmp == NULL)
+				goto failure;
+
+			text = tmp;
+		}
+	} else {
 		errno = EINVAL;
-		return (uint32_t) -1;
+		goto failure;
 	}
 
 	if (gm->seq != (uint32_t) -1)
@@ -793,10 +819,11 @@ uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 	s.msgclass = gg_fix32(gm->msgclass);
 
 	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
+		// XXX zrobić strukturę?
 		attr_buf[0] = 0x02;
 		attr_buf[1] = gm->attributes_length & 255;
 		attr_buf[2] = (gm->attributes_length >> 8) & 255;
-		attr = attr_buf;
+		attr_header = attr_buf;
 	}
 
 	if (gm->recipient_count > 1) {
@@ -810,7 +837,7 @@ uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
 		if (recipients == NULL)
-			return (uint32_t) -1;
+			goto failure;
 
 		for (i = 0; i < gm->recipient_count; i++) {
 
@@ -821,9 +848,9 @@ uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 					recipients[k++] = gg_fix32(gm->recipients[j]);
 			}
 
-			if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), gm->text, strlen((char*) gm->text) + 1, &r, sizeof(r), recipients, (gm->recipient_count - 1) * sizeof(uin_t), attr, 3, gm->attributes, gm->attributes_length, NULL) == -1) {
+			if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), text, strlen(text), "\0", 1, &r, sizeof(r), recipients, (gm->recipient_count - 1) * sizeof(uin_t), attr_header, 3, gm->attributes, gm->attributes_length, NULL) == -1) {
 				free(recipients);
-				return (uint32_t) -1;
+				goto failure;
 			}
 		}
 
@@ -831,18 +858,89 @@ uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 	} else {
 		s.recipient = gg_fix32(gm->recipients[0]);
 
-		if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), gm->text, strlen((char*) gm->text) + 1, attr, 3, gm->attributes, gm->attributes_length, NULL) == -1)
-			return (uint32_t) -1;
+		if (gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), text, strlen(text), "\0", 1, attr_header, 3, gm->attributes, gm->attributes_length, NULL) == -1)
+			goto failure;
 	}
 
+	if (text != gm->text)
+		free(text);
+
 	return gg_fix32(s.seq);
+
+failure:
+	if (text != gm->text)
+		free(text);
+
+	return (uint32_t) -1;
 }
 
 uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *gm)
 {
-/*
- 	struct gg_send_msg s;
+	struct gg_send_msg80 s;
+	char attr_header[3];
+	const char *attr;
+	int attr_len;
+	char *text = NULL, *html = NULL;
 	time_t now;
+
+	if (gm->html != NULL) {
+		if (gs->encoding != GG_ENCODING_UTF8) {
+			html = gg_encoding_convert(gm->html, gs->encoding, GG_ENCODING_UTF8, -1, -1);
+
+			if (html == NULL)
+				goto failure;
+		} else
+			html = gm->html;
+	} else if (gm->html == NULL && gm->text != NULL) {
+		html = gg_message_text_to_html(gm->text, gm->attributes, gm->attributes_length);
+
+		if (html == NULL)
+			goto failure;
+
+		if (gs->encoding != GG_ENCODING_UTF8) {
+			char *tmp;
+
+			tmp = gg_encoding_convert(html, gs->encoding, GG_ENCODING_UTF8, -1, -1);
+
+			free(html);
+
+			if (tmp == NULL)
+				goto failure;
+
+			html = tmp;
+		}
+	} else {
+		errno = EINVAL;
+		goto failure;
+	}
+
+	if (gm->text != NULL) {
+		if (gs->encoding != GG_ENCODING_CP1250) {
+			text = gg_encoding_convert(gm->text, gs->encoding, GG_ENCODING_CP1250, -1, -1);
+			if (text == NULL)
+				goto failure;
+		} else {
+			text = gm->text;
+		}
+	} else if (gm->text == NULL && gm->html != NULL) {
+		text = gg_message_html_to_text(gm->html);
+
+		if (text == NULL)
+			goto failure;
+
+		if (gs->encoding != GG_ENCODING_CP1250) {
+			char *tmp;
+
+			tmp = gg_encoding_convert(text, gs->encoding, GG_ENCODING_CP1250, -1, -1);
+
+			free(text);
+
+			if (tmp == NULL)
+				goto failure;
+
+			text = tmp;
+		}
+	}
 
 	// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka wiadomości
 	// w ciągu jednej sekundy, zwiększamy poprzednią wartość, żeby każda
@@ -850,55 +948,80 @@ uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *gm)
 
 	now = time(NULL);
 
-	if (now > sess->seq)
-		sess->seq = now;
+	if (now > gm->seq)
+		gm->seq = now;
 	else
-		sess->seq++;
+		gm->seq++;
 
-	s.seq = gg_fix32(sess->seq);
-	s.msgclass = gg_fix32(msgclass);
+	s.seq = gg_fix32(gm->seq);
+	s.msgclass = gg_fix32(gm->msgclass);
+	s.offset_plain = sizeof(s) + strlen(html) + 1;
+	s.offset_attr = s.offset_plain + strlen(text) + 1;
 
-	if (recipients_count > 1) {
+	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
+		attr = gm->attributes;
+		attr_len = gm->attributes_length;
+	} else {
+		attr = "\x00\x00\x08\x00\x00\x00";
+		attr_len = 6;
+	}
+
+	// XXX zrobić strukturę?
+	attr_header[0] = 0x02;
+	attr_header[1] = attr_len & 255;
+	attr_header[2] = (attr_len >> 8) & 255;
+
+	if (gm->recipient_count > 1) {
 		struct gg_msg_recipients r;
-		uin_t *recps;
+		uin_t *recipients;
 		int i, j, k;
 
 		r.flag = 0x01;
-		r.count = gg_fix32(recipients_count - 1);
+		r.count = gg_fix32(gm->recipient_count - 1);
 
-		if (recipients_count > 0) {
-			recps = malloc(sizeof(uin_t) * recipients_count);
-			if (!recps)
-				return -1;
-		}
+		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
-		for (i = 0; i < recipients_count; i++) {
+		if (recipients == NULL)
+			goto failure;
 
-			s.recipient = gg_fix32(recipients[i]);
+		for (i = 0; i < gm->recipient_count; i++) {
 
-			for (j = 0, k = 0; j < recipients_count; j++) {
-				if (recipients[j] != recipients[i]) {
-					recps[k] = gg_fix32(recipients[j]);
-					k++;
-				}
+			s.recipient = gg_fix32(gm->recipients[i]);
+
+			for (j = 0, k = 0; j < gm->recipient_count; j++) {
+				if (gm->recipients[j] != gm->recipients[i])
+					recipients[k++] = gg_fix32(gm->recipients[j]);
 			}
 
-			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
-				free(recps);
-				return -1;
+			if (gg_send_packet(gs, GG_SEND_MSG80, &s, sizeof(s), html, strlen(html), "\0", 1, text, strlen(text), "\0", 1, &r, sizeof(r), recipients, (gm->recipient_count - 1) * sizeof(uin_t), attr_header, 3, attr, attr_len, NULL) == -1) {
+				free(recipients);
+				goto failure;
 			}
 		}
 
-		free(recps);
+		free(recipients);
 	} else {
-		s.recipient = gg_fix32(recipients[0]);
+		s.recipient = gg_fix32(gm->recipients[0]);
 
-		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
-			return -1;
+		if (gg_send_packet(gs, GG_SEND_MSG80, &s, sizeof(s), html, strlen(html), "\0", 1, text, strlen(text), "\0", 1, attr_header, 3, attr, attr_len, NULL) == -1)
+			goto failure;
 	}
 
+	if (html != gm->html)
+		free(html);
+
+	if (text != gm->text)
+		free(text);
+
 	return gg_fix32(s.seq);
-*/
+
+failure:
+	if (html != gm->html)
+		free(html);
+
+	if (text != gm->text)
+		free(text);
+
 	return (uint32_t) -1;
 }
 
