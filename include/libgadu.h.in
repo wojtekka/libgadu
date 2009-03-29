@@ -1420,6 +1420,8 @@ struct gg_login70 {
 
 #define GG_LOGIN_FAILED 0x0009
 
+#define GG_LOGIN_HASH_TYPE_INVALID 0x0016
+
 #define GG_PUBDIR50_REQUEST 0x0014
 
 struct gg_pubdir50_request {

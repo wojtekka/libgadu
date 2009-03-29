@@ -262,7 +262,7 @@ na liście kontaktów. Pole opcji protokołu zawsze zawiera wartość
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
 <tr class="tabf"><td>0</td><td><tt>0x00000001</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 2)<br /><tt>0</tt> &mdash; <tt>GG_STATUS77</tt>, <tt>GG_NOTIFY_REPLY77</tt><br /><tt>1</tt> &mdash; <tt>GG_STATUS80BETA</tt>, <tt>GG_NOTIFY_REPLY80BETA</tt></td></tr>
 <tr class="tabf"><td>1</td><td><tt>0x00000002</tt></td><td>Rodzaj pakietu z otrzymają wiadomością<br /><tt>0</tt> &mdash; <tt>GG_RECV_MSG</tt><br /><tt>1</tt> &mdash; <tt>GG_RECV_MSG80</tt></td></tr>
-<tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 2)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
+<tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 0)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
 </table>
 
 <p>
@@ -1178,6 +1178,7 @@ Pakiety odbierane:
 <tr class="tabf2"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze przed nowym Gadu-Gadu</td></tr>
 <tr class="tabf2"><td><tt>0x0011</tt></td><td><tt>GG_NOTIFY_REPLY60</tt></td><td>Stan listy kontaktów przed GG 7.7</td></tr>
 <tr class="tabf"><td><tt>0x0014</tt></td><td><tt>GG_NEED_EMAIL</tt></td><td>Logowanie powiodło się, ale powinniśmy uzupełnić adres e-mail w katalogu publicznym</td></tr>
+<tr class="tabf2"><td><tt>0x0016</tt></td><td><tt>GG_LOGIN_HASH_TYPE_INVALID</tt></td><td>Dany rodzaj hashowania hasła jest nieobsługiwany przez serwer</td></tr>
 <tr class="tabf2"><td><tt>0x0017</tt></td><td><tt>GG_STATUS77</tt></td><td>Zmiana stanu przed GG 8.0</td></tr>
 <tr class="tabf2"><td><tt>0x0018</tt></td><td><tt>GG_NOTIFY_REPLY77</tt></td><td>Stan listy kontaktów przed GG 8.0</td></tr>
 <tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_DUNNO1</tt></td><td></td></tr>
