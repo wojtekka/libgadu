@@ -40,6 +40,7 @@
 
 #include "libgadu.h"
 #include "resolver.h"
+#include "session.h"
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 
@@ -455,10 +456,7 @@ cleanup:
  */
 int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (type == GG_RESOLVER_DEFAULT) {
 #if !defined(GG_CONFIG_HAVE_PTHREAD) || !defined(GG_CONFIG_PTHREAD_DEFAULT)
@@ -498,10 +496,7 @@ int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
  */
 gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return GG_RESOLVER_INVALID;
-	}
+	GG_SESSION_CHECK(gs, (gg_resolver_t) -1);
 
 	return gs->resolver_type;
 }
@@ -517,7 +512,9 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  */
 int gg_session_set_custom_resolver(struct gg_session *gs, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
 {
-	if (gs == NULL || resolver_start == NULL || resolver_cleanup == NULL) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (resolver_start == NULL || resolver_cleanup == NULL) {
 		errno = EINVAL;
 		return -1;
 	}

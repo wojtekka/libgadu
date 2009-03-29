@@ -276,6 +276,8 @@ struct gg_session {
 	unsigned int max_descr_length;	/**< Maksymalna długość opisu */
 
 	uint32_t flags;			/**< Flagi */
+
+	uint32_t bind_address;		/**< Lokalny adres gniazda */
 };
 
 /**
@@ -574,24 +576,76 @@ struct gg_login_params {
 
 };
 
+typedef enum {
+	GG_LOGIN_HASH_DEFAULT = 0,	/**< Domyślny algorytm */
+	GG_LOGIN_HASH_GG32 = 1,		/**< Algorytm Gadu-Gadu */
+#define GG_LOGIN_HASH_GG32 GG_LOGIN_HASH_GG32
+	GG_LOGIN_HASH_SHA1 = 2,		/**< Algorytm SHA1 */
+#define GG_LOGIN_HASH_SHA1 GG_LOGIN_HASH_SHA1
+	GG_LOGIN_HASH_INVALID = -1	/**< Nieprawidłowy algorytm */
+} gg_login_hash_t;
+
+/**
+ * Rodzaj kodowania znaków.
+ */
+typedef enum {
+	GG_ENCODING_CP1250 = 0,		/**< Kodowanie CP1250 */
+	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
+	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
+} gg_encoding_t;
+
+/**
+ * Flagi sesji.
+ */
+typedef enum {
+	GG_SESSION_FLAG_ERA_OMNIX = 0,	/**< Połączenie Era Omnix */
+	GG_SESSION_FLAG_AUDIO,		/**< Obsługa połączeń głosowych */
+	GG_SESSION_FLAG_CLEAR_PASSWORD,	/**< Czyszczenie hasła po każdym połączeniu */
+
+	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
+} gg_session_flag_t;
+
 struct gg_session *gg_session_new(void);
-void gg_session_free(struct gg_session *sess);
 int gg_session_set_uin(struct gg_session *gs, uin_t uin);
 uin_t gg_session_get_uin(struct gg_session *gs);
 int gg_session_set_password(struct gg_session *gs, const char *password);
 const char *gg_session_get_password(struct gg_session *gs);
-int gg_session_connect(struct gg_session *gs);
-int gg_session_disconnect(struct gg_session *gs);
-int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time);
-int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time);
+int gg_session_set_async(struct gg_session *gs, int async);
+int gg_session_get_async(struct gg_session *gs);
+int gg_session_set_hash_type(struct gg_session *gs, gg_login_hash_t hash_type);
+gg_login_hash_t gg_session_get_hash_type(struct gg_session *gs);
+int gg_session_set_server(struct gg_session *gs, uint32_t address, uint16_t port);
+int gg_session_get_server(struct gg_session *gs, uint32_t *address, uint16_t *port);
+int gg_session_set_external_address(struct gg_session *gs, uint32_t address, uint16_t port);
+int gg_session_get_external_address(struct gg_session *gs, uint32_t *address, uint16_t *port);
+int gg_session_set_bind_address(struct gg_session *gs, uint32_t address);
+uint32_t gg_session_get_bind_address(struct gg_session *gs);
 int gg_session_set_protocol_version(struct gg_session *gs, int protocol);
 int gg_session_get_protocol_version(struct gg_session *gs);
-int gg_session_set_async(struct gg_session *gs, int value);
-int gg_session_get_async(struct gg_session *gs);
+int gg_session_set_client_version(struct gg_session *gs, const char *version);
+const char *gg_session_get_client_version(struct gg_session *gs);
+int gg_session_set_image_size(struct gg_session *gs, int image_size);
+int gg_session_get_image_size(struct gg_session *gs);
+int gg_session_set_last_message(struct gg_session *gs, int last_message);
+int gg_session_get_last_message(struct gg_session *gs);
+int gg_session_set_encoding(struct gg_session *gs, gg_encoding_t encoding);
+gg_encoding_t gg_session_get_encoding(struct gg_session *gs);
+int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value);
+int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag);
+int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time);
+int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time);
 int gg_session_get_fd(struct gg_session *gs);
 int gg_session_get_check(struct gg_session *gs);
+int gg_session_get_timeout(struct gg_session *gs);
+int gg_session_is_idle(struct gg_session *gs);
+int gg_session_is_connecting(struct gg_session *gs);
+int gg_session_is_connected(struct gg_session *gs);
 int gg_session_get_ping_period(struct gg_session *gs);
+int gg_session_ping(struct gg_session *gs);
+int gg_session_connect(struct gg_session *gs);
+int gg_session_disconnect(struct gg_session *gs);
 uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm);
+void gg_session_free(struct gg_session *gs);
 
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
@@ -1151,35 +1205,6 @@ extern char *gg_proxy_password;
 extern int gg_proxy_http_only;
 
 extern unsigned long gg_local_ip;
-
-typedef enum {
-	GG_LOGIN_HASH_DEFAULT = 0,	/**< Domyślny algorytm */
-	GG_LOGIN_HASH_GG32 = 1,		/**< Algorytm Gadu-Gadu */
-#define GG_LOGIN_HASH_GG32 GG_LOGIN_HASH_GG32
-	GG_LOGIN_HASH_SHA1 = 2,		/**< Algorytm SHA1 */
-#define GG_LOGIN_HASH_SHA1 GG_LOGIN_HASH_SHA1
-	GG_LOGIN_HASH_INVALID = -1	/**< Nieprawidłowy algorytm */
-} gg_login_hash_t;
-
-/**
- * Rodzaj kodowania znaków.
- */
-typedef enum {
-	GG_ENCODING_CP1250 = 0,		/**< Kodowanie CP1250 */
-	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
-	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
-} gg_encoding_t;
-
-/**
- * Flagi sesji.
- */
-typedef enum {
-	GG_SESSION_FLAG_ERA_OMNIX = 0,	/**< Połączenie Era Omnix */
-	GG_SESSION_FLAG_AUDIO,		/**< Obsługa połączeń głosowych */
-	GG_SESSION_FLAG_CLEAR_PASSWORD,	/**< Czyszczenie hasła po każdym połączeniu */
-
-	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
-} gg_session_flag_t;
 
 #ifndef DOXYGEN
 

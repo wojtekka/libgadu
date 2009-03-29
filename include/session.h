@@ -30,4 +30,8 @@
 #define GG_SESSION_PROTOCOL_7_7(gs) ((gs)->protocol_version >= 0x2a)
 #define GG_SESSION_PROTOCOL_8_0(gs) ((gs)->protocol_version >= 0x2d)
 
+#define GG_SESSION_IS_IDLE(gs) ((gs)->state == GG_STATE_IDLE)
+#define GG_SESSION_IS_CONNECTING(gs) ((gs)->state != GG_STATE_IDLE && (gs)->state != GG_STATE_CONNECTED)
+#define GG_SESSION_IS_CONNECTED(gs) ((gs)->state == GG_STATE_CONNECTED)
+
 #endif /* LIBGADU_SESSION_H */

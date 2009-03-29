@@ -86,7 +86,9 @@ struct gg_session *gg_session_new(void)
 
 int gg_session_set_uin(struct gg_session *gs, uin_t uin)
 {
-	if (gs == NULL || uin == 0) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (uin == 0) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -98,10 +100,7 @@ int gg_session_set_uin(struct gg_session *gs, uin_t uin)
 
 uin_t gg_session_get_uin(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->uin;
 }
@@ -110,7 +109,9 @@ int gg_session_set_password(struct gg_session *gs, const char *password)
 {
 	char *tmp = NULL;
 
-	if (gs == NULL || password == NULL) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (password == NULL) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -130,20 +131,14 @@ int gg_session_set_password(struct gg_session *gs, const char *password)
 
 const char *gg_session_get_password(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return NULL;
-	}
+	GG_SESSION_CHECK(gs, NULL);
 
 	return gs->password;
 }
 
 int gg_session_set_async(struct gg_session *gs, int async)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->async = !!async;
 
@@ -152,17 +147,16 @@ int gg_session_set_async(struct gg_session *gs, int async)
 
 int gg_session_get_async(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->async;
 }
 
 int gg_session_set_hash_type(struct gg_session *gs, gg_login_hash_t hash_type)
 {
-	if (gs == NULL || hash_type < GG_LOGIN_HASH_DEFAULT || hash_type > GG_LOGIN_HASH_SHA1) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (hash_type < GG_LOGIN_HASH_DEFAULT || hash_type > GG_LOGIN_HASH_SHA1) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -177,20 +171,14 @@ int gg_session_set_hash_type(struct gg_session *gs, gg_login_hash_t hash_type)
 
 gg_login_hash_t gg_session_get_hash_type(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return GG_LOGIN_HASH_INVALID;
-	}
+	GG_SESSION_CHECK(gs, (gg_login_hash_t) -1);
 
 	return gs->hash_type;
 }
 
 int gg_session_set_server(struct gg_session *gs, uint32_t address, uint16_t port)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->server_addr = address;
 	gs->port = port;
@@ -200,10 +188,7 @@ int gg_session_set_server(struct gg_session *gs, uint32_t address, uint16_t port
 
 int gg_session_get_server(struct gg_session *gs, uint32_t *address, uint16_t *port)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (address != NULL)
 		*address = gs->server_addr;
@@ -213,12 +198,10 @@ int gg_session_get_server(struct gg_session *gs, uint32_t *address, uint16_t *po
 
 	return 0;
 }
+
 int gg_session_set_external_address(struct gg_session *gs, uint32_t address, uint16_t port)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->external_addr = address;
 	gs->external_port = port;
@@ -228,10 +211,7 @@ int gg_session_set_external_address(struct gg_session *gs, uint32_t address, uin
 
 int gg_session_get_external_address(struct gg_session *gs, uint32_t *address, uint16_t *port)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (address != NULL)
 		*address = gs->external_addr;
@@ -242,12 +222,25 @@ int gg_session_get_external_address(struct gg_session *gs, uint32_t *address, ui
 	return 0;
 }
 
+int gg_session_set_bind_address(struct gg_session *gs, uint32_t address)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	gs->bind_address = address;
+
+	return 0;
+}
+
+uint32_t gg_session_get_bind_address(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, (uint32_t) -1);
+
+	return gs->bind_address;
+}
+
 int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->protocol_version = protocol;
 
@@ -261,10 +254,7 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 
 int gg_session_get_protocol_version(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->protocol_version;
 }
@@ -273,10 +263,7 @@ int gg_session_set_client_version(struct gg_session *gs, const char *version)
 {
 	char *tmp = NULL;
 
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (version != NULL) {
 		tmp = strdup(version);
@@ -293,20 +280,14 @@ int gg_session_set_client_version(struct gg_session *gs, const char *version)
 
 const char *gg_session_get_client_version(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return NULL;
-	}
+	GG_SESSION_CHECK(gs, NULL);
 
 	return gs->client_version;
 }
 
 int gg_session_set_image_size(struct gg_session *gs, int image_size)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->image_size = image_size;
 
@@ -315,20 +296,14 @@ int gg_session_set_image_size(struct gg_session *gs, int image_size)
 
 int gg_session_get_image_size(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->image_size;
 }
 
 int gg_session_set_last_message(struct gg_session *gs, int last_message)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gs->last_sysmsg = last_message;
 
@@ -337,17 +312,16 @@ int gg_session_set_last_message(struct gg_session *gs, int last_message)
 
 int gg_session_get_last_message(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->last_sysmsg;
 }
 
 int gg_session_set_encoding(struct gg_session *gs, gg_encoding_t encoding)
 {
-	if (gs == NULL || encoding < GG_ENCODING_CP1250 || encoding > GG_ENCODING_UTF8) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (encoding < GG_ENCODING_CP1250 || encoding > GG_ENCODING_UTF8) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -359,20 +333,14 @@ int gg_session_set_encoding(struct gg_session *gs, gg_encoding_t encoding)
 
 gg_encoding_t gg_session_get_encoding(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return GG_ENCODING_INVALID;
-	}
+	GG_SESSION_CHECK(gs, (gg_encoding_t) -1);
 
 	return gs->encoding;
 }
 
 int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	switch (flag) {
 		case GG_SESSION_FLAG_ERA_OMNIX:
@@ -406,10 +374,7 @@ int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value
 
 int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	switch (flag) {
 		case GG_SESSION_FLAG_ERA_OMNIX:
@@ -425,6 +390,8 @@ int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 			errno = EINVAL;
 			return -1;
 	}
+
+	// return jest w switch/default
 }
 
 static int gg_session_set_status_8(struct gg_session *gs, int status, const char *descr)
@@ -435,7 +402,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 	if (descr != NULL)
 		tmp = gg_encoding_convert(descr, gs->encoding, GG_ENCODING_UTF8, -1, gs->max_descr_length);
 
-	if (gs->state != GG_STATE_CONNECTED) {
+	if (!GG_SESSION_IS_CONNECTED(gs)) {
 		gs->initial_status = status;
 		free(gs->initial_descr);
 		gs->initial_descr = tmp;
@@ -472,7 +439,7 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 
 	gs->status_time = time;
 
-	if (gs->state != GG_STATE_CONNECTED) {
+	if (!GG_SESSION_IS_CONNECTED(gs)) {
 		gs->initial_status = status;
 		free(gs->initial_descr);
 		gs->initial_descr = tmp;
@@ -521,16 +488,13 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 
 int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (status != NULL)
-		*status = (gs->state == GG_STATE_CONNECTED) ? gs->status : gs->initial_status;
+		*status = GG_SESSION_IS_CONNECTED(gs) ? gs->status : gs->initial_status;
 	
 	if (descr != NULL)
-		*descr = (gs->state == GG_STATE_CONNECTED) ? gs->initial_descr : gs->status_descr;
+		*descr = GG_SESSION_IS_CONNECTED(gs) ? gs->initial_descr : gs->status_descr;
 	
 	if (time != NULL)
 		*time = gs->status_time;
@@ -540,70 +504,49 @@ int gg_session_get_status(struct gg_session *gs, int *status, const char **descr
 
 int gg_session_get_fd(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->fd;
 }
 
 int gg_session_get_check(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->check;
 }
 
 int gg_session_get_timeout(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	return gs->timeout;
 }
 
-int gg_session_is_disconnected(struct gg_session *gs)
+int gg_session_is_idle(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
-	return (gs->state == GG_STATE_IDLE);
+	return GG_SESSION_IS_IDLE(gs);
 }
 
 int gg_session_is_connecting(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
-	return (gs->state != GG_STATE_IDLE && gs->state != GG_STATE_CONNECTED);
+	return GG_SESSION_IS_CONNECTING(gs);
 }
 
 int gg_session_is_connected(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
-	return (gs->state == GG_STATE_CONNECTED);
+	return GG_SESSION_IS_CONNECTED(gs);
 }
 
 int gg_session_get_ping_period(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	if (GG_SESSION_PROTOCOL_8_0(gs))
 		return 256;
@@ -611,12 +554,44 @@ int gg_session_get_ping_period(struct gg_session *gs)
 		return 60;	// XXX: sprawdzić
 }
 
+/**
+ * Wysyła do serwera pakiet utrzymania połączenia.
+ *
+ * Klient powinien regularnie co minutę wysyłać pakiet utrzymania połączenia,
+ * inaczej serwer uzna, że klient stracił łączność z siecią i zerwie
+ * połączenie.
+ *
+ * \param sess Struktura sesji
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ * 
+ * \ingroup login
+ */
+int gg_session_ping(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	if (!GG_SESSION_IS_CONNECTED(gs)) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	return gg_send_packet(gs, GG_PING, NULL);
+}
+
 int gg_session_connect(struct gg_session *gs)
 {
 	char *hostname;
 	int port;
 
-	if (gs == NULL || gs->uin == 0 || gs->password == NULL) {
+	GG_SESSION_CHECK(gs, -1);
+
+	if (!GG_SESSION_IS_IDLE(gs)) {
+		errno = EINPROGRESS;
+		return -1;
+	}
+
+	if (gs->uin == 0 || gs->password == NULL) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -681,7 +656,7 @@ int gg_session_connect(struct gg_session *gs)
 		else
 			gs->state = GG_STATE_CONNECTING_HUB;
 
-		while (gs->state != GG_STATE_CONNECTED) {
+		while (!GG_SESSION_IS_CONNECTED(gs)) {
 			struct gg_event *e;
 
 			if (!(e = gg_watch_fd(gs))) {
@@ -741,12 +716,14 @@ fail:
  */
 int gg_session_disconnect(struct gg_session *gs)
 {
-	if (gs == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
 	gg_debug_session(gs, GG_DEBUG_FUNCTION, "** gg_session_disconnect(%p);\n", gs);
+
+	if (!GG_SESSION_IS_CONNECTED(gs)) {
+		errno = ENOTCONN;
+		return -1;
+	}
 
 	if (!GG_S_NA(gs->status) && gs->status_descr != NULL)
 		gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, gs->status_descr, gs->status_time);
@@ -775,7 +752,7 @@ int gg_session_disconnect(struct gg_session *gs)
 	return 0;
 }
 
-uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
+static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *gm)
 {
 	struct gg_send_msg s;
 	unsigned char *attr_header = NULL, attr_buf[3];
@@ -874,7 +851,7 @@ failure:
 	return (uint32_t) -1;
 }
 
-uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *gm)
+static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *gm)
 {
 	struct gg_send_msg80 s;
 	char attr_header[3];
@@ -1029,7 +1006,7 @@ uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
 {
 	GG_SESSION_CHECK(gs, (uint32_t) -1);
 
-	if (gs->state != GG_STATE_CONNECTED) {
+	if (!GG_SESSION_IS_CONNECTED(gs)) {
 		errno = ENOTCONN;
 		return (uint32_t) -1;
 	}
@@ -1050,46 +1027,46 @@ uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
  * po zamknięciu połączenia z serwerem, by nie doprowadzić do wycieku zasobów
  * systemowych.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  *
  * \ingroup login
  */
-void gg_session_free(struct gg_session *sess)
+void gg_session_free(struct gg_session *gs)
 {
 	struct gg_dcc7 *dcc;
 
-	if (sess == NULL)
+	if (gs == NULL)
 		return;
 
-	free(sess->password);
-	free(sess->initial_descr);
-	free(sess->status_descr);
-	free(sess->client_version);
-	free(sess->header_buf);
+	free(gs->password);
+	free(gs->initial_descr);
+	free(gs->status_descr);
+	free(gs->client_version);
+	free(gs->header_buf);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl != NULL)
-		SSL_free(sess->ssl);
+	if (gs->ssl != NULL)
+		SSL_free(gs->ssl);
 
-	if (sess->ssl_ctx != NULL)
-		SSL_CTX_free(sess->ssl_ctx);
+	if (gs->ssl_ctx != NULL)
+		SSL_CTX_free(gs->ssl_ctx);
 #endif
  
-	sess->resolver_cleanup(&sess->resolver, 1);
+	gs->resolver_cleanup(&gs->resolver, 1);
 
-	if (sess->fd != -1)
-		close(sess->fd);
+	if (gs->fd != -1)
+		close(gs->fd);
 
-	while (sess->images != NULL)
-		gg_image_queue_remove(sess, sess->images, 1);
+	while (gs->images != NULL)
+		gg_image_queue_remove(gs, gs->images, 1);
 
-	if (sess->send_buf != NULL)
-		free(sess->send_buf);
+	if (gs->send_buf != NULL)
+		free(gs->send_buf);
 
-	for (dcc = sess->dcc7_list; dcc != NULL; dcc = dcc->next)
+	for (dcc = gs->dcc7_list; dcc != NULL; dcc = dcc->next)
 		dcc->sess = NULL;
 
-	free(sess);
+	free(gs);
 }
 
 /**
@@ -1100,18 +1077,15 @@ void gg_session_free(struct gg_session *sess)
  *
  * \note Korzystanie z tej funkcjonalności nie jest już zalecane.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-static int gg_session_callback(struct gg_session *sess)
+static int gg_session_callback(struct gg_session *gs)
 {
-	if (sess == NULL) {
-		errno = EFAULT;
-		return -1;
-	}
+	GG_SESSION_CHECK(gs, -1);
 
-	sess->event = gg_watch_fd(sess);
+	gs->event = gg_watch_fd(gs);
 
-	return (sess->event != NULL) ? 0 : -1;
+	return (gs->event != NULL) ? 0 : -1;
 }
