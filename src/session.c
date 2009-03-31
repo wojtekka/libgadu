@@ -74,8 +74,8 @@ struct gg_session *gg_session_new(void)
 	gs->callback = gg_session_callback;
 	gs->destroy = gg_session_free;
 	gs->pid = -1;
-	gs->hash_type = GG_LOGIN_HASH_SHA1;
 	gs->encoding = GG_ENCODING_UTF8;
+	gs->hash_type = GG_LOGIN_HASH_SHA1;
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
@@ -244,10 +244,19 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 
 	gs->protocol_version = protocol;
 
-	if (GG_SESSION_PROTOCOL_8_0(gs))
+	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
 		gs->max_descr_length = GG_STATUS_DESCR_MAXSIZE;
-	else
+		gs->ping_period = 256;
+	} else {
 		gs->max_descr_length = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
+		gs->ping_period = 60;	// XXX sprawdzić
+	}
+
+	// XXX poniższe parametry są różne dla protokołu wcześniejszego niż
+	// 7.0, więc wypadałoby je poprawić, jeśli mamy wspierać wcześniejsze
+	// wersje.
+
+	gs->max_contacts_chunk_length = 2047;	// XXX sprawdzić 8.0
 
 	return 0;
 }
@@ -411,7 +420,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 
 		p.status = gg_fix32(status);
 		p.dunno1 = 0;
-		p.descr_len = (tmp != NULL) ? strlen(tmp) : 0;
+		p.descr_len = gg_fix32((tmp != NULL) ? strlen(tmp) : 0);
 
 		gs->status = status;
 		free(gs->status_descr);
@@ -449,7 +458,7 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 
 		// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
 
-		if (GG_SESSION_PROTOCOL_7_7(gs) && (gs->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+		if (GG_SESSION_IS_PROTOCOL_7_7(gs) && (gs->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
 			status |= GG_STATUS_VOICE_MASK;
 
 		p.status = gg_fix32(status);
@@ -480,7 +489,19 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 {
 	GG_SESSION_CHECK(gs, -1);
 
-	if (GG_SESSION_PROTOCOL_8_0(gs))
+	if (GG_S(status) == GG_STATUS_AVAIL && descr != NULL)
+		status = GG_STATUS_AVAIL_DESCR | (status & GG_STATUS_FRIENDS_MASK);
+
+	if (GG_S(status) == GG_STATUS_BUSY && descr != NULL)
+		status = GG_STATUS_BUSY_DESCR | (status & GG_STATUS_FRIENDS_MASK);
+
+	if (GG_S(status) == GG_STATUS_INVISIBLE && descr != NULL)
+		status = GG_STATUS_INVISIBLE_DESCR | (status & GG_STATUS_FRIENDS_MASK);
+
+	if (GG_S(status) == GG_STATUS_NOT_AVAIL && descr != NULL)
+		status = GG_STATUS_NOT_AVAIL | (status & GG_STATUS_FRIENDS_MASK);
+
+	if (GG_SESSION_IS_PROTOCOL_8_0(gs))
 		return gg_session_set_status_8(gs, status, descr);
 	else
 		return gg_session_set_status_7(gs, status, descr, time);
@@ -548,10 +569,7 @@ int gg_session_get_ping_period(struct gg_session *gs)
 {
 	GG_SESSION_CHECK(gs, -1);
 
-	if (GG_SESSION_PROTOCOL_8_0(gs))
-		return 256;
-	else
-		return 60;	// XXX: sprawdzić
+	return gs->ping_period;
 }
 
 /**
@@ -569,12 +587,7 @@ int gg_session_get_ping_period(struct gg_session *gs)
  */
 int gg_session_ping(struct gg_session *gs)
 {
-	GG_SESSION_CHECK(gs, -1);
-
-	if (!GG_SESSION_IS_CONNECTED(gs)) {
-		errno = ENOTCONN;
-		return -1;
-	}
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
 
 	return gg_send_packet(gs, GG_PING, NULL);
 }
@@ -699,34 +712,15 @@ fail:
 }
 
 /**
- * Kończy połączenie z serwerem.
- *
- * Funkcja nie zwalnia zasobów, więc po jej wywołaniu należy użyć
- * \c gg_free_session(). Jeśli chce się ustawić opis niedostępności, należy
- * wcześniej wywołać funkcję \c gg_change_status_descr() lub
- * \c gg_change_status_descr_time().
- *
- * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
- * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
- * utracone przy zrywaniu połączenia.
+ * Funkcja zamyka połączenie bez przeprowadzania przewidzianych przez protokół.
  *
  * \param gs Struktura sesji
  *
- * \ingroup login
+ * \return 
  */
-int gg_session_disconnect(struct gg_session *gs)
+int gg_session_shutdown(struct gg_session *gs)
 {
 	GG_SESSION_CHECK(gs, -1);
-
-	gg_debug_session(gs, GG_DEBUG_FUNCTION, "** gg_session_disconnect(%p);\n", gs);
-
-	if (!GG_SESSION_IS_CONNECTED(gs)) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	if (!GG_S_NA(gs->status) && gs->status_descr != NULL)
-		gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, gs->status_descr, gs->status_time);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (gs->ssl)
@@ -748,6 +742,78 @@ int gg_session_disconnect(struct gg_session *gs)
 	}
 
 	gs->state = GG_STATE_IDLE;
+
+	return 0;
+}
+/**
+ * Kończy połączenie z serwerem.
+ *
+ * Funkcja nie zwalnia zasobów, więc po jej wywołaniu należy użyć
+ * \c gg_free_session(). Jeśli wymagana jest pewność, że opis zostanie
+ * ustawiony, należy ustawić flagę \c linger -- w tym wypadku połączenie
+ * nie jest zrywane od razu, a dopiero po odebraniu potwierdzenia od
+ * serwera. 
+ *
+ * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
+ * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
+ * utracone przy zrywaniu połączenia.
+ *
+ * \param gs Struktura sesji
+ * \param linger Flaga opóźnienia rozłączenia aż do otrzymania potwierdzenia
+ *
+ * \ingroup login
+ */
+int gg_session_disconnect(struct gg_session *gs, int linger)
+{
+	int res = 0;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	gg_debug_session(gs, GG_DEBUG_FUNCTION, "** gg_session_disconnect(%p);\n", gs);
+
+	if (!GG_S_NA(gs->status) && gs->status_descr != NULL) {
+		res = gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, gs->status_descr, gs->status_time);
+	} else if (linger) {
+		res = gg_session_set_status(gs, GG_STATUS_NOT_AVAIL, NULL, gs->status_time);
+	}
+
+	if (linger) {
+		/* Jeśli zmiana stanu się nie powiodła, to połączenie jest
+                 * zamykane natychmiast i funkcja zwraca -1. */
+
+		if (res == -1) {
+			gg_session_shutdown(gs);
+			return -1;
+		}
+
+		if (!gs->async) {
+			struct gg_header *gh;
+
+			// XXX timeout
+
+			while ((gh = gg_recv_packet(gs)) != NULL) {
+				int type;
+
+				type = gh->type;
+				free(gh);
+
+				printf("%d/%d\n", type, GG_DISCONNECTING2);
+
+				if (type == GG_DISCONNECTING2)
+					break;
+			}
+
+			if (gh == NULL) {
+				gg_session_shutdown(gs);
+				return -1;
+			}
+		}
+
+		gs->state = GG_STATE_DISCONNECTING;
+	} else {
+		gs->timeout = 5;	// XXX czy 5 sekund wystarczy?
+		gg_session_shutdown(gs);
+	}
 
 	return 0;
 }
@@ -1004,22 +1070,90 @@ failure:
 
 uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
 {
-	GG_SESSION_CHECK(gs, (uint32_t) -1);
-
-	if (!GG_SESSION_IS_CONNECTED(gs)) {
-		errno = ENOTCONN;
-		return (uint32_t) -1;
-	}
+	GG_SESSION_CHECK_CONNECTED(gs, (uint32_t) -1);
 
 	if (gm->recipient_count < 1) {
 		errno = EINVAL;
 		return (uint32_t) -1;
 	}
 
-	if (GG_SESSION_PROTOCOL_8_0(gs))
+	if (GG_SESSION_IS_PROTOCOL_8_0(gs))
 		return gg_session_send_message_8(gs, gm);
 	else
 		return gg_session_send_message_7(gs, gm);
+}
+
+/**
+ * Wysyła do serwera zapytanie dotyczące listy kontaktów.
+ *
+ * Funkcja służy do importu lub eksportu listy kontaktów do serwera.
+ * W odróżnieniu od funkcji \c gg_notify(), ta lista kontaktów jest przez
+ * serwer jedynie przechowywana i nie ma wpływu na połączenie. Format
+ * listy kontaktów jest ignorowany przez serwer, ale ze względu na
+ * kompatybilność z innymi klientami, należy przechowywać dane w tym samym
+ * formacie co oryginalny klient Gadu-Gadu.
+ *
+ * Program nie musi się przejmować fragmentacją listy kontaktów wynikającą
+ * z protokołu -- wysyła i odbiera kompletną listę.
+ *
+ * \param sess Struktura sesji
+ * \param type Rodzaj zapytania
+ * \param request Treść zapytania (może być równe NULL)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup importexport
+ */
+int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request)
+{
+	size_t len;
+	int packet_type;
+
+	if (GG_SESSION_IS_PROTOCOL_8_0(gs))
+		packet_type = GG_USERLIST_REQUEST80;
+	else
+		packet_type = GG_USERLIST_REQUEST;
+
+	if (request != NULL)
+		len = strlen(request);
+	else
+		len = 0;
+
+	// Liczymy liczbę bloków, żeby po otrzymaniu takiej samej liczby
+	// potwierdzeń poinformować aplikację o udanej operacji.
+	//
+	gs->userlist_blocks = 0;
+
+	while (request != NULL && len > gs->max_contacts_chunk_length) {
+		gs->userlist_blocks++;
+
+		if (gg_send_packet(gs, GG_USERLIST_REQUEST, &type, sizeof(type), request, gs->max_contacts_chunk_length, NULL) == -1)
+			return -1;
+
+		if (type == GG_USERLIST_PUT)
+			type = GG_USERLIST_PUT_MORE;
+
+		request += gs->max_contacts_chunk_length;
+		len -= gs->max_contacts_chunk_length;
+	}
+
+	gs->userlist_blocks++;
+
+	return gg_send_packet(gs, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
+}
+
+int gg_session_export_contacts(struct gg_session *gs, const char *contacts)
+{
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	return gg_session_contacts_request(gs, GG_USERLIST_PUT, contacts);
+}
+
+int gg_session_import_contacts(struct gg_session *gs)
+{
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	return gg_session_contacts_request(gs, GG_USERLIST_GET, NULL);
 }
 
 /**

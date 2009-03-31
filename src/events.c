@@ -1063,6 +1063,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_DISCONNECTING2:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received logoff acknowledge\n");
+			e->type = GG_EVENT_DISCONNECT;
+			break;
+		}
+
 		case GG_XML_EVENT:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received XML event\n");
@@ -1884,7 +1891,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			sess->client_addr = local_ip;
 
-			if (GG_SESSION_PROTOCOL_8_0(sess)) {
+			if (GG_SESSION_IS_PROTOCOL_8_0(sess)) {
 				struct gg_login80 l80;
 				const char *version, *descr;
 				uint32_t version_len, descr_len;

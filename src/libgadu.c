@@ -40,6 +40,7 @@
 #include "libgadu.h"
 #include "resolver.h"
 #include "message.h"
+#include "session.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -398,6 +399,12 @@ void *gg_recv_packet(struct gg_session *sess)
 	int ret = 0;
 	unsigned int offset, size = 0;
 
+	// XXX w trybie synchronicznym, gdy sess->timeout != -1, wypadałoby
+	// zrobić timeout za pomocą select() albo setsockopt(SO_RCVTIMEO)
+
+	// XXX nagłówek i treść pakietu móżna czytać do jednego bufora, nie
+	// ma potrzeby utrzymywać sess->header_buf oraz sess->recv_buf
+
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
 
 	if (!sess) {
@@ -706,7 +713,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, NULL, 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, NULL, 0, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -733,7 +740,7 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, &recipient, 1, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -759,7 +766,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipient_
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipient_count, recipients, message);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, NULL, 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, NULL, 0, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -787,7 +794,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipient_count, recipients, message, format, formatlen);
 
-	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0);
+	gg_message_init(&gm, msgclass, (uint32_t) -1, recipients, recipient_count, (char*) message, NULL, (format != NULL) ? (char*) format + 3 : NULL, (formatlen >= 3) ? formatlen - 3 : 0, 0);
 	return gg_session_send_message(sess, &gm);
 }
 
@@ -1231,7 +1238,7 @@ int gg_remove_notify(struct gg_session *sess, uin_t uin)
  * Program nie musi się przejmować fragmentacją listy kontaktów wynikającą
  * z protokołu -- wysyła i odbiera kompletną listę.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param type Rodzaj zapytania
  * \param request Treść zapytania (może być równe NULL)
  *
@@ -1239,45 +1246,11 @@ int gg_remove_notify(struct gg_session *sess, uin_t uin)
  *
  * \ingroup importexport
  */
-int gg_userlist_request(struct gg_session *sess, char type, const char *request)
+int gg_userlist_request(struct gg_session *gs, char type, const char *request)
 {
-	int len;
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
 
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	if (!request) {
-		sess->userlist_blocks = 1;
-		return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), NULL);
-	}
-
-	len = strlen(request);
-
-	sess->userlist_blocks = 0;
-
-	while (len > 2047) {
-		sess->userlist_blocks++;
-
-		if (gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, 2047, NULL) == -1)
-			return -1;
-
-		if (type == GG_USERLIST_PUT)
-			type = GG_USERLIST_PUT_MORE;
-
-		request += 2047;
-		len -= 2047;
-	}
-
-	sess->userlist_blocks++;
-
-	return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
+	return gg_session_contacts_request(gs, type, request);
 }
 
 /**
@@ -1354,6 +1327,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 	if (p->protocol_version != 0)
 		gg_session_set_protocol_version(gs, p->protocol_version);
+	else
+		gg_session_set_protocol_version(gs, 0x2a);	// XXX
 
 	if (p->client_version != NULL)
 		gg_session_set_client_version(gs, p->client_version);
@@ -1436,7 +1411,7 @@ fail:
  */
 void gg_logoff(struct gg_session *gs)
 {
-	gg_session_disconnect(gs);
+	gg_session_disconnect(gs, 0);
 }
 
 /**

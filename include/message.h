@@ -32,6 +32,10 @@ struct gg_message {
 	size_t attributes_length;
 	uint32_t msgclass;
 	uint32_t seq;
+
+	int auto_convert;
+	char *text_converted;
+	char *html_converted;
 };
 
 #define GG_MESSAGE_CHECK(gm, result) \
@@ -40,7 +44,7 @@ struct gg_message {
 		return (result); \
 	}
 
-int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length);
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length, int auto_convert);
 
 char *gg_message_text_to_html(const char *text, const char *attributes, size_t attributes_length);
 

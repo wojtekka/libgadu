@@ -98,4 +98,10 @@ struct gg_recv_msg80 {
 	uint32_t offset_attr;
 } GG_PACKED;
 
+#define GG_USERLIST_REQUEST80 0x002f
+
+#define GG_USERLIST_REPLY80 0x0030
+
+#define GG_DISCONNECTING2 0x000d
+
 #endif /* LIBGADU_PROTOCOL_H */

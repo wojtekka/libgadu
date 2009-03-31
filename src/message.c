@@ -21,7 +21,7 @@ gg_message_t *gg_message_new(void)
 	return gm;
 }
 
-int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *html, char *attributes, size_t attributes_length)
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *html, char *attributes, size_t attributes_length, int auto_convert)
 {
 	GG_MESSAGE_CHECK(gm, -1);
 
@@ -34,6 +34,7 @@ int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, 
 	gm->attributes_length = attributes_length;
 	gm->msgclass = msgclass;
 	gm->seq = seq;
+	gm->auto_convert = auto_convert;
 
 	return 0;
 }
@@ -45,9 +46,30 @@ void gg_message_free(gg_message_t *gm)
 		return;
 	}	
 
+	free(gm->text);
+	free(gm->text_converted);
+	free(gm->html);
+	free(gm->html_converted);
 	free(gm->recipients);
+	free(gm->attributes);
 
 	free(gm);
+}
+
+int gg_message_set_auto_convert(gg_message_t *gm, int auto_convert)
+{
+	GG_MESSAGE_CHECK(gm, -1);
+
+	gm->auto_convert = !!auto_convert;
+
+	return 0;
+}
+
+int gg_message_get_auto_convert(gg_message_t *gm)
+{
+	GG_MESSAGE_CHECK(gm, -1);
+
+	return gm->auto_convert;
 }
 
 int gg_message_set_recipients(gg_message_t *gm, const uin_t *recipients, unsigned int recipient_count)
@@ -168,6 +190,12 @@ const char *gg_message_get_text(gg_message_t *gm)
 {
 	GG_MESSAGE_CHECK(gm, NULL);
 
+	if (gm->text == NULL && gm->html != NULL && gm->auto_convert) {
+		free(gm->text_converted);
+		gm->text_converted = gg_message_html_to_text(gm->html);
+		return gm->text_converted;
+	}
+
 	return gm->text;
 }
 
@@ -196,6 +224,12 @@ int gg_message_set_html(gg_message_t *gm, const char *html)
 const char *gg_message_get_html(gg_message_t *gm)
 {
 	GG_MESSAGE_CHECK(gm, NULL);
+
+	if (gm->html == NULL && gm->text != NULL && gm->auto_convert) {
+		free(gm->html_converted);
+		gm->html_converted = gg_message_text_to_html(gm->html, gm->attributes, gm->attributes_length);
+		return gm->html_converted;
+	}
 
 	return gm->html;
 }
