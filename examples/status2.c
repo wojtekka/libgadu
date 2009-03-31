@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	printf("Zzzz...\n");
 	sleep(3);
 
-	gg_session_disconnect(gs);
+	gg_session_disconnect(gs, 1);
 
 	/* Drugie połączenie */
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	printf("Zzzz...\n");
 	sleep(3);
 
-	gg_session_disconnect(gs);
+	gg_session_disconnect(gs, 1);
 
 	/* Trzecie połączenie */
 
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	printf("Zzzz...\n");
 	sleep(3);
 
-	gg_session_disconnect(gs);
+	gg_session_disconnect(gs, 1);
 
 	gg_session_free(gs);
 

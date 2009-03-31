@@ -29,8 +29,6 @@ int main(int argc, char **argv)
 
 	gg_session_set_uin(gs, atoi(argv[1]));
 	gg_session_set_password(gs, argv[2]);
-//	gg_session_set_encoding(gs, GG_ENCODING_UTF8);
-//	gg_session_set_protocol_version(gs, 0x2d);
 	gg_session_set_status(gs, GG_STATUS_INVISIBLE_DESCR, argv[3], 0);
 	
 	if (gg_session_connect(gs) == -1) {
@@ -41,17 +39,12 @@ int main(int argc, char **argv)
 
 	gg_notify(gs, NULL, 0);
 
-	printf("Połączono.\n");
+	printf("Połączono. Naciśnij Enter...\n");
 
 	getchar();
 
-	if (gg_session_set_status(gs, GG_STATUS_NOT_AVAIL_DESCR, argv[3], 0) == -1) {
-		perror("gg_session_set_status");
-		gg_session_free(gs);
-		return 1;
-	}
+	gg_session_disconnect(gs, 1);
 
-	gg_session_disconnect(gs);
 	gg_session_free(gs);
 
 	return 0;

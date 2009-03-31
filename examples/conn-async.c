@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 		}
 	}
 	
-	gg_session_disconnect(gs);
+	gg_session_disconnect(gs, 0);
 	gg_session_free(gs);
 
 	return 0;
