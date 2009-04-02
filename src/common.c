@@ -118,27 +118,45 @@ void gg_debug_session(struct gg_session *sess, int level, const char *format, ..
 	errno = old_errno;
 }
 
-void gg_debug_session_dump(struct gg_session *sess, int level, const unsigned char *buf, int len)
+/**
+ * Przekazuje zrzut bufora do odpluskwiania.
+ *
+ * \param sess Struktura sesji
+ * \param level Poziom wiadomości
+ * \param buf Bufor danych
+ * \param len Długość bufora danych
+ *
+ * \ingroup debug
+ */
+void gg_debug_dump(struct gg_session *sess, int level, const char *buf, int len)
 {
 	int i, j;
 
 	for (i = 0; i < len; i += 16) {
 		gg_debug_session(sess, level, "%.4x: ", i);
 
-		for (j = 0; j < 16; j++)
-			gg_debug_session(sess, level, (i + j < len) ? " %02x" : "   ", buf[i + j]);
+		for (j = 0; j < 16; j++) {
+			if (i + j < len)
+				gg_debug_session(sess, level, " %02x", (unsigned char) buf[i + j]);
+			else
+				gg_debug_session(sess, level, "   ");
+		}
 
 		gg_debug_session(sess, level, "  ");
 
 		for (j = 0; j < 16; j++) {
 			unsigned char ch;
 
-			ch = buf[i + j];
+			if (i + j < len) {
+				ch = buf[i + j];
 
-			if (ch < 32 || ch > 126)
-				ch = '.';
+				if (ch < 32 || ch > 126)
+					ch = '.';
 
-			gg_debug_session(sess, level, (i + j < len) ? "%c" : " ", ch);
+				gg_debug_session(sess, level, "%c", ch);
+			} else {
+				gg_debug_session(sess, level, " ");
+			}
 		}
 
 		gg_debug_session(sess, level, "\n");
