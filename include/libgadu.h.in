@@ -223,9 +223,9 @@ struct gg_session {
 	int initial_status;	/**< Początkowy status */
 	int status;		/**< Aktualny status */
 
-	char *recv_buf;		/**< Bufor na odbierany pakiety */
+	char *recv_buf;		/**< Bufor na odbierany pakiet */
 	int recv_done;		/**< Liczba wczytanych bajtów pakietu */
-	int recv_left;		/**< Liczba pozostałych do wczytania bajtów pakietu */
+	int recv_left;		/**< Liczba pozostałych do wczytania bajtów pakietu (nieużywana) */
 
 	int protocol_version;	/**< Wersja protokołu (bez flag) */
 	char *client_version;	/**< Wersja klienta */
@@ -235,8 +235,8 @@ struct gg_session {
 
 	void *resolver;		/**< Dane prywatne procesu lub wątku rozwiązującego nazwę serwera */
 
-	char *header_buf;	/**< Bufor na początek nagłówka pakietu */
-	unsigned int header_done;	/**< Liczba wczytanych bajtów nagłówka pakietu */
+	char *header_buf;	/**< Bufor na początek nagłówka pakietu (nieużywany) */
+	unsigned int header_done;	/**< Liczba wczytanych bajtów nagłówka pakietu (nieużywana) */
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	SSL *ssl;		/**< Struktura TLS */
@@ -1196,9 +1196,11 @@ extern FILE *gg_debug_file;
 #ifdef GG_DEBUG_DISABLE
 #define gg_debug(x, y...) do { } while(0)
 #define gg_debug_session(z, x, y...) do { } while(0)
+#define gg_debug_dump(a, b, c, d) do { } while(0)
 #else
 void gg_debug(int level, const char *format, ...);
 void gg_debug_session(struct gg_session *sess, int level, const char *format, ...);
+void gg_debug_dump(struct gg_session *sess, int level, const char *buf, int len);
 #endif
 
 const char *gg_libgadu_version(void);

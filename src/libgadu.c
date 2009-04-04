@@ -394,142 +394,133 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
  */
 void *gg_recv_packet(struct gg_session *sess)
 {
-	struct gg_header h;
-	char *buf = NULL;
-	int ret = 0;
-	unsigned int offset, size = 0;
+	char header_buf[8];
+	char *tmp;
+	struct gg_header *head;
 
 	// XXX w trybie synchronicznym, gdy sess->timeout != -1, wypadałoby
 	// zrobić timeout za pomocą select() albo setsockopt(SO_RCVTIMEO)
 
-	// XXX nagłówek i treść pakietu móżna czytać do jednego bufora, nie
-	// ma potrzeby utrzymywać sess->header_buf oraz sess->recv_buf
-
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
 
-	if (!sess) {
+	if (sess == NULL) {
 		errno = EFAULT;
 		return NULL;
 	}
 
-	if (sess->recv_left < 1) {
-		if (sess->header_buf) {
-			memcpy(&h, sess->header_buf, sess->header_done);
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv: resuming last read (%d bytes left)\n", sizeof(h) - sess->header_done);
-			free(sess->header_buf);
-			sess->header_buf = NULL;
-		} else
-			sess->header_done = 0;
+	for (;;) {
+		char *chunk_ptr;
+		size_t chunk_len;
+		int ret;
 
-		while (sess->header_done < sizeof(h)) {
-			ret = gg_read(sess, (char*) &h + sess->header_done, sizeof(h) - sess->header_done);
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv(%d,%p,%d) = %d\n", sess->fd, &h + sess->header_done, sizeof(h) - sess->header_done, ret);
-
-			if (!ret) {
-				errno = ECONNRESET;
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: connection broken\n");
-				return NULL;
-			}
-
-			if (ret == -1) {
-				if (errno == EINTR) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() interrupted system call, resuming\n");
-					continue;
-				}
-
-				if (errno == EAGAIN) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
-
-					if (!(sess->header_buf = malloc(sess->header_done))) {
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() not enough memory\n");
-						return NULL;
-					}
-
-					memcpy(sess->header_buf, &h, sess->header_done);
-
-					errno = EAGAIN;
-
-					return NULL;
-				}
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: errno=%d, %s\n", errno, strerror(errno));
-
-				return NULL;
-			}
-
-			sess->header_done += ret;
-
+		/* Sprawdź, czy czytamy nagłówek pakietu */
+		if (sess->recv_done < sizeof(struct gg_header)) {
+			if (sess->recv_buf != NULL)
+				chunk_ptr = sess->recv_buf;
+			else
+				chunk_ptr = header_buf;
+			head = (struct gg_header *) chunk_ptr;
+			chunk_len = sizeof(struct gg_header);
+		} else {
+			chunk_ptr = sess->recv_buf;
+			head = (struct gg_header *) chunk_ptr;
+			chunk_len = sizeof(struct gg_header) + gg_fix32(head->length);
 		}
 
-		h.type = gg_fix32(h.type);
-		h.length = gg_fix32(h.length);
-	} else
-		memcpy(&h, sess->recv_buf, sizeof(h));
+		ret = gg_read(sess, chunk_ptr + sess->recv_done, chunk_len - sess->recv_done);
 
-	/* jakieś sensowne limity na rozmiar pakietu */
-	if (h.length > 65535) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() invalid packet length (%d)\n", h.length);
-		errno = ERANGE;
-		return NULL;
-	}
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() recv(%d,%p,%d) = %d\n", sess->fd, chunk_ptr + sess->recv_done, chunk_len - sess->recv_done, ret);
 
-	if (sess->recv_left > 0) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() resuming last gg_recv_packet()\n");
-		size = sess->recv_left;
-		offset = sess->recv_done;
-		buf = sess->recv_buf;
-	} else {
-		if (!(buf = malloc(sizeof(h) + h.length + 1))) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() not enough memory for packet data\n");
-			return NULL;
-		}
-
-		memcpy(buf, &h, sizeof(h));
-
-		offset = 0;
-		size = h.length;
-	}
-
-	while (size > 0) {
-		ret = gg_read(sess, buf + sizeof(h) + offset, size);
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() body recv(%d,%p,%d) = %d\n", sess->fd, buf + sizeof(h) + offset, size, ret);
-		if (!ret) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed: connection broken\n");
+		if (ret == 0) {
 			errno = ECONNRESET;
-			return NULL;
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: connection broken\n");
+			goto failure;
 		}
-		if (ret > -1 && ret <= size) {
-			offset += ret;
-			size -= ret;
-		} else if (ret == -1) {
-			int errno2 = errno;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed (errno=%d, %s)\n", errno, strerror(errno));
-			errno = errno2;
+		if (ret == -1) {
+			if (errno == EINTR) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() interrupted system call, resuming\n");
+				continue;
+			}
 
 			if (errno == EAGAIN) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() %d bytes received, %d left\n", offset, size);
-				sess->recv_buf = buf;
-				sess->recv_left = size;
-				sess->recv_done = offset;
-				return NULL;
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
+				goto failure;
 			}
-			if (errno != EINTR) {
-				free(buf);
-				return NULL;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: errno=%d, %s\n", errno, strerror(errno));
+			goto failure;
+		}
+
+		sess->recv_done += ret;
+
+		if (sess->recv_done < sizeof(struct gg_header)) {
+			if (chunk_ptr == header_buf) {
+				sess->recv_buf = malloc(sizeof(struct gg_header));
+				
+				if (sess->recv_buf == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() out of memory\n");
+					goto failure;
+				}
+
+				memcpy(sess->recv_buf, header_buf, sess->recv_done);
+			} else {
+				// Bufor jest już zaalokowany i wczytaliśmy do niego
 			}
+		} else if (sess->recv_done == sizeof(struct gg_header)) {
+			/* Limit na rozmiar pakietu */
+			if (gg_fix32(head->length) > 0x0000ffff) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() invalid packet length (0x%08x)\n", gg_fix32(head->length));
+				errno = ERANGE;
+				goto failure;
+			}
+
+			tmp = realloc(sess->recv_buf, sizeof(struct gg_header) + gg_fix32(head->length));
+
+			if (tmp == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() out of memory\n");
+				goto failure;
+			}
+
+			sess->recv_buf = tmp;
+
+			if (chunk_ptr == header_buf)
+				memcpy(sess->recv_buf, header_buf, sizeof(struct gg_header));
+
+			printf("%p, %p, %p\n", sess->recv_buf, header_buf, head);
+
+			head = (struct gg_header *) sess->recv_buf;
+
+			if (gg_fix32(head->length) == 0)
+				break;
+
+		} else if (sess->recv_done >= sizeof(struct gg_header) + gg_fix32(head->length)) {
+			break;
 		}
 	}
 
-	sess->recv_left = 0;
-
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet()\n");
-		gg_debug_session_dump(sess, GG_DEBUG_DUMP, buf, sizeof(h) + h.length);
+		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet() packet dump:\n");
+		gg_debug_dump(sess, GG_DEBUG_DUMP, sess->recv_buf, sizeof(struct gg_header) + gg_fix32(head->length));
 	}
 
-	return buf;
+	// Poprawiamy kolejność bajtów
+	head = (struct gg_header *) sess->recv_buf;
+	head->type = gg_fix32(head->type);
+	head->length = gg_fix32(head->length);
+
+	tmp = sess->recv_buf;
+	sess->recv_buf = NULL;
+	sess->recv_done = 0;
+
+	return tmp;
+
+failure:
+	free(sess->recv_buf);
+	sess->recv_buf = NULL;
+	sess->recv_done = 0;
+
+	return NULL;
 }
 
 /**
@@ -596,8 +587,8 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet()\n");
-		gg_debug_session_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
+		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet() packet dump:\n");
+		gg_debug_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
 	}
 
 	res = gg_write(sess, tmp, tmp_length);

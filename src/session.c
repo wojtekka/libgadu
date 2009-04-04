@@ -797,8 +797,6 @@ int gg_session_disconnect(struct gg_session *gs, int linger)
 				type = gh->type;
 				free(gh);
 
-				printf("%d/%d\n", type, GG_DISCONNECTING2);
-
 				if (type == GG_DISCONNECTING2)
 					break;
 			}
@@ -1177,6 +1175,7 @@ void gg_session_free(struct gg_session *gs)
 	free(gs->status_descr);
 	free(gs->client_version);
 	free(gs->header_buf);
+	free(gs->recv_buf);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (gs->ssl != NULL)
