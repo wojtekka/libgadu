@@ -1,3 +1,3 @@
 SUBDIRS = protocol dcc7 convert message $(OPTIONAL_TESTS)
-DIST_SUBDIRS = protocol dcc7 convert message resolver connect
+DIST_SUBDIRS = protocol dcc7 convert message resolver connect packet
 EXTRA_DIST = config.sample

@@ -1,4 +1,4 @@
-noinst_PROGRAMS = convert
+noinst_PROGRAMS = packet
 
 LDADD = ../../src/libgadu.la
 CFLAGS = -Wall
