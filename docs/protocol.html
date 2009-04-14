@@ -461,14 +461,14 @@ struct gg_notify_reply80 {
 </div>
 
 <p>
-Zdarzają się też inne &bdquo;nietypowe&rdquo; wartości, ale ich znaczenie nie jest
-jeszcze do końca znane.
+Zdarzają się też inne &bdquo;nietypowe&rdquo; wartości, ale ich znaczenie nie
+jest jeszcze do końca znane.
 </p>
 
 <p>
-Żeby dodać kogoś do listy w trakcie pracy, trzeba wysłać niżej opisany
-pakiet. Jego format jest identyczny jak <tt>GG_NOTIFY_*</tt>. Dodaje
-on flagi rodzaju użytkownika.
+Aby dodać do listy kontaktów numer w trakcie połączenia, należy wysłać niżej
+opisany pakiet. Jego format jest identyczny jak <tt>GG_NOTIFY_*</tt>, z tą
+różnicą, że zawiera jeden numer.
 </p>
 
 <div class="c">
@@ -481,8 +481,7 @@ struct gg_add_notify {
 </div>
 
 <p>
-Poniższy pakiet usuwa flagi rodzaj użytkownika, więc można go wykorzystać
-zarówno do usunięcia użytkownika z listy kontaktów, jak i do zmiany rodzaju.
+Poniższy pakiet usuwa z listy kontaktów:
 </p>
 
 <div class="c">
@@ -493,6 +492,14 @@ struct gg_remove_notify {
 	char type;	<i>/* rodzaj użytkownika */</i>
 };</pre>
 </div>
+
+<p>
+Należy zwrócić uwagę, że pakiety <tt>GG_ADD_NOTIFY</tt>
+i <tt>GG_REMOVE_NOTIFY</tt> dodają i usuwają flagi będące mapą bitową. Aby
+zmienić status użytkownika z normalnego na blokowanego, należy najpierw
+usunąć rodzaj <tt>GG_USER_NORMAL</tt>, a następnie dodać rodzaj 
+<tt>GG_USER_BLOCKED</tt>.
+</p>
 
 <p>
 Jeśli ktoś opuści Gadu-Gadu lub zmieni stan, otrzymamy poniższy pakiet,
@@ -685,6 +692,12 @@ dołączyć do wiadomości następującą sekwencję bajtów:
 W przypadku gdy wiadomość zawiera zarówno informacje o uczestnikach konferencji,
 jaki i o formatowaniu, najpierw informacje o konferencji powinny znajdować się
 przed formatowaniem.
+</p>
+
+<p>
+Jeśli obrazek jest przesyłany w wiadomości bez tekstu, jej treść powinna
+zawierać znak niełamliwej spacji (kod 160 w kodowaniu CP1250). W innym
+przypadku nowsze klienty (np. Nowe Gadu-Gadu) nie wyświetlą obrazka.
 </p>
 
 <a name="ch1.6.3"></a>
