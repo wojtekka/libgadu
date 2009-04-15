@@ -1381,7 +1381,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				while (gg_read_line(sess->fd, tmp, sizeof(tmp) - 1)) {
 					if (!(foo = realloc(sysmsg_buf, len + strlen(tmp) + 2))) {
 						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for system message, ignoring\n");
-						free(sysmsg_buf);
 						break;
 					}
 
