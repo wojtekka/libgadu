@@ -98,9 +98,8 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 				"", header);
 		hostname = gg_proxy_host;
 		h->port = port = gg_proxy_port;
+		free(auth);
 
-		if (auth)
-			free(auth);
 	} else {
 		h->query = gg_saprintf("%s %s HTTP/1.0\r\n%s",
 				method, path, header);

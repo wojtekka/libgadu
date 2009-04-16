@@ -898,10 +898,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 fail:
 	if (sess) {
-		if (sess->password)
-			free(sess->password);
-		if (sess->initial_descr)
-			free(sess->initial_descr);
+		free(sess->password);
+		free(sess->initial_descr);
 		free(sess);
 	}
 
@@ -1002,17 +1000,10 @@ void gg_free_session(struct gg_session *sess)
 
 	/* XXX dopisać zwalnianie i zamykanie wszystkiego, co mogło zostać */
 
-	if (sess->password)
-		free(sess->password);
-
-	if (sess->initial_descr)
-		free(sess->initial_descr);
-
-	if (sess->client_version)
-		free(sess->client_version);
-
-	if (sess->header_buf)
-		free(sess->header_buf);
+	free(sess->password);
+	free(sess->initial_descr);
+	free(sess->client_version);
+	free(sess->header_buf);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
@@ -1030,8 +1021,7 @@ void gg_free_session(struct gg_session *sess)
 	while (sess->images)
 		gg_image_queue_remove(sess, sess->images, 1);
 
-	if (sess->send_buf)
-		free(sess->send_buf);
+	free(sess->send_buf);
 
 	for (dcc = sess->dcc7_list; dcc; dcc = dcc->next)
 		dcc->sess = NULL;
@@ -1124,9 +1114,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 			     (time) ? sizeof(new_time) : 0,
 			     NULL);
 
-	if (new_descr)
-		free(new_descr);
-
+	free(new_descr);
 	return res;
 }
 

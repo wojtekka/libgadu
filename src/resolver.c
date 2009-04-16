@@ -250,9 +250,7 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 	return 0;
 
 cleanup:
-	if (data)
-		free(data);
-
+	free(data);
 	close(pipes[0]);
 	close(pipes[1]);
 
