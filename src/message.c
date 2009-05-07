@@ -16,6 +16,7 @@ gg_message_t *gg_message_new(void)
 
 	memset(gm, 0, sizeof(gg_message_t));
 
+	gm->msgclass = GG_CLASS_CHAT;
 	gm->seq = (uint32_t) -1;
 
 	return gm;

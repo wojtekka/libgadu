@@ -653,6 +653,25 @@ int gg_session_export_contacts(struct gg_session *gs, const char *contacts);
 int gg_session_import_contacts(struct gg_session *gs);
 void gg_session_free(struct gg_session *gs);
 
+gg_message_t *gg_message_new(void);
+void gg_message_free(gg_message_t *gm);
+int gg_message_set_auto_convert(gg_message_t *gm, int auto_convert);
+int gg_message_get_auto_convert(gg_message_t *gm);
+int gg_message_set_recipients(gg_message_t *gm, const uin_t *recipients, unsigned int recipient_count);
+int gg_message_set_recipient(gg_message_t *gm, uin_t recipient);
+int gg_message_get_recipients(gg_message_t *gm, const uin_t **recipients, unsigned int *recipient_count);
+uin_t gg_message_recipient(gg_message_t *gm);
+int gg_message_set_class(gg_message_t *gm, uint32_t msgclass);
+uint32_t gg_message_get_class(gg_message_t *gm);
+int gg_message_set_seq(gg_message_t *gm, uint32_t seq);
+uint32_t gg_message_get_seq(gg_message_t *gm);
+int gg_message_set_text(gg_message_t *gm, const char *text);
+const char *gg_message_get_text(gg_message_t *gm);
+int gg_message_set_html(gg_message_t *gm, const char *html);
+const char *gg_message_get_html(gg_message_t *gm);
+int gg_message_set_attributes(gg_message_t *gm, const char *attributes, size_t length);
+int gg_message_get_attributes(gg_message_t *gm, const char **attributes, size_t *attributes_length);
+
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
 void gg_logoff(struct gg_session *sess);
