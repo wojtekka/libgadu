@@ -1242,6 +1242,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		return NULL;
 	}
 
+	if (sess->timeout == 0 && !sess->soft_timeout) {
+		errno = ETIMEDOUT;
+		return NULL;
+	}
+
 	if (!(e = (void*) calloc(1, sizeof(*e)))) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory for event data\n");
 		return NULL;
