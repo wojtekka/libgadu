@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (gg_send_message(gs, GG_CLASS_MSG, atoi(argv[3]), (unsigned char*) argv[4]) == -1) {
+	if (gg_send_message(gs, GG_CLASS_CHAT, atoi(argv[3]), (unsigned char*) argv[4]) == -1) {
 		perror("gg_send_message");
 		gg_session_free(gs);
 		return 1;

@@ -93,8 +93,7 @@ int main(int argc, char **argv)
 
 			if (ge->type == GG_EVENT_CONN_SUCCESS) {
 				printf("Połączono z serwerem.\n");
-				gg_event_free(ge);
-				break;
+				gg_notify(gs, NULL, 0);
 			}
 
 			if (ge->type == GG_EVENT_CONN_FAILED) {
@@ -102,6 +101,10 @@ int main(int argc, char **argv)
 				gg_event_free(ge);
 				gg_session_free(gs);
 				return 1;
+			}
+
+			if (ge->type == GG_EVENT_MSG) {
+				printf("%d \"%s\" \"%s\"\n", ge->event.msg.sender, ge->event.msg.message, ge->event.msg.xhtml_message);
 			}
 
 			gg_event_free(ge);
