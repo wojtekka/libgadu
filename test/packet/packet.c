@@ -45,12 +45,19 @@ struct {
 	{ "", -1, EINTR },
 	{ "\x00\x00\x00\x00", 4 },
 
-	{ "\x08\x00\x00\x00\x00\x00\x00\x01", 8 },
+	{ "\x08\x00\x00\x00", 4 },
+	{ "", -1, EAGAIN },
+	{ "\x04\x00\x00\x00", 4 },
+	{ "", -1, EINTR },
+	{ "", -1, EAGAIN },
+	{ "1234", 4 },
 
-	{ "\x09\x00\x00\x00", 4 },
+	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8 },
+
+	{ "\x0a\x00\x00\x00", 4 },
 	{ "", -1, ENOTCONN },
 
-	{ "\x0a\x00\x00\x00\xff\x00\x00\x00", 8 },
+	{ "\x0b\x00\x00\x00\xff\x00\x00\x00", 8 },
 	{ "VW", 2 },
 	{ "", 0, 0 },
 
@@ -71,6 +78,7 @@ struct {
 	{ 5, 6, "OPQRST" },
 	{ 6, 1, "U" },
 	{ 7, 0, "" },
+	{ 8, 4, "1234" },
 	{ -1, },
 	{ -1, },
 	{ -1, },
@@ -125,12 +133,15 @@ int main(void)
 	memset(&gs, 0, sizeof(gs));
 	gs.fd = 123;
 
-	for (i = 0; i < sizeof(output) / sizeof(output[0]); i++) {
+	for (i = 0; i < sizeof(output) / sizeof(output[0]); ) {
 		struct gg_header *gh;
 
 		gh = gg_recv_packet(&gs);
 
 		if (gh == NULL) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+
 			if (output[i].type != -1) {
 				fprintf(stderr, "gg_recv_packet: Returned error (%s), expected success\n", strerror(errno));
 				return 1;
@@ -162,6 +173,8 @@ int main(void)
 
 			free(gh);
 		}
+
+		i++;
 	}
 
 	fprintf(stderr, "Test succeeded.\n");

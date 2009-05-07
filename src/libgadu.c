@@ -445,7 +445,7 @@ void *gg_recv_packet(struct gg_session *sess)
 
 			if (errno == EAGAIN) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
-				goto failure;
+				return NULL;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: errno=%d, %s\n", errno, strerror(errno));
@@ -486,8 +486,6 @@ void *gg_recv_packet(struct gg_session *sess)
 
 			if (chunk_ptr == header_buf)
 				memcpy(sess->recv_buf, header_buf, sizeof(struct gg_header));
-
-			printf("%p, %p, %p\n", sess->recv_buf, header_buf, head);
 
 			head = (struct gg_header *) sess->recv_buf;
 
