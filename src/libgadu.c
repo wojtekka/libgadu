@@ -959,7 +959,7 @@ void gg_logoff(struct gg_session *sess)
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_logoff(%p);\n", sess);
 
-	if (GG_S_NA(sess->status & ~GG_STATUS_FRIENDS_MASK))
+	if (GG_S_NA(sess->status))
 		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL

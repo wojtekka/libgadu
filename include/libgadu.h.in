@@ -1495,7 +1495,7 @@ enum {
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
 
 /* GG_S() stan bez uwzględnienia trybu tylko dla znajomych */
-#define GG_S(x) ((x) & ~GG_STATUS_FRIENDS_MASK)
+#define GG_S(x) ((x) & ~(GG_STATUS_FRIENDS_MASK | GG_STATUS_VOICE_MASK))
 
 /* GG_S_A() dostępny */
 #define GG_S_A(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
