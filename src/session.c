@@ -735,11 +735,9 @@ int gg_session_shutdown(struct gg_session *gs)
 		gs->fd = -1;
 	}
 
-	if (gs->send_buf) {
-		free(gs->send_buf);
-		gs->send_buf = NULL;
-		gs->send_left = 0;
-	}
+	free(gs->send_buf);
+	gs->send_buf = NULL;
+	gs->send_left = 0;
 
 	gs->state = GG_STATE_IDLE;
 
@@ -1193,8 +1191,7 @@ void gg_session_free(struct gg_session *gs)
 	while (gs->images != NULL)
 		gg_image_queue_remove(gs, gs->images, 1);
 
-	if (gs->send_buf != NULL)
-		free(gs->send_buf);
+	free(gs->send_buf);
 
 	for (dcc = gs->dcc7_list; dcc != NULL; dcc = dcc->next)
 		dcc->sess = NULL;

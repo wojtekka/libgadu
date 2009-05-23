@@ -396,9 +396,7 @@ static struct gg_dcc7 *gg_dcc7_send_file_common(struct gg_session *sess, uin_t r
 	return dcc;
 
 fail:
-	if (dcc)
-		free(dcc);
-
+	free(dcc);
 	return NULL;
 }
 
@@ -472,9 +470,7 @@ fail:
 		errno = errsv;
 	}
 
-	if (dcc)
-		free(dcc);
-
+	free(dcc);
 	return NULL;
 }
 

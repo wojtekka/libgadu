@@ -1401,16 +1401,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					"\r\n", host, sess->uin, sess->last_sysmsg, client, (auth) ? auth : "");
 			}
 
-			if (auth)
-				free(auth);
-
+			free(auth);
 			free(client);
 
 			/* zwolnij pamięć po wersji klienta. */
-			if (sess->client_version) {
-				free(sess->client_version);
-				sess->client_version = NULL;
-			}
+			free(sess->client_version);
+			sess->client_version = NULL;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", buf);
 
@@ -1653,8 +1649,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				 * write() zawiedzie, stało się coś złego. */
 				if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
-					if (auth)
-						free(auth);
+					free(auth);
 					goto fail_connecting;
 				}
 
