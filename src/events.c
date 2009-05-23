@@ -985,6 +985,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_DISCONNECT_ACK:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received disconnection acknowledge\n");
+			e->type = GG_EVENT_DISCONNECT_ACK;
+			break;
+		}
+
 		case GG_XML_EVENT:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received XML event\n");

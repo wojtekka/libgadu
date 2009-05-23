@@ -639,7 +639,8 @@ enum gg_event_t {
 	GG_EVENT_DCC7_DONE,		/**< Zakończono połączenie bezpośrednie (7.x) */
 	GG_EVENT_DCC7_PENDING,		/**< Trwa próba połączenia bezpośredniego (7.x), nowy deskryptor */
 
-	GG_EVENT_XML_EVENT		/**< Otrzymano komunikat systemowy (7.7) */
+	GG_EVENT_XML_EVENT,		/**< Otrzymano komunikat systemowy (7.7) */
+	GG_EVENT_DISCONNECT_ACK,	/**< \brief Potwierdzenie zakończenia sesji. Informuje o tym, że zmiana stanu na niedostępny z opisem dotarła do serwera i można zakończyć połączenie TCP. */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -1809,6 +1810,8 @@ struct gg_recv_msg {
 #define GG_PONG 0x0007
 
 #define GG_DISCONNECTING 0x000b
+
+#define GG_DISCONNECT_ACK 0x000d
 
 #define GG_USERLIST_REQUEST 0x0016
 
