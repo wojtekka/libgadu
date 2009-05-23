@@ -886,17 +886,16 @@ ma wyższy priorytet).
 
 <p>
 W nowych wersjach protokołu (prawdopodobnie od <tt>0x29</tt>), po wysłaniu
-pakietu zmieniającego status na niedostępny, serwer może przysłać pakiet:
+pakietu zmieniającego status na niedostępny, serwer przysyła pakiet:
 </p>
 
 <div class="c">
-<pre>#define GG_DISCONNECTING2 0x000d</pre>
+<pre>#define GG_DISCONNECT_ACK 0x000d</pre>
 </div>
 
 <p>
-Prawdopodobnie jest to potwierdzenie, że serwer odebrał pakiet zmiany stanu
-i klient może zakończyć połączenie mając pewność, że zostanie ustawiony
-żądany opis.
+Jest to potwierdzenie, że serwer odebrał pakiet zmiany stanu i klient może
+zakończyć połączenie mając pewność, że zostanie ustawiony żądany opis.
 </p>
 
 <hr />
@@ -1202,7 +1201,7 @@ Pakiety odbierane:
 <tr class="tabf2"><td><tt>0x000a</tt></td><td><tt>GG_RECV_MSG</tt></td><td>Przychodząca wiadomość przed GG 8.0</td></tr>
 <tr class="tabf"><td><tt>0x000b</tt></td><td><tt>GG_DISCONNECTING</tt></td><td>Zerwanie połączenia</td></tr>
 <tr class="tabf2"><td><tt>0x000c</tt></td><td><tt>GG_NOTIFY_REPLY</tt></td><td>Stan listy kontaktów przed GG 6.0</td></tr>
-<tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_DISCONNECTING2</tt></td><td>Zerwanie połączenia po zmianie stanu na niedostępny</td></tr>
+<tr class="tabf"><td><tt>0x000d</tt></td><td><tt>GG_DISCONNECT_ACK</tt></td><td>Zerwanie połączenia po zmianie stanu na niedostępny</td></tr>
 <tr class="tabf"><td><tt>0x000e</tt></td><td><tt>GG_PUBDIR50_REPLY</tt></td><td>Odpowiedź katalogu publicznego</td></tr>
 <tr class="tabf2"><td><tt>0x000f</tt></td><td><tt>GG_STATUS60</tt></td><td>Zmiana stanu przed GG 7.7</td></tr>
 <tr class="tabf2"><td><tt>0x0010</tt></td><td><tt>GG_USERLIST_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze przed nowym Gadu-Gadu</td></tr>
@@ -1901,7 +1900,7 @@ napisz na listę dyskusyjną
 	<li><b>Jakub Zawadzki</b> (darkjames%darkjames.ath.cx): nowości w
 	7.x i 8.x.</li>
 	<li><b>Krystian Kołodziej</b> (krystiankolodziej%gmail.com): znaczenie
-	GG_DISCONNECTING2.</li>
+	GG_DISCONNECT_ACK.</li>
 </ul>
 
 <hr />
