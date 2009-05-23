@@ -8,6 +8,21 @@ int main(int argc, char **argv)
 	char buf[100];
 	int i;
 
+	if (argc == 4 && !strcmp(argv[1], "-l")) {
+		unsigned long seed;
+		uint8_t hash[20];
+
+		seed = strtoul(argv[2], NULL, 0);
+		gg_login_hash_sha1(argv[3], seed, hash);
+
+		for (i = 0; i < 20; i++)
+			printf("%02x ", hash[i]);
+
+		printf("\n");
+
+		return 0;
+	}
+
 	if (argc > 2 && !strcmp(argv[1], "-b")) {
 		int count = argc - 3;
 		uint32_t val = atoi(argv[2]);
