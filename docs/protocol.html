@@ -311,8 +311,25 @@ Ze względu na niewielki zakres wartości wyjściowych, istnieje
 prawdopodobieństwo, że inne hasło przy odpowiednim ziarnie da taki sam wynik.
 Z tego powodu zalecane jest używane algorytmu
 <a href="http://pl.wikipedia.org/wiki/SHA-1">SHA-1</a>, którego implementacje
-są dostępne dla większości współczesnych systemów operacyjnych.
+są dostępne dla większości współczesnych systemów operacyjnych. Skrót SHA-1
+należy obliczyć z połączenia hasła (bez <tt>\0</tt>) i binarnej reprezentacji
+ziarna. Przykładowy kod może wyglądać w następujący sposób:
 </p>
+
+<div class="c">
+<pre>char *gg_sha_hash(char *password, unsigned int seed)
+{
+	SHA1_CTX ctx;
+	static char result[20];
+	  
+	SHA1_Init(&amp;ctx);  
+	SHA1_Update(&amp;ctx, password, strlen(password));
+	SHA1_Update(&amp;ctx, &amp;seed, sizeof(seed));
+	SHA1_Final(result, &amp;ctx);
+
+	return result;
+}</pre>
+</div>
 
 <p>
 Jeśli autoryzacja się powiedzie, dostaniemy w odpowiedzi pakiet:
