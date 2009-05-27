@@ -1444,10 +1444,14 @@ struct gg_pubdir50_reply {
 
 #define GG_STATUS_NOT_AVAIL 0x0001
 #define GG_STATUS_NOT_AVAIL_DESCR 0x0015
+#define GG_STATUS_FFC 0x0017
+#define GG_STATUS_FFC_DESCR 0x0018
 #define GG_STATUS_AVAIL 0x0002
 #define GG_STATUS_AVAIL_DESCR 0x0004
 #define GG_STATUS_BUSY 0x0003
 #define GG_STATUS_BUSY_DESCR 0x0005
+#define GG_STATUS_DND 0x0021
+#define GG_STATUS_DND_DESCR 0x0022
 #define GG_STATUS_INVISIBLE 0x0014
 #define GG_STATUS_INVISIBLE_DESCR 0x0016
 #define GG_STATUS_BLOCKED 0x0006
@@ -1464,10 +1468,14 @@ struct gg_pubdir50_reply {
 enum {
 	GG_STATUS_NOT_AVAIL,		/**< Niedostępny */
 	GG_STATUS_NOT_AVAIL_DESCR,	/**< Niedostępny z opisem */
+	GG_STATUS_FFC,			/**< PoGGadaj ze mną */
+	GG_STATUS_FFC_DESCR,		/**< PoGGadaj ze mną z opisem */
 	GG_STATUS_AVAIL,		/**< Dostępny */
 	GG_STATUS_AVAIL_DESCR,		/**< Dostępny z opisem */
 	GG_STATUS_BUSY,			/**< Zajęty */
 	GG_STATUS_BUSY_DESCR,		/**< Zajęty z opisem */
+	GG_STATUS_DND,			/**< Nie przeszkadzać */
+	GG_STATUS_DND_DESCR,		/**< Nie przeszakdzać z opisem */
 	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
 	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
 	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
@@ -1492,11 +1500,13 @@ enum {
 #define GG_STATUS_DESCR_MAXSIZE 0xff
 #define GG_STATUS_DESCR_MAXSIZE_PRE_8_0 70
 
+#define GG_STATUS_MASK 0xff
+
 /* GG_S_F() tryb tylko dla znajomych */
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
 
-/* GG_S() stan bez uwzględnienia trybu tylko dla znajomych */
-#define GG_S(x) ((x) & ~(GG_STATUS_FRIENDS_MASK | GG_STATUS_VOICE_MASK))
+/* GG_S() stan bez uwzględnienia dodatkowych flag */
+#define GG_S(x) ((x) & GG_STATUS_MASK)
 
 /* GG_S_A() dostępny */
 #define GG_S_A(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
@@ -1511,7 +1521,12 @@ enum {
 #define GG_S_I(x) (GG_S(x) == GG_STATUS_INVISIBLE || GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
 
 /* GG_S_D() stan opisowy */
-#define GG_S_D(x) (GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR || GG_S(x) == GG_STATUS_AVAIL_DESCR || GG_S(x) == GG_STATUS_BUSY_DESCR || GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
+#define GG_S_D(x) (GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR || \
+		   GG_S(x) == GG_STATUS_FFC_DESCR || \
+		   GG_S(x) == GG_STATUS_AVAIL_DESCR || \
+		   GG_S(x) == GG_STATUS_BUSY_DESCR || \
+		   GG_S(x) == GG_STATUS_DND_DESCR || \
+		   GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
 
 /* GG_S_BL() blokowany lub blokujący */
 #define GG_S_BL(x) (GG_S(x) == GG_STATUS_BLOCKED)
