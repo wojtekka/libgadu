@@ -46,9 +46,10 @@ pre { margin: 0px; }
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
 		1.9.&nbsp;&nbsp;<a href="#ch1.9">Rozłączenie</a><br />
 		1.10.&nbsp;&nbsp;<a href="#ch1.10">Wiadomości systemowe</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.11">Katalog publiczny</a><br />
-		1.12.&nbsp;&nbsp;<a href="#ch1.12">Lista kontaktów</a><br />
-		1.13.&nbsp;&nbsp;<a href="#ch1.13">Indeks pakietów</a><br />
+		1.10.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GGLive</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.12">Katalog publiczny</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.13">Lista kontaktów</a><br />
+		1.13.&nbsp;&nbsp;<a href="#ch1.14">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Usługi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
@@ -937,7 +938,45 @@ Przykładowy kod:
 <hr />
 
 <a name="ch1.11"></a>
-<h3>1.11. Katalog publiczny</h3>
+<h3>1.11. Wiadomości GGLive</h3>
+<div class="check">
+<p>Opisać usługi http://life.gadu-gadu.pl/<br>
+Logowanie OAuth: /login?oauth_consumer_key=UIN&amp;oauth_nonce=....&amp;oauth_signature=...&amp;oauth_signature_method=HMAC-SHA1&amp;oauth_timestamp=...&amp;oauth_token=....&amp;oauth_version=1.0<br>
+Wysyłanie: POST /send/message/?USER_IS_AUTHENTICATED=1&amp;uin=UIN&amp;token=TOKEN<br>
+message=Testowa+wiadomo%C5%9B%C4%87&amp;send=Wy%C5%9Blij<br>
+<br>
+</p>
+</div>
+
+<div class="c">
+<pre>#define GG_XML_ACTION 0x002c</pre>
+</div>
+
+<p>
+Przykładowa otrzymana wiadomość:
+</p>
+<div class="example">
+<pre>
+&lt;events&gt;
+  &lt;event id="13106118792229117994"&gt;
+  &lt;type&gt;1&lt;/type&gt;
+  &lt;sender&gt;7496195&lt;/sender&gt;
+  &lt;time&gt;1243461221&lt;/time&gt;
+  &lt;bodyXML&gt;
+     &lt;serviceID&gt;lifestreaming&lt;/serviceID&gt;
+     &lt;msg&gt;&lt;![CDATA[Testowa wiadomość]]&gt;&lt;/msg&gt;
+     &lt;link isLogin="0"&gt;&lt;/link&gt;
+     &lt;creationTime&gt;1243461221&lt;/creationTime&gt;
+  &lt;/bodyXML&gt;
+ &lt;/event&gt;
+&lt;/events&gt;
+</pre>
+</div>
+
+<hr />
+
+<a name="ch1.12"></a>
+<h3>1.12. Katalog publiczny</h3>
 
 <div class="check">
 <p>Nowe Gadu-Gadu korzysta z OAutha do odczytu oraz zmian danych w katalogu, API opisane jest na:
@@ -1059,8 +1098,8 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i płci znalezionych osób.
 
 <hr />
 
-<a name="ch1.12"></a>
-<h3>1.12. Lista kontaktów</h3>
+<a name="ch1.13"></a>
+<h3>1.13. Lista kontaktów</h3>
 
 <div class="check">
 <pre>Sprawdzić czy wszystkie #define dalej są potrzebne</pre>
@@ -1152,8 +1191,8 @@ listę kontaktów czego wynikiem jest pole <tt>request</tt> o zawartości:
 
 <hr />
 
-<a name="ch1.13"></a>
-<h3>1.13. Indeks pakietów</h3>
+<a name="ch1.14"></a>
+<h3>1.14. Indeks pakietów</h3>
 
 <p>
 Pakiety wysyłane:
