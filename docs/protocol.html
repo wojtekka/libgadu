@@ -46,10 +46,10 @@ pre { margin: 0px; }
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
 		1.9.&nbsp;&nbsp;<a href="#ch1.9">Rozłączenie</a><br />
 		1.10.&nbsp;&nbsp;<a href="#ch1.10">Wiadomości systemowe</a><br />
-		1.10.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GGLive</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.12">Katalog publiczny</a><br />
-		1.12.&nbsp;&nbsp;<a href="#ch1.13">Lista kontaktów</a><br />
-		1.13.&nbsp;&nbsp;<a href="#ch1.14">Indeks pakietów</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GGLive</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.12">Katalog publiczny</a><br />
+		1.13.&nbsp;&nbsp;<a href="#ch1.13">Lista kontaktów</a><br />
+		1.14.&nbsp;&nbsp;<a href="#ch1.14">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Usługi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
@@ -1623,8 +1623,7 @@ Aby pobrać identyfikator należy użyć pakietu:
 
 struct gg_dcc7_id_request {
 	int type;		<i>/* rodzaj transmisji */</i>
-}
-</pre>
+};</pre>
 </div>
 
 <p>
@@ -1649,8 +1648,7 @@ Na co serwer odpowie:
 struct gg_dcc7_id_reply {
 	int type;		<i>/* Rodzaj transmisji */</i>
 	gg_dcc7_id_t id;	<i>/* przyznany identyfikator */</i>
-}
-</pre>
+};</pre>
 </div>
 
 <div class="check">
@@ -1784,7 +1782,7 @@ W polu <tt>type</tt> sposób połączenia:
 <div class="check">Opisać</div>
 
 <p>
-Dla połączeń bezpośrednich przykładowa zawartość pola info:
+Dla połączeń bezpośrednich przykładowa zawartość pola <tt>info</tt>:
 </p>
 
 <div class="example">
@@ -1795,7 +1793,6 @@ Dla połączeń bezpośrednich przykładowa zawartość pola info:
 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 </pre>
 </div>
-
 
 <div class="check">
 <p>
@@ -1849,7 +1846,6 @@ Dla pola <tt>reason</tt> znane są wartości:
 #define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu</i>
 </pre>
 </div>
-
 
 <hr />
 
