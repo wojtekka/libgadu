@@ -1215,7 +1215,7 @@ Pakiety wysyłane:
 <tr class="tabf2"><td><tt>0x0015</tt></td><td><tt>GG_LOGIN60</tt></td><td>Logowanie przed GG 7.7</td></tr>
 <tr class="tabf2"><td><tt>0x0016</tt></td><td><tt>GG_USERLIST_REQUEST</tt></td><td>Zapytanie listy kontaktów na serwerze przed Nowym Gadu-Gadu</td></tr>
 <tr class="tabf2"><td><tt>0x0019</tt></td><td><tt>GG_LOGIN70</tt></td><td>Logowanie przed GG 8.0</td></tr>
-<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_DUNNO1</tt></td><td></td></tr>
+<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_INFO</tt></td><td></td></tr>
 <tr class="tabf"><td><tt>0x0020</tt></td><td><tt>GG_DCC7_NEW</tt></td><td>Informacje o chęci nawiązania połączenia DCC</td></tr>
 <tr class="tabf"><td><tt>0x0021</tt></td><td><tt>GG_DCC7_ACCEPT</tt></td><td>Zaakceptowanie połączenia DCC</td></tr>
 <tr class="tabf"><td><tt>0x0022</tt></td><td><tt>GG_DCC7_REJECT</tt></td><td>Odrzucenie połączenia DCC</td></tr>
@@ -1253,7 +1253,7 @@ Pakiety odbierane:
 <tr class="tabf2"><td><tt>0x0016</tt></td><td><tt>GG_LOGIN_HASH_TYPE_INVALID</tt></td><td>Dany rodzaj hashowania hasła jest nieobsługiwany przez serwer</td></tr>
 <tr class="tabf2"><td><tt>0x0017</tt></td><td><tt>GG_STATUS77</tt></td><td>Zmiana stanu przed GG 8.0</td></tr>
 <tr class="tabf2"><td><tt>0x0018</tt></td><td><tt>GG_NOTIFY_REPLY77</tt></td><td>Stan listy kontaktów przed GG 8.0</td></tr>
-<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_DUNNO1</tt></td><td></td></tr>
+<tr class="tabf"><td><tt>0x001f</tt></td><td><tt>GG_DCC7_INFO</tt></td><td></td></tr>
 <tr class="tabf"><td><tt>0x0020</tt></td><td><tt>GG_DCC7_NEW</tt></td><td>Informacje o chęci nawiązania połączenia DCC</td></tr>
 <tr class="tabf"><td><tt>0x0021</tt></td><td><tt>GG_DCC7_ACCEPT</tt></td><td>Zaakceptowanie połączenia DCC</td></tr>
 <tr class="tabf"><td><tt>0x0022</tt></td><td><tt>GG_DCC7_REJECT</tt></td><td>Odrzucenie połączenia DCC</td></tr>
@@ -1603,16 +1603,57 @@ ta została zarzucona.
 </p>
 
 <p>
-Połączenia są możliwe jedynie w sytuacji, gdy co najmniej jedna ze stron
-posiada publiczny adres IP. Jeśli jest to strona wywoływana, wystarczy
-połączyć się na podany adres IP i port. Gdy nie ma możliwości połączenia
-się ze stroną wywoływaną, należy wysłać do niej wiadomość klasy
-<tt>GG_CLASS_CTCP</tt>, zawierającą jeden bajt o wartości <tt>0x02</tt>.
-Odebranie takiej wiadomości powinno spowodować połączenie bezpośrednie
-z nadawcą, w którym role stron będą zamienione aż do momentu określenia
-rzeczywistego kierunku transmisji.
+Dla każdego połączenia musimy zdobyć od serwera 8 bajtowy identyfikator.
 </p>
 
+<div class="c">
+<pre>typedef struct {
+	unsigned char id[8];
+} gg_dcc7_id_t;
+</pre>
+</div>
+
+<p>
+Aby pobrać identyfikator należy użyć pakietu:
+</p>
+
+<div class="c">
+<pre>
+#define GG_DCC7_ID_REQUEST 0x0023
+
+struct gg_dcc7_id_request {
+	int type;		<i>/* rodzaj transmisji */</i>
+}
+</pre>
+</div>
+
+<p>
+Pole <tt>type</tt> oznacza rodzaj transmisji:
+</p>
+
+<div class="c">
+<pre>
+#define GG_DCC7_TYPE_VOICE 0x00000001	<i>/* Rozmowa głosowa (już nieużywane) */</i>
+#define GG_DCC7_TYPE_FILE 0x00000004	<i>/* Przesyłanie plików */</i>
+</pre>
+</div>
+
+<p>
+Na co serwer odpowie:
+</p>
+
+<div class="c">
+<pre>
+#define GG_DCC7_ID_REPLY 0x0023
+
+struct gg_dcc7_id_reply {
+	int type;		<i>/* Rodzaj transmisji */</i>
+	gg_dcc7_id_t id;	<i>/* przyznany identyfikator */</i>
+}
+</pre>
+</div>
+
+<div class="check">
 <p>
 Po nawiązaniu połączenia należy wysłać pakiet zawierający numery Gadu-Gadu
 strony wywołującej i wywoływanej. W odróżnieniu od połączenia z serwerem,
@@ -1665,63 +1706,46 @@ wywołująca została poproszona o połączenie za pomocą wiadomości klasy
 pakiet zależny od rodzaju połączenia bezpośredniego. Jak widać, rzeczywisty
 kierunek transmisji jest już określony.
 </p>
+</div>
 
 <hr />
 
 <a name="ch3.2"></a>
 <h3>3.2. Przesyłanie plików</h3>
 
+<div class="check">W rodzaju transmisji (type) GG_DCC7_TYPE_FILE</div>
+
 <p>
-Aby powiadomić o chęci przesłania pliku, należy wysłać następujące pakiety.
-Pierwszy określa rodzaj połączenia, drugi zawiera szczegóły dotyczące pliku.
+Aby powiadomić o chęci przesłania pliku, należy wysłać następujący pakiet.
 </p>
 
 <div class="c">
-<pre>#define GG_DCC_REQUEST_SEND 0x0001
+<pre>#define GG_DCC7_NEW 0x0020
 
-struct gg_dcc_request {
-	int type;	<i>/* GG_DCC_REQUEST_SEND */</i>
-};
-
-#define GG_DCC_FILE_INFO 0x0003
-
-struct gg_dcc_file_info {
-	int type;			<i>/* GG_DCC_FILE_INFO */</i>
-	int unknown1;			<i>/* == 0 */</i>
-	int unknown2;			<i>/* == 0 */</i>
-
-	struct gg_file_info {
-		int dwFileAttributes;		<i>/* atrybuty pliku */</i>
-		long long ftCreationTime;	<i>/* czas utworzenia pliku */</i>
-		long long ftLastAccessTime;	<i>/* czas ostatniego dostępu */</i>
-		long long ftLastWriteTime;	<i>/* czas ostatniego zapisu */</i>
-		int nFileSizeHigh;		<i>/* górne 32 bity rozmiaru */</i>
-		int nFileSizeLow;		<i>/* dolne 32 bity rozmiaru */</i>
-		int dwReserved0;		<i>/* == 0 */</i>
-		int dwReserved1;		<i>/* == 0 */</i>
-		char cFileName[262];		<i>/* nazwa pliku */</i>
-		char cAlternateFileName[14];	<i>/* krótka nazwa pliku */</i>
-	} info;
+struct gg_dcc7_new {
+	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
+	int uin_from;		<i>/* numer nadawcy */</i>
+	int uin_to;		<i>/* numer odbiorcy */</i>
+	int type;		<i>/* rodzaj transmisji */</i>
+	char filename[255];	<i>/* nazwa pliku */</i>
+	long long size;		<i>/* rozmiar pliku */</i>
+	char hash[20];		<i>/* hash SHA1 (już nieużywane 00 00 00) */</i>
 };</pre>
 </div>
 
 <p>
-Struktura <tt>gg_file_info</tt> odpowiada strukturze <tt>WIN32_FIND_DATA</tt>
-z API Win32.
-</p>
-
-<p>
 Strona wywoływana, w przypadku gdy użytkownik zaakceptuje pobranie pliku,
-odsyła pakiet:
+wysyła pakiet:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC_SEND_ACK 0x0006
+<pre>#define GG_DCC7_ACCEPT 0x0021
 
-struct gg_dcc_send_ack {
-	int type;	<i>/* GG_DCC_SEND_ACK */</i>
-	int offset;	<i>/* od którego zaczynamy przesyłanie */</i>
-	int unknown1;	<i>/* == 0 */</i>
+struct gg_dcc7_accept {
+	int uin;		<i>/* numer przyjmującego połączenie */</i>
+	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
+	int offset;		<i>/* offset przy wznawianiu transmisji */</i>
+	int dunno1;		<i>/* 0x00000000 (na 99% kontynuacja offsetu) */</i>
 };</pre>
 </div>
 
@@ -1731,6 +1755,49 @@ w polu <tt>offset</tt> wystarczy podać ile bajtów już mamy, a odebrane
 dane dopisać na końcu pliku.
 </p>
 
+<p>
+Po zaakceptowaniu pliku, obie strony wysyłają pakiet GG_DCC7_INFO:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_INFO 0x1f
+
+struct gg_dcc7_info {
+	int uin;		<i>/* numer nadawcy */</i>
+	int type;		<i>/* sposób połączenia */</i>
+	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
+	char info[64];		<i>/* informacje o połączeniu "ip port" */</i>
+};</pre>
+</div>
+
+<p>
+W polu <tt>type</tt> sposób połączenia:
+</p>
+
+<div class="c">
+<pre>
+#define GG_DCC7_TYPE_P2P 0x00000001	<i>/* Połączenie bezpośrednie */</i>
+#define GG_DCC7_TYPE_SERVER 0x00000002	<i>/* Połączenie przez serwer */</i>
+</pre>
+</div>
+
+<div class="check">Opisać</div>
+
+<p>
+Dla połączeń bezpośrednich przykładowa zawartość pola info:
+</p>
+
+<div class="example">
+<pre>
+0000   31 30 2e 30 2e 30 2e 32 20 32 32 35 36 33 00 00  10.0.0.2 22563..
+0010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0020   31 37 36 34 36 38 34 38 34 00 00 00 00 00 00 00  176468484.......
+0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+</pre>
+</div>
+
+
+<div class="check">
 <p>
 Po zaakceptowaniu pliku, strona wywołująca przesyła jego zawartość podzieloną
 na pakiety, a następnie zamyka połączenie.
@@ -1755,12 +1822,45 @@ rozważyć, czy strona wywoływana powinna odebrać nie więcej niż rozmiar pli
 zadeklarowany w strukturze <tt>gg_file_info</tt> czy odbierać dane aż do
 otrzymania pakietu typu <tt>GG_DCC_SEND_DATA_LAST</tt>, implementacji.
 </p>
+</div>
+
+<p>
+Jeśli strona wywołana chce odrzucić plik wysyła pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_REJECT 0x0022
+
+struct gg_dcc7_reject {
+	int uin;		<i>/* Numer odrzucającego połączenie */</i>
+	gg_dcc7_id_t id;	<i>/* Identyfikator połączenia */</i>
+	int reason;		<i>/* Powód rozłączenia */</i>
+};</pre>
+</div>
+
+<p>
+Dla pola <tt>reason</tt> znane są wartości:
+</p>
+
+<div class="c">
+<pre>
+#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* Połączenie bezpośrednie już trwa, nie umiem obsłużyć więcej */</i>
+#define GG_DCC7_REJECT_USER	0x00000002	<i>/* Użytkownik odrzucił połączenie</i>
+#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu</i>
+</pre>
+</div>
+
 
 <hr />
 
 <a name="ch3.3"></a>
 <h3>3.3. Rozmowy głosowe</h3>
 
+<div class="check">
+ZTCP to leci po SIP
+</div>
+
+<div class="check">
 <p>
 Aby powiadomić o chęci rozmowy głosowej należy wysłać pakiet:
 </p>
@@ -1826,9 +1926,11 @@ Do wersji 5.0.5 w jednym pakiecie było umieszczone 6 ramek GSM (<i>6 * 32,5 =
 195 bajtów</i>), a począwszy od tej wersji przesyła się po 10 ramek GSM,
 poprzedzając je bajtem zerowym (<i>1 + 10 * 32,5 = 326 bajtów</i>).
 </p>
+</div>
 
 <hr />
 
+<div class="check">
 <pre>
 ----- 3) transmisja pliku: strona nadawcy -------------------------------------
 Nadawca wysyła  po kolei:
@@ -1893,6 +1995,7 @@ odbiorca się spodziewa.
 4. jeśli nagłówek był typu GG_DCC_LAST_FILEHEADER to otrzymaliśmy całość, 
 więc zamykamy połączenie. Jeśli nie, to wracamy do kroku 3.
 </pre>
+</div>
 
 <hr />
 

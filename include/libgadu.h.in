@@ -1932,7 +1932,7 @@ struct gg_dcc7_new {
 	uint32_t type;			/* rodzaj transmisji */
 	unsigned char filename[GG_DCC7_FILENAME_LEN];	/* nazwa pliku */
 	uint32_t size;			/* rozmiar pliku */
-	uint32_t dunno1;		/* 0x00000000 */
+	uint32_t size_hi;		/* rozmiar pliku (starsze bajty) */
 	unsigned char hash[GG_DCC7_HASH_LEN];	/* hash SHA1 */
 } GG_PACKED;
 
