@@ -1604,16 +1604,6 @@ ta została zarzucona.
 
 <p>
 Dla każdego połączenia musimy zdobyć od serwera 8 bajtowy identyfikator.
-</p>
-
-<div class="c">
-<pre>typedef struct {
-	unsigned char id[8];
-} gg_dcc7_id_t;
-</pre>
-</div>
-
-<p>
 Aby pobrać identyfikator należy użyć pakietu:
 </p>
 
@@ -1646,8 +1636,8 @@ Na co serwer odpowie:
 #define GG_DCC7_ID_REPLY 0x0023
 
 struct gg_dcc7_id_reply {
-	int type;		<i>/* Rodzaj transmisji */</i>
-	gg_dcc7_id_t id;	<i>/* przyznany identyfikator */</i>
+	int type;	<i>/* Rodzaj transmisji */</i>
+	long long id;	<i>/* przyznany identyfikator */</i>
 };</pre>
 </div>
 
@@ -1721,7 +1711,7 @@ Aby powiadomić o chęci przesłania pliku, należy wysłać następujący pakie
 <pre>#define GG_DCC7_NEW 0x0020
 
 struct gg_dcc7_new {
-	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
+	long long id;		<i>/* identyfikator połączenia */</i>
 	int uin_from;		<i>/* numer nadawcy */</i>
 	int uin_to;		<i>/* numer odbiorcy */</i>
 	int type;		<i>/* rodzaj transmisji */</i>
@@ -1740,10 +1730,10 @@ wysyła pakiet:
 <pre>#define GG_DCC7_ACCEPT 0x0021
 
 struct gg_dcc7_accept {
-	int uin;		<i>/* numer przyjmującego połączenie */</i>
-	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
-	int offset;		<i>/* offset przy wznawianiu transmisji */</i>
-	int dunno1;		<i>/* 0x00000000 (na 99% kontynuacja offsetu) */</i>
+	int uin;	<i>/* numer przyjmującego połączenie */</i>
+	long long id;	<i>/* identyfikator połączenia */</i>
+	int offset;	<i>/* offset przy wznawianiu transmisji */</i>
+	int dunno1;	<i>/* 0x00000000 (na 99% kontynuacja offsetu) */</i>
 };</pre>
 </div>
 
@@ -1754,19 +1744,22 @@ dane dopisać na końcu pliku.
 </p>
 
 <p>
-Po zaakceptowaniu pliku, obie strony wysyłają pakiet GG_DCC7_INFO:
+Po zaakceptowaniu pliku, obie strony zaczynają nasłuchiwać na losowo wybranym porcie i
+wysyłają pakiet GG_DCC7_INFO z informacjami potrzebnymi do połączenia.
 </p>
 
 <div class="c">
 <pre>#define GG_DCC7_INFO 0x1f
 
 struct gg_dcc7_info {
-	int uin;		<i>/* numer nadawcy */</i>
-	int type;		<i>/* sposób połączenia */</i>
-	gg_dcc7_id_t id;	<i>/* identyfikator połączenia */</i>
-	char info[64];		<i>/* informacje o połączeniu "ip port" */</i>
+	int uin;	<i>/* numer nadawcy */</i>
+	int type;	<i>/* sposób połączenia */</i>
+	long long id;	<i>/* identyfikator połączenia */</i>
+	char info[64];	<i>/* informacje o połączeniu */</i>
 };</pre>
 </div>
+
+<div class="check">Rodzielić info na info1, info2</div>
 
 <p>
 W polu <tt>type</tt> sposób połączenia:
@@ -1779,10 +1772,14 @@ W polu <tt>type</tt> sposób połączenia:
 </pre>
 </div>
 
-<div class="check">Opisać</div>
+<p>
+Dla połączeń bezpośrednich:<br>
+- pierwsze 32bajty pola <tt>info</tt> to <i>IP &lt;SPACJA&gt; PORT</i>,<br>
+- drugie 32bajty pola <tt>info</tt> to ip oraz port w innej postaci, niestety nie mamy informacji o algorytmie :)
+</p>
 
 <p>
-Dla połączeń bezpośrednich przykładowa zawartość pola <tt>info</tt>:
+Przykładowa zawartość pola <tt>info</tt> dla 10.0.0.2:22563
 </p>
 
 <div class="example">
@@ -1793,6 +1790,35 @@ Dla połączeń bezpośrednich przykładowa zawartość pola <tt>info</tt>:
 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 </pre>
 </div>
+
+<div class="check">Opisać protokół</div>
+
+<p>
+Dla połączeń przez serwer:<br>
+- pierwsze 32bajty pola <tt>info</tt> to GG<i>id</i>CH<i>numerek</i><br><br>
+Gdzie: <br>
+<tt>id</tt> to identyfikator połączenia zapisany w cyferkach ASCII<br>
+<tt>numerek</tt>
+</p>
+
+<p>
+Przykładowa zawartość pola <tt>info</tt> dla połączenia 0x00000a0600000b27<br>
+<br>
+$ echo 'ibase=16; 00000A0600000B27' | bc <br>
+11020886084391
+</p>
+
+<div class="example">
+<pre>
+0000   47 47 31 31 30 32 30 38 38 36 30 38 34 33 39 31  GG11020886084391
+0010   43 48 36 39 36 32 00 00 00 00 00 00 00 00 00 00  CH6962..........
+0020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+</pre>
+</div>
+
+<div class="check">Opisać protokół, sniffować 91.197.13.104:80</div>
+
 
 <div class="check">
 <p>
@@ -1829,9 +1855,9 @@ Jeśli strona wywołana chce odrzucić plik wysyła pakiet:
 <pre>#define GG_DCC7_REJECT 0x0022
 
 struct gg_dcc7_reject {
-	int uin;		<i>/* Numer odrzucającego połączenie */</i>
-	gg_dcc7_id_t id;	<i>/* Identyfikator połączenia */</i>
-	int reason;		<i>/* Powód rozłączenia */</i>
+	int uin;	<i>/* Numer odrzucającego połączenie */</i>
+	long long id;	<i>/* Identyfikator połączenia */</i>
+	int reason;	<i>/* Powód rozłączenia */</i>
 };</pre>
 </div>
 
