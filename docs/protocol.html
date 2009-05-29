@@ -1703,6 +1703,8 @@ kierunek transmisji jest już określony.
 
 <div class="check">W rodzaju transmisji (type) GG_DCC7_TYPE_FILE</div>
 
+<h4>3.2.1 GG_DCC7_TYPE_FILE - Jak powiadamiać, jak akceptować oraz jak odrzucać</h4>
+
 <p>
 Aby powiadomić o chęci przesłania pliku, należy wysłać następujący pakiet.
 </p>
@@ -1797,6 +1799,82 @@ Dla pola <tt>reason</tt> znane są wartości:
 Po zaakceptowaniu pliku, obie strony zaczynają nasłuchiwać na losowo wybranym porcie i
 wysyłają pakiet GG_DCC7_INFO z informacjami potrzebnymi do połączenia.
 </p>
+
+<h4>3.2.2 relay.gadu-gadu.pl - 91.197.13.102 albo tajemniczy host w podsieci 91.197.12.0/22</h4>
+
+<p>
+Oba hosty łączą się również z relay.gadu-gadu.pl:80 aby uzyskać listę serwerów które mogą pośredniczyć
+w wymianie plików.
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_RELAY_REQUEST 0x0a
+struct gg_dcc7_relay_req {
+	int magic;	<i>/* 0x0a */</i>
+	int len;	<i>/* długość całego pakietu */</i>
+	long long id;	<i>/* identyfikator połączenia */</i>
+	short dunno1;	<i>/* 0x01 0x00 */</i>
+	short dunno2;	<i>/* 0x02 0x00 */</i>
+};</pre>
+</div>
+
+<div class="check">
+Czy wysyła zapytania DNS o relay.gadu-gadu.pl U mnie łączy się z 91.197.13.102, zapytań nie widziałem (cache?)
+</div>
+
+<div class="check">
+Tak naprawdę z relay.gadu-gadu.pl łączą się dwa razy.
+Za pierwszym razem łączą się wysyłając w dunno1: 08 00.
+Odpowiada też dwoma rekordami, ale w port jest 00 00
+</div>
+
+<p>
+Przykładowe pytanie o serwery dla połączenia 0x160600000bd4
+</p>
+
+<div class="example">
+<pre>
+0000  0a 00 00 00 14 00 00 00 d4 0b 00 00 06 16 00 00
+0010  01 00 02 00
+</pre>
+</div>
+
+<p>
+Serwer odpowiada:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_RELAY_REPLY 0x0b
+struct gg_dcc7_relay_rely {
+	int magic;	<i>/* 0x0b */</i>
+	int len;	<i>/* długość całego pakietu */</i>
+	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
+	struct {
+		int ip;		<i>/* adres ip serwera */</i>
+		int port;	<i>/* port serwera */</i>
+		char family;	<i>/* rodzina adresów (na końcu?!) AF_INET=2 */</i>
+	} proxies[rcount];
+};</pre>
+
+</pre>
+</div>
+
+<p>
+Przykładowa odpowiedź serwera zawierająca 2 rekordy:<br>
+ - 91.197.13.104:80<br>
+ - 91.197.13.104:443<br>
+</p>
+
+<div class="example">
+<pre>
+0000  0b 00 00 00 1a 00 00 00 02 00 00 00 5b c5 0d 68
+0010  50 00 02 5b c5 0d 68 bb 01 02
+</pre>
+</div>
+
+<p></p>
+
+<h4>3.2.3 GG_DCC7_INFO - Jak się odnaleźć w mroku</h4>
 
 <div class="c">
 <pre>#define GG_DCC7_INFO 0x001f
