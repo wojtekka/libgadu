@@ -1851,7 +1851,7 @@ struct gg_dcc7_relay_rely {
 	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
 	struct {
 		int ip;		<i>/* adres ip serwera */</i>
-		int port;	<i>/* port serwera */</i>
+		short port;	<i>/* port serwera */</i>
 		char family;	<i>/* rodzina adresów (na końcu?!) AF_INET=2 */</i>
 	} proxies[rcount];
 };</pre>
@@ -1918,7 +1918,15 @@ Przykładowa zawartość pola <tt>info</tt> dla 10.0.0.2:22563
 </pre>
 </div>
 
-<div class="check">Opisać protokół</div>
+<div class="check">Opis protokołu na szybko:<br>
+Po połączeniu wysyłamy dcc_id(8b)<br>
+Jeśli dobrze się połączyliśmy to powinniśmy dostać taki sam :)<br>
+<br>
+jeśli mamy wysyłać plik: wysyłamy<br>
+jeśli mamy odbierać plik: odbieramy :)<br>
+<br>
+Finito.
+</div>
 
 <p>
 Dla połączeń przez serwer:<br>
@@ -1944,8 +1952,15 @@ $ echo 'ibase=16; 00000A0600000B27' | bc <br>
 </pre>
 </div>
 
-<div class="check">Opisać protokół, sniffować 91.197.13.104:80</div>
-
+<div class="check">Opis protokołu na szybko, po połączeniu do serwer pośredniczącego:<br>
+po połączeniu dcc_id(8b), dunno1(4b)<br>
+serwer odpowiada nam tym samym.<br>
+<br>
+jeśli mamy wysyłać plik: wysyłamy<br>
+jeśli mamy odbierać plik: odbieramy :)<br>
+<br>
+Finito.
+</div>
 
 <div class="check">
 <p>
