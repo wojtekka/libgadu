@@ -1641,61 +1641,6 @@ struct gg_dcc7_id_reply {
 };</pre>
 </div>
 
-<div class="check">
-<p>
-Po nawiązaniu połączenia należy wysłać pakiet zawierający numery Gadu-Gadu
-strony wywołującej i wywoływanej. W odróżnieniu od połączenia z serwerem,
-w połączeniach bezpośrednich pakiety nie są poprzedzane strukturami
-<tt>gg_header</tt>.
-</p>
-
-<div class="c">
-<pre>struct gg_dcc_welcome {
-	int uin;	<i>/* numer strony wywołującej */</i>
-	int peer_uin;	<i>/* numer strony wywoływanej */</i>
-};</pre>
-</div>
-
-<p>
-Strona wywoływana sprawdza, czy nadawca istnieje w liście kontaktów i czy
-łączy się z tego samego adresu, który zgłosił serwerowi. Gdy któryś z
-parametrów się nie zgadza, połączenie należy ze względów bezpieczeństwa
-zerwać. Pomyślna autoryzacja jest sygnalizowana przez wysłanie do strony
-wywołującej pakietu:
-</p>
-
-<div class="c">
-<pre>struct gg_dcc_welcome_ack {
-	int ack;	<i>/* wartość 0x47414455, tekst "UDAG" */</i>
-};</pre>
-</div>
-
-<p>
-Strona wywołująca następnie wysyła pakiet, w którym określa kto właściwie
-ma rozpocząć transmisję:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC_DIRECTION_IN 0x0002
-#defnie GG_DCC_DIRECTION_OUT 0x0003
-
-struct gg_dcc_direction {
-	int type;	<i>/* w którą stronę połączenie? */</i>
-};</pre>
-</div>
-
-<p>
-Jeśli strona wywołująca była stroną inicjującą połączenie bezpośrednie (nie
-chodzi o połączenie TCP, a o żądanie użytkownika), wysyła
-<tt>GG_DCC_DIRECTION_IN</tt>, a następnie wysyła pakiety zależne od rodzaju
-połączenia bezpośredniego, opisane w dalszych rozdziałach. Gdy strona
-wywołująca została poproszona o połączenie za pomocą wiadomości klasy
-<tt>GG_CLASS_CTCP</tt>, wysyła <tt>GG_DCC_DIRECTION_OUT</tt> i oczekuje na
-pakiet zależny od rodzaju połączenia bezpośredniego. Jak widać, rzeczywisty
-kierunek transmisji jest już określony.
-</p>
-</div>
-
 <hr />
 
 <a name="ch3.2"></a>
@@ -1790,8 +1735,8 @@ Dla pola <tt>reason</tt> znane są wartości:
 
 <div class="c">
 <pre>#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* Połączenie bezpośrednie już trwa, nie umiem obsłużyć więcej */</i>
-#define GG_DCC7_REJECT_USER	0x00000002	<i>/* Użytkownik odrzucił połączenie</i>
-#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu</i>
+#define GG_DCC7_REJECT_USER	0x00000002	<i>/* Użytkownik odrzucił połączenie */</i>
+#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu */</i>
 </pre>
 </div>
 
@@ -1918,14 +1863,23 @@ Przykładowa zawartość pola <tt>info</tt> dla 10.0.0.2:22563
 </pre>
 </div>
 
-<div class="check">Opis protokołu na szybko:<br>
-Po połączeniu wysyłamy dcc_id(8b)<br>
-Jeśli dobrze się połączyliśmy to powinniśmy dostać taki sam :)<br>
-<br>
-jeśli mamy wysyłać plik: wysyłamy<br>
-jeśli mamy odbierać plik: odbieramy :)<br>
-<br>
-Finito.
+<p>
+Po udanym połączeniu na podany adres w GG_DCC7_INFO wysyłamy pakiet powitalny:
+</p>
+
+<div class="c">
+<pre>struct gg_dcc7_welcome_p2p {
+	long long id;	<i>/* identyfikator połączenia */</i>
+};</pre>
+</div>
+
+<p>
+Druga strona powinna odpowiedzieć tym samym. Teraz już możemy albo wysyłać albo odbierać plik.
+</p>
+<div class="check">
+Z powodu tego że obie strony łączą się w tym samym momencie możliwy jest wyścig.
+Z tego co zauważyłem gdy jednak ze stron zorientuje się że na innym połączeniu dostaliśmy już ten id,
+to połączenie jest zrywane - ale czy taki sposób rozwiązywania nie powoduje możliwych wyścigów?
 </div>
 
 <p>
@@ -1933,7 +1887,7 @@ Dla połączeń przez serwer:<br>
 - pierwsze 32bajty pola <tt>info</tt> to GG<i>id</i>CH<i>numerek</i><br><br>
 Gdzie: <br>
 <tt>id</tt> to identyfikator połączenia zapisany w cyferkach ASCII<br>
-<tt>numerek</tt>
+<tt>numerek</tt> TBD
 </p>
 
 <p>
@@ -1952,42 +1906,21 @@ $ echo 'ibase=16; 00000A0600000B27' | bc <br>
 </pre>
 </div>
 
-<div class="check">Opis protokołu na szybko, po połączeniu do serwer pośredniczącego:<br>
-po połączeniu dcc_id(8b), dunno1(4b)<br>
-serwer odpowiada nam tym samym.<br>
-<br>
-jeśli mamy wysyłać plik: wysyłamy<br>
-jeśli mamy odbierać plik: odbieramy :)<br>
-<br>
-Finito.
-</div>
-
-<div class="check">
 <p>
-Po zaakceptowaniu pliku, strona wywołująca przesyła jego zawartość podzieloną
-na pakiety, a następnie zamyka połączenie.
+Po połączeniu do serwera pośredniczącego wysyłamy pakiet powitalny:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC_SEND_DATA 0x0003
-#define GG_DCC_SEND_DATA_LAST 0x0002
-
-struct gg_dcc_send_data {
-	int type;	<i>/* typ pakietu */</i>
-	int length;	<i>/* rozmiar pakietu */</i>
-	char data[];	<i>/* dane */</i>
+<pre>struct gg_dcc7_welcome_server {
+	long long id;	<i>/* identyfikator połączenia */</i>
+	short dunno1;	<i>/* 06 0a */</i>
+	short dunno2;	<i>/* 00 00 */</i>
 };</pre>
 </div>
 
 <p>
-Domyślnie dane są dzielone na pakiety o rozmiarze 4096 bajtów. Ostatni pakiet
-danych jest oznaczany typem <tt>GG_DCC_SEND_DATA_LAST</tt>, podczas gdy
-pozostałe <tt>GG_DCC_SEND_DATA</tt>. Podczas implementacji dobrze było by
-rozważyć, czy strona wywoływana powinna odebrać nie więcej niż rozmiar pliku
-zadeklarowany w strukturze <tt>gg_file_info</tt> czy odbierać dane aż do
-otrzymania pakietu typu <tt>GG_DCC_SEND_DATA_LAST</tt>, implementacji.
+Serwer powinien odpowiedzieć tym samym. Teraz już możemy albo wysyłać albo odbierać plik.
 </p>
-</div>
 
 <hr />
 
