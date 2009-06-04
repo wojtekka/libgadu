@@ -35,6 +35,7 @@
 
 #include "compat.h"
 #include "libgadu.h"
+#include "protocol.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -678,7 +679,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		}
 
 		case GG_NOTIFY_REPLY77:
-		case GG_NOTIFY_REPLY80:
+		case GG_NOTIFY_REPLY80BETA:
 		{
 			struct gg_notify_reply77 *n = (void*) p;
 			unsigned int length = h->length, i = 0;
@@ -729,7 +730,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 						memcpy(descr, (char*) n + sizeof(struct gg_notify_reply77) + 1, descr_len);
 						descr[descr_len] = 0;
 
-						if (h->type == GG_NOTIFY_REPLY80 && sess->encoding != GG_ENCODING_UTF8) {
+						if (h->type == GG_NOTIFY_REPLY80BETA && sess->encoding != GG_ENCODING_UTF8) {
 							char *cp_descr = gg_utf8_to_cp(descr);
 
 							if (!cp_descr) {
@@ -771,7 +772,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		}
 
 		case GG_STATUS77:
-		case GG_STATUS80:
+		case GG_STATUS80BETA:
 		{
 			struct gg_status77 *s = (void*) p;
 			uint32_t uin;
@@ -811,7 +812,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					memcpy(buf, (char*) p + sizeof(*s), len);
 					buf[len] = 0;
 
-					if (h->type == GG_STATUS80 && sess->encoding != GG_ENCODING_UTF8) {
+					if (h->type == GG_STATUS80BETA && sess->encoding != GG_ENCODING_UTF8) {
 						char *cp_buf = gg_utf8_to_cp(buf);
 						free(buf);
 						buf = cp_buf;
@@ -948,6 +949,127 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				}
 			}
 
+			break;
+		}
+
+		case GG_STATUS80:
+		{
+			struct gg_notify_reply80 *s = (void*) p;
+			uint32_t descr_len;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
+
+			if (h->length < sizeof(*s))
+				break;
+
+			e->type = GG_EVENT_STATUS60;
+			e->event.status60.uin		= gg_fix32(s->uin);
+			e->event.status60.status	= gg_fix32(s->status);
+			e->event.status60.remote_ip	= s->remote_ip;
+			e->event.status60.remote_port	= gg_fix16(s->remote_port);
+			e->event.status60.image_size	= s->image_size;
+			e->event.status60.descr		= NULL;
+			e->event.status60.version	= 0x00;	/* not-supported */
+			e->event.status60.time		= 0;	/* not-supported */
+
+			descr_len = gg_fix32(s->descr_len);
+
+			if (h->length-sizeof(*s) >= descr_len) {
+				char *buf = malloc(descr_len + 1);
+
+				if (buf) {
+					memcpy(buf, (char*) p + sizeof(*s), descr_len);
+					buf[descr_len] = 0;
+
+					if (sess->encoding != GG_ENCODING_UTF8) {
+						char *cp_buf = gg_utf8_to_cp(buf);
+						free(buf);
+						buf = cp_buf;
+					}
+				}
+
+				e->event.status60.descr = buf;
+			}
+			break;
+		}
+
+		case GG_NOTIFY_REPLY80:
+		{
+			struct gg_notify_reply80 *n = (void*) p;
+			unsigned int length = h->length, i = 0;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
+
+			e->type = GG_EVENT_NOTIFY60;
+			e->event.notify60 = malloc(sizeof(*e->event.notify60));
+
+			if (!e->event.notify60) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+				goto fail;
+			}
+
+			e->event.notify60[0].uin = 0;
+
+			while (length >= sizeof(struct gg_notify_reply80)) {
+				uint32_t descr_len;
+				char *tmp;
+
+				e->event.notify60[i].uin	= gg_fix32(n->uin);
+				e->event.notify60[i].status	= gg_fix32(n->status);
+				e->event.notify60[i].remote_ip	= n->remote_ip;
+				e->event.notify60[i].remote_port= gg_fix16(n->remote_port);
+				e->event.notify60[i].image_size	= n->image_size;
+				e->event.notify60[i].descr	= NULL;
+				e->event.notify60[i].version	= 0x00;	/* not-supported */
+				e->event.notify60[i].time	= 0;	/* not-supported */
+
+				descr_len = gg_fix32(n->descr_len);
+
+				length -= sizeof(struct gg_notify_reply80);
+				n = (void*) ((char*) n + sizeof(struct gg_notify_reply80));
+
+				if (descr_len) {
+					if (length >= descr_len) {
+						/* XXX, GG_S_D(n->status) */
+						char *descr;
+
+						if (!(descr = malloc(descr_len + 1))) {
+							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+							goto fail;
+						}
+
+						memcpy(descr, n, descr_len);
+						descr[descr_len] = 0;
+
+						if (sess->encoding != GG_ENCODING_UTF8) {
+							char *cp_descr = gg_utf8_to_cp(descr);
+
+							if (!cp_descr) {
+								gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+								free(descr);
+								goto fail;
+							}
+
+							free(descr);
+							descr = cp_descr;
+						}
+						e->event.notify60[i].descr = descr;
+
+						length -= descr_len;
+						n = (void*) ((char*) n + descr_len);
+					} else
+						length = 0;
+				}
+
+				if (!(tmp = realloc(e->event.notify60, (i + 2) * sizeof(*e->event.notify60)))) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+					free(e->event.notify60);
+					goto fail;
+				}
+
+				e->event.notify60 = (void*) tmp;
+				e->event.notify60[++i].uin = 0;
+			}
 			break;
 		}
 
@@ -1304,6 +1426,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			} else
 #endif
 			{
+				/* XXX, appmsg_ver8.asp */
 				appmsg = "appmsg4.asp";
 				fmt = "&fmt=2";
 			}
@@ -1690,17 +1813,18 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			struct gg_header *h;
 			struct gg_welcome *w;
-			struct gg_login70 l;
 			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
 
+			int login_dunno2;
+			uint8_t login_hash[64];
+
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
 
-			memset(&l, 0, sizeof(l));
 			if (sess->protocol_version >= 0x2d)
-				l.dunno2 = 0x64;
+				login_dunno2 = 0x64;
 			else
-				l.dunno2 = 0xbe;
+				login_dunno2 = 0xbe;
 
 			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
 			 * się tekstu wrzucanego przez proxy. */
@@ -1760,8 +1884,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			w = (struct gg_welcome*) ((char*) h + sizeof(struct gg_header));
 			w->key = gg_fix32(w->key);
 
-			l.hash_type = sess->hash_type;
-
 			switch (sess->hash_type) {
 				case GG_LOGIN_HASH_GG32:
 				{
@@ -1769,7 +1891,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 					hash = gg_fix32(gg_login_hash(password, w->key));
 					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
-					memcpy(l.hash, &hash, sizeof(hash));
+					memcpy(login_hash, &hash, sizeof(hash));
 
 					break;
 				}
@@ -1779,9 +1901,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					char tmp[41];
 					int i;
 
-					gg_login_hash_sha1((char*) password, w->key, l.hash);
+					gg_login_hash_sha1((char*) password, w->key, login_hash);
 					for (i = 0; i < 40; i += 2)
-						snprintf(tmp + i, sizeof(tmp) - i, "%02x", l.hash[i / 2]);
+						snprintf(tmp + i, sizeof(tmp) - i, "%02x", login_hash[i / 2]);
 
 					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> SHA1 hash: %s\n", w->key, tmp);
 
@@ -1801,33 +1923,81 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				if (!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len)) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() detected address to %s\n", inet_ntoa(sin.sin_addr));
-					l.local_ip = sin.sin_addr.s_addr;
+					sess->client_addr = sin.sin_addr.s_addr;
 				} else {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() unable to detect address\n");
-					l.local_ip = 0;
+					sess->client_addr = 0;
 				}
 			} else
-				l.local_ip = gg_dcc_ip;
+				sess->client_addr = gg_dcc_ip;
 
-			sess->client_addr = l.local_ip;
+			if (sess->protocol_version >= 0x2e) {
+				struct gg_login80 l;
 
-			l.uin = gg_fix32(sess->uin);
-			l.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-			l.version = gg_fix32(sess->protocol_version | sess->protocol_flags);
-			l.local_port = gg_fix16(gg_dcc_port);
-			l.image_size = sess->image_size;
+				uint32_t tmp_version_len	= gg_fix32(strlen(GG8_VERSION));
+				uint32_t tmp_descr_len		= gg_fix32((sess->initial_descr) ? strlen(sess->initial_descr) : 0);
+				
+				memset(&l, 0, sizeof(l));
+				l.uin           = gg_fix32(sess->uin);
+				memcpy(l.language, GG8_LANG, sizeof(l.language));
+				l.hash_type     = sess->hash_type;
+				memcpy(l.hash, login_hash, sizeof(login_hash));
+				l.status        = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
+				l.flags		= gg_fix32(0x01);
+				l.features	= gg_fix32(sess->protocol_features);
+			/*
+				l.local_ip      = (sess->external_addr) ? sess->external_addr : sess->client_addr;
+				l.local_port    = gg_fix16((sess->external_port > 1023) ? sess->external_port : gg_dcc_port);
+			*/
+				l.image_size    = sess->image_size;
+				l.dunno2        = login_dunno2;
 
-			if (sess->external_addr && sess->external_port > 1023) {
-				l.local_ip = sess->external_addr;
-				l.local_port = gg_fix16(sess->external_port);
-			}
-
-			if (sess->protocol_version >= 0x2d) {
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN80, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, (sess->initial_descr) ? "\0" : NULL, (sess->initial_descr) ? 1 : 0, NULL);
+				ret = gg_send_packet(sess, GG_LOGIN80, 
+						&l, sizeof(l), 
+						&tmp_version_len, sizeof(uint32_t), GG8_VERSION, strlen(GG8_VERSION),
+						&tmp_descr_len, sizeof(uint32_t), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0,
+						NULL);
+
+			} else if (sess->protocol_version == 0x2d) {
+				struct gg_login70 l;
+
+				memset(&l, 0, sizeof(l));
+				l.uin		= gg_fix32(sess->uin);
+				l.local_ip	= (sess->external_addr) ? sess->external_addr : sess->client_addr;
+				l.local_port	= gg_fix16((sess->external_port > 1023) ? sess->external_port : gg_dcc_port);
+				l.hash_type	= sess->hash_type;
+				memcpy(l.hash, login_hash, sizeof(login_hash));
+				l.image_size	= sess->image_size;
+				l.dunno2 	= login_dunno2;
+				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
+				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
+
+				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80BETA packet\n");
+				ret = gg_send_packet(sess, GG_LOGIN80BETA,
+						&l, sizeof(l),
+						sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0,
+						(sess->initial_descr) ? "\0" : NULL, (sess->initial_descr) ? 1 : 0,
+						NULL);
 			} else {
+				struct gg_login70 l;
+
+				memset(&l, 0, sizeof(l));
+				l.local_ip	= (sess->external_addr) ? sess->external_addr : sess->client_addr;
+				l.uin		= gg_fix32(sess->uin);
+				l.local_port	= gg_fix16((sess->external_port > 1023) ? sess->external_port : gg_dcc_port);
+				l.hash_type	= sess->hash_type;
+				memcpy(l.hash, login_hash, sizeof(login_hash));
+				l.image_size	= sess->image_size;
+				l.dunno2	= login_dunno2;
+				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
+				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
+
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN70, &l, sizeof(l), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
+				ret = gg_send_packet(sess, GG_LOGIN70,
+						&l, sizeof(l),
+						sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0,
+						NULL);
 			}
 
 			free(sess->initial_descr);
@@ -1874,7 +2044,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 
-			if (h->type == GG_LOGIN_OK || h->type == GG_NEED_EMAIL) {
+			if (h->type == GG_LOGIN_OK || h->type == GG_NEED_EMAIL || h->type == GG_LOGIN80_OK) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
 				e->type = GG_EVENT_CONN_SUCCESS;
 				sess->state = GG_STATE_CONNECTED;

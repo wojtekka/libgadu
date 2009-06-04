@@ -38,6 +38,7 @@
 
 #include "compat.h"
 #include "libgadu.h"
+#include "protocol.h"
 #include "resolver.h"
 
 #include <errno.h>
@@ -743,6 +744,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
+	sess->protocol_features = p->protocol_features;
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 	if (p->era_omnix)
 		sess->protocol_flags |= GG_ERA_OMNIX_MASK;
@@ -1043,7 +1045,6 @@ void gg_free_session(struct gg_session *sess)
  */
 static int gg_change_status_common(struct gg_session *sess, int status, const char *descr, int time)
 {
-	struct gg_new_status p;
 	char *new_descr = NULL;
 	uint32_t new_time;
 	int descr_len = 0;
@@ -1062,12 +1063,11 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		return -1;
 	}
 
-	// dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x
+	/* XXX, obcinać stany których stary protokół niezna (czyt. dnd->aw; ffc->av) */
 
-	if ((sess->protocol_version >= 0x2a) && (sess->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
+	/* dodaj flagę obsługi połączeń głosowych zgodną z GG 7.x */
+	if ((sess->protocol_version >= 0x2a) && (sess->protocol_version < 0x2d /* ? */ ) && (sess->protocol_flags & GG_HAS_AUDIO_MASK) && !GG_S_I(status))
 		status |= GG_STATUS_VOICE_MASK;
-
-	p.status = gg_fix32(status);
 
 	sess->status = status;
 
@@ -1079,9 +1079,13 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 				return -1;
 		}
 
-		packet_type = GG_NEW_STATUS80;
+		if (sess->protocol_version >= 0x2e)
+			packet_type = GG_NEW_STATUS80;
+		else /* sess->protocol_version == 0x2d */
+			packet_type = GG_NEW_STATUS80BETA;
 		descr_len_max = GG_STATUS_DESCR_MAXSIZE;
 		append_null = 1;
+
 	} else {
 		packet_type = GG_NEW_STATUS;
 		descr_len_max = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
@@ -1102,17 +1106,36 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 	if (time)
 		new_time = gg_fix32(time);
 
-	res = gg_send_packet(sess,
-			     packet_type,
-			     &p,
-			     sizeof(p),
-			     (new_descr) ? new_descr : descr,
-			     descr_len,
-			     (append_null) ? "\0" : NULL,
-			     (append_null) ? 1 : 0,
-			     (time) ? &new_time : NULL,
-			     (time) ? sizeof(new_time) : 0,
-			     NULL);
+	if (packet_type == GG_NEW_STATUS80) {
+		struct gg_new_status80 p;
+
+		p.status		= gg_fix32(status);
+		p.flags			= gg_fix32(0x01);
+		p.description_size	= gg_fix32(descr_len);
+		res = gg_send_packet(sess,
+				packet_type,
+				&p,
+				sizeof(p),
+				(new_descr) ? new_descr : descr,
+				descr_len,
+				NULL);
+
+	} else {
+		struct gg_new_status p;
+
+		p.status = gg_fix32(status);
+		res = gg_send_packet(sess,
+				packet_type,
+				&p,
+				sizeof(p),
+				(new_descr) ? new_descr : descr,
+				descr_len,
+				(append_null) ? "\0" : NULL,
+				(append_null) ? 1 : 0,
+				(time) ? &new_time : NULL,
+				(time) ? sizeof(new_time) : 0,
+				NULL);
+	}
 
 	free(new_descr);
 	return res;

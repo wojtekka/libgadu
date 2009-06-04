@@ -1,2 +1,2 @@
 nodist_include_HEADERS = libgadu.h
-noinst_HEADERS = compat.h
+noinst_HEADERS = compat.h protocol.h
