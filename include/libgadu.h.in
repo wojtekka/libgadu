@@ -1518,17 +1518,32 @@ enum {
 /* GG_S() stan bez uwzględnienia dodatkowych flag */
 #define GG_S(x) ((x) & GG_STATUS_MASK)
 
-/* GG_S_A() dostępny */
-#define GG_S_A(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
+
+/* GG_S_FF() chętny do rozmowy */
+#define GG_S_FF(x) (GG_S(x) == GG_STATUS_FFC || GG_S(x) == GG_STATUS_FFC_DESCR)
+
+/* GG_S_AV() dostępny */
+#define GG_S_AV(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
+
+/* GG_S_AW() zaraz wracam */
+#define GG_S_AW(x) (GG_S(x) == GG_STATUS_BUSY || GG_S(x) == GG_STATUS_BUSY_DESCR)
+
+/* GG_S_DD() nie przeszkadzać */
+#define GG_S_DD(x) (GG_S(x) == GG_STATUS_DND || GG_S(x) == GG_STATUS_DND_DESCR)
 
 /* GG_S_NA() niedostępny */
 #define GG_S_NA(x) (GG_S(x) == GG_STATUS_NOT_AVAIL || GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR)
 
-/* GG_S_B() zajęty */
-#define GG_S_B(x) (GG_S(x) == GG_STATUS_BUSY || GG_S(x) == GG_STATUS_BUSY_DESCR)
-
 /* GG_S_I() niewidoczny */
 #define GG_S_I(x) (GG_S(x) == GG_STATUS_INVISIBLE || GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
+
+
+/* GG_S_A() dostępny lub chętny do rozmowy */
+#define GG_S_A(x) (GG_S_FF(x) || GG_S_AV(x))
+
+/* GG_S_B() zajęty lub nie przeszkadzać */
+#define GG_S_B(x) (GG_S_AW(x) || GG_S_DD(x))
+
 
 /* GG_S_D() stan opisowy */
 #define GG_S_D(x) (GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR || \
