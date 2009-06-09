@@ -846,75 +846,14 @@ int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient,
  */
 int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_t crc32)
 {
-	struct gg_send_msg s;
-	struct gg_msg_image_request r;
-	char dummy = 0;
-	int res;
-
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_image_request(%p, %d, %u, 0x%.4x);\n", sess, recipient, size, crc32);
-
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
 
 	if (size < 0) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	s.recipient = gg_fix32(recipient);
-	s.seq = gg_fix32(0);
-	s.msgclass = gg_fix32(GG_CLASS_MSG);
-
-	r.flag = 0x04;
-	r.size = gg_fix32(size);
-	r.crc32 = gg_fix32(crc32);
-
-	res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), &dummy, 1, &r, sizeof(r), NULL);
-
-	if (!res) {
-		struct gg_image_queue *q = malloc(sizeof(*q));
-		char *buf;
-
-		if (!q) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_request() not enough memory for image queue\n");
-			return -1;
-		}
-
-		buf = malloc(size);
-		if (size && !buf)
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_request() not enough memory for image\n");
-			free(q);
-			return -1;
-		}
-
-		memset(q, 0, sizeof(*q));
-
-		q->sender = recipient;
-		q->size = size;
-		q->crc32 = crc32;
-		q->image = buf;
-
-		if (!sess->images)
-			sess->images = q;
-		else {
-			struct gg_image_queue *qq;
-
-			for (qq = sess->images; qq->next; qq = qq->next)
-				;
-
-			qq->next = q;
-		}
-	}
-
-	return res;
+	return gg_session_image_request(sess, recipient, size, crc32);
 }
 
 /**
@@ -922,7 +861,7 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
  *
  * \param sess Struktura sesji
  * \param recipient Numer adresata
- * \param filename Nazwa pliku
+ * \param filename Nazwa pliku (ignorowana)
  * \param image Bufor z obrazkiem
  * \param size Rozmiar obrazka
  *
@@ -932,78 +871,18 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
  */
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size)
 {
-	struct gg_msg_image_reply *r;
-	struct gg_send_msg s;
-	const char *tmp;
-	char buf[1922+64];	// XXX dodać stałe
-	int res = -1;
+	uint32_t crc32;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_image_reply(%p, %d, \"%s\", %p, %d);\n", sess, recipient, filename, image, size);
-
-	if (!sess || !filename || !image) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
 
 	if (size < 0) {
 		errno = EINVAL;
 		return -1;
 	}
+	
+	crc32 = gg_crc32(0, (unsigned char*) image, size);
 
-	/* wytnij ścieżki, zostaw tylko nazwę pliku */
-	while ((tmp = strrchr(filename, '/')) || (tmp = strrchr(filename, '\\')))
-		filename = tmp + 1;
-
-	if (strlen(filename) < 1 || strlen(filename) > 1024) {
-		errno = EINVAL;
-		return -1;
-	}
-
-	s.recipient = gg_fix32(recipient);
-	s.seq = gg_fix32(0);
-	s.msgclass = gg_fix32(GG_CLASS_MSG);
-
-	buf[0] = 0;
-	r = (void*) &buf[1];
-
-	r->flag = 0x05;
-	r->size = gg_fix32(size);
-	r->crc32 = gg_fix32(gg_crc32(0, (unsigned char*) image, size));
-
-	while (size > 0) {
-		int buflen, chunklen;
-
-		/* \0 + struct gg_msg_image_reply */
-		buflen = 1 + sizeof(struct gg_msg_image_reply);
-
-		/* w pierwszym kawałku jest nazwa pliku */
-		if (r->flag == 0x05) {
-			char tmp[17];
-			sprintf(tmp, "%08x%08x", gg_crc32(0, (unsigned char*) image, size), size);
-			strcpy(buf + buflen, tmp);
-			buflen += 17;
-		}
-
-		chunklen = (size >= 1922) ? 1922 : size;
-
-		memcpy(buf + buflen, image, chunklen);
-		size -= chunklen;
-		image += chunklen;
-
-		res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), buf, buflen + chunklen, NULL);
-
-		if (res == -1)
-			break;
-
-		r->flag = 0x06;
-	}
-
-	return res;
+	return gg_session_image_reply(sess, recipient, image, size, crc32);
 }
 
 /**
@@ -1237,9 +1116,14 @@ int gg_remove_notify(struct gg_session *sess, uin_t uin)
  */
 int gg_userlist_request(struct gg_session *gs, char type, const char *request)
 {
-	GG_SESSION_CHECK_CONNECTED(gs, -1);
+	size_t length;
 
-	return gg_session_contacts_request(gs, type, request);
+	if (request != NULL)
+		length = strlen(request);
+	else
+		length = 0;
+
+	return gg_session_contacts_request(gs, type, request, length);
 }
 
 /**

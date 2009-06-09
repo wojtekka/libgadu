@@ -1063,10 +1063,10 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
-		case GG_DISCONNECTING2:
+		case GG_DISCONNECT_ACK:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received logoff acknowledge\n");
-			e->type = GG_EVENT_DISCONNECT;
+			e->type = GG_EVENT_DISCONNECT_ACK;
 			break;
 		}
 

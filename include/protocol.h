@@ -102,6 +102,6 @@ struct gg_recv_msg80 {
 
 #define GG_USERLIST_REPLY80 0x0030
 
-#define GG_DISCONNECTING2 0x000d
+#define GG_DISCONNECT_ACK 0x000d
 
 #endif /* LIBGADU_PROTOCOL_H */

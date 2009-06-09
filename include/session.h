@@ -49,6 +49,6 @@
 #define GG_SESSION_IS_CONNECTING(gs) ((gs)->state != GG_STATE_IDLE && (gs)->state != GG_STATE_CONNECTED)
 #define GG_SESSION_IS_CONNECTED(gs) ((gs)->state == GG_STATE_CONNECTED)
 
-int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request);
+int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request, size_t length);
 
 #endif /* LIBGADU_SESSION_H */

@@ -257,6 +257,7 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 	// wersje.
 
 	gs->max_contacts_chunk_length = 2047;	// XXX sprawdzić 8.0
+	gs->max_image_chunk_length = 1922;
 
 	return 0;
 }
@@ -795,7 +796,7 @@ int gg_session_disconnect(struct gg_session *gs, int linger)
 				type = gh->type;
 				free(gh);
 
-				if (type == GG_DISCONNECTING2)
+				if (type == GG_DISCONNECT_ACK)
 					break;
 			}
 
@@ -872,6 +873,8 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 
 		r.flag = 0x01;
 		r.count = gg_fix32(gm->recipient_count - 1);
+
+		// XXX potencjalny integer overflow
 
 		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
@@ -1018,6 +1021,8 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 		r.flag = 0x01;
 		r.count = gg_fix32(gm->recipient_count - 1);
 
+		// XXX potencjalny integer overflow
+
 		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
 		if (recipients == NULL)
@@ -1095,14 +1100,14 @@ uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
  * \param sess Struktura sesji
  * \param type Rodzaj zapytania
  * \param request Treść zapytania (może być równe NULL)
+ * \param length Długość zapytania
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup importexport
  */
-int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request)
+int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request, size_t length)
 {
-	size_t len;
 	int packet_type;
 
 	if (GG_SESSION_IS_PROTOCOL_8_0(gs))
@@ -1110,17 +1115,12 @@ int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char 
 	else
 		packet_type = GG_USERLIST_REQUEST;
 
-	if (request != NULL)
-		len = strlen(request);
-	else
-		len = 0;
-
 	// Liczymy liczbę bloków, żeby po otrzymaniu takiej samej liczby
 	// potwierdzeń poinformować aplikację o udanej operacji.
 	//
 	gs->userlist_blocks = 0;
 
-	while (request != NULL && len > gs->max_contacts_chunk_length) {
+	while (request != NULL && length > gs->max_contacts_chunk_length) {
 		gs->userlist_blocks++;
 
 		if (gg_send_packet(gs, GG_USERLIST_REQUEST, &type, sizeof(type), request, gs->max_contacts_chunk_length, NULL) == -1)
@@ -1130,26 +1130,164 @@ int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char 
 			type = GG_USERLIST_PUT_MORE;
 
 		request += gs->max_contacts_chunk_length;
-		len -= gs->max_contacts_chunk_length;
+		length -= gs->max_contacts_chunk_length;
 	}
 
 	gs->userlist_blocks++;
 
-	return gg_send_packet(gs, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
+	return gg_send_packet(gs, GG_USERLIST_REQUEST, &type, sizeof(type), request, length, NULL);
 }
 
 int gg_session_export_contacts(struct gg_session *gs, const char *contacts)
 {
 	GG_SESSION_CHECK_CONNECTED(gs, -1);
 
-	return gg_session_contacts_request(gs, GG_USERLIST_PUT, contacts);
+	return gg_session_contacts_request(gs, GG_USERLIST_PUT, contacts, strlen(contacts));
 }
 
 int gg_session_import_contacts(struct gg_session *gs)
 {
 	GG_SESSION_CHECK_CONNECTED(gs, -1);
 
-	return gg_session_contacts_request(gs, GG_USERLIST_GET, NULL);
+	return gg_session_contacts_request(gs, GG_USERLIST_GET, NULL, 0);
+}
+
+/**
+ * Wysyła żądanie obrazka o podanych parametrach.
+ *
+ * Wiadomości obrazkowe nie zawierają samych obrazków, a tylko ich rozmiary
+ * i sumy kontrolne. Odbiorca najpierw szuka obrazków w swojej pamięci
+ * podręcznej i dopiero gdy ich nie znajdzie, wysyła żądanie do nadawcy.
+ * Wynik zostanie przekazany zdarzeniem \c GG_EVENT_IMAGE_REPLY.
+ *
+ * \param gs Struktura sesji
+ * \param recipient Numer adresata
+ * \param size Rozmiar obrazka w bajtach
+ * \param crc32 Suma kontrola obrazka
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup messages
+ */
+int gg_session_image_request(struct gg_session *gs, uin_t recipient, size_t size, uint32_t crc32)
+{
+	struct gg_send_msg s;
+	struct gg_msg_image_request r;
+	int res;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	s.recipient = gg_fix32(recipient);
+	s.seq = gg_fix32(0);
+	s.msgclass = gg_fix32(GG_CLASS_MSG);
+
+	r.flag = 0x04;
+	r.size = gg_fix32(size);
+	r.crc32 = gg_fix32(crc32);
+
+	res = gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), "\0", 1, &r, sizeof(r), NULL);
+
+	if (res == 0) {
+		struct gg_image_queue *q;
+		char *buf;
+
+		q = malloc(sizeof(*q));
+
+		if (q == NULL) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_image_request() not enough memory for image queue\n");
+			return -1;
+		}
+
+		buf = malloc(size);
+
+		if (size != 0 && buf == NULL)
+		{
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_image_request() not enough memory for image\n");
+			free(q);
+			return -1;
+		}
+
+		memset(q, 0, sizeof(*q));
+
+		q->sender = recipient;
+		q->size = size;
+		q->crc32 = crc32;
+		q->image = buf;
+
+		if (gs->images == NULL) {
+			gs->images = q;
+		} else {
+			struct gg_image_queue *qq;
+
+			for (qq = gs->images; qq->next != NULL; qq = qq->next)
+				;
+
+			qq->next = q;
+		}
+	}
+
+	return res;
+}
+
+/**
+ * Wysyła żądany obrazek.
+ *
+ * \param gs Struktura sesji
+ * \param recipient Numer odbiorcy
+ * \param image Bufor z obrazkiem
+ * \param size Rozmiar obrazka
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup messages
+ */
+int gg_session_image_reply(struct gg_session *gs, uin_t recipient, const char *image, size_t size, uint32_t crc32)
+{
+	struct gg_msg_image_reply r;
+	struct gg_send_msg s;
+	int res = 0;
+	int chunk = 0;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	if (image == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	s.recipient = gg_fix32(recipient);
+	s.seq = gg_fix32(0);
+	s.msgclass = gg_fix32(GG_CLASS_MSG);
+
+	r.size = gg_fix32(size);
+	r.crc32 = gg_fix32(crc32);
+
+	while (size > 0) {
+		int chunk_len;
+
+		chunk_len = (size >= gs->max_image_chunk_length) ? gs->max_image_chunk_length : size;
+
+		if (chunk == 0) {
+			char filename[17];
+
+			r.flag = 0x05;
+			snprintf(filename, sizeof(filename), "%08x%08x", r.crc32, size);
+			res = gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), "\0", 1, &r, sizeof(r), filename, strlen(filename) + 1, image, chunk_len, NULL);
+		} else {
+			r.flag = 0x06;
+			res = gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), "\0", 1, &r, sizeof(r), image, chunk_len, NULL);
+		}
+
+		if (res == -1)
+			break;
+
+		size -= chunk_len;
+		image += chunk_len;
+
+		chunk++;
+	}
+
+	return res;
 }
 
 /**
