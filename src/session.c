@@ -258,6 +258,7 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 
 	gs->max_contacts_chunk_length = 2047;	// XXX sprawdzić 8.0
 	gs->max_image_chunk_length = 1922;
+	gs->max_notify_chunk_size = 400;
 
 	return 0;
 }
@@ -1288,6 +1289,135 @@ int gg_session_image_reply(struct gg_session *gs, uin_t recipient, const char *i
 	}
 
 	return res;
+}
+
+/**
+ * Wysyła do serwera listę kontaktów.
+ *
+ * Funkcja informuje serwer o liście kontaktów, których statusy będą
+ * obserwowane lub kontaktów, które bedą blokowane.
+ *
+ * Listę kontaktów należy \b zawsze wysyłać po połączeniu, nawet jeśli
+ * jest pusta (\c contacts równe \c NULL lub \c count równe 0).
+ *
+ * \param gs Struktura sesji
+ * \param contacts Wskaźnik do tablicy kontaktów
+ * \param count Liczba kontaktów
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup contacts
+ */
+int gg_session_send_contacts(struct gg_session *gs, const gg_contact_t *contacts, size_t count)
+{
+	struct gg_notify *n;
+	const gg_contact_t *c;
+	int i, res = 0;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	if (contacts == NULL || count == 0)
+		return gg_send_packet(gs, GG_LIST_EMPTY, NULL);
+
+	if (count > gs->max_notify_chunk_size) {
+		n = calloc(gs->max_notify_chunk_size, sizeof(struct gg_notify));
+	} else {
+		n = calloc(count, sizeof(struct gg_notify));
+	}
+
+	if (n == NULL) {
+		// XXX
+		return -1;
+	}
+
+	while (count > 0) {
+		int chunk_size, packet_type;
+
+		if (count > gs->max_notify_chunk_size) {
+			chunk_size = gs->max_notify_chunk_size;
+			packet_type = GG_NOTIFY_FIRST;
+		} else {
+			chunk_size = count;
+			packet_type = GG_NOTIFY_LAST;
+		}
+
+		for (i = 0, c = contacts; i < chunk_size; i++, c++) {
+			n[i].uin = gg_fix32(c->uin);
+			n[i].dunno1 = c->type;
+		}
+
+		if (gg_send_packet(gs, packet_type, n, sizeof(struct gg_notify) * chunk_size, NULL) == -1) {
+			res = -1;
+			break;
+		}
+
+		contacts += chunk_size;
+		count -= chunk_size;
+	}
+
+	free(n);
+
+	return res;
+}
+
+/**
+ * Dodaje kontakt.
+ *
+ * Dodaje do listy kontaktów dany numer w trakcie połączenia. Aby zmienić
+ * rodzaj kontaktu (np. z normalnego na zablokowany), należy najpierw usunąć
+ * poprzedni rodzaj, ponieważ serwer operuje na maskach bitowych.
+ *
+ * \param sess Struktura sesji
+ * \param contact Informacje o kontakcie
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup contacts
+ */
+int gg_session_add_contact(struct gg_session *gs, const gg_contact_t *contact)
+{
+	struct gg_add_remove a;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	if (contact == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	a.uin = gg_fix32(contact->uin);
+	a.dunno1 = contact->type;
+
+	return gg_send_packet(gs, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
+}
+
+/**
+ * Usuwa kontakt.
+ *
+ * Usuwa z listy kontaktów dany numer w trakcie połączenia.
+ *
+ * \param sess Struktura sesji
+ * \param contact Informacje o kontakcie
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup contacts
+ */
+int gg_session_remove_contact(struct gg_session *gs, const gg_contact_t *contact)
+{
+	struct gg_add_remove a;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	if (contact == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	a.uin = gg_fix32(contact->uin);
+	a.dunno1 = contact->type;
+
+	return gg_send_packet(gs, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
 }
 
 /**

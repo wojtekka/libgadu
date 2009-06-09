@@ -907,10 +907,9 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
  */
 int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int count)
 {
-	struct gg_notify *n;
-	uin_t *u;
-	char *t;
-	int i, res = 0;
+	gg_contact_t *contacts = NULL;
+	int res;
+	int i;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_notify_ex(%p, %p, %p, %d);\n", sess, userlist, types, count);
 
@@ -924,44 +923,23 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 		return -1;
 	}
 
-	if (!userlist || !count)
-		return gg_send_packet(sess, GG_LIST_EMPTY, NULL);
+	if (userlist != NULL && count > 0) {
+		contacts = calloc(count, sizeof(gg_contact_t));
 
-	while (count > 0) {
-		int part_count, packet_type;
-
-		if (count > 400) {
-			part_count = 400;
-			packet_type = GG_NOTIFY_FIRST;
-		} else {
-			part_count = count;
-			packet_type = GG_NOTIFY_LAST;
-		}
-
-		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
+		if (contacts == NULL) {
+			// XXX
 			return -1;
-
-		for (u = userlist, t = types, i = 0; i < part_count; u++, i++) {
-			n[i].uin = gg_fix32(*u);
-			if (t != NULL)
-				n[i].dunno1 = *(t++);
-			else
-				n[i].dunno1 = GG_USER_NORMAL;
 		}
 
-		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
-			free(n);
-			res = -1;
-			break;
+		for (i = 0; i < count; i++) {
+			contacts[i].uin = userlist[i];
+			contacts[i].type = (types != NULL) ? types[i] : GG_USER_NORMAL;
 		}
-
-		count -= part_count;
-		userlist += part_count;
-		if (types != NULL)
-			types += part_count;
-
-		free(n);
 	}
+
+	res = gg_session_send_contacts(sess, contacts, count);
+
+	free(contacts);
 
 	return res;
 }
@@ -1002,24 +980,14 @@ int gg_notify(struct gg_session *sess, uin_t *userlist, int count)
  */
 int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type)
 {
-	struct gg_add_remove a;
+	gg_contact_t contact;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_add_notify_ex(%p, %u, %d);\n", sess, uin, type);
 
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
+	contact.uin = uin;
+	contact.type = type;
 
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	a.uin = gg_fix32(uin);
-	a.dunno1 = type;
-
-	return gg_send_packet(sess, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
+	return gg_session_add_contact(sess, &contact);
 }
 
 /**
@@ -1037,7 +1005,14 @@ int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type)
  */
 int gg_add_notify(struct gg_session *sess, uin_t uin)
 {
-	return gg_add_notify_ex(sess, uin, GG_USER_NORMAL);
+	gg_contact_t contact;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_add_notify(%p, %u);\n", sess, uin);
+
+	contact.uin = uin;
+	contact.type = GG_USER_NORMAL;
+
+	return gg_session_add_contact(sess, &contact);
 }
 
 /**
@@ -1055,24 +1030,14 @@ int gg_add_notify(struct gg_session *sess, uin_t uin)
  */
 int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
 {
-	struct gg_add_remove a;
+	gg_contact_t contact;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_remove_notify_ex(%p, %u, %d);\n", sess, uin, type);
 
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
+	contact.uin = uin;
+	contact.type = type;
 
-	if (sess->state != GG_STATE_CONNECTED) {
-		errno = ENOTCONN;
-		return -1;
-	}
-
-	a.uin = gg_fix32(uin);
-	a.dunno1 = type;
-
-	return gg_send_packet(sess, GG_REMOVE_NOTIFY, &a, sizeof(a), NULL);
+	return gg_session_remove_contact(sess, &contact);
 }
 
 /**
@@ -1090,7 +1055,14 @@ int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
  */
 int gg_remove_notify(struct gg_session *sess, uin_t uin)
 {
-	return gg_remove_notify_ex(sess, uin, GG_USER_NORMAL);
+	gg_contact_t contact;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_remove_notify(%p, %u);\n", sess, uin);
+
+	contact.uin = uin;
+	contact.type = GG_USER_NORMAL;
+
+	return gg_session_remove_contact(sess, &contact);
 }
 
 /**

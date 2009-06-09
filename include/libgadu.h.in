@@ -281,6 +281,7 @@ struct gg_session {
 	unsigned int max_contacts_chunk_length;	/**< Maksymalna długość fragmentu listy kontaktów */
 	unsigned int ping_period;	/**< Okres wysyłania pakietu utrzymania połączenia */
 	unsigned int max_image_chunk_length;	/**< Maksymalna długość fragmentu obrazka */
+	unsigned int max_notify_chunk_size;	/**< Maksymalny rozmiar bloku kontaktów */
 };
 
 /**
@@ -610,6 +611,15 @@ typedef enum {
 	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
 } gg_session_flag_t;
 
+/**
+ * Informacja o kontakcie.
+ */
+typedef struct {
+	uin_t uin;			/**< Numer */
+	uint8_t type;			/**< Typ użytkownika */
+	uint8_t reserved[3];		/**< Zarezerwowane (musi być równe 0) */
+} gg_contact_t;
+
 struct gg_session *gg_session_new(void);
 int gg_session_set_uin(struct gg_session *gs, uin_t uin);
 uin_t gg_session_get_uin(struct gg_session *gs);
@@ -650,6 +660,9 @@ int gg_session_ping(struct gg_session *gs);
 int gg_session_connect(struct gg_session *gs);
 int gg_session_disconnect(struct gg_session *gs, int linger);
 uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm);
+int gg_session_send_contacts(struct gg_session *gs, const gg_contact_t *contact, size_t count);
+int gg_session_add_contact(struct gg_session *gs, const gg_contact_t *contact);
+int gg_session_remove_contact(struct gg_session *gs, const gg_contact_t *contact);
 int gg_session_export_contacts(struct gg_session *gs, const char *contacts);
 int gg_session_import_contacts(struct gg_session *gs);
 int gg_session_image_request(struct gg_session *gs, uin_t recipient, size_t size, uint32_t crc32);
