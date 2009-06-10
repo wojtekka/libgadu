@@ -1821,6 +1821,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
 
+			memset(login_hash, 0, sizeof(login_hash));
 			if (sess->protocol_version >= 0x2d)
 				login_dunno2 = 0x64;
 			else
