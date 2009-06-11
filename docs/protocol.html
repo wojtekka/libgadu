@@ -835,14 +835,14 @@ struct gg_recv_msg80 {
 	int offset_plain;	<i>/* położenie treści czystym tekstem */</i>
 	int offset_attributes;	<i>/* położenie atrybutów */</i>
 	char html_message[];	<i>/* treść w formacie HTML (zakończona \0) */</i>
-	char plain_message;	<i>/* treść czystym tekstem (zakończona \0) */</i>
+	char plain_message[];	<i>/* treść czystym tekstem (zakończona \0) */</i>
 	char attributes[];	<i>/* atrybuty wiadomości */</i>
 };</pre>
 
 </div>
 
 <p>
-Czas nadania jest zapisany w postaci UTC, jako ilości sekund od 1 stycznie
+Czas nadania jest zapisany w postaci UTC, jako ilości sekund od 1 stycznia
 1970r.
 </p>
 
