@@ -56,45 +56,6 @@
 #endif
 
 /**
- * Poziom rejestracji informacji odpluskwiających. Zmienna jest maską bitową
- * składającą się ze stałych \c GG_DEBUG_...
- *
- * \ingroup debug
- */
-int gg_debug_level = 0;
-
-/**
- * Funkcja, do której są przekazywane informacje odpluskwiające. Jeśli zarówno
- * ten \c gg_debug_handler, jak i \c gg_debug_handler_session, są równe
- * \c NULL, informacje są wysyłane do standardowego wyjścia błędu (\c stderr).
- *
- * \param level Poziom rejestracji
- * \param format Format wiadomości (zgodny z \c printf)
- * \param ap Lista argumentów (zgodna z \c printf)
- *
- * \note Funkcja jest przesłaniana przez \c gg_debug_handler_session.
- *
- * \ingroup debug
- */
-void (*gg_debug_handler)(int level, const char *format, va_list ap) = NULL;
-
-/**
- * Funkcja, do której są przekazywane informacje odpluskwiające. Jeśli zarówno
- * ten \c gg_debug_handler, jak i \c gg_debug_handler_session, są równe
- * \c NULL, informacje są wysyłane do standardowego wyjścia błędu.
- *
- * \param sess Sesja której dotyczy informacja lub \c NULL
- * \param level Poziom rejestracji
- * \param format Format wiadomości (zgodny z \c printf)
- * \param ap Lista argumentów (zgodna z \c printf)
- *
- * \note Funkcja przesłania przez \c gg_debug_handler_session.
- *
- * \ingroup debug
- */
-void (*gg_debug_handler_session)(struct gg_session *sess, int level, const char *format, va_list ap) = NULL;
-
-/**
  * Port gniazda nasłuchującego dla połączeń bezpośrednich.
  * 
  * \ingroup ip
@@ -538,70 +499,92 @@ failure:
 int gg_send_packet(struct gg_session *sess, int type, ...)
 {
 	struct gg_header *h;
-	char *tmp;
-	unsigned int tmp_length;
-	void *payload;
-	unsigned int payload_length;
+	char *packet;
+	unsigned int packet_ofs;
+	unsigned int packet_len;
+	void *chunk;
+	unsigned int chunk_len;
 	va_list ap;
 	int res;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_packet(%p, 0x%.2x, ...);\n", sess, type);
 
-	tmp_length = sizeof(struct gg_header);
+	/* Policz długość pakietu */
 
-	if (!(tmp = malloc(tmp_length))) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() not enough memory for packet header\n");
-		return -1;
-	}
+	packet_len = sizeof(struct gg_header);
 
 	va_start(ap, type);
 
-	payload = va_arg(ap, void *);
+	for (;;) {
+		chunk = va_arg(ap, void *);
+		if (chunk == NULL)
+			break;
+		chunk_len = va_arg(ap, unsigned int);
 
-	while (payload) {
-		char *tmp2;
-
-		payload_length = va_arg(ap, unsigned int);
-
-		if (!(tmp2 = realloc(tmp, tmp_length + payload_length))) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() not enough memory for payload\n");
-			free(tmp);
-			va_end(ap);
-			return -1;
-		}
-
-		tmp = tmp2;
-
-		memcpy(tmp + tmp_length, payload, payload_length);
-		tmp_length += payload_length;
-
-		payload = va_arg(ap, void *);
+		packet_len += chunk_len;
 	}
 
 	va_end(ap);
 
-	h = (struct gg_header*) tmp;
+	/* Zaalokuj pamięć */
+
+	packet = malloc(packet_len);
+
+	if (packet == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() not enough memory for packet (%d bytes)\n", packet_len);
+		return -1;
+	}
+
+	/* Wypełnij nagłówek */
+
+	h = (struct gg_header*) packet;
 	h->type = gg_fix32(type);
-	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
+	h->length = gg_fix32(packet_len - sizeof(struct gg_header));
+
+	/* Sklej wszystkie kawałki w jedną całość */
+
+	packet_ofs = sizeof(struct gg_header);
+
+	va_start(ap, type);
+
+	for (;;) {
+		chunk = va_arg(ap, void *);
+		if (chunk == NULL)
+			break;
+		chunk_len = va_arg(ap, unsigned int);
+
+		memcpy(packet + packet_ofs, chunk, chunk_len);
+		packet_ofs += chunk_len;
+	}
+
+	va_end(ap);
+
+	/* Zaloguj */
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
 		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet() packet dump:\n");
-		gg_debug_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
+		gg_debug_dump(sess, GG_DEBUG_DUMP, packet, packet_len);
 	}
 
-	res = gg_write(sess, tmp, tmp_length);
+	/* Wyślij */
 
-	free(tmp);
+	res = gg_write(sess, packet, packet_len);
+
+	free(packet);
 
 	if (res == -1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() write() failed. res = %d, errno = %d (%s)\n", res, errno, strerror(errno));
 		return -1;
 	}
 
-	if (sess->async)
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() partial write(), %d sent, %d left, %d total left\n", res, tmp_length - res, sess->send_left);
+	if (sess->async) {
+		if (res != packet_len)
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() partial write: %d sent, %d left, %d total left\n", res, packet_len - res, sess->send_left);
+		else
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_send_packet() written %d bytes\n", res);
+	}
 
-	if (sess->send_buf)
+	if (sess->send_buf != NULL)
 		sess->check |= GG_CHECK_WRITE;
 
 	return 0;

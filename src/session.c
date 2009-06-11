@@ -71,8 +71,8 @@ struct gg_session *gg_session_new(void)
 	memset(gs, 0, sizeof(struct gg_session));
 
 	gs->type = GG_SESSION_GG;
-	gs->callback = gg_session_callback;
-	gs->destroy = gg_session_free;
+	gs->callback = gg_session_callback;	// XXX do usunięcia
+	gs->destroy = gg_session_free;		// XXX do usunięcia
 	gs->pid = -1;
 	gs->encoding = GG_ENCODING_UTF8;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
@@ -1420,6 +1420,53 @@ int gg_session_remove_contact(struct gg_session *gs, const gg_contact_t *contact
 	return gg_send_packet(gs, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
 }
 
+int gg_session_handle_io(struct gg_session *gs, int condition)
+{
+	struct gg_event *ge;
+
+	GG_SESSION_CHECK(gs, -1);
+
+	ge = gg_watch_fd(gs);
+
+	if (ge == NULL)
+		return -1;
+
+	if (gs->event_queue_head == NULL) {
+		gs->event_queue_head = ge;
+		gs->event_queue_tail = ge;
+	} else {
+		// XXX gs->event_queue_tail != NULL
+		gs->event_queue_tail->next = ge;
+		gs->event_queue_tail = ge;
+	}
+
+	return 0;
+}
+
+struct gg_event *gg_session_get_event(struct gg_session *gs)
+{
+	struct gg_event *res = NULL;
+
+	GG_SESSION_CHECK(gs, NULL);
+	
+	if (gs->event_queue_head != NULL) {
+		res = gs->event_queue_head;
+		if (res == gs->event_queue_tail)
+			gs->event_queue_tail = NULL;
+		gs->event_queue_head = gs->event_queue_head->next;
+		res->next = NULL;
+	}
+
+	return res;
+}
+
+const struct gg_event *gg_session_peek_event(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, NULL);
+
+	return gs->event_queue_head;
+}
+
 /**
  * Zwalnia zasoby używane przez połączenie z serwerem. Funkcję należy wywołać
  * po zamknięciu połączenia z serwerem, by nie doprowadzić do wycieku zasobów
@@ -1432,6 +1479,7 @@ int gg_session_remove_contact(struct gg_session *gs, const gg_contact_t *contact
 void gg_session_free(struct gg_session *gs)
 {
 	struct gg_dcc7 *dcc;
+	struct gg_event *ge;
 
 	if (gs == NULL)
 		return;
@@ -1463,6 +1511,12 @@ void gg_session_free(struct gg_session *gs)
 
 	for (dcc = gs->dcc7_list; dcc != NULL; dcc = dcc->next)
 		dcc->sess = NULL;
+
+	for (ge = gs->event_queue_head; ge != NULL; ) {
+		struct gg_event *next = ge->next;
+		gg_event_free(ge);
+		ge = next;
+	}
 
 	free(gs);
 }

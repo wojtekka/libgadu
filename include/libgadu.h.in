@@ -282,6 +282,9 @@ struct gg_session {
 	unsigned int ping_period;	/**< Okres wysyłania pakietu utrzymania połączenia */
 	unsigned int max_image_chunk_length;	/**< Maksymalna długość fragmentu obrazka */
 	unsigned int max_notify_chunk_size;	/**< Maksymalny rozmiar bloku kontaktów */
+
+	struct gg_event *event_queue_head;	/**< Początek kolejki zdarzeń */
+	struct gg_event *event_queue_tail;	/**< Koniec kolejki zdarzeń */
 };
 
 /**
@@ -667,6 +670,9 @@ int gg_session_export_contacts(struct gg_session *gs, const char *contacts);
 int gg_session_import_contacts(struct gg_session *gs);
 int gg_session_image_request(struct gg_session *gs, uin_t recipient, size_t size, uint32_t crc32);
 int gg_session_image_reply(struct gg_session *gs, uin_t recipient, const char *image, size_t size, uint32_t crc32);
+int gg_session_handle_io(struct gg_session *gs, int condition);
+struct gg_event *gg_session_get_event(struct gg_session *gs);
+const struct gg_event *gg_session_peek_event(struct gg_session *gs);
 void gg_session_free(struct gg_session *gs);
 
 gg_message_t *gg_message_new(void);
@@ -1024,6 +1030,7 @@ union gg_event_union {
 struct gg_event {
 	int type;			/**< Rodzaj zdarzenia */
 	union gg_event_union event;	/**< Informacja o zdarzeniu */
+	struct gg_event *next;		/**< Kolejne zdarzenie w kolejce */
 };
 
 struct gg_event *gg_watch_fd(struct gg_session *sess);
