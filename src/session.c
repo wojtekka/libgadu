@@ -998,8 +998,8 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 
 	s.seq = gg_fix32(gm->seq);
 	s.msgclass = gg_fix32(gm->msgclass);
-	s.offset_plain = sizeof(s) + strlen(html) + 1;
-	s.offset_attr = s.offset_plain + strlen(text) + 1;
+	s.offset_plain = gg_fix32(sizeof(s) + strlen(html) + 1);
+	s.offset_attr = gg_fix32(s.offset_plain + strlen(text) + 1);
 
 	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
 		attr = gm->attributes;
