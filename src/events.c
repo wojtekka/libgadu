@@ -506,10 +506,14 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 		goto malformed;
 	}
 
-	if (offset_attr <= sizeof(struct gg_recv_msg80) || offset_attr >= h->length) {
+	if (offset_attr < sizeof(struct gg_recv_msg80) || offset_attr > h->length) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, attr out of bounds (1)\n");
 		offset_attr = 0;	/* nie parsuj attr. */
 	}
+
+	/* Normalna sytuacja, więc nie podpada pod powyższy warunek. */
+	if (offset_attr == h->length)
+		offset_attr = 0;
 
 	if (gg_find_null(packet, offset_plain, h->length) == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (2)\n");
