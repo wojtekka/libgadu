@@ -78,7 +78,7 @@ static void gg_gethostbyname_cleaner(void *data)
  */
 int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 {
-#if defined(GG_CONFIG_HAVE_GETHOSTBYNAME_R) && !defined(sun)
+#ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
 	char *new_buf = NULL;
 	struct hostent he;
@@ -105,7 +105,11 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 #endif
 
 	if (buf != NULL) {
+#ifndef sun
 		while ((ret = gethostbyname_r(hostname, &he, buf, buf_len, &he_ptr, &h_errnop)) == ERANGE) {
+#else
+		while (((he_ptr = gethostbyname_r(hostname, &he, buf, buf_len, &h_errnop)) == NULL) && (errno == ERANGE)) {
+#endif
 			buf_len *= 2;
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -164,7 +168,7 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 	memcpy(addr, he->h_addr, sizeof(struct in_addr));
 
 	return 0;
-#endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R && !sun */
+#endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 }
 
 /**
