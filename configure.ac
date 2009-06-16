@@ -199,7 +199,7 @@ dnl
 
 AC_SUBST([OPTIONAL_TESTS])
 AC_CHECK_LIB(c, __connect, [
-	OPTIONAL_TESTS="connect resolver"
+	OPTIONAL_TESTS="dcc7 connect resolver"
 ],
 [
 	OPTIONAL_TESTS=""
