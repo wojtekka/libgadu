@@ -40,6 +40,7 @@
 
 #include "libgadu.h"
 #include "resolver.h"
+#include "compat.h"
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 
