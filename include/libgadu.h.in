@@ -271,6 +271,8 @@ struct gg_session {
 	int (*resolver_start)(int *fd, void **private_data, const char *hostname);	/**< Funkcja rozpoczynająca rozwiązywanie nazwy */
 	void (*resolver_cleanup)(void **private_data, int force);	/**< Funkcja zwalniająca zasoby po rozwiązaniu nazwy */
 
+	int protocol_features;		/**< Opcje protokołu */
+
 	char *status_descr;		/**< Aktualny opis statusu */
 	time_t status_time;		/**< Aktualny czas powrotu */
 	unsigned int max_descr_length;	/**< Maksymalna długość opisu */
@@ -576,6 +578,7 @@ struct gg_login_params {
 	int hash_type;			/**< Rodzaj skrótu hasła (domyślnie SHA1) */
 	int encoding;			/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
+	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*) */
 
 #ifndef DOXYGEN
 	char dummy[3 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
@@ -1465,6 +1468,13 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_ERA_OMNIX_MASK 0x04000000
 #undef GG_LIBGADU_VERSION
 
+#define GG_FEATURE_STATUS80BETA		0x01
+#define GG_FEATURE_MSG80		0x02
+#define GG_FEATURE_STATUS80 		(0x04|GG_FEATURE_STATUS80BETA)
+#define GG_FEATURE_DND_FFC		0x30
+
+#define GG_FEATURE_ALL 			(GG_FEATURE_STATUS80BETA|GG_FEATURE_MSG80|GG_FEATURE_STATUS80|GG_FEATURE_DND_FFC)
+
 #define GG_DEFAULT_DCC_PORT 1550
 
 struct gg_header {
@@ -1560,10 +1570,14 @@ struct gg_pubdir50_reply {
 
 #define GG_STATUS_NOT_AVAIL 0x0001
 #define GG_STATUS_NOT_AVAIL_DESCR 0x0015
+#define GG_STATUS_FFC 0x0017
+#define GG_STATUS_FFC_DESCR 0x0018
 #define GG_STATUS_AVAIL 0x0002
 #define GG_STATUS_AVAIL_DESCR 0x0004
 #define GG_STATUS_BUSY 0x0003
 #define GG_STATUS_BUSY_DESCR 0x0005
+#define GG_STATUS_DND 0x0021
+#define GG_STATUS_DND_DESCR 0x0022
 #define GG_STATUS_INVISIBLE 0x0014
 #define GG_STATUS_INVISIBLE_DESCR 0x0016
 #define GG_STATUS_BLOCKED 0x0006
@@ -1580,10 +1594,14 @@ struct gg_pubdir50_reply {
 enum {
 	GG_STATUS_NOT_AVAIL,		/**< Niedostępny */
 	GG_STATUS_NOT_AVAIL_DESCR,	/**< Niedostępny z opisem */
+	GG_STATUS_FFC,			/**< PoGGadaj ze mną */
+	GG_STATUS_FFC_DESCR,		/**< PoGGadaj ze mną z opisem */
 	GG_STATUS_AVAIL,		/**< Dostępny */
 	GG_STATUS_AVAIL_DESCR,		/**< Dostępny z opisem */
 	GG_STATUS_BUSY,			/**< Zajęty */
 	GG_STATUS_BUSY_DESCR,		/**< Zajęty z opisem */
+	GG_STATUS_DND,			/**< Nie przeszkadzać */
+	GG_STATUS_DND_DESCR,		/**< Nie przeszakdzać z opisem */
 	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
 	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
 	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
@@ -1608,26 +1626,50 @@ enum {
 #define GG_STATUS_DESCR_MAXSIZE 0xff
 #define GG_STATUS_DESCR_MAXSIZE_PRE_8_0 70
 
+#define GG_STATUS_MASK 0xff
+
+#define GG_STATUS_MASK 0xff
+
 /* GG_S_F() tryb tylko dla znajomych */
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
 
-/* GG_S() stan bez uwzględnienia trybu tylko dla znajomych */
-#define GG_S(x) ((x) & ~GG_STATUS_FRIENDS_MASK)
+/* GG_S() stan bez uwzględnienia dodatkowych flag */
+#define GG_S(x) ((x) & GG_STATUS_MASK)
 
-/* GG_S_A() dostępny */
-#define GG_S_A(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
+
+/* GG_S_FF() chętny do rozmowy */
+#define GG_S_FF(x) (GG_S(x) == GG_STATUS_FFC || GG_S(x) == GG_STATUS_FFC_DESCR)
+
+/* GG_S_AV() dostępny */
+#define GG_S_AV(x) (GG_S(x) == GG_STATUS_AVAIL || GG_S(x) == GG_STATUS_AVAIL_DESCR)
+
+/* GG_S_AW() zaraz wracam */
+#define GG_S_AW(x) (GG_S(x) == GG_STATUS_BUSY || GG_S(x) == GG_STATUS_BUSY_DESCR)
+
+/* GG_S_DD() nie przeszkadzać */
+#define GG_S_DD(x) (GG_S(x) == GG_STATUS_DND || GG_S(x) == GG_STATUS_DND_DESCR)
 
 /* GG_S_NA() niedostępny */
 #define GG_S_NA(x) (GG_S(x) == GG_STATUS_NOT_AVAIL || GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR)
 
-/* GG_S_B() zajęty */
-#define GG_S_B(x) (GG_S(x) == GG_STATUS_BUSY || GG_S(x) == GG_STATUS_BUSY_DESCR)
-
 /* GG_S_I() niewidoczny */
 #define GG_S_I(x) (GG_S(x) == GG_STATUS_INVISIBLE || GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
 
+
+/* GG_S_A() dostępny lub chętny do rozmowy */
+#define GG_S_A(x) (GG_S_FF(x) || GG_S_AV(x))
+
+/* GG_S_B() zajęty lub nie przeszkadzać */
+#define GG_S_B(x) (GG_S_AW(x) || GG_S_DD(x))
+
+
 /* GG_S_D() stan opisowy */
-#define GG_S_D(x) (GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR || GG_S(x) == GG_STATUS_AVAIL_DESCR || GG_S(x) == GG_STATUS_BUSY_DESCR || GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
+#define GG_S_D(x) (GG_S(x) == GG_STATUS_NOT_AVAIL_DESCR || \
+		   GG_S(x) == GG_STATUS_FFC_DESCR || \
+		   GG_S(x) == GG_STATUS_AVAIL_DESCR || \
+		   GG_S(x) == GG_STATUS_BUSY_DESCR || \
+		   GG_S(x) == GG_STATUS_DND_DESCR || \
+		   GG_S(x) == GG_STATUS_INVISIBLE_DESCR)
 
 /* GG_S_BL() blokowany lub blokujący */
 #define GG_S_BL(x) (GG_S(x) == GG_STATUS_BLOCKED)
@@ -2029,7 +2071,7 @@ struct gg_dcc7_new {
 	uint32_t type;			/* rodzaj transmisji */
 	unsigned char filename[GG_DCC7_FILENAME_LEN];	/* nazwa pliku */
 	uint32_t size;			/* rozmiar pliku */
-	uint32_t dunno1;		/* 0x00000000 */
+	uint32_t size_hi;		/* rozmiar pliku (starsze bajty) */
 	unsigned char hash[GG_DCC7_HASH_LEN];	/* hash SHA1 */
 } GG_PACKED;
 
