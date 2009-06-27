@@ -76,6 +76,7 @@ struct gg_session *gg_session_new(void)
 	gs->pid = -1;
 	gs->encoding = GG_ENCODING_UTF8;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
+	gs->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80;	// XXX trzeba jakoś to zmieniać
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
