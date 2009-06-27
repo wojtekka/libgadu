@@ -40,6 +40,7 @@
 
 #include "libgadu.h"
 #include "resolver.h"
+#include "compat.h"
 #include "session.h"
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -105,7 +106,11 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 #endif
 
 	if (buf != NULL) {
+#ifndef sun
 		while ((ret = gethostbyname_r(hostname, &he, buf, buf_len, &he_ptr, &h_errnop)) == ERANGE) {
+#else
+		while (((he_ptr = gethostbyname_r(hostname, &he, buf, buf_len, &h_errnop)) == NULL) && (errno == ERANGE)) {
+#endif
 			buf_len *= 2;
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
