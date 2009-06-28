@@ -724,7 +724,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				int descr_len;
 				char *tmp;
 
-				e->event.notify60[i].uin = uin & 0x00ffffff;
+				e->event.notify60[i].uin = uin;
 				e->event.notify60[i].status = gg_fix32(n->status);
 				e->event.notify60[i].remote_ip = n->remote_ip;
 				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
@@ -733,14 +733,6 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.notify60[i].descr = NULL;
 				e->event.notify60[i].time = 0;
 
-/*
-				if (uin & 0x40000000)
-					e->event.notify60[i].version |= GG_HAS_AUDIO_MASK;
-				if (uin & 0x20000000)
-					e->event.notify60[i].version |= GG_HAS_AUDIO7_MASK;
-				if (uin & 0x08000000)
-					e->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
-*/
 				descr_len = gg_fix32(n->descr_len);
 
 				if (descr_len != 0) {

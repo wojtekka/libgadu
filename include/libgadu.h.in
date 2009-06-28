@@ -1628,8 +1628,6 @@ enum {
 
 #define GG_STATUS_MASK 0xff
 
-#define GG_STATUS_MASK 0xff
-
 /* GG_S_F() tryb tylko dla znajomych */
 #define GG_S_F(x) (((x) & GG_STATUS_FRIENDS_MASK) != 0)
 
