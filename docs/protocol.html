@@ -258,7 +258,7 @@ protokołów i w obecnej wersji zawierają zera. Pole z flagami jest przekazywan
 innym kontaktom, ale jego znaczenie nie jest jeszcze znane. Ustalono jedynie,
 że wartość <tt>0x00100000</tt> powoduje wyświetlenie ikony telefonu komórkowego
 na liście kontaktów. Pole opcji protokołu zawsze zawiera wartość
-<tt>0x00000007</tt> i jest mapą bitową:
+<tt>0x00000007</tt> i jest mapą bitową:</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
@@ -941,11 +941,10 @@ Przykładowy kod:
 <a name="ch1.11"></a>
 <h3>1.11. Wiadomości GGLive</h3>
 <div class="check">
-<p>Opisać usługi http://life.gadu-gadu.pl/<br>
-Logowanie OAuth: /login?oauth_consumer_key=UIN&amp;oauth_nonce=....&amp;oauth_signature=...&amp;oauth_signature_method=HMAC-SHA1&amp;oauth_timestamp=...&amp;oauth_token=....&amp;oauth_version=1.0<br>
-Wysyłanie: POST /send/message/?USER_IS_AUTHENTICATED=1&amp;uin=UIN&amp;token=TOKEN<br>
-message=Testowa+wiadomo%C5%9B%C4%87&amp;send=Wy%C5%9Blij<br>
-<br>
+<p>Opisać usługi http://life.gadu-gadu.pl/<br/>
+Logowanie OAuth: /login?oauth_consumer_key=UIN&amp;oauth_nonce=....&amp;oauth_signature=...&amp;oauth_signature_method=HMAC-SHA1&amp;oauth_timestamp=...&amp;oauth_token=....&amp;oauth_version=1.0<br/>
+Wysyłanie: POST /send/message/?USER_IS_AUTHENTICATED=1&amp;uin=UIN&amp;token=TOKEN<br/>
+message=Testowa+wiadomo%C5%9B%C4%87&amp;send=Wy%C5%9Blij<br/>
 </p>
 </div>
 
@@ -1803,14 +1802,13 @@ struct gg_dcc7_relay_reply {
 	} proxies[rcount];
 };</pre>
 
-</pre>
 </div>
 
-<p>
-Przykładowa odpowiedź serwera zawierająca 2 rekordy:<br>
- - 91.197.13.104:80<br>
- - 91.197.13.104:443<br>
-</p>
+<p>Przykładowa odpowiedź serwera zawierająca 2 rekordy:</p>
+<ol>
+  <li>91.197.13.104:80</li>
+  <li>91.197.13.104:443</li>
+</ol>
 
 <div class="example">
 <pre>
@@ -1846,11 +1844,11 @@ W polu <tt>type</tt> sposób połączenia:
 </pre>
 </div>
 
-<p>
-Dla połączeń bezpośrednich:<br>
-- pierwsze 32bajty pola <tt>info</tt> to <i>IP &lt;SPACJA&gt; PORT</i>,<br>
-- drugie 32bajty pola <tt>info</tt> to ip oraz port w innej postaci, niestety nie mamy informacji o algorytmie :)
-</p>
+<p>Dla połączeń bezpośrednich:</p>
+<ul>
+ <li>pierwsze 32bajty pola <tt>info</tt> to <i>IP &lt;SPACJA&gt; PORT</i></li>
+ <li>drugie 32bajty pola <tt>info</tt> to ip oraz port w innej postaci, niestety nie mamy informacji o algorytmie :)</li>
+</ul>
 
 <p>
 Przykładowa zawartość pola <tt>info</tt> dla 10.0.0.2:22563
@@ -1884,11 +1882,10 @@ Z tego co zauważyłem gdy jednak ze stron zorientuje się że na innym połącz
 to połączenie jest zrywane - ale czy taki sposób rozwiązywania nie powoduje możliwych wyścigów?
 </div>
 
-<p>
-Dla połączeń przez serwer:<br>
-- pierwsze 32bajty pola <tt>info</tt> to GG<i>id</i>CH<i>numerek</i><br><br>
-Gdzie: <br>
-<tt>id</tt> to identyfikator połączenia zapisany w cyferkach ASCII<br>
+<p>Dla połączeń przez serwer:<br/>
+- pierwsze 32bajty pola <tt>info</tt> to GG<i>id</i>CH<i>numerek</i><br/><br/>
+Gdzie: <br/>
+<tt>id</tt> to identyfikator połączenia zapisany w cyferkach ASCII<br/>
 <tt>numerek</tt> TBD
 </p>
 
@@ -1900,9 +1897,9 @@ Protokół jest inny, i raczej nie będzie działać.
 </div>
 
 <p>
-Przykładowa zawartość pola <tt>info</tt> dla połączenia 0x00000a0600000b27<br>
-<br>
-$ echo 'ibase=16; 00000A0600000B27' | bc <br>
+Przykładowa zawartość pola <tt>info</tt> dla połączenia 0x00000a0600000b27<br/>
+<br/>
+$ echo 'ibase=16; 00000A0600000B27' | bc <br/>
 11020886084391
 </p>
 
