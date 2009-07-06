@@ -364,6 +364,9 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 
 <div class="c">
 <pre>#define GG_NEW_STATUS80 0x0038
+
+#define GG_STATUS80_DESCR_MASK 0x4000	<i>/* czy status z opisem? */</i>
+#define GG_STATUS80_GRAPH_MASK 0x0100	<i>/* czy status z graficznym opisem? */</i>
 	
 struct gg_new_status80 {
 	int status;		<i>/* na jaki zmienić? */</i>
@@ -1053,7 +1056,7 @@ Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, t
 <div class="example">
 <pre>
 struct gg_new_status80 krol_popu = { 
-	.status           = 0x4100 | docelowy_opisowy_status;
+	.status           = GG_STATUS80_DESCR_MASK | GG_STATUS80_GRAPH_MASK | docelowy_opisowy_status; <i>/* 0x4100 | opis */</i>
 	.flags            = 0x03;
 	.description_size = 9;
 	.description      = "Krol Popu"
@@ -1061,7 +1064,7 @@ struct gg_new_status80 krol_popu = {
 </div>
 
 <p>
-Gdy użytkownik ma ustawiony opis graficzny <span class="check">skąd wiemy? Sprawdzić czy z (.flags) czy z (.status &amp; 0x100)</span>
+Gdy użytkownik ma ustawiony opis graficzny (.status &amp; GG_STATUS80_GRAPH_MASK)
 możemy pobrać ZIP-paczkę z http://www.gadudodatki.pl/userbar/get/id/
 </p>
 <p>Dla przykładowego Króla Popu jest to adres: <span class="example">http://www.gadudodatki.pl/userbar/get/id/Krol%20Popu</span></p>
