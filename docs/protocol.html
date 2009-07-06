@@ -365,9 +365,6 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 <div class="c">
 <pre>#define GG_NEW_STATUS80 0x0038
 
-#define GG_STATUS80_DESCR_MASK 0x4000	<i>/* czy status z opisem? */</i>
-#define GG_STATUS80_GRAPH_MASK 0x0100	<i>/* czy status z graficznym opisem? */</i>
-	
 struct gg_new_status80 {
 	int status;		<i>/* na jaki zmienić? */</i>
 	int flags;              <i>/* flagi (nieznane przeznaczenie) */</i>
@@ -393,8 +390,10 @@ Możliwe stany to:
 <tr class="tabf"><td><tt>GG_STATUS_DND</tt></td><td><tt>0x0021</tt></td><td>Nie przeszkadzać</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_DND_DESCR</tt></td><td><tt>0x0022</tt></td><td>Nie przeszkadzać (z opisem)</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_INVISIBLE</tt></td><td><tt>0x0014</tt></td><td>Niewidoczny</td></tr>
-<tr class="tabf"><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0016</tt></td><td>Niewidoczny z opisem</td></tr>
+<tr class="tabf"><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0016</tt></td><td>Niewidoczny (z opisem)</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_BLOCKED</tt></td><td><tt>0x0006</tt></td><td>Zablokowany</td></tr>
+<tr class="tabf"><td><tt>GG_STATUS80_DESCR_MASK</tt></td><td><tt>0x0100</tt></td><td>Maska bitowa oznaczająca ustawiony opis graficzny</td></tr>
+<tr class="tabf"><td><tt>GG_STATUS80_DESCR_MASK</tt></td><td><tt>0x4000</tt></td><td>Maska bitowa oznaczająca ustawiony opis</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_FRIENDS_MASK</tt></td><td><tt>0x8000</tt></td><td>Maska bitowa oznaczająca tryb tylko dla przyjaciół</td></tr>
 </table>
 
