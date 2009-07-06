@@ -9,7 +9,7 @@ body { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
 .tabf2 { background-color: white; color: silver; }
-.check { background-color: white; color: silver; }
+.check { background-color: white; color: silver; font-size: 0.7em; }
 .warn { font-family: monospace; padding: 0.7em; background-color: red; border: 1px solid #80a0a0; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
@@ -47,7 +47,7 @@ pre { margin: 0px; }
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
 		1.9.&nbsp;&nbsp;<a href="#ch1.9">Rozłączenie</a><br />
 		1.10.&nbsp;&nbsp;<a href="#ch1.10">Wiadomości systemowe</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GGLive</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GG_XML_ACTION</a><br />
 		1.12.&nbsp;&nbsp;<a href="#ch1.12">Katalog publiczny</a><br />
 		1.13.&nbsp;&nbsp;<a href="#ch1.13">Lista kontaktów</a><br />
 		1.14.&nbsp;&nbsp;<a href="#ch1.14">Indeks pakietów</a><br />
@@ -370,7 +370,7 @@ struct gg_new_status80 {
 	int flags;              <i>/* flagi (nieznane przeznaczenie) */</i>
 	int description_size;   <i>/* rozmiar opisu */</i>
 	char description[];	<i>/* opis (nie musi wystąpić, bez \0) */</i>
-}</pre>
+};</pre>
 </div>
 
 <p>
@@ -926,30 +926,34 @@ Przykładowy kod:
 <div class="example">
 <pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;event xmlns:ev="www.gadu-gadu.pl/Event/1.0" id ="" type="realtime" creation_time="1194732873" ttl="60"&gt;
-&lt;ev:actions&gt;
-&lt;ev:showMessage&gt;
-&lt;ev:text&gt;Wejdź na stronę EKG&lt;/ev:text&gt;
+  &lt;ev:actions&gt;
+    &lt;ev:showMessage&gt;
+      &lt;ev:text&gt;Wejdź na stronę EKG&lt;/ev:text&gt;
 
-&lt;ev:executeHtml url="ekg.chmurka.net" /&gt;
-&lt;/ev:showMessage&gt;
-&lt;/ev:actions&gt;
+      &lt;ev:executeHtml url="ekg.chmurka.net" /&gt;
+   &lt;/ev:showMessage&gt;
+  &lt;/ev:actions&gt;
 &lt;/event&gt;</pre>
 </div>
 
 <hr />
 
 <a name="ch1.11"></a>
-<h3>1.11. Wiadomości GGLive</h3>
+<h3>1.11. Wiadomości GG_XML_ACTION</h3>
+
+<div class="c">
+<pre>#define GG_XML_ACTION 0x002c</pre>
+</div>
+
+<a name="ch1.11.1"></a>
+<h4>1.11.1 Wiadomości GGLive</h4>
+
 <div class="check">
 <p>Opisać usługi http://life.gadu-gadu.pl/<br/>
 Logowanie OAuth: /login?oauth_consumer_key=UIN&amp;oauth_nonce=....&amp;oauth_signature=...&amp;oauth_signature_method=HMAC-SHA1&amp;oauth_timestamp=...&amp;oauth_token=....&amp;oauth_version=1.0<br/>
 Wysyłanie: POST /send/message/?USER_IS_AUTHENTICATED=1&amp;uin=UIN&amp;token=TOKEN<br/>
 message=Testowa+wiadomo%C5%9B%C4%87&amp;send=Wy%C5%9Blij<br/>
 </p>
-</div>
-
-<div class="c">
-<pre>#define GG_XML_ACTION 0x002c</pre>
 </div>
 
 <p>
@@ -963,15 +967,104 @@ Przykładowa otrzymana wiadomość:
   &lt;sender&gt;7496195&lt;/sender&gt;
   &lt;time&gt;1243461221&lt;/time&gt;
   &lt;bodyXML&gt;
-     &lt;serviceID&gt;lifestreaming&lt;/serviceID&gt;
-     &lt;msg&gt;&lt;![CDATA[Testowa wiadomość]]&gt;&lt;/msg&gt;
-     &lt;link isLogin="0"&gt;&lt;/link&gt;
-     &lt;creationTime&gt;1243461221&lt;/creationTime&gt;
+    &lt;serviceID&gt;lifestreaming&lt;/serviceID&gt;
+    &lt;msg&gt;&lt;![CDATA[Testowa wiadomość]]&gt;&lt;/msg&gt;
+    &lt;link isLogin="0"&gt;&lt;/link&gt;
+    &lt;creationTime&gt;1243461221&lt;/creationTime&gt;
   &lt;/bodyXML&gt;
  &lt;/event&gt;
 &lt;/events&gt;
 </pre>
 </div>
+
+<a name="ch1.11.2"></a>
+<h4>1.11.2 Zmiana avatara przez znajomego</h4>
+
+<p>Przykładowa informacja:</p>
+<div class="example">
+<pre>
+&lt;events&gt;
+  &lt;event id="13095886332244853765"&gt;
+    &lt;type&gt;28&lt;/type&gt;
+    &lt;sender&gt;3732&lt;/sender&gt;
+    &lt;time&gt;1245843651&lt;/time&gt;
+    &lt;body&gt;&lt;/body&gt;
+    &lt;bodyXML&gt;
+      &lt;smallAvatar&gt;http://media6.mojageneracja.pl/oiytwyurtp/avatar/ueuivsp.jpg&lt;/smallAvatar&gt;
+    &lt;/bodyXML&gt;
+  &lt;/event&gt;
+&lt;/events&gt;
+</pre>
+</div>
+
+<a name="ch1.11.3"></a>
+<h4>1.11.3 Nowy wpis na blogu znajomego</h4>
+
+<p>Przykładowa informacja:</p>
+<div class="example">
+<pre>
+&lt;events&gt;
+  &lt;event id="13095868082578904423"&gt;
+    &lt;type&gt;7&lt;/type&gt;
+    &lt;sender&gt;3732&lt;/sender&gt;
+    &lt;time&gt;1245847900&lt;/time&gt;
+    &lt;bodyXML&gt;
+      &lt;serviceID&gt;MG&lt;/serviceID&gt;
+      &lt;msg&gt;&lt;![CDATA[Doda\u0139, wpis do bloga]]&gt;&lt;/msg&gt;
+      &lt;link isLogin="1"&gt;http://www.mojageneracja.pl/7233258/blog/4877775414a42215b91fd7/0&lt;/link&gt;
+      &lt;creationTime&gt;1245847900&lt;/creationTime&gt;
+    &lt;/bodyXML&gt;
+ &lt;/event&gt;
+&lt;/events&gt;
+</pre>
+</div>
+
+<a name="ch1.11.4"></a>
+<h4>1.11.4 Opisy graficzne</h4>
+<div class="check">
+<p>Osobny rozdział XXX?</p>
+</div>
+
+<p>
+Serwer Gadu-Gadu po kupnie opisu graficznego na stronie <a href="http://gadudodatki.pl/opisygraficzne">GaduDodatki</a>
+przesyła nam pakiet GG_XML_EVENT
+</p>
+
+<p>Przykładowy opis graficzny: Krol Popu</p>
+<div class="example">
+<pre>
+&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;activeUserbarEventList&gt;
+  &lt;activeUserbarEvent&gt;
+     &lt;userbarId&gt;Krol Popu&lt;/userbarId&gt;
+     &lt;beginTime&gt;2009-07-06T12:30:43+02:00&lt;/beginTime&gt;
+     &lt;expireTime&gt;2009-08-05T12:30:43+02:00&lt;/expireTime&gt;
+     &lt;userbarOwner&gt;7496195&lt;/userbarOwner&gt;
+     &lt;userbarBuyer&gt;7496195&lt;/userbarBuyer&gt;
+   &lt;/activeUserbarEvent&gt;
+&lt;/activeUserbarEventList&gt;
+</pre>
+</div>
+
+<p>
+Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, to wysyłany jest pakiet GG_NEW_STATUS80
+</p>
+<p>Przykładowe ustawienie opisu graficznego: Krol Popu</p>
+<div class="example">
+<pre>
+struct gg_new_status80 krol_popu = { 
+	.status           = 0x4100 | docelowy_opisowy_status;
+	.flags            = 0x03;
+	.description_size = 9;
+	.description      = "Krol Popu"
+};</pre>
+</div>
+
+<p>
+Gdy użytkownik ma ustawiony opis graficzny <span class="check">skąd wiemy? Sprawdzić czy z (.flags) czy z (.status &amp; 0x100)</span>
+możemy pobrać ZIP-paczkę z http://www.gadudodatki.pl/userbar/get/id/
+</p>
+<p>Dla przykładowego Króla Popu jest to adres: <span class="example">http://www.gadudodatki.pl/userbar/get/id/Krol%20Popu</span></p>
 
 <hr />
 
@@ -2054,6 +2147,7 @@ napisz na listę dyskusyjną
 	7.x i 8.x.</li>
 	<li><b>Krystian Kołodziej</b> (krystiankolodziej%gmail.com): znaczenie
 	GG_DISCONNECT_ACK.</li>
+	<li><b>Adrian Warecki</b> (bok%kokosoftware.pl): Przykładowe pakiety GG_XML_ACTION</li>
 </ul>
 
 <hr />
