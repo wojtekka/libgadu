@@ -254,11 +254,11 @@ struct gg_login80 {
 
 <p>
 Pola określające adresy i port są pozostałościami po poprzednich wersjach
-protokołów i w obecnej wersji zawierają zera. Pole z flagami jest przekazywane
-innym kontaktom, ale jego znaczenie nie jest jeszcze znane. Ustalono jedynie,
-że wartość <tt>0x00100000</tt> powoduje wyświetlenie ikony telefonu komórkowego
-na liście kontaktów. Pole opcji protokołu zawsze zawiera wartość
-<tt>0x00000007</tt> i jest mapą bitową:</p>
+protokołów i w obecnej wersji zawierają zera.</p>
+<p>Pole z flagami jest przekazywane innym kontaktom, ale jego znaczenie nie jest jeszcze znane.
+Ustalono jedynie, że wartość <tt>0x00100000</tt> powoduje wyświetlenie ikony telefonu komórkowego
+na liście kontaktów, a bitmaska <tt>0x00800000</tt> wyłącza "cenzurowanie" linków</p>
+<p>Pole opcji protokołu zawsze zawiera wartość <tt>0x00000007</tt> i jest mapą bitową:</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
