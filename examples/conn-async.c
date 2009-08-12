@@ -12,7 +12,15 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <time.h>
+#include <signal.h>
 #include "libgadu.h"
+
+int disconnect_flag;
+
+void sigint(int sig)
+{
+	disconnect_flag = 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -36,6 +44,9 @@ int main(int argc, char **argv)
 	gg_session_set_uin(gs, atoi(argv[1]));
 	gg_session_set_password(gs, argv[2]);
 	gg_session_set_async(gs, 1);
+//	gg_session_set_server(gs, inet_addr("127.0.0.1"), 8074);
+
+	signal(SIGINT, sigint);
 
 	if (gg_session_connect(gs) == -1) {
 		perror("gg_session_connect");
@@ -66,6 +77,8 @@ int main(int argc, char **argv)
 		ret = select(fd + 1, &rd, &wd, NULL, &tv);
 
 		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 			perror("select");
 			return 1;
 		}
@@ -103,15 +116,25 @@ int main(int argc, char **argv)
 				return 1;
 			}
 
+			if (ge->type == GG_EVENT_DISCONNECT_ACK) {
+				printf("Połączenie zakończone.\n");
+				gg_event_free(ge);
+				break;
+			}
+
 			if (ge->type == GG_EVENT_MSG) {
 				printf("%d \"%s\" \"%s\"\n", ge->event.msg.sender, ge->event.msg.message, ge->event.msg.xhtml_message);
 			}
 
 			gg_event_free(ge);
 		}
+
+		if (disconnect_flag) {
+			gg_session_disconnect(gs, 1);
+			disconnect_flag = 1;
+		}
 	}
 	
-	gg_session_disconnect(gs, 0);
 	gg_session_free(gs);
 
 	return 0;
