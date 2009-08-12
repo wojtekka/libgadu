@@ -31,10 +31,7 @@
 
 #define GG_SESSION_CHECK_CONNECTED(gs, result) \
 	do { \
-		if ((gs) == NULL) { \
-			errno = EINVAL; \
-			return (result); \
-		} \
+		GG_SESSION_CHECK(gs, result); \
 		\
 		if (!GG_SESSION_IS_CONNECTED(gs)) { \
 			errno = ENOTCONN; \
@@ -50,5 +47,8 @@
 #define GG_SESSION_IS_CONNECTED(gs) ((gs)->state == GG_STATE_CONNECTED)
 
 int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request, size_t length);
+
+int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge);
+int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_len, struct gg_event *ge);
 
 #endif /* LIBGADU_SESSION_H */

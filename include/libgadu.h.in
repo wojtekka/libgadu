@@ -287,6 +287,14 @@ struct gg_session {
 
 	struct gg_event *event_queue_head;	/**< Początek kolejki zdarzeń */
 	struct gg_event *event_queue_tail;	/**< Koniec kolejki zdarzeń */
+
+	const char *resolver_host;		/**< Nazwa do rozwiązania */
+	struct in_addr *resolver_result;	/**< Wynik rozwiązywania nazwy */
+	int resolver_index;			/**< Indeks aktualnie obsługiwanego wyniku rozwiązywania nazwy */
+
+	uint32_t connect_addr;			/**< Lista adresów do połączenia */
+	uint16_t connect_port[2];		/**< Lista portów do połączenia */
+	int connect_index;			/**< Indeks aktualnie obsługiwanego portu */
 };
 
 /**
@@ -528,6 +536,18 @@ enum gg_state_t {
 	GG_STATE_SENDING_ID,		/**< Wysłano identyfikatora połączenia bezpośredniego */
 
 	GG_STATE_DISCONNECTING,		/**< Oczekiwanie na potwierdzenie rozłączenia */
+	GG_STATE_CONNECT_HUB,		/**< Nawiązanie połączenia z hubem */
+	GG_STATE_CONNECT_PROXY_HUB,
+	GG_STATE_CONNECT_GG,		/**< Nawiązanie połączenia z serwerem */
+	GG_STATE_CONNECT_PROXY_GG,
+	GG_STATE_RESOLVE_HUB_SYNC,
+	GG_STATE_RESOLVE_HUB_ASYNC,
+	GG_STATE_RESOLVE_PROXY_SYNC,
+	GG_STATE_RESOLVE_PROXY_ASYNC,
+	GG_STATE_RESOLVING_HUB,
+	GG_STATE_RESOLVING_PROXY,
+	GG_STATE_SEND_HUB,
+	GG_STATE_SENDING_HUB,
 };
 
 /**
@@ -613,6 +633,7 @@ typedef enum {
 	GG_SESSION_FLAG_ERA_OMNIX = 0,	/**< Połączenie Era Omnix */
 	GG_SESSION_FLAG_AUDIO,		/**< Obsługa połączeń głosowych */
 	GG_SESSION_FLAG_CLEAR_PASSWORD,	/**< Czyszczenie hasła po każdym połączeniu */
+	GG_SESSION_FLAG_OLD_API,	/**< Sesja tworzona starym API */
 
 	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
 } gg_session_flag_t;
@@ -1424,7 +1445,7 @@ int gg_http_hash(const char *format, ...);
 void gg_http_free_fields(struct gg_http *h);
 int gg_read(struct gg_session *sess, char *buf, int length);
 int gg_write(struct gg_session *sess, const char *buf, int length);
-void *gg_recv_packet(struct gg_session *sess);
+//void *gg_recv_packet(struct gg_session *sess);
 int gg_send_packet(struct gg_session *sess, int type, ...);
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed);
 void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result);

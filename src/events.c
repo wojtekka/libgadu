@@ -38,6 +38,8 @@
 #include "protocol.h"
 #include "session.h"
 #include "encoding.h"
+#include "resolver.h"
+#include "debug.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -171,1045 +173,33 @@ int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int fr
 	return 0;
 }
 
-/**
- * \internal Analizuje przychodzący pakiet z obrazkiem.
- *
- * \param e Struktura zdarzenia
- * \param p Bufor z danymi
- * \param len Długość bufora
- * \param sess Struktura sesji
- * \param sender Numer nadawcy
- */
-static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender)
-{
-	struct gg_msg_image_reply *i = (void*) p;
-	struct gg_image_queue *q, *qq;
-
-	if (!p || !sess || !e) {
-		errno = EFAULT;
-		return;
-	}
-
-	/* znajdź dany obrazek w kolejce danej sesji */
-
-	for (qq = sess->images, q = NULL; qq; qq = qq->next) {
-		if (sender == qq->sender && i->size == qq->size && i->crc32 == qq->crc32) {
-			q = qq;
-			break;
-		}
-	}
-
-	if (!q) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.8x\n", sender, i->size, i->crc32);
-		return;
-	}
-
-	if (p[0] == 0x05) {
-		q->done = 0;
-
-		len -= sizeof(struct gg_msg_image_reply);
-		p += sizeof(struct gg_msg_image_reply);
-
-		if (gg_find_null(p, 0, len) == NULL) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() malformed packet from %d, unlimited filename\n", sender);
-			return;
-		}
-
-		if (!(q->filename = strdup(p))) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() not enough memory for filename\n");
-			return;
-		}
-
-		len -= strlen(p) + 1;
-		p += strlen(p) + 1;
-	} else {
-		len -= sizeof(struct gg_msg_image_reply);
-		p += sizeof(struct gg_msg_image_reply);
-	}
-
-	if (q->done + len > q->size)
-		len = q->size - q->done;
-
-	memcpy(q->image + q->done, p, len);
-	q->done += len;
-
-	/* jeśli skończono odbierać obrazek, wygeneruj zdarzenie */
-
-	if (q->done >= q->size) {
-		e->type = GG_EVENT_IMAGE_REPLY;
-		e->event.image_reply.sender = sender;
-		e->event.image_reply.size = q->size;
-		e->event.image_reply.crc32 = q->crc32;
-		e->event.image_reply.filename = q->filename;
-		e->event.image_reply.image = q->image;
-
-		gg_image_queue_remove(sess, q, 0);
-
-		free(q);
-	}
-}
-
-int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *e, uin_t sender, const char *p, const char *packet_end)
-{
-	while (p < packet_end) {
-		switch (*p) {
-			case 0x01:		/* konferencja */
-			{
-				struct gg_msg_recipients *m = (void*) p;
-				uint32_t i, count;
-
-				p += sizeof(*m);
-
-				if (p > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1)\n");
-					goto malformed;
-				}
-
-				count = gg_fix32(m->count);
-
-				if (p + count * sizeof(uin_t) > packet_end || p + count * sizeof(uin_t) < p || count > 0xffff) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1.5)\n");
-					goto malformed;
-				}
-
-				if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for recipients data\n");
-					goto fail;
-				}
-
-				for (i = 0; i < count; i++, p += sizeof(uint32_t)) {
-					uint32_t u;
-					memcpy(&u, p, sizeof(uint32_t));
-					e->event.msg.recipients[i] = gg_fix32(u);
-				}
-
-				e->event.msg.recipients_count = count;
-
-				break;
-			}
-
-			case 0x02:		/* richtext */
-			{
-				uint16_t len;
-				char *buf;
-
-				if (p + 3 > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (2)\n");
-					goto malformed;
-				}
-
-				memcpy(&len, p + 1, sizeof(uint16_t));
-				len = gg_fix16(len);
-
-				if (!(buf = malloc(len))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for richtext data\n");
-					goto fail;
-				}
-
-				p += 3;
-
-				if (p + len > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-					free(buf);
-					goto malformed;
-				}
-
-				memcpy(buf, p, len);
-
-				e->event.msg.formats = buf;
-				e->event.msg.formats_length = len;
-
-				p += len;
-
-				break;
-			}
-
-			case 0x04:		/* image_request */
-			{
-				struct gg_msg_image_request *i = (void*) p;
-
-				if (p + sizeof(*i) > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
-					goto malformed;
-				}
-
-				e->event.image_request.sender = sender;
-				e->event.image_request.size = gg_fix32(i->size);
-				e->event.image_request.crc32 = gg_fix32(i->crc32);
-
-				e->type = GG_EVENT_IMAGE_REQUEST;
-
-				goto handled;
-			}
-
-			case 0x05:		/* image_reply */
-			case 0x06:
-			{
-				struct gg_msg_image_reply *rep = (void*) p;
-
-				if (p + sizeof(struct gg_msg_image_reply) == packet_end) {
-
-					/* pusta odpowiedź - klient po drugiej stronie nie ma żądanego obrazka */
-
-					e->type = GG_EVENT_IMAGE_REPLY;
-					e->event.image_reply.sender = sender;
-					e->event.image_reply.size = 0;
-					e->event.image_reply.crc32 = gg_fix32(rep->crc32);
-					e->event.image_reply.filename = NULL;
-					e->event.image_reply.image = NULL;
-					goto handled;
-
-				} else if (p + sizeof(struct gg_msg_image_reply) + 1 > packet_end) {
-
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (4)\n");
-					goto malformed;
-				}
-
-				rep->size = gg_fix32(rep->size);
-				rep->crc32 = gg_fix32(rep->crc32);
-				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, sender);
-
-				goto handled;
-			}
-
-			default:
-			{
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
-				p = packet_end;
-			}
-		}
-	}
-
-	return 0;
-
-handled:
-	return -1;
-
-fail:
-	return -2;
-
-malformed:
-	return -3;
-}
-
-/**
- * \internal Analizuje przychodzący pakiet z wiadomością.
- *
- * Rozbija pakiet na poszczególne składniki -- tekst, informacje
- * o konferencjach, formatowaniu itd.
- *
- * \param h Wskaźnik do odebranego pakietu
- * \param e Struktura zdarzenia
- * \param sess Struktura sesji
- *
- * \return 0 jeśli się powiodło, -1 w przypadku błędu
- */
-static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg_session *sess)
-{
-	struct gg_recv_msg *r = (struct gg_recv_msg*) ((char*) h + sizeof(struct gg_header));
-	char *payload = (char*) r + sizeof(struct gg_recv_msg);
-	char *payload_end = (char*) r + h->length;
-	char *tmp;
-	size_t length;
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %p);\n", h, e);
-
-	if ((r->seq == 0) && (r->msgclass == 0)) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() oops, silently ignoring the bait\n");
-		goto malformed;
-	}
-
-	// jednobajtowa wiadomość o treści \x02 to żądanie połączenia DCC
-	if (*payload == 0x02 && payload == payload_end - 1) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
-		length = 1;
-	} else {
-		const char *options = gg_find_null((char*) r, sizeof(struct gg_recv_msg), h->length);
-
-		if (options == NULL) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds (0)\n");
-			goto malformed;
-		}
-		
-		length = (size_t) (options - payload);
-
-		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end)) {
-			case -1:	// handled
-				return 0;
-
-			case -2:	// failed
-				goto fail;
-
-			case -3:	// malformed
-				goto malformed;
-		}
-	}
-
-	e->type = GG_EVENT_MSG;
-	e->event.msg.msgclass = gg_fix32(r->msgclass);
-	e->event.msg.sender = gg_fix32(r->sender);
-	e->event.msg.time = gg_fix32(r->time);
-	e->event.msg.seq = gg_fix32(r->seq);
-
-	tmp = gg_encoding_convert((char*) r + sizeof(*r), GG_ENCODING_CP1250, sess->encoding, length, -1);
-	if (tmp == NULL)
-		goto fail;
-	e->event.msg.message = (unsigned char*) tmp;
-
-	return 0;
-
-fail:
-	free(e->event.msg.message);
-	free(e->event.msg.recipients);
-	free(e->event.msg.formats);
-	return -1;
-
-malformed:
-	e->type = GG_EVENT_NONE;
-	free(e->event.msg.message);
-	free(e->event.msg.xhtml_message);
-	free(e->event.msg.recipients);
-	free(e->event.msg.formats);
-	return 0;
-}
-
-/**
- * \internal Analizuje przychodzący pakiet z wiadomością protokołu Gadu-Gadu
- * 8.0. Rozbija pakiet na poszczególne składniki -- tekst, informacje
- * o konferencjach, formatowaniu itd.
- *
- * \param h Wskaźnik do odebranego pakietu
- * \param e Struktura zdarzenia
- * \param sess Struktura sesji
- *
- * \return 0 jeśli się powiodło, -1 w przypadku błędu
- */
-static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct gg_session *sess)
-{
-	char *packet = (char*) h + sizeof(struct gg_header);
-	struct gg_recv_msg80 *r = (struct gg_recv_msg80*) packet;
-	uint32_t offset_plain;
-	uint32_t offset_attr;
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %p);\n", h, e);
-
-	if (!r->seq && !r->msgclass) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() oops, silently ignoring the bait\n");
-		goto malformed;
-	}
-
-	offset_plain = gg_fix32(r->offset_plain);
-	offset_attr = gg_fix32(r->offset_attr);
-
-	if (offset_plain < sizeof(struct gg_recv_msg80) || offset_plain >= h->length) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (0)\n");
-		goto malformed;
-	}
-
-	if (offset_attr < sizeof(struct gg_recv_msg80) || offset_attr > h->length) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, attr out of bounds (1)\n");
-		offset_attr = 0;	/* nie parsuj attr. */
-	}
-
-	/* Normalna sytuacja, więc nie podpada pod powyższy warunek. */
-	if (offset_attr == h->length)
-		offset_attr = 0;
-
-	if (gg_find_null(packet, offset_plain, h->length) == NULL) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (2)\n");
-		goto malformed;
-	}
-
-	e->type = GG_EVENT_MSG;
-	e->event.msg.msgclass = gg_fix32(r->msgclass);
-	e->event.msg.sender = gg_fix32(r->sender);
-	e->event.msg.time = gg_fix32(r->time);
-	e->event.msg.seq = gg_fix32(r->seq);
-	e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
-
-	if (offset_plain > sizeof(*r))
-		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
-	else
-		e->event.msg.xhtml_message = NULL;
-
-	if (offset_attr != 0) {
-		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + h->length)) {
-			case -1:	// handled
-				return 0;
-
-			case -2:	// failed
-				goto fail;
-
-			case -3:	// malformed
-				goto malformed;
-		}
-	}
-
-	return 0;
-
-fail:
-	free(e->event.msg.message);
-	free(e->event.msg.xhtml_message);
-	free(e->event.msg.recipients);
-	free(e->event.msg.formats);
-	return -1;
-
-malformed:
-	e->type = GG_EVENT_NONE;
-	free(e->event.msg.message);
-	free(e->event.msg.xhtml_message);
-	free(e->event.msg.recipients);
-	free(e->event.msg.formats);
-	return 0;
-}
-
-/**
- * \internal Odbiera pakiet od serwera.
- *
- * Analizuje pakiet i wypełnia strukturę zdarzenia.
- *
- * \param sess Struktura sesji
- * \param e Struktura zdarzenia
- *
- * \return 0 jeśli się powiodło, -1 jeśli wystąpił błąd
- */
-static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
-{
-	struct gg_header *h = NULL;
-	char *p;
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd_connected(%p, %p);\n", sess, e);
-
-	if (!sess) {
-		errno = EFAULT;
-		return -1;
-	}
-
-	if (!(h = gg_recv_packet(sess))) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() gg_recv_packet failed (errno=%d, %s)\n", errno, strerror(errno));
-		goto fail;
-	}
-
-	p = (char*) h + sizeof(struct gg_header);
-
-	switch (h->type) {
-		case GG_RECV_MSG:
-		{
-			if (h->length >= sizeof(struct gg_recv_msg))
-				if (gg_handle_recv_msg(h, e, sess))
-					goto fail;
-
-			break;
-		}
-
-		case GG_RECV_MSG80:
-		{
-			if (h->length >= sizeof(struct gg_recv_msg80))
-				if (gg_handle_recv_msg80(h, e, sess))
-					goto fail;
-
-			break;
-		}
-
-
-		case GG_NOTIFY_REPLY:
-		{
-			struct gg_notify_reply *n = (void*) p;
-			unsigned int count, i;
-			char *tmp;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
-
-			if (h->length < sizeof(*n)) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() incomplete packet\n");
-				errno = EINVAL;
-				goto fail;
-			}
-
-			if (gg_fix32(n->status) == GG_STATUS_BUSY_DESCR || gg_fix32(n->status) == GG_STATUS_NOT_AVAIL_DESCR || gg_fix32(n->status) == GG_STATUS_AVAIL_DESCR) {
-				e->type = GG_EVENT_NOTIFY_DESCR;
-
-				if (!(e->event.notify_descr.notify = (void*) malloc(sizeof(*n) * 2))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					goto fail;
-				}
-				e->event.notify_descr.notify[1].uin = 0;
-				memcpy(e->event.notify_descr.notify, p, sizeof(*n));
-				e->event.notify_descr.notify[0].uin = gg_fix32(e->event.notify_descr.notify[0].uin);
-				e->event.notify_descr.notify[0].status = gg_fix32(e->event.notify_descr.notify[0].status);
-				e->event.notify_descr.notify[0].remote_port = gg_fix16(e->event.notify_descr.notify[0].remote_port);
-				e->event.notify_descr.notify[0].version = gg_fix32(e->event.notify_descr.notify[0].version);
-
-				count = h->length - sizeof(*n);
-				if (!(tmp = malloc(count + 1))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					goto fail;
-				}
-				memcpy(tmp, p + sizeof(*n), count);
-				tmp[count] = 0;
-				e->event.notify_descr.descr = tmp;
-
-			} else {
-				e->type = GG_EVENT_NOTIFY;
-
-				if (!(e->event.notify = (void*) malloc(h->length + 2 * sizeof(*n)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					goto fail;
-				}
-
-				memcpy(e->event.notify, p, h->length);
-				count = h->length / sizeof(*n);
-				e->event.notify[count].uin = 0;
-
-				for (i = 0; i < count; i++) {
-					e->event.notify[i].uin = gg_fix32(e->event.notify[i].uin);
-					e->event.notify[i].status = gg_fix32(e->event.notify[i].status);
-					e->event.notify[i].remote_port = gg_fix16(e->event.notify[i].remote_port);
-					e->event.notify[i].version = gg_fix32(e->event.notify[i].version);
-				}
-			}
-
-			break;
-		}
-
-		case GG_STATUS:
-		{
-			struct gg_status *s = (void*) p;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
-
-			if (h->length >= sizeof(*s)) {
-				e->type = GG_EVENT_STATUS;
-				memcpy(&e->event.status, p, sizeof(*s));
-				e->event.status.uin = gg_fix32(e->event.status.uin);
-				e->event.status.status = gg_fix32(e->event.status.status);
-				if (h->length > sizeof(*s)) {
-					int len = h->length - sizeof(*s);
-					char *buf = malloc(len + 1);
-					if (buf) {
-						memcpy(buf, p + sizeof(*s), len);
-						buf[len] = 0;
-					}
-					e->event.status.descr = buf;
-				} else
-					e->event.status.descr = NULL;
-			}
-
-			break;
-		}
-
-		case GG_NOTIFY_REPLY80:
-		case GG_STATUS80:
-		{
-			struct gg_notify_reply80 *n = (void*) p;
-			unsigned int length = h->length, i = 0;
-
-			// TODO: najpierw przeanalizować strukturę i określić
-			// liczbę rekordów, żeby obyć się bez realloc()
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
-
-			e->type = GG_EVENT_NOTIFY60;
-			e->event.notify60 = malloc(sizeof(*e->event.notify60));
-
-			if (!e->event.notify60) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-				goto fail;
-			}
-
-			e->event.notify60[0].uin = 0;
-
-			while (length >= sizeof(struct gg_notify_reply80)) {
-				uin_t uin = gg_fix32(n->uin);
-				int descr_len;
-				char *tmp;
-
-				e->event.notify60[i].uin = uin;
-				e->event.notify60[i].status = gg_fix32(n->status);
-				e->event.notify60[i].remote_ip = n->remote_ip;
-				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
-				e->event.notify60[i].version = 0;
-				e->event.notify60[i].image_size = n->image_size;
-				e->event.notify60[i].descr = NULL;
-				e->event.notify60[i].time = 0;
-
-				descr_len = gg_fix32(n->descr_len);
-
-				if (descr_len != 0) {
-					if (sizeof(struct gg_notify_reply80) + descr_len <= length) {
-						char *descr;
-
-						descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply80), GG_ENCODING_UTF8, sess->encoding, descr_len, -1);
-
-						if (descr == NULL) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-							goto fail;
-						}
-
-						e->event.notify60[i].descr = descr;
-
-						length -= sizeof(struct gg_notify_reply80) + descr_len;
-						n = (void*) ((char*) n + sizeof(struct gg_notify_reply80) + descr_len);
-					} else {
-						length = 0;
-					}
-
-				} else {
-					length -= sizeof(struct gg_notify_reply80);
-					n = (void*) ((char*) n + sizeof(struct gg_notify_reply80));
-				}
-
-				if (!(tmp = realloc(e->event.notify60, (i + 2) * sizeof(*e->event.notify60)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					free(e->event.notify60);
-					goto fail;
-				}
-
-				e->event.notify60 = (void*) tmp;
-				e->event.notify60[++i].uin = 0;
-			}
-
-			break;
-		}
-
-		case GG_NOTIFY_REPLY77:
-		{
-			struct gg_notify_reply77 *n = (void*) p;
-			unsigned int length = h->length, i = 0;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
-
-			e->type = GG_EVENT_NOTIFY60;
-			e->event.notify60 = malloc(sizeof(*e->event.notify60));
-
-			if (!e->event.notify60) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-				goto fail;
-			}
-
-			e->event.notify60[0].uin = 0;
-
-			while (length >= sizeof(struct gg_notify_reply77)) {
-				uin_t uin = gg_fix32(n->uin);
-				char *tmp;
-
-				e->event.notify60[i].uin = uin & 0x00ffffff;
-				e->event.notify60[i].status = n->status;
-				e->event.notify60[i].remote_ip = n->remote_ip;
-				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
-				e->event.notify60[i].version = n->version;
-				e->event.notify60[i].image_size = n->image_size;
-				e->event.notify60[i].descr = NULL;
-				e->event.notify60[i].time = 0;
-
-				if (uin & 0x40000000)
-					e->event.notify60[i].version |= GG_HAS_AUDIO_MASK;
-				if (uin & 0x20000000)
-					e->event.notify60[i].version |= GG_HAS_AUDIO7_MASK;
-				if (uin & 0x08000000)
-					e->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
-
-				if (GG_S_D(n->status)) {
-					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply77));
-
-					if (sizeof(struct gg_notify_reply77) + descr_len <= length) {
-						char *descr;
-
-						if (!(descr = malloc(descr_len + 1))) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-							goto fail;
-						}
-
-						memcpy(descr, (char*) n + sizeof(struct gg_notify_reply77) + 1, descr_len);
-						descr[descr_len] = 0;
-
-						e->event.notify60[i].descr = descr;
-
-						/* XXX czas */
-							
-						length -= sizeof(struct gg_notify_reply77) + descr_len + 1;
-						n = (void*) ((char*) n + sizeof(struct gg_notify_reply77) + descr_len + 1);
-					} else {
-						length = 0;
-					}
-
-				} else {
-					length -= sizeof(struct gg_notify_reply77);
-					n = (void*) ((char*) n + sizeof(struct gg_notify_reply77));
-				}
-
-				if (!(tmp = realloc(e->event.notify60, (i + 2) * sizeof(*e->event.notify60)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					free(e->event.notify60);
-					goto fail;
-				}
-
-				e->event.notify60 = (void*) tmp;
-				e->event.notify60[++i].uin = 0;
-			}
-
-			break;
-		}
-
-		case GG_STATUS77:
-		{
-			struct gg_status77 *s = (void*) p;
-			uint32_t uin;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
-
-			if (h->length < sizeof(*s))
-				break;
-
-			uin = gg_fix32(s->uin);
-
-			e->type = GG_EVENT_STATUS60;
-			e->event.status60.uin = uin & 0x00ffffff;
-			e->event.status60.status = s->status;
-			e->event.status60.remote_ip = s->remote_ip;
-			e->event.status60.remote_port = gg_fix16(s->remote_port);
-			e->event.status60.version = s->version;
-			e->event.status60.image_size = s->image_size;
-			e->event.status60.descr = NULL;
-			e->event.status60.time = 0;
-
-			if (uin & 0x40000000)
-				e->event.status60.version |= GG_HAS_AUDIO_MASK;
-			if (uin & 0x20000000)
-				e->event.status60.version |= GG_HAS_AUDIO7_MASK;
-			if (uin & 0x08000000)
-				e->event.status60.version |= GG_ERA_OMNIX_MASK;
-
-			if (h->length > sizeof(*s)) {
-				int len = h->length - sizeof(*s);
-				char *buf = malloc(len + 1);
-
-				/* XXX, jesli malloc() sie nie uda to robic tak samo jak przy GG_NOTIFY_REPLY* ?
-				 * 	- goto fail; (?)
-				 */
-				if (buf) {
-					memcpy(buf, (char*) p + sizeof(*s), len);
-					buf[len] = 0;
-				}
-
-				e->event.status60.descr = buf;
-
-				if (len > 4 && p[h->length - 5] == 0) {
-					uint32_t t;
-					memcpy(&t, p + h->length - 4, sizeof(uint32_t));
-					e->event.status60.time = gg_fix32(t);
-				}
-			}
-
-			break;
-		}
-
-		case GG_NOTIFY_REPLY60:
-		{
-			struct gg_notify_reply60 *n = (void*) p;
-			unsigned int length = h->length, i = 0;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
-
-			e->type = GG_EVENT_NOTIFY60;
-			e->event.notify60 = malloc(sizeof(*e->event.notify60));
-
-			if (!e->event.notify60) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-				goto fail;
-			}
-
-			e->event.notify60[0].uin = 0;
-
-			while (length >= sizeof(struct gg_notify_reply60)) {
-				uin_t uin = gg_fix32(n->uin);
-				char *tmp;
-
-				e->event.notify60[i].uin = uin & 0x00ffffff;
-				e->event.notify60[i].status = n->status;
-				e->event.notify60[i].remote_ip = n->remote_ip;
-				e->event.notify60[i].remote_port = gg_fix16(n->remote_port);
-				e->event.notify60[i].version = n->version;
-				e->event.notify60[i].image_size = n->image_size;
-				e->event.notify60[i].descr = NULL;
-				e->event.notify60[i].time = 0;
-
-				if (uin & 0x40000000)
-					e->event.notify60[i].version |= GG_HAS_AUDIO_MASK;
-				if (uin & 0x08000000)
-					e->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
-
-				if (GG_S_D(n->status)) {
-					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
-
-					if (sizeof(struct gg_notify_reply60) + descr_len <= length) {
-						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-							goto fail;
-						}
-
-						memcpy(e->event.notify60[i].descr, (char*) n + sizeof(struct gg_notify_reply60) + 1, descr_len);
-						e->event.notify60[i].descr[descr_len] = 0;
-
-						/* XXX czas */
-							
-						length -= sizeof(struct gg_notify_reply60) + descr_len + 1;
-						n = (void*) ((char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
-					} else {
-						length = 0;
-					}
-
-				} else {
-					length -= sizeof(struct gg_notify_reply60);
-					n = (void*) ((char*) n + sizeof(struct gg_notify_reply60));
-				}
-
-				if (!(tmp = realloc(e->event.notify60, (i + 2) * sizeof(*e->event.notify60)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-					free(e->event.notify60);
-					goto fail;
-				}
-
-				e->event.notify60 = (void*) tmp;
-				e->event.notify60[++i].uin = 0;
-			}
-
-			break;
-		}
-
-		case GG_STATUS60:
-		{
-			struct gg_status60 *s = (void*) p;
-			uint32_t uin;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
-
-			if (h->length < sizeof(*s))
-				break;
-
-			uin = gg_fix32(s->uin);
-
-			e->type = GG_EVENT_STATUS60;
-			e->event.status60.uin = uin & 0x00ffffff;
-			e->event.status60.status = s->status;
-			e->event.status60.remote_ip = s->remote_ip;
-			e->event.status60.remote_port = gg_fix16(s->remote_port);
-			e->event.status60.version = s->version;
-			e->event.status60.image_size = s->image_size;
-			e->event.status60.descr = NULL;
-			e->event.status60.time = 0;
-
-			if (uin & 0x40000000)
-				e->event.status60.version |= GG_HAS_AUDIO_MASK;
-			if (uin & 0x08000000)
-				e->event.status60.version |= GG_ERA_OMNIX_MASK;
-
-			if (h->length > sizeof(*s)) {
-				int len = h->length - sizeof(*s);
-				char *buf = malloc(len + 1);
-
-				if (buf) {
-					memcpy(buf, (char*) p + sizeof(*s), len);
-					buf[len] = 0;
-				}
-
-				e->event.status60.descr = buf;
-
-				if (len > 4 && p[h->length - 5] == 0) {
-					uint32_t t;
-					memcpy(&t, p + h->length - 4, sizeof(uint32_t));
-					e->event.status60.time = gg_fix32(t);
-				}
-			}
-
-			break;
-		}
-
-		case GG_SEND_MSG_ACK:
-		{
-			struct gg_send_msg_ack *s = (void*) p;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a message ack\n");
-
-			if (h->length < sizeof(*s))
-				break;
-
-			e->type = GG_EVENT_ACK;
-			e->event.ack.status = gg_fix32(s->status);
-			e->event.ack.recipient = gg_fix32(s->recipient);
-			e->event.ack.seq = gg_fix32(s->seq);
-
-			break;
-		}
-
-		case GG_PONG:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a pong\n");
-
-			e->type = GG_EVENT_PONG;
-			sess->last_pong = time(NULL);
-
-			break;
-		}
-
-		case GG_DISCONNECTING:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received disconnection warning\n");
-			e->type = GG_EVENT_DISCONNECT;
-			break;
-		}
-
-		case GG_DISCONNECT_ACK:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received logoff acknowledge\n");
-			e->type = GG_EVENT_DISCONNECT_ACK;
-			break;
-		}
-
-		case GG_XML_EVENT:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received XML event\n");
-			e->type = GG_EVENT_XML_EVENT;
-			if (!(e->event.xml_event.data = (char *) malloc(h->length + 1))) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for XML event data\n");
-				goto fail;
-			}
-			memcpy(e->event.xml_event.data, p, h->length);
-			e->event.xml_event.data[h->length] = 0;
-			break;
-		}
-
-		case GG_PUBDIR50_REPLY:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received pubdir/search reply\n");
-			if (gg_pubdir50_handle_reply(e, p, h->length) == -1)
-				goto fail;
-			break;
-		}
-
-		case GG_USERLIST_REPLY:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist reply\n");
-
-			if (h->length < 1)
-				break;
-
-			/* jeśli odpowiedź na eksport, wywołaj zdarzenie tylko
-			 * gdy otrzymano wszystkie odpowiedzi */
-			if (p[0] == GG_USERLIST_PUT_REPLY || p[0] == GG_USERLIST_PUT_MORE_REPLY) {
-				if (--sess->userlist_blocks)
-					break;
-
-				p[0] = GG_USERLIST_PUT_REPLY;
-			}
-
-			if (h->length > 1) {
-				char *tmp;
-				unsigned int len = (sess->userlist_reply) ? strlen(sess->userlist_reply) : 0;
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "userlist_reply=%p, len=%d\n", sess->userlist_reply, len);
-
-				if (!(tmp = realloc(sess->userlist_reply, len + h->length))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for userlist reply\n");
-					free(sess->userlist_reply);
-					sess->userlist_reply = NULL;
-					goto fail;
-				}
-
-				sess->userlist_reply = tmp;
-				sess->userlist_reply[len + h->length - 1] = 0;
-				memcpy(sess->userlist_reply + len, p + 1, h->length - 1);
-			}
-
-			if (p[0] == GG_USERLIST_GET_MORE_REPLY)
-				break;
-
-			e->type = GG_EVENT_USERLIST;
-			e->event.userlist.type = p[0];
-			e->event.userlist.reply = sess->userlist_reply;
-			sess->userlist_reply = NULL;
-
-			break;
-		}
-
-		case GG_DCC7_ID_REPLY:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 id packet\n");
-
-			if (h->length < sizeof(struct gg_dcc7_id_reply))
-				break;
-
-			if (gg_dcc7_handle_id(sess, e, p, h->length) == -1)
-				goto fail;
-
-			break;
-		}
-
-		case GG_DCC7_ACCEPT:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 accept\n");
-
-			if (h->length < sizeof(struct gg_dcc7_accept))
-				break;
-
-			if (gg_dcc7_handle_accept(sess, e, p, h->length) == -1)
-				goto fail;
-
-			break;
-		}
-
-		case GG_DCC7_NEW:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 request\n");
-
-			if (h->length < sizeof(struct gg_dcc7_new))
-				break;
-
-			if (gg_dcc7_handle_new(sess, e, p, h->length) == -1)
-				goto fail;
-
-			break;
-		}
-
-		case GG_DCC7_REJECT:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 reject\n");
-
-			if (h->length < sizeof(struct gg_dcc7_reject))
-				break;
-
-			if (gg_dcc7_handle_reject(sess, e, p, h->length) == -1)
-				goto fail;
-
-			break;
-		}
-
-		case GG_DCC7_INFO:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 info\n");
-
-			if (h->length < sizeof(struct gg_dcc7_info))
-				break;
-
-			if (gg_dcc7_handle_info(sess, e, p, h->length) == -1)
-				goto fail;
-
-			break;
-		}
-
-		default:
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received unknown packet 0x%.2x\n", h->type);
-	}
-
-	free(h);
-	return 0;
-
-fail:
-	free(h);
-	return -1;
-}
-
 /** \endcond */
+
+int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
+{
+	int res = 0;
+	unsigned int res_size = sizeof(res);
+
+	if (!gs->async)
+		return 0;
+
+	if (gs->timeout == 0)
+		return 1;
+
+	if (getsockopt(gs->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) == -1) {
+		*res_ptr = errno;
+		return 1;
+	}
+
+	if (res != 0) {
+		*res_ptr = res;
+		return 1;
+	}
+
+	*res_ptr = 0;
+
+	return 0;
+}
 
 /**
  * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.
@@ -1231,7 +221,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	int port = 0;
 	int errno2 = 0;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd(%p);\n", sess);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd(%p, %s)\n", sess, (sess != NULL) ? gg_debug_state(sess->state) : "GG_STATE_NONE");
 
 	if (!sess) {
 		errno = EFAULT;
@@ -1239,6 +229,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	}
 
 	if (sess->timeout == 0 && !sess->soft_timeout) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() timeout\n");
 		errno = ETIMEDOUT;
 		return NULL;
 	}
@@ -1250,7 +241,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	e->type = GG_EVENT_NONE;
 
-	if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
+	if (sess->send_buf && (sess->state == GG_STATE_SENDING_HUB || sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
 
 		res = write(sess->fd, sess->send_buf, sess->send_left);
@@ -1278,34 +269,139 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	}
 
 	switch (sess->state) {
-		case GG_STATE_RESOLVING:
+		case GG_STATE_RESOLVE_HUB_SYNC:
+		case GG_STATE_RESOLVE_PROXY_SYNC:
 		{
 			struct in_addr addr;
-			int failed = 0;
+
+			if ((addr.s_addr = inet_addr(sess->resolver_host)) == INADDR_NONE) {
+				struct in_addr *addr_list;
+
+				if (gg_gethostbyname(sess->resolver_host, &addr_list, 0) == -1) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host %s not found\n", sess->resolver_host);
+					goto fail_resolving;
+				}
+
+				sess->resolver_result = addr_list;
+				sess->resolver_index = 0;
+			} else {
+				sess->resolver_result = malloc(sizeof(struct in_addr) * 2);
+				if (sess->resolver_result == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory\n");
+					goto fail_resolving;
+				}
+
+				sess->resolver_result[0].s_addr = addr.s_addr;
+				sess->resolver_result[1].s_addr = INADDR_NONE;
+				sess->resolver_index = 0;
+			}
+			
+			goto goto_GG_STATE_CONNECT_HUB;
+		}
+
+		case GG_STATE_RESOLVE_HUB_ASYNC:
+		case GG_STATE_RESOLVE_PROXY_ASYNC:
+		{
+			if (sess->resolver_start(&sess->fd, &sess->resolver, sess->resolver_host) == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
+				goto fail_resolving;
+			}
+
+			if (sess->state == GG_STATE_RESOLVE_HUB_ASYNC)
+				sess->state = GG_STATE_RESOLVING_HUB;
+			else
+				sess->state = GG_STATE_RESOLVING_PROXY;
+			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			break;
+		}
+
+		case GG_STATE_RESOLVING_HUB:
+		case GG_STATE_RESOLVING_PROXY:
+		{
+			char buf[256];
+			int i, count = -1;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_RESOLVING\n");
 
-			if (read(sess->fd, &addr, sizeof(addr)) < (signed)sizeof(addr) || addr.s_addr == INADDR_NONE) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed\n");
-				failed = 1;
-				errno2 = errno;
+			res = read(sess->fd, buf, sizeof(buf));
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+
+			if (res == -1) {
+				if (errno == EAGAIN || errno == EINTR) {
+					res = 0;
+					break;
+				}
+
+				goto fail_resolving;
 			}
+
+			if (res > 0) {
+				char *tmp;
+
+				tmp = realloc(sess->recv_buf, sess->recv_done + res);
+
+				if (tmp == NULL)
+					goto fail_resolving;
+
+				sess->recv_buf = tmp;
+				memcpy(sess->recv_buf + sess->recv_done, buf, res);
+				sess->recv_done += res;
+			}
+
+			/* Sprawdź, czy mamy listę zakończoną INADDR_NONE */
+
+			for (i = 0; i < sess->recv_done / sizeof(struct in_addr); i++) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "addr[%d] = %s\n", i, inet_ntoa(((struct in_addr*) sess->recv_buf)[i]));
+				if (((struct in_addr*) sess->recv_buf)[i].s_addr == INADDR_NONE) {
+					count = i;
+					break;
+				}
+			}
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "len = %d, count = %d\n", sess->recv_done, count);
+
+			if (res == 0 || count == 0)
+				goto fail_resolving;
+
+			if (count == -1)
+				break;
 
 			close(sess->fd);
 			sess->fd = -1;
 
 			sess->resolver_cleanup(&sess->resolver, 0);
 
-			if (failed) {
-				errno = errno2;
-				goto fail_resolving;
+			sess->state = GG_STATE_CONNECT_HUB;
+			sess->resolver_result = (struct in_addr*) sess->recv_buf;
+			sess->resolver_index = 0;
+			sess->recv_buf = NULL;
+			sess->recv_done = 0;
+			
+			/* fall through */
+		}
+
+		case GG_STATE_CONNECT_HUB:
+		{
+			struct in_addr addr;
+
+goto_GG_STATE_CONNECT_HUB:
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECT_HUB\n");
+
+			if (sess->resolver_result[sess->resolver_index].s_addr == INADDR_NONE) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of address to connect to\n");
+				goto fail_connecting;
 			}
+
+			addr = sess->resolver_result[sess->resolver_index++];
 
 			/* jeśli jesteśmy w resolverze i mamy ustawiony port
 			 * proxy, znaczy, że resolvowaliśmy proxy. zatem
 			 * wpiszmy jego adres. */
 			if (sess->proxy_port)
-				sess->proxy_addr = addr.s_addr;
+				sess->proxy_addr = sess->resolver_result[sess->resolver_index].s_addr;
 
 			/* zapiszmy sobie adres huba i adres serwera (do
 			 * bezpośredniego połączenia, jeśli hub leży)
@@ -1313,19 +409,17 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (sess->proxy_addr && sess->proxy_port)
 				port = sess->proxy_port;
 			else {
-				sess->server_addr = sess->hub_addr = addr.s_addr;
+				sess->server_addr = sess->hub_addr = sess->resolver_result[sess->resolver_index].s_addr;
 				port = GG_APPMSG_PORT;
 			}
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolved, connecting to %s:%d\n", inet_ntoa(addr), port);
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connecting to %s:%d\n", inet_ntoa(addr), port);
 
 			/* łączymy się albo z hubem, albo z proxy, zależnie
 			 * od tego, co resolvowaliśmy. */
 			if ((sess->fd = gg_connect(&addr, port, sess->async)) == -1) {
-				/* jeśli w trybie asynchronicznym gg_connect()
-				 * zwróci błąd, nie ma sensu próbować dalej. */
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), critical\n", errno, strerror(errno));
-				goto fail_connecting;
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+				goto goto_GG_STATE_CONNECT_HUB;
 			}
 
 			/* jeśli podano serwer i łączmy się przez proxy,
@@ -1340,29 +434,34 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			sess->check = GG_CHECK_WRITE;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
+			sess->soft_timeout = 1;
 
 			break;
 		}
 
 		case GG_STATE_CONNECTING_HUB:
 		{
-			char buf[1024], *client, *auth;
-			int res = 0;
-			unsigned int res_size = sizeof(res);
-			const char *host;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
 
 			/* jeśli asynchroniczne, sprawdzamy, czy nie wystąpił
 			 * przypadkiem jakiś błąd. */
-			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				if (sess->proxy_addr && sess->proxy_port)
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
-				else
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to hub failed (errno=%d, %s)\n", res, strerror(res));
-
-				goto fail_connecting;
+			if (gg_async_connect_failed(sess, &res)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
+				goto goto_GG_STATE_CONNECT_HUB;
 			}
+
+			sess->state = GG_STATE_SEND_HUB;
+
+			/* fall through */
+		}
+
+		case GG_STATE_SEND_HUB:
+		{
+			char buf[1024], *client, *auth;
+			const char *host;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
 
@@ -1402,19 +501,32 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", buf);
 
-			/* zapytanie jest krótkie, więc zawsze zmieści się
-			 * do bufora gniazda. jeśli write() zwróci mniej,
-			 * stało się coś złego. */
-			if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
+			res = gg_write(sess, buf, strlen(buf));
 
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_WRITING;
-				sess->state = GG_STATE_IDLE;
-				close(sess->fd);
-				sess->fd = -1;
-				break;
+			if (res == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
+				goto fail_writing;
 			}
+
+			if (res < strlen(buf)) {
+				sess->state = GG_STATE_SENDING_HUB;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+			} else {
+				sess->state = GG_STATE_READING_DATA;
+				sess->check = GG_CHECK_READ;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+			}
+
+			break;
+		}
+
+		case GG_STATE_SENDING_HUB:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_SENDING_HUB\n");
+
+			if (sess->send_left > 0)
+				break;
 
 			sess->state = GG_STATE_READING_DATA;
 			sess->check = GG_CHECK_READ;
@@ -1518,35 +630,40 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			sess->server_addr = addr.s_addr;
 
 			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
-				/* jeśli mamy proxy, łączymy się z nim. */
-				if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
-					/* nie wyszło? trudno. */
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
-				}
-
-				sess->state = GG_STATE_CONNECTING_GG;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
-				sess->soft_timeout = 1;
-				break;
+				sess->connect_addr = sess->proxy_addr;
+				sess->connect_port[0] = sess->proxy_port;
+				sess->connect_port[1] = 0;
+			} else {
+				sess->connect_addr = addr.s_addr;
+				sess->connect_port[0] = port;
+				sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
 			}
 
-			sess->port = port;
+			sess->state = GG_STATE_CONNECT_GG;
 
-			/* łączymy się z właściwym serwerem. */
-			if ((sess->fd = gg_connect(&addr, sess->port, sess->async)) == -1) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", errno, strerror(errno));
+			/* fall through */
+		}
 
-				sess->port = GG_HTTPS_PORT;
+		case GG_STATE_CONNECT_GG:
+		{
+			uint16_t port;
 
-				/* nie wyszło? próbujemy portu 443. */
-				if ((sess->fd = gg_connect(&addr, GG_HTTPS_PORT, sess->async)) == -1) {
-					/* ostatnia deska ratunku zawiodła?
-					 * w takim razie zwijamy manatki. */
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
-				}
+goto_GG_STATE_CONNECT_GG:
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECT_GG\n");
+
+			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
+				goto fail_connecting;
+			}
+
+			port = sess->connect_port[sess->connect_index];
+			sess->connect_index++;
+			
+			sess->fd = gg_connect(&sess->connect_addr, port, sess->async);
+
+			if (sess->fd == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+				goto goto_GG_STATE_CONNECT_GG;
 			}
 
 			sess->state = GG_STATE_CONNECTING_GG;
@@ -1554,67 +671,23 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			sess->timeout = GG_DEFAULT_TIMEOUT;
 			sess->soft_timeout = 1;
 
+			sess->port = port;
+
 			break;
 		}
 
 		case GG_STATE_CONNECTING_GG:
 		{
-			int res = 0;
-			unsigned int res_size = sizeof(res);
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
 
 			sess->soft_timeout = 0;
 
 			/* jeśli wystąpił błąd podczas łączenia się... */
-			if (sess->async && (sess->timeout == 0 || getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				/* jeśli nie udało się połączenie z proxy,
-				 * nie mamy czego próbować więcej. */
-				if (sess->proxy_addr && sess->proxy_port) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
-					goto fail_connecting;
-				}
-
-				close(sess->fd);
-				sess->fd = -1;
-
-#ifdef ETIMEDOUT
-				if (sess->timeout == 0)
-					errno = ETIMEDOUT;
-#endif
-
-#ifdef GG_CONFIG_HAVE_OPENSSL
-				/* jeśli logujemy się po TLS, nie próbujemy
-				 * się łączyć już z niczym innym w przypadku
-				 * błędu. nie dość, że nie ma sensu, to i
-				 * trzeba by się bawić w tworzenie na nowo
-				 * SSL i SSL_CTX. */
-
-				if (sess->ssl) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
-					goto fail_connecting;
-				}
-#endif
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));
-
-				if (sess->port == GG_HTTPS_PORT)
-					goto fail_connecting;
-
-				sess->port = GG_HTTPS_PORT;
-
-				/* próbujemy na port 443. */
-				if ((sess->fd = gg_connect(&sess->server_addr, sess->port, sess->async)) == -1) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
-				}
-
-				sess->state = GG_STATE_CONNECTING_GG;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
-				sess->soft_timeout = 1;
-
-				break;
+			if (gg_async_connect_failed(sess, &res)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
+				goto goto_GG_STATE_CONNECT_GG;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");
@@ -1760,7 +833,50 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 #endif
 
 		case GG_STATE_READING_KEY:
+		case GG_STATE_READING_REPLY:
+		case GG_STATE_CONNECTED:
+		case GG_STATE_DISCONNECTING:
 		{
+			char buf[1024];
+
+			if (sess->state == GG_STATE_READING_KEY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
+			else if (sess->state == GG_STATE_READING_KEY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
+			else if (sess->state == GG_STATE_READING_KEY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
+			
+
+			res = read(sess->fd, buf, sizeof(buf));
+
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+			{ int i; for (i = 0; i < res; i++) printf("%02x ", (uint8_t) buf[i]); printf("\n"); fflush(stdout); }
+
+			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
+				res = 0;
+				break;
+			}
+
+			if (res == -1 || res == 0) {
+				if (sess->state == GG_STATE_READING_KEY) {
+					e->type = GG_EVENT_CONN_FAILED;
+					e->event.failure = GG_FAILURE_INVALID;
+					sess->state = GG_STATE_IDLE;
+					res = 0;
+				} else {
+					goto fail_completely;
+				}
+
+				break;
+			}
+
+			if (gg_session_handle_data(sess, buf, res, e) == -1)
+				goto fail_completely;
+
+#if 0
+			// XXX jeśli pakiet gotowy, dawaj czadu!
+
 			struct gg_header *h;
 			struct gg_welcome *w;
 			unsigned char *password = (unsigned char*) sess->password;
@@ -1793,249 +909,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				break;
 			}
-
-			/* czytaj pierwszy pakiet. */
-			if (!(h = gg_recv_packet(sess))) {
-				if (errno == EAGAIN) {
-					sess->check = GG_CHECK_READ;
-					break;
-				}
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() didn't receive packet (errno=%d, %s)\n", errno, strerror(errno));
-
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_READING;
-				sess->state = GG_STATE_IDLE;
-				errno2 = errno;
-				close(sess->fd);
-				errno = errno2;
-				sess->fd = -1;
-				break;
-			}
-
-			if (h->type != GG_WELCOME) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid packet received\n");
-				free(h);
-				close(sess->fd);
-				sess->fd = -1;
-				errno = EINVAL;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_INVALID;
-				sess->state = GG_STATE_IDLE;
-				break;
-			}
-
-			w = (struct gg_welcome*) ((char*) h + sizeof(struct gg_header));
-			w->key = gg_fix32(w->key);
-
-			memset(hash_buf, 0, sizeof(hash_buf));
-
-			switch (sess->hash_type) {
-				case GG_LOGIN_HASH_GG32:
-				{
-					uint32_t hash;
-
-					hash = gg_fix32(gg_login_hash(password, w->key));
-					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
-					memcpy(hash_buf, &hash, sizeof(hash));
-
-					break;
-				}
-
-				case GG_LOGIN_HASH_SHA1:
-				{
-					char tmp[41];
-					int i;
-
-					gg_login_hash_sha1((char*) password, w->key, hash_buf);
-					for (i = 0; i < 40; i += 2)
-						snprintf(tmp + i, sizeof(tmp) - i, "%02x", hash_buf[i / 2]);
-
-					gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> SHA1 hash: %s\n", w->key, tmp);
-
-					break;
-				}
-			}
-
-			free(h);
-
-			if (sess->password != NULL && (sess->flags & (1 << GG_SESSION_FLAG_CLEAR_PASSWORD))) {
-				memset(sess->password, 0, strlen(sess->password));
-				free(sess->password);
-				sess->password = NULL;
-			}
-
-			if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
-				struct sockaddr_in sin;
-				unsigned int sin_len = sizeof(sin);
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() detecting address\n");
-
-				if (!getsockname(sess->fd, (struct sockaddr*) &sin, &sin_len)) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() detected address to %s\n", inet_ntoa(sin.sin_addr));
-					local_ip = sin.sin_addr.s_addr;
-				} else {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() unable to detect address\n");
-					local_ip = 0;
-				}
-			} else
-				local_ip = gg_dcc_ip;
-
-			sess->client_addr = local_ip;
-
-			if (GG_SESSION_IS_PROTOCOL_8_0(sess)) {
-				struct gg_login80 l80;
-				const char *version, *descr;
-				uint32_t version_len, descr_len;
-
-				memset(&l80, 0, sizeof(l80));
-				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
-				l80.uin = gg_fix32(sess->uin);
-				memcpy(l80.language, "pl", 2);
-				l80.hash_type = sess->hash_type;
-				memcpy(l80.hash, hash_buf, sizeof(l80.hash));
-				l80.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l80.dunno1 = 0;
-				l80.dunno2 = gg_fix32(sess->protocol_features);
-				l80.image_size = sess->image_size;
-				l80.dunno3 = 0x64;
-
-				version = "Gadu-Gadu Client build 8.0.0.7669";
-				version_len = gg_fix32(strlen(version));
-
-				descr = (sess->initial_descr != NULL) ? sess->initial_descr : "";
-				descr_len = (sess->initial_descr != NULL) ? gg_fix32(strlen(sess->initial_descr)) : 0;
-
-				ret = gg_send_packet(sess,
-						GG_LOGIN80,
-						&l80, sizeof(l80),
-						&version_len, sizeof(version_len),
-						version, strlen(version),
-						&descr_len, sizeof(descr_len),
-						descr, strlen(descr),
-						NULL);
-			} else {
-				struct gg_login70 l70;
-
-				memset(&l70, 0, sizeof(l70));
-				l70.uin = gg_fix32(sess->uin);
-				l70.hash_type = sess->hash_type;
-				memcpy(l70.hash, hash_buf, sizeof(l70.hash));
-				l70.status = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l70.version = gg_fix32(sess->protocol_version | sess->protocol_flags);
-				if (sess->external_addr && sess->external_port > 1023) {
-					l70.local_ip = sess->external_addr;
-					l70.local_port = gg_fix16(sess->external_port);
-				} else {
-					l70.local_ip = local_ip;
-					l70.local_port = gg_fix16(gg_dcc_port);
-				}
-
-				l70.image_size = sess->image_size;
-				l70.dunno2 = 0xbe;
-
-				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
-				ret = gg_send_packet(sess, GG_LOGIN70, &l70, sizeof(l70), sess->initial_descr, (sess->initial_descr) ? strlen(sess->initial_descr) : 0, NULL);
-			}
-
-			if (ret == -1) {
-				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
-				errno2 = errno;
-				close(sess->fd);
-				errno = errno2;
-				sess->fd = -1;
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_WRITING;
-				sess->state = GG_STATE_IDLE;
-				break;
-			}
-
-			sess->state = GG_STATE_READING_REPLY;
-			sess->check = GG_CHECK_READ;
-
-			break;
-		}
-
-		case GG_STATE_READING_REPLY:
-		{
-			struct gg_header *h;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
-
-			if (!(h = gg_recv_packet(sess))) {
-				if (errno == EAGAIN) {
-					sess->check = GG_CHECK_READ;
-					break;
-				}
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() didn't receive packet (errno=%d, %s)\n", errno, strerror(errno));
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_READING;
-				sess->state = GG_STATE_IDLE;
-				errno2 = errno;
-				close(sess->fd);
-				errno = errno2;
-				sess->fd = -1;
-				break;
-			}
-
-			if (h->type == GG_LOGIN_OK || h->type == GG_NEED_EMAIL || h->type == GG_LOGIN_OK80) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
-				e->type = GG_EVENT_CONN_SUCCESS;
-				sess->state = GG_STATE_CONNECTED;
-				sess->check = GG_CHECK_READ;
-				sess->timeout = -1;
-				sess->status = (sess->initial_status) ? sess->initial_status : GG_STATUS_AVAIL;
-				free(sess->status_descr);
-				sess->status_descr = sess->initial_descr;
-				sess->initial_descr = NULL;
-				free(h);
-				break;
-			}
-
-			if (h->type == GG_LOGIN_FAILED) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login failed\n");
-				e->event.failure = GG_FAILURE_PASSWORD;
-				errno = EACCES;
-			} else if (h->type == GG_DISCONNECTING) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() too many incorrect password attempts\n");
-				e->event.failure = GG_FAILURE_INTRUDER;
-				errno = EACCES;
-			} else {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid packet\n");
-				e->event.failure = GG_FAILURE_INVALID;
-				errno = EINVAL;
-			}
-
-			e->type = GG_EVENT_CONN_FAILED;
-			sess->state = GG_STATE_IDLE;
-			errno2 = errno;
-			close(sess->fd);
-			errno = errno2;
-			sess->fd = -1;
-			free(h);
-
-			break;
-		}
-
-		case GG_STATE_CONNECTED:
-		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
-
-			sess->last_event = time(NULL);
-
-			if ((res = gg_watch_fd_connected(sess, e)) == -1) {
-
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() watch_fd_connected failed (errno=%d, %s)\n", errno, strerror(errno));
-
- 				if (errno == EAGAIN) {
-					e->type = GG_EVENT_NONE;
-					res = 0;
-				} else
-					res = -1;
-			}
-
-			sess->check = GG_CHECK_READ;
+#endif
 
 			break;
 		}
@@ -2052,6 +926,10 @@ done:
 
 	return e;
 
+fail_completely:
+	free(e);
+	return NULL;
+
 fail_connecting:
 	if (sess->fd != -1) {
 		errno2 = errno;
@@ -2065,8 +943,32 @@ fail_connecting:
 	goto done;
 
 fail_resolving:
+	if (sess->fd != -1) {
+		errno2 = errno;
+		close(sess->fd);
+		errno = errno2;
+		sess->fd = -1;
+	}
+
+	sess->resolver_cleanup(&sess->resolver, 0);
+
 	e->type = GG_EVENT_CONN_FAILED;
 	e->event.failure = GG_FAILURE_RESOLVING;
+	sess->state = GG_STATE_IDLE;
+	goto done;
+
+fail_writing:
+	if (sess->fd != -1) {
+		errno2 = errno;
+		close(sess->fd);
+		errno = errno2;
+		sess->fd = -1;
+	}
+
+	sess->resolver_cleanup(&sess->resolver, 0);
+
+	e->type = GG_EVENT_CONN_FAILED;
+	e->event.failure = GG_FAILURE_WRITING;
 	sess->state = GG_STATE_IDLE;
 	goto done;
 

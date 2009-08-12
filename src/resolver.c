@@ -69,15 +69,16 @@ static void gg_gethostbyname_cleaner(void *data)
  * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
  *
  * Jeśli dany system dostarcza \c gethostbyname_r, używa się tej wersji, jeśli
- * nie, to zwykłej \c gethostbyname.
+ * nie, to zwykłej \c gethostbyname. Wynikiem jest tablica adresów zakończona
+ * wartością INADDR_NONE, którą należy zwolnić po użyciu.
  *
  * \param hostname Nazwa serwera
- * \param addr Wskaźnik na rezultat rozwiązywania nazwy
+ * \param result Wskaźnik na wskaźnik z tablicą adresów zakończoną INADDR_NONE
  * \param pthread Flaga blokowania unicestwiania wątku podczas alokacji pamięci
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
+int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 {
 #ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
@@ -86,10 +87,15 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 	struct hostent *he_ptr = NULL;
 	int h_errnop, ret;
 	size_t buf_len = 1024;
-	int result = -1;
+	int res = -1;
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	int old_state;
 #endif
+
+	if (result == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	pthread_cleanup_push(gg_gethostbyname_cleaner, &buf);
@@ -134,8 +140,39 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 			}
 		}
 
-		if (ret == 0 && he_ptr != NULL) {
-			memcpy(addr, he_ptr->h_addr, sizeof(struct in_addr));
+		if (ret == 0 && he_ptr != NULL && he_ptr->h_addr_list[0] != NULL) {
+			int i;
+
+			/* Policz liczbę adresów */
+
+			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
+				;
+
+
+			/* Zaalokuj */
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+			if (pthread)
+				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
+			*result = malloc((i + 1) * sizeof(struct in_addr));
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+			if (pthread)
+				pthread_setcancelstate(old_state, NULL);
+#endif
+
+			if (*result == NULL)
+				return -1;
+
+			/* Kopiuj */
+
+			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
+				memcpy(&((*result)[i]), he_ptr->h_addr_list[i], sizeof(struct in_addr));
+
+			(*result)[i].s_addr = INADDR_NONE;
+
 #ifdef GG_CONFIG_HAVE_PTHREAD
 			if (pthread)
 				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
@@ -149,7 +186,7 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 				pthread_setcancelstate(old_state, NULL);
 #endif
 
-			result = 0;
+			res = 0;
 		}
 	}
 
@@ -157,19 +194,82 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 	pthread_cleanup_pop(1);
 #endif
 
-	return result;
-#else
+	return res;
+#else /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 	struct hostent *he;
+	int i;
+
+	if (result == NULL || count == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	he = gethostbyname(hostname);
 
-	if (he == NULL)
+	if (he == NULL || he->h_addr_list[0] == NULL)
 		return -1;
 
-	memcpy(addr, he->h_addr, sizeof(struct in_addr));
+	/* Policz liczbę adresów */
+
+	for (i = 0; he->h_addr_list[i] != NULL; i++)
+		;
+
+	*count = i;
+
+	/* Zaalokuj */
+
+	*result = malloc(i * sizeof(struct in_addr));
+
+	if (*result == NULL)
+		return -1;
+
+	/* Kopiuj */
+
+	for (i = 0; he->h_addr_list[i] != NULL; i++)
+		memcpy(&(*result[i]), he->h_addr_list[0], sizeof(struct in_addr));
 
 	return 0;
 #endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
+}
+
+/**
+ * \internal Rozwiązuje nazwę i zapisuje wynik do podanego desktyptora.
+ *
+ * \param fd Deskryptor
+ * \param hostname Nazwa serwera
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+int gg_resolver_run(int fd, const char *hostname)
+{
+	struct in_addr addr_ip[2], *addr_list;
+	int res = 0;
+	int i;
+
+	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run(%d, %s)\n", fd, hostname);
+
+	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
+		if (gg_gethostbyname(hostname, &addr_list, 1) == -1) {
+			addr_list = addr_ip;
+			/* addr_ip[0] już zawiera INADDR_NONE */
+		}
+	} else {
+		addr_list = addr_ip;
+		addr_ip[1].s_addr = INADDR_NONE;
+	}
+
+	for (i = 0; addr_list[i].s_addr != INADDR_NONE; i++)
+		;
+
+	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run() count = %d\n", i);
+
+	if (write(fd, addr_list, (i + 1) * sizeof(struct in_addr)) != (i + 1) * sizeof(struct in_addr))
+		res = -1;
+
+	if (addr_list != addr_ip)
+		free(addr_list);
+
+	return res;
 }
 
 /**
@@ -199,7 +299,6 @@ struct gg_resolver_fork_data {
 static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostname)
 {
 	struct gg_resolver_fork_data *data = NULL;
-	struct in_addr addr;
 	int pipes[2], new_errno;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolver_fork_start(%p, %p, \"%s\");\n", fd, priv_data, hostname);
@@ -233,17 +332,10 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 	if (data->pid == 0) {
 		close(pipes[0]);
 
-		if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-			/* W przypadku błędu gg_gethostbyname() zwróci -1
-                         * i nie zmieni &addr. Tam jest już INADDR_NONE,
-                         * więc nie musimy robić nic więcej. */
-			gg_gethostbyname(hostname, &addr, 0);
-		}
-
-		if (write(pipes[1], &addr, sizeof(addr)) != sizeof(addr))
+		if (gg_resolver_run(pipes[1], hostname) == -1)
 			exit(1);
-
-		exit(0);
+		else
+			exit(0);
 	}
 
 	close(pipes[1]);
@@ -349,21 +441,13 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 static void *gg_resolver_pthread_thread(void *arg)
 {
 	struct gg_resolver_pthread_data *data = arg;
-	struct in_addr addr;
 
 	pthread_detach(pthread_self());
 
-	if ((addr.s_addr = inet_addr(data->hostname)) == INADDR_NONE) {
-		/* W przypadku błędu gg_gethostbyname() zwróci -1
-                 * i nie zmieni &addr. Tam jest już INADDR_NONE,
-                 * więc nie musimy robić nic więcej. */
-		gg_gethostbyname(data->hostname, &addr, 1);
-	}
-
-	if (write(data->wfd, &addr, sizeof(addr)) == sizeof(addr))
-		pthread_exit(NULL);
-	else 
+	if (gg_resolver_run(data->wfd, data->hostname) == -1)
 		pthread_exit((void*) -1);
+	else
+		pthread_exit(NULL);
 
 	return NULL;	/* żeby kompilator nie marudził */
 }

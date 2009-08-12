@@ -43,6 +43,7 @@
 #include "protocol.h"
 #include "encoding.h"
 #include "message.h"
+#include "buffer.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -597,7 +598,6 @@ int gg_session_ping(struct gg_session *gs)
 
 int gg_session_connect(struct gg_session *gs)
 {
-	char *hostname;
 	int port;
 
 	GG_SESSION_CHECK(gs, -1);
@@ -612,106 +612,64 @@ int gg_session_connect(struct gg_session *gs)
 		return -1;
 	}
 
-	gs->state = GG_STATE_RESOLVING;
-	gs->check = GG_CHECK_READ;
-	gs->timeout = GG_DEFAULT_TIMEOUT;
+	port = gs->port;
+
+	if (port == 0)
+		port = (gg_proxy_enabled) ? GG_HTTPS_PORT : GG_DEFAULT_PORT;
 
 	if (gg_proxy_enabled) {
-		hostname = gg_proxy_host;
-		gs->proxy_port = port = gg_proxy_port;
+		gs->resolver_host = gg_proxy_host;
+		gs->proxy_port = gg_proxy_port;
+		gs->state = (gs->async) ? GG_STATE_RESOLVE_PROXY_ASYNC : GG_STATE_RESOLVE_PROXY_SYNC;
+	} else if (gs->server_addr == 0) {
+		gs->resolver_host = GG_APPMSG_HOST;
+		gs->proxy_port = 0;
+		gs->state = (gs->async) ? GG_STATE_RESOLVE_HUB_ASYNC : GG_STATE_RESOLVE_HUB_SYNC;
 	} else {
-		hostname = GG_APPMSG_HOST;
-		port = GG_APPMSG_PORT;
+		gs->resolver_host = NULL;
+		gs->connect_addr = gs->server_addr;
+		gs->connect_port[0] = port;
+		gs->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
+		gs->state = GG_STATE_CONNECT_GG;
 	}
 
-	// XXX przenieść gdzie indziej
-
-	if (gs->port == 0)	
-		gs->port = (gg_proxy_enabled) ? GG_HTTPS_PORT : GG_DEFAULT_PORT;
+	// XXX inaczej gg_watch_fd() wyjdzie z timeoutem
+	gs->timeout = GG_DEFAULT_TIMEOUT;
 
 	if (!gs->async) {
-		struct in_addr addr;
-
-		if (!gs->server_addr) {
-			if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-				if (gg_gethostbyname(hostname, &addr, 0) == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_session_connect() host \"%s\" not found\n", hostname);
-					return -1;
-				}
-			}
-		} else {
-			addr.s_addr = gs->server_addr;
-			port = gs->port;
-		}
-
-		gs->hub_addr = addr.s_addr;
-
-		if (gg_proxy_enabled)
-			gs->proxy_addr = addr.s_addr;
-
-		if ((gs->fd = gg_connect(&addr, port, 0)) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-
-			/* nie wyszło? próbujemy portu 443. */
-			if (gs->server_addr) {
-				gs->port = GG_HTTPS_PORT;
-
-				if ((gs->fd = gg_connect(&addr, GG_HTTPS_PORT, 0)) == -1) {
-					/* ostatnia deska ratunku zawiodła?
-					 * w takim razie zwijamy manatki. */
-					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail;
-				}
-			} else {
-				goto fail;
-			}
-		}
-
-		if (gs->server_addr)
-			gs->state = GG_STATE_CONNECTING_GG;
-		else
-			gs->state = GG_STATE_CONNECTING_HUB;
-
 		while (!GG_SESSION_IS_CONNECTED(gs)) {
-			struct gg_event *e;
+			struct gg_event *ge;
 
-			if (!(e = gg_watch_fd(gs))) {
+			ge = gg_watch_fd(gs);
+
+			if (ge == NULL) {
 				gg_debug(GG_DEBUG_MISC, "// gg_session_connect() critical error in gg_watch_fd()\n");
 				return -1;
 			}
 
-			if (e->type == GG_EVENT_CONN_FAILED) {
+			if (ge->type == GG_EVENT_CONN_FAILED) {
 				errno = EACCES;
 				gg_debug(GG_DEBUG_MISC, "// gg_session_connect() could not login\n");
-				gg_event_free(e);
+				gg_event_free(ge);
 				return -1;
 			}
 
-			gg_event_free(e);
-		}
-
-		return 0;
-	}
-
-	if (!gs->server_addr || gg_proxy_enabled) {
-		if (gs->resolver_start(&gs->fd, &gs->resolver, hostname) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
-			return -1;
+			gg_event_free(ge);
 		}
 	} else {
-		if ((gs->fd = gg_connect(&gs->server_addr, gs->port, gs->async)) == -1) {
-			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() direct connection failed (errno=%d, %s)\n", errno, strerror(errno));
+		struct gg_event *ge;
+
+		ge = gg_watch_fd(gs);
+
+		if (ge == NULL) {
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() critical error in gg_watch_fd()\n");
 			return -1;
 		}
-		gs->state = GG_STATE_CONNECTING_GG;
-		gs->check = GG_CHECK_WRITE;
-		gs->soft_timeout = 1;
+
+		gg_event_free(ge);
 	}
 
 	return 0;
-
-fail:
-	return -1;
 }
 
 /**
@@ -778,40 +736,43 @@ int gg_session_disconnect(struct gg_session *gs, int linger)
 		res = gg_session_set_status(gs, GG_STATUS_NOT_AVAIL, NULL, gs->status_time);
 	}
 
-	if (linger) {
-		/* Jeśli zmiana stanu się nie powiodła, to połączenie jest
-                 * zamykane natychmiast i funkcja zwraca -1. */
+	gs->timeout = 5;	// XXX czy 5 sekund wystarczy?
 
-		if (res == -1) {
-			gg_session_shutdown(gs);
-			return -1;
-		}
-
-		if (!gs->async) {
-			struct gg_header *gh;
-
-			// XXX timeout
-
-			while ((gh = gg_recv_packet(gs)) != NULL) {
-				int type;
-
-				type = gh->type;
-				free(gh);
-
-				if (type == GG_DISCONNECT_ACK)
-					break;
-			}
-
-			if (gh == NULL) {
-				gg_session_shutdown(gs);
-				return -1;
-			}
-		}
-
-		gs->state = GG_STATE_DISCONNECTING;
-	} else {
-		gs->timeout = 5;	// XXX czy 5 sekund wystarczy?
+	if (!linger) {
 		gg_session_shutdown(gs);
+		return 0;
+	}
+
+	/* Jeśli zmiana stanu się nie powiodła, to połączenie jest
+	 * zamykane natychmiast i funkcja zwraca -1. */
+
+	if (res == -1) {
+		gg_session_shutdown(gs);
+		return -1;
+	}
+
+	gs->state = GG_STATE_DISCONNECTING;
+
+	if (!gs->async) {
+		struct gg_event *ge;
+
+		// XXX timeout
+
+		while ((ge = gg_watch_fd(gs)) != NULL) {
+			int type;
+
+			type = ge->type;
+
+			gg_event_free(ge);
+
+			if (type == GG_EVENT_DISCONNECT_ACK)
+				break;
+		}
+
+		gg_session_shutdown(gs);
+
+		if (ge == NULL)
+			return -1;
 	}
 
 	return 0;
@@ -1273,7 +1234,7 @@ int gg_session_image_reply(struct gg_session *gs, uin_t recipient, const char *i
 			char filename[17];
 
 			r.flag = 0x05;
-			snprintf(filename, sizeof(filename), "%08x%08x", r.crc32, size);
+			snprintf(filename, sizeof(filename), "%08x%08x", crc32, size);
 			res = gg_send_packet(gs, GG_SEND_MSG, &s, sizeof(s), "\0", 1, &r, sizeof(r), filename, strlen(filename) + 1, image, chunk_len, NULL);
 		} else {
 			r.flag = 0x06;
@@ -1491,6 +1452,7 @@ void gg_session_free(struct gg_session *gs)
 	free(gs->client_version);
 	free(gs->header_buf);
 	free(gs->recv_buf);
+	free(gs->resolver_result);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (gs->ssl != NULL)
@@ -1542,3 +1504,92 @@ static int gg_session_callback(struct gg_session *gs)
 
 	return (gs->event != NULL) ? 0 : -1;
 }
+
+int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_len, struct gg_event *ge)
+{
+	char *buf_ptr;
+	size_t buf_len, pkt_len;
+
+	if (gs->recv_buf != NULL) {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes read, %d bytes already buffered\n", read_len, gs->recv_done);
+
+		if (read_buf != NULL) {
+			char *tmp;
+
+			tmp = realloc(gs->recv_buf, gs->recv_done + read_len);
+
+			if (tmp == NULL) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for packet chunk\n");
+				return -1;
+			}
+
+			gs->recv_buf = tmp;
+
+			memcpy(gs->recv_buf + gs->recv_done, read_buf, read_len);
+			gs->recv_done += read_len;
+		}
+
+		buf_ptr = gs->recv_buf;
+		buf_len = gs->recv_done;
+	} else {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes of freshly read data\n", read_len);
+
+		if (read_buf == NULL)
+			return 0;
+
+		buf_ptr = read_buf;
+		buf_len = read_len;
+	}
+
+	// Jeśli nie ma gotowego pakietu, olej sprawę.
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes buffer, %d bytes packet\n", buf_len, (buf_len >= 8) ? gg_buffer_get_uint32(buf_ptr + 4) : -1);
+
+	while (buf_len >= 8 && (buf_len - 8) >= (pkt_len = gg_buffer_get_uint32(buf_ptr + 4))) {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes buffer, %d bytes packet\n", buf_len, pkt_len);
+
+		gg_session_handle_packet(gs, gg_buffer_get_uint32(buf_ptr), buf_ptr + 8, pkt_len, ge);
+
+		if (buf_len == pkt_len + 8) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() full packet handled\n");
+
+			if (buf_ptr == gs->recv_buf) {
+				free(gs->recv_buf);
+				gs->recv_buf = NULL;
+				gs->recv_done = 0;
+			}
+
+			buf_ptr = NULL;
+			buf_len = 0;
+		} else {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes left in buffer, shifting\n", buf_len - pkt_len - 8);
+
+			memmove(buf_ptr, buf_ptr + pkt_len + 8, buf_len - pkt_len - 8);
+
+			buf_len = buf_len - pkt_len - 8;
+
+			if (buf_ptr == gs->recv_buf)
+				gs->recv_done = buf_len;
+		}
+	}
+
+	// Jeśli został nam niekompletny pakiet, zapiszmy go sobie
+
+	if (buf_len > 0 || gs->recv_done > 0)
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() buf_len=%d, recv_done=%d\n", buf_len, gs->recv_done);
+
+	if (buf_len > 0 && buf_ptr != gs->recv_buf) {
+		gs->recv_buf = malloc(buf_len);
+
+		if (gs->recv_buf == NULL) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for packet chunk\n");
+			return -1;
+		}
+
+		memcpy(gs->recv_buf, buf_ptr, buf_len);
+		gs->recv_done = buf_len;
+	}
+
+	return 0;
+}
+

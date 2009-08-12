@@ -271,6 +271,8 @@ const char *gg_debug_state(enum gg_state_t state)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_PROXY_ASYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_HUB)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_PROXY)
+	GG_DEBUG_STATE(GG_STATE_SEND_HUB)
+	GG_DEBUG_STATE(GG_STATE_SENDING_HUB)
 
 	// Celowo nie ma default, żeby kompilator wyłapał brakujące stany
 	

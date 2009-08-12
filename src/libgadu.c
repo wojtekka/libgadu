@@ -198,6 +198,7 @@ uint16_t gg_fix16(uint16_t x)
  *
  * \return Wartość skrótu
  */
+// TODO zmienić unsigned char na char
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 {
 	unsigned int x, y, z;
@@ -339,6 +340,7 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 	return res;
 }
 
+#if 0
 /**
  * \internal Odbiera pakiet od serwera.
  *
@@ -481,6 +483,7 @@ failure:
 
 	return NULL;
 }
+#endif
 
 /**
  * \internal Wysyła pakiet do serwera.
@@ -1129,6 +1132,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for session data\n");
 		return NULL;
 	}
+
+	gg_session_set_flag(gs, GG_SESSION_FLAG_OLD_API, 1);
 
 	if (gg_session_set_uin(gs, p->uin) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid uin\n");
