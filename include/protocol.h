@@ -104,4 +104,12 @@ struct gg_recv_msg80 {
 
 #define GG_DISCONNECT_ACK 0x000d
 
+#define GG_MSG_CALLBACK 0x02	/**< Żądanie zwrotnego połączenia bezpośredniego */
+
+#define GG_MSG_OPTION_CONFERENCE 0x01
+#define GG_MSG_OPTION_ATTRIBUTES 0x02
+#define GG_MSG_OPTION_IMAGE_REQUEST 0x04
+#define GG_MSG_OPTION_IMAGE_REPLY 0x05
+#define GG_MSG_OPTION_IMAGE_REPLY_MORE 0x06
+
 #endif /* LIBGADU_PROTOCOL_H */
