@@ -2,34 +2,44 @@
 #include <errno.h>
 #include "libgadu.h"
 
+enum {
+	EXPECT_NOTHING = 0,
+	EXPECT_PACKET,
+	EXPECT_ERROR
+};
+
 int state;
 int offset;
 
 struct {
 	const char *data;
 	int result;
-	int errno_;
-} input[] = {
-	{ "\x01\x00\x00\x00\x00\x00\x00\x00", 8 },
 
-	{ "\x02\x00\x00\x00\x08\x00\x00\x00""ABCDEFGH", 16 },
+	int expect;
+	int type;
+	int length;
+	const char *expected_data;
+} input[] = {
+	{ "\x01\x00\x00\x00\x00\x00\x00\x00", 8, EXPECT_PACKET, 1, 0, "" },
+
+	{ "\x02\x00\x00\x00\x08\x00\x00\x00""ABCDEFGH", 16, EXPECT_PACKET, 2, 8, "ABCDEFGH" },
 
 	{ "\x03\x00\x00\x00\x04\x00\x00\x00", 8 },
-	{ "IJKL", 4 },
+	{ "IJKL", 4, EXPECT_PACKET, 3, 4, "IJKL" },
 
-	{ "", -1, EINTR },
+	{ "", -EINTR },
 
 	{ "\x04\x00\x00\x00", 4 },
-	{ "", -1, EINTR },
+	{ "", -EINTR },
 	{ "\x02\x00\x00\x00", 4 },
-	{ "MN", 2 },
+	{ "MN", 2, EXPECT_PACKET, 4, 2, "MN" },
 
 	{ "\x05\x00", 2 },
 	{ "\x00\x00", 2 },
 	{ "\x06\x00\x00", 3 },
 	{ "\x00", 1 },
 	{ "OPQR", 4 },
-	{ "ST", 2 },
+	{ "ST", 2, EXPECT_PACKET, 5, 6, "OPQRST" },
 
 	{ "\x06", 1 },
 	{ "\x00", 1 },
@@ -39,50 +49,31 @@ struct {
 	{ "\x00", 1 },
 	{ "\x00", 1 },
 	{ "\x00", 1 },
-	{ "U", 1 },
+	{ "U", 1, EXPECT_PACKET, 6, 1, "U" },
 
 	{ "\x07\x00\x00\x00", 4 },
-	{ "", -1, EINTR },
-	{ "\x00\x00\x00\x00", 4 },
+	{ "", -EINTR },
+	{ "\x00\x00\x00\x00", 4, EXPECT_PACKET, 7, 0, "" },
 
 	{ "\x08\x00\x00\x00", 4 },
-	{ "", -1, EAGAIN },
+	{ "", -EAGAIN },
 	{ "\x04\x00\x00\x00", 4 },
-	{ "", -1, EINTR },
-	{ "", -1, EAGAIN },
-	{ "1234", 4 },
+	{ "", -EINTR },
+	{ "", -EAGAIN },
+	{ "1234", 4, EXPECT_PACKET, 8, 4, "1234" },
 
-	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8 },
+	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8, EXPECT_ERROR },
 
 	{ "\x0a\x00\x00\x00", 4 },
-	{ "", -1, ENOTCONN },
+	{ "", -ENOTCONN, EXPECT_ERROR },
 
 	{ "\x0b\x00\x00\x00\xff\x00\x00\x00", 8 },
 	{ "VW", 2 },
-	{ "", 0, 0 },
+	{ "", 0, EXPECT_ERROR },
 
-	{ "", 0, 0 },
+	{ "", 0, EXPECT_ERROR },
 
-	{ "", -1, ENOTSOCK },
-};
-
-struct {
-	int type;
-	int length;
-	const char *data;
-} output[] = {
-	{ 1, 0, "" },
-	{ 2, 8, "ABCDEFGH" },
-	{ 3, 4, "IJKL" },
-	{ 4, 2, "MN" },
-	{ 5, 6, "OPQRST" },
-	{ 6, 1, "U" },
-	{ 7, 0, "" },
-	{ 8, 4, "1234" },
-	{ -1, },
-	{ -1, },
-	{ -1, },
-	{ -1, },
+	{ "", -ENOTSOCK, EXPECT_ERROR },
 };
 
 ssize_t read(int fd, char *buf, size_t len)
@@ -103,7 +94,7 @@ ssize_t read(int fd, char *buf, size_t len)
 
 	result = input[state].result;
 
-	if (result != -1) {
+	if (result > -1) {
 		if (result - offset > len) {
 			memcpy(buf, input[state].data + offset, len);
 			offset += len;
@@ -116,7 +107,8 @@ ssize_t read(int fd, char *buf, size_t len)
 			offset = 0;
 		}
 	} else {
-		errno = input[state].errno_;
+		errno = -input[state].result;
+		result = -1;
 		state++;
 	}
 
@@ -132,46 +124,57 @@ int main(void)
 
 	memset(&gs, 0, sizeof(gs));
 	gs.fd = 123;
+	gs.state = GG_STATE_CONNECTED;
+	gs.flags = (1 << GG_SESSION_FLAG_RAW_PACKET);
+	gs.timeout = -1;
 
-	for (i = 0; i < sizeof(output) / sizeof(output[0]); ) {
-		struct gg_header *gh;
+	for (i = 0; i < sizeof(input) / sizeof(input[0]); ) {
+		struct gg_event *ge;
 
-		gh = gg_recv_packet(&gs);
+		ge = gg_watch_fd(&gs);
 
-		if (gh == NULL) {
-			if (errno == EINTR || errno == EAGAIN)
-				continue;
-
-			if (output[i].type != -1) {
-				fprintf(stderr, "gg_recv_packet: Returned error (%s), expected success\n", strerror(errno));
+		if (ge == NULL) {
+			if (input[state-1].expect != EXPECT_ERROR) {
+				fprintf(stderr, "Returned error (%s) when expected something\n", strerror(errno));
 				return 1;
 			}
 
+			/* Posprzątaj, bo jedziemy dalej */
 			free(gs.recv_buf);
 			gs.recv_buf = NULL;
 			gs.recv_done = 0;
+		} else if (ge->type == GG_EVENT_NONE) {
+			if (input[state-1].expect != EXPECT_NOTHING) {
+				fprintf(stderr, "Returned no event, expected something\n");
+				return 1;
+			}
+
+			gg_event_free(ge);
+		} else if (ge->type == GG_EVENT_RAW_PACKET) {
+			if (input[state-1].expect != EXPECT_PACKET) {
+				fprintf(stderr, "Returned packet, expected \n");
+				return 1;
+			}
+
+			if (ge->event.raw_packet.type != input[state-1].type) {
+				fprintf(stderr, "Expected type %d, received %d\n", input[state-1].type, ge->event.raw_packet.type);
+				return 1;
+			}
+
+			if (ge->event.raw_packet.length != input[state-1].length) {
+				fprintf(stderr, "Expected length %d, received %d\n", input[state-1].length, ge->event.raw_packet.length);
+				return 1;
+			}
+
+			if (memcmp(ge->event.raw_packet.data, input[state-1].expected_data, input[state-1].length) != 0) {
+				fprintf(stderr, "Invalid packet payload\n");
+				return 1;
+			}
+
+			gg_event_free(ge);
 		} else {
-			if (output[i].type == -1) {
-				fprintf(stderr, "gg_recv_packet: Returned success, expected error\n");
-				return 1;
-			}
-
-			if (gh->type != output[i].type) {
-				fprintf(stderr, "gg_recv_packet: Expected type %d, received %d\n", output[i].type, gh->type);
-				return 1;
-			}
-
-			if (gh->length != output[i].length) {
-				fprintf(stderr, "gg_recv_packet: Expected length %d, received %d\n", output[i].length, gh->length);
-				return 1;
-			}
-
-			if (memcmp(((char*) gh) + sizeof(struct gg_header), output[i].data, output[i].length) != 0) {
-				fprintf(stderr, "gg_recv_packet: Invalid packet payload\n");
-				return 1;
-			}
-
-			free(gh);
+			fprintf(stderr, "Returned invalid event (%d)\n", ge->type);
+			return 1;
 		}
 
 		i++;
