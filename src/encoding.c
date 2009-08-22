@@ -120,7 +120,7 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
 {
 	char *result;
 	int i, j, len, uc_left = 0;
-	uint32_t uc = 0, uc_min;
+	uint32_t uc = 0, uc_min = 0;
 
 	for (i = 0, len = 0; (src[i] != 0) && (i < src_length); i++) {
 		if ((src[i] & 0xc0) == 0xc0) {

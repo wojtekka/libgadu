@@ -409,7 +409,7 @@ int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 
 static int gg_session_set_status_8(struct gg_session *gs, int status, const char *descr)
 {
-	char *tmp;
+	char *tmp = NULL;
 	int res = 0;
 
 	if (descr != NULL)
@@ -444,7 +444,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 
 static int gg_session_set_status_7(struct gg_session *gs, int status, const char *descr, time_t time)
 {
-	char *tmp;
+	char *tmp = NULL;
 	int res = 0;
 
 	if (descr != NULL)
@@ -1510,9 +1510,9 @@ int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_le
 	char *buf_ptr;
 	size_t buf_len, pkt_len;
 
-	if (gs->recv_buf != NULL) {
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes read, %d bytes already buffered\n", read_len, gs->recv_done);
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes buffered, %d bytes read\n", gs->recv_done, read_len);
 
+	if (gs->recv_buf != NULL) {
 		if (read_buf != NULL) {
 			char *tmp;
 
@@ -1532,8 +1532,6 @@ int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_le
 		buf_ptr = gs->recv_buf;
 		buf_len = gs->recv_done;
 	} else {
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes of freshly read data\n", read_len);
-
 		if (read_buf == NULL)
 			return 0;
 
@@ -1543,33 +1541,46 @@ int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_le
 
 	// Jeśli nie ma gotowego pakietu, olej sprawę.
 
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes buffer, %d bytes packet\n", buf_len, (buf_len >= 8) ? gg_buffer_get_uint32(buf_ptr + 4) : -1);
+	if (buf_len >= 8) {
+		pkt_len = gg_buffer_get_uint32(buf_ptr + 4);
 
-	while (buf_len >= 8 && (buf_len - 8) >= (pkt_len = gg_buffer_get_uint32(buf_ptr + 4))) {
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes buffer, %d bytes packet\n", buf_len, pkt_len);
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes available, %d bytes packet\n", buf_len, pkt_len);
 
-		gg_session_handle_packet(gs, gg_buffer_get_uint32(buf_ptr), buf_ptr + 8, pkt_len, ge);
+		if (pkt_len > 65535) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() packet too long\n");
+			errno = EINVAL;
+			return -1;
+		}
 
-		if (buf_len == pkt_len + 8) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() full packet handled\n");
+		while (buf_len - 8 >= pkt_len) {
+			gg_session_handle_packet(gs, gg_buffer_get_uint32(buf_ptr), buf_ptr + 8, pkt_len, ge);
 
-			if (buf_ptr == gs->recv_buf) {
-				free(gs->recv_buf);
-				gs->recv_buf = NULL;
-				gs->recv_done = 0;
+			if (buf_len == pkt_len + 8) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() full packet handled\n");
+
+				if (buf_ptr == gs->recv_buf) {
+					free(gs->recv_buf);
+					gs->recv_buf = NULL;
+					gs->recv_done = 0;
+				}
+
+				buf_ptr = NULL;
+				buf_len = 0;
+			} else {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes left in buffer, shifting\n", buf_len - pkt_len - 8);
+
+				memmove(buf_ptr, buf_ptr + pkt_len + 8, buf_len - pkt_len - 8);
+
+				buf_len = buf_len - pkt_len - 8;
+
+				if (buf_ptr == gs->recv_buf)
+					gs->recv_done = buf_len;
 			}
 
-			buf_ptr = NULL;
-			buf_len = 0;
-		} else {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes left in buffer, shifting\n", buf_len - pkt_len - 8);
+			if (buf_len < 8)
+				break;
 
-			memmove(buf_ptr, buf_ptr + pkt_len + 8, buf_len - pkt_len - 8);
-
-			buf_len = buf_len - pkt_len - 8;
-
-			if (buf_ptr == gs->recv_buf)
-				gs->recv_done = buf_len;
+			pkt_len = gg_buffer_get_uint32(buf_ptr + 4);
 		}
 	}
 

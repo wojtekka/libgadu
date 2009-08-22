@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2008 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -42,6 +42,15 @@
 #include "resolver.h"
 #include "compat.h"
 #include "session.h"
+
+/** Sposób rozwiązywania nazw serwerów */
+static gg_resolver_t gg_global_resolver_type = GG_RESOLVER_DEFAULT;
+
+/** Funkcja rozpoczynająca rozwiązywanie nazwy */
+static int (*gg_global_resolver_start)(int *fd, void **private_data, const char *hostname);
+
+/** Funkcja zwalniająca zasoby po rozwiązaniu nazwy */
+static void (*gg_global_resolver_cleanup)(void **private_data, int force);
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 
@@ -546,6 +555,13 @@ int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
 	GG_SESSION_CHECK(gs, -1);
 
 	if (type == GG_RESOLVER_DEFAULT) {
+		if (gg_global_resolver_type != GG_RESOLVER_DEFAULT) {
+			gs->resolver_type = gg_global_resolver_type;
+			gs->resolver_start = gg_global_resolver_start;
+			gs->resolver_cleanup = gg_global_resolver_cleanup;
+			return 0;
+		}
+
 #if !defined(GG_CONFIG_HAVE_PTHREAD) || !defined(GG_CONFIG_PTHREAD_DEFAULT)
 		type = GG_RESOLVER_FORK;
 #else
@@ -589,7 +605,7 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
 }
 
 /**
- * Ustawia własny rozwiązywania nazw w sesji.
+ * Ustawia własny sposób rozwiązywania nazw w sesji.
  *
  * \param gs Struktura sesji
  * \param resolver_start Funkcja rozpoczynająca rozwiązywanie nazwy
@@ -629,6 +645,13 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type)
 	}
 
 	if (type == GG_RESOLVER_DEFAULT) {
+		if (gg_global_resolver_type != GG_RESOLVER_DEFAULT) {
+			gh->resolver_type = gg_global_resolver_type;
+			gh->resolver_start = gg_global_resolver_start;
+			gh->resolver_cleanup = gg_global_resolver_cleanup;
+			return 0;
+		}
+
 #if !defined(GG_CONFIG_HAVE_PTHREAD) || !defined(GG_CONFIG_PTHREAD_DEFAULT)
 		type = GG_RESOLVER_FORK;
 #else
@@ -675,7 +698,7 @@ gg_resolver_t gg_http_get_resolver(struct gg_http *gh)
 }
 
 /**
- * Ustawia własny rozwiązywania nazw połączenia HTTP.
+ * Ustawia własny sposób rozwiązywania nazw połączenia HTTP.
  *
  * \param gh Struktura sesji
  * \param resolver_start Funkcja rozpoczynająca rozwiązywanie nazwy
@@ -693,6 +716,74 @@ int gg_http_set_custom_resolver(struct gg_http *gh, int (*resolver_start)(int*, 
 	gh->resolver_type = GG_RESOLVER_CUSTOM;
 	gh->resolver_start = resolver_start;
 	gh->resolver_cleanup = resolver_cleanup;
+
+	return 0;
+}
+
+/**
+ * Ustawia sposób rozwiązywania nazw globalnie dla biblioteki.
+ *
+ * \param type Sposób rozwiązywania nazw (patrz \ref build-resolver)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+int gg_global_set_resolver(gg_resolver_t type)
+{
+	switch (type) {
+		case GG_RESOLVER_DEFAULT:
+			gg_global_resolver_type = type;
+			gg_global_resolver_start = NULL;
+			gg_global_resolver_cleanup = NULL;
+			return 0;
+
+		case GG_RESOLVER_FORK:
+			gg_global_resolver_type = type;
+			gg_global_resolver_start = gg_resolver_fork_start;
+			gg_global_resolver_cleanup = gg_resolver_fork_cleanup;
+			return 0;
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		case GG_RESOLVER_PTHREAD:
+			gg_global_resolver_type = type;
+			gg_global_resolver_start = gg_resolver_pthread_start;
+			gg_global_resolver_cleanup = gg_resolver_pthread_cleanup;
+			return 0;
+#endif
+
+		default:
+			errno = EINVAL;
+			return -1;
+	}
+}
+
+/**
+ * Zwraca sposób rozwiązywania nazw globalnie dla biblioteki.
+ *
+ * \return Sposób rozwiązywania nazw
+ */
+gg_resolver_t gg_global_get_resolver(void)
+{
+	return gg_global_resolver_type;
+}
+
+/**
+ * Ustawia własny sposób rozwiązywania nazw globalnie dla biblioteki.
+ *
+ * \param resolver_start Funkcja rozpoczynająca rozwiązywanie nazwy
+ * \param resolver_cleanup Funkcja zwalniająca zasoby
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
+{
+	if (resolver_start == NULL || resolver_cleanup == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	gg_global_resolver_type = GG_RESOLVER_CUSTOM;
+	gg_global_resolver_start = resolver_start;
+	gg_global_resolver_cleanup = resolver_cleanup;
 
 	return 0;
 }

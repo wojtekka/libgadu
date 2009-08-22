@@ -295,6 +295,8 @@ struct gg_session {
 	uint32_t connect_addr;			/**< Lista adresów do połączenia */
 	uint16_t connect_port[2];		/**< Lista portów do połączenia */
 	int connect_index;			/**< Indeks aktualnie obsługiwanego portu */
+
+	int last_packet_type;			/**< Typ ostatnio odebranego pakietu */
 };
 
 /**
@@ -634,6 +636,7 @@ typedef enum {
 	GG_SESSION_FLAG_AUDIO,		/**< Obsługa połączeń głosowych */
 	GG_SESSION_FLAG_CLEAR_PASSWORD,	/**< Czyszczenie hasła po każdym połączeniu */
 	GG_SESSION_FLAG_OLD_API,	/**< Sesja tworzona starym API */
+	GG_SESSION_FLAG_RAW_PACKET,	/**< Aplikacja sama analizuje pakiety */
 
 	GG_SESSION_FLAG_INVALID = -1	/**< Nieprawidłowa flaga */
 } gg_session_flag_t;
@@ -744,6 +747,10 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type);
 gg_resolver_t gg_http_get_resolver(struct gg_http *gh);
 int gg_http_set_custom_resolver(struct gg_http *gh, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int));
 
+int gg_global_set_resolver(gg_resolver_t type);
+gg_resolver_t gg_global_get_resolver(void);
+int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int));
+
 /**
  * Rodzaj zdarzenia.
  *
@@ -792,6 +799,7 @@ enum gg_event_t {
 
 	GG_EVENT_XML_EVENT,		/**< Otrzymano komunikat systemowy (7.7) */
 	GG_EVENT_DISCONNECT_ACK,	/**< \brief Serwer zrywa połączenie. Zdarza się, gdy równolegle do serwera podłączy się druga sesja i trzeba zerwać połączenie z pierwszą. */
+	GG_EVENT_RAW_PACKET,		/**< Otrzymano pakiet (patrz flaga \c GG_SESSION_FLAG_RAW_PACKET) */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -1022,6 +1030,15 @@ struct gg_event_dcc7_error {
 	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
 };
 
+/*
+ * Opis zdarzenia \c GG_EVENT_RAW_PACKET.
+ */
+struct gg_event_raw_packet {
+	int type;		/**< Rodzaj pakietu */
+	int length;		/**< Długość pakietu */
+	char *data;		/**< Dane pakietu */
+};
+
 /**
  * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
  * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
@@ -1051,6 +1068,7 @@ union gg_event_union {
 	struct gg_event_dcc7_connected dcc7_connected;	/**< Informacja o zestawieniu połączenia bezpośredniego (\c GG_EVENT_DCC7_CONNECTED) */
 	struct gg_event_dcc7_reject dcc7_reject;	/**< Odrzucono połączenia bezpośredniego (\c GG_EVENT_DCC7_REJECT) */
 	struct gg_event_dcc7_accept dcc7_accept;	/**< Zaakceptowano połączenie bezpośrednie (\c GG_EVENT_DCC7_ACCEPT) */
+	struct gg_event_raw_packet raw_packet;	/**< Otrzymano pakiet (\c GG_EVENT_RAW_PACKET) */
 };
 
 /**

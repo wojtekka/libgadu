@@ -1204,6 +1204,26 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 
 	gs->last_event = time(NULL);
 
+	if ((gs->flags & (1 << GG_SESSION_FLAG_RAW_PACKET)) != 0) {
+		char *tmp;
+
+		tmp = malloc(len);
+
+		if (tmp == NULL) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() out of memory (%d bytes)\n", len);
+			return -1;
+		}
+
+		memcpy(tmp, ptr, len);
+
+		ge->type = GG_EVENT_RAW_PACKET;
+		ge->event.raw_packet.type = type;
+		ge->event.raw_packet.length = len;
+		ge->event.raw_packet.data = tmp;
+
+		return 0;
+	}
+
 	for (i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
 		if (handlers[i].type != 0 && handlers[i].type != type)
 			continue;
