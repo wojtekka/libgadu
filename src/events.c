@@ -128,6 +128,10 @@ void gg_event_free(struct gg_event *e)
 		case GG_EVENT_XML_EVENT:
 			free(e->event.xml_event.data);
 			break;
+
+		case GG_EVENT_RAW_PACKET:
+			free(e->event.raw_packet.data);
+			break;
 	}
 
 	free(e);
@@ -327,13 +331,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			res = read(sess->fd, buf, sizeof(buf));
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical error (errno=%d, %s)\n", errno, strerror(errno));
+				res = 0;
+				break;
+			}
 
 			if (res == -1) {
-				if (errno == EAGAIN || errno == EINTR) {
-					res = 0;
-					break;
-				}
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
 
 				goto fail_resolving;
 			}
@@ -839,26 +844,22 @@ goto_GG_STATE_CONNECT_GG:
 		{
 			char buf[1024];
 
-			if (sess->state == GG_STATE_READING_KEY)
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
-			else if (sess->state == GG_STATE_READING_KEY)
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
-			else if (sess->state == GG_STATE_READING_KEY)
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
-			
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			res = read(sess->fd, buf, sizeof(buf));
 
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
-			{ int i; for (i = 0; i < res; i++) printf("%02x ", (uint8_t) buf[i]); printf("\n"); fflush(stdout); }
-
 			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
 				res = 0;
 				break;
 			}
 
 			if (res == -1 || res == 0) {
+				if (res == -1)
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
+				else
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
+
 				if (sess->state == GG_STATE_READING_KEY) {
 					e->type = GG_EVENT_CONN_FAILED;
 					e->event.failure = GG_FAILURE_INVALID;

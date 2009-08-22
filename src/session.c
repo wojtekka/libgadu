@@ -1587,13 +1587,13 @@ int gg_session_handle_data(struct gg_session *gs, char *read_buf, size_t read_le
 	// Jeśli został nam niekompletny pakiet, zapiszmy go sobie
 
 	if (buf_len > 0 || gs->recv_done > 0)
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() buf_len=%d, recv_done=%d\n", buf_len, gs->recv_done);
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() %d bytes left unparsed\n", buf_len);
 
 	if (buf_len > 0 && buf_ptr != gs->recv_buf) {
 		gs->recv_buf = malloc(buf_len);
 
 		if (gs->recv_buf == NULL) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for packet chunk\n");
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for packet chunk (%d bytes)\n", buf_len);
 			return -1;
 		}
 
