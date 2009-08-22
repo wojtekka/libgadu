@@ -359,20 +359,61 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* Sprawdź, czy mamy listę zakończoną INADDR_NONE */
 
 			for (i = 0; i < sess->recv_done / sizeof(struct in_addr); i++) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "addr[%d] = %s\n", i, inet_ntoa(((struct in_addr*) sess->recv_buf)[i]));
 				if (((struct in_addr*) sess->recv_buf)[i].s_addr == INADDR_NONE) {
 					count = i;
 					break;
 				}
 			}
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "len = %d, count = %d\n", sess->recv_done, count);
-
-			if (res == 0 || count == 0)
+			/* Nie znaleziono hosta */
+			if (count == 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host not found\n");
 				goto fail_resolving;
+			}
 
+			/* Nie mamy pełnej listy, ale połączenie zerwane */
+			if (res == 0 && count == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection broken\n");
+				goto fail_resolving;
+			}
+
+			/* Nie mamy pełnej listy, normalna sytuacja */
 			if (count == -1)
 				break;
+
+#ifndef GG_DISABLE_DEBUG
+			if ((gg_debug_level & GG_DEBUG_DUMP) && (count > 0)) {
+				char *list;
+				int i, len;
+
+				len = 0;
+
+				for (i = 0; i < count; i++) {
+					if (i > 0)
+						len += 2;
+
+					len += strlen(inet_ntoa(((struct in_addr*) sess->recv_buf)[i]));
+				}
+
+				list = malloc(len + 1);
+
+				if (list == NULL)
+					goto fail_completely;
+
+				list[0] = 0;
+
+				for (i = 0; i < count; i++) {
+					if (i > 0)
+						strcat(list, ", ");
+
+					strcat(list, inet_ntoa(((struct in_addr*) sess->recv_buf)[i]));
+				}
+
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolved: %s\n", list);
+
+				free(list);
+			}
+#endif
 
 			close(sess->fd);
 			sess->fd = -1;
@@ -389,6 +430,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		}
 
 		case GG_STATE_CONNECT_HUB:
+		case GG_STATE_CONNECT_PROXY_HUB:
+		case GG_STATE_CONNECT_PROXY_GG:
 		{
 			struct in_addr addr;
 
