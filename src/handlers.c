@@ -44,6 +44,7 @@
 #include "encoding.h"
 #include "message.h"
 #include "buffer.h"
+#include "internal.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -152,12 +153,12 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		memset(&l80, 0, sizeof(l80));
 		gg_debug_session(gs, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
 		l80.uin = gg_fix32(gs->uin);
-		memcpy(l80.language, "pl", 2);
+		memcpy(l80.language, GG8_LANG, sizeof(l80.language));
 		l80.hash_type = gs->hash_type;
 		memcpy(l80.hash, hash_buf, sizeof(l80.hash));
 		l80.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
-		l80.dunno1 = 0;
-		l80.dunno2 = gg_fix32(gs->protocol_features);
+		l80.flags = 0;
+		l80.features = gg_fix32(gs->protocol_features);
 		l80.image_size = gs->image_size;
 		l80.dunno3 = 0x64;
 
@@ -469,6 +470,19 @@ static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int
 	}
 }
 
+/**
+ * \internal Analizuje informacje rozszerzone wiadomości.
+ * 
+ * \param sess Struktura sesji.
+ * \param e Struktura zdarzenia.
+ * \param sender Numer nadawcy.
+ * \param p Wskaźnik na dane rozszerzone.
+ * \param packet_end Wskaźnik na koniec pakietu.
+ *
+ * \return 0 jeśli się powiodło, -1 jeśli wiadomość obsłużono i wynik ma
+ * zostać przekazany aplikacji, -2 jeśli wystąpił błąd ogólny, -3 jeśli
+ * wiadomość jest niepoprawna.
+ */
 static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *e, uin_t sender, const char *p, const char *packet_end)
 {
 	while (p < packet_end) {
@@ -711,7 +725,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %d, %p);\n", packet, length, e);
 
-	if (!r->seq && !r->msgclass) {
+	if (r->seq == 0 && r->msgclass == 0) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() oops, silently ignoring the bait\n");
 		goto malformed;
 	}

@@ -603,7 +603,7 @@ struct gg_login_params {
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*) */
 
 #ifndef DOXYGEN
-	char dummy[3 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
+	char dummy[2 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
@@ -1475,7 +1475,6 @@ char *gg_proxy_auth(void);
 char *gg_base64_encode(const char *buf);
 char *gg_base64_decode(const char *buf);
 int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq);
-const char *gg_find_null(const char *buf, int start, int length);
 
 /**
  * Kolejka odbieranych obrazków.
@@ -2177,49 +2176,6 @@ struct gg_dcc7_dunno1 {
 #define GG_DCC7_TIMEOUT_GET 1800	/* 30 minut */
 #define GG_DCC7_TIMEOUT_FILE_ACK 300	/* 5 minut */
 #define GG_DCC7_TIMEOUT_VOICE_ACK 300	/* 5 minut */
-
-#define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
-
-#define GG_DCC7_RESERVED1		0xdeadc0de
-#define GG_DCC7_RESERVED2		0xdeadbeaf
-
-struct gg_dcc7_voice_auth {
-	uint8_t type;			/* 0x00 -> wysylanie ID
-					   0x01 -> potwierdzenie ID
-					*/
-	gg_dcc7_id_t id;		/* identyfikator połączenia */
-	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
-	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
-} GG_PACKED;
-
-struct gg_dcc7_voice_nodata {	/* wyciszony mikrofon, ten pakiet jest wysylany co 1s (jesli chcemy podtrzymac polaczenie) */
-	uint8_t type;			/* 0x02 */
-	gg_dcc7_id_t id;		/* identyfikator połączenia */
-	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
-	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
-} GG_PACKED;
-
-struct gg_dcc7_voice_data {
-	uint8_t type;			/* 0x03 */
-	uint32_t did;			/* XXX: co ile zwieksza sie u nas id pakietu [uzywac 0x28] */
-	uint32_t len;			/* rozmiar strukturki - 1 (sizeof(type)) */
-	uint32_t packet_id;		/* numerek pakietu */
-	uint32_t datalen;		/* rozmiar danych */
-	/* char data[]; */		/* ramki: albo gsm, albo speex, albo melp, albo inne. */
-} GG_PACKED;
-
-struct gg_dcc7_voice_init {
-	uint8_t type;			/* 0x04 */
-	uint32_t id;			/* nr kroku [0x1 - 0x5] */
-	uint32_t protocol;		/* XXX: wersja protokolu (0x29, 0x2a, 0x2b) */
-	uint32_t len;			/* rozmiar sizeof(protocol)+sizeof(len)+sizeof(data) = 0x08 + sizeof(data) */
-	/* char data[]; */		/* reszta danych */
-} GG_PACKED;
-
-struct gg_dcc7_voice_init_confirm {
-	uint8_t type;			/* 0x05 */
-	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
-} GG_PACKED;
 
 #ifdef __cplusplus
 }
