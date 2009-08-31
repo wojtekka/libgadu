@@ -557,6 +557,22 @@ expect event GG_EVENT_NOTIFY60 (
 
 #-----------------------------------------------------------------------------
 
+send (18 00 00 00, auto, 11 11 11 00, 04, 7f 00 00 01, 34 12, 2a, ff, 00, 00 00 00 00, 20, "Description_too_short")
+
+expect event GG_EVENT_NOTIFY60 (
+	notify60[0].uin == 0x00111111
+	notify60[0].status == GG_STATUS_AVAIL_DESCR
+	notify60[0].remote_ip == 127.0.0.1
+	notify60[0].remote_port == 0x1234
+	notify60[0].version == 0x2a
+	notify60[0].image_size == 0xff
+	notify60[0].descr == NULL
+
+	notify60[1].uin == 0
+)
+
+#-----------------------------------------------------------------------------
+
 send (18 00 00 00, auto, 00*17)
 
 expect event GG_EVENT_NOTIFY60 (
