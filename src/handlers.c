@@ -44,7 +44,6 @@
 #include "encoding.h"
 #include "message.h"
 #include "buffer.h"
-#include "internal.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -431,7 +430,7 @@ static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int
 		len -= sizeof(struct gg_msg_image_reply);
 		p += sizeof(struct gg_msg_image_reply);
 
-		if (gg_find_null(p, 0, len) == NULL) {
+		if (memchr(p, 0, len) == NULL) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() malformed packet from %d, unlimited filename\n", sender);
 			return;
 		}
@@ -657,7 +656,9 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
 		length = 1;
 	} else {
-		const char *options = gg_find_null((char*) r, sizeof(struct gg_recv_msg), length);
+		const char *options;
+		
+		options = memchr(payload, 0, (size_t) (payload_end - payload));
 
 		if (options == NULL) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() malformed packet, message out of bounds (0)\n");
@@ -747,7 +748,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	if (offset_attr == length)
 		offset_attr = 0;
 
-	if (gg_find_null(packet, offset_plain, length) == NULL) {
+	if (memchr(packet + offset_plain, 0, length - offset_plain) == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (2)\n");
 		goto malformed;
 	}

@@ -751,27 +751,6 @@ uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
 	return crc ^ 0xffffffffL;
 }
 
-/**
- * \internal Szuka znaku \\0 w buforze o ograniczonym rozmiarze.
- *
- * \param buf Bufor
- * \param start Początkowy offset poszukiwań
- * \param length Rozmiar bufora
- *
- * \return Wskaźnik na znak \\0 lub \c NULL jeśli nie znaleziono.
- */
-const char *gg_find_null(const char *buf, int start, int length)
-{
-	int i;
-
-	for (i = start; i < length; i++) {
-		if (buf[i] == 0)
-			return buf + i;
-	}
-
-	return NULL;
-}
-
 /*
  * Local variables:
  * c-indentation-style: k&r
