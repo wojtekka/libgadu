@@ -40,6 +40,7 @@
 #include "libgadu.h"
 #include "protocol.h"
 #include "resolver.h"
+#include "internal.h"
 
 #include <errno.h>
 #include <netdb.h>

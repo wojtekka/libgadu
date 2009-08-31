@@ -585,8 +585,6 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size);
 
 uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len);
-char *gg_cp_to_utf8(const char *b);
-char *gg_utf8_to_cp(const char *b);
 
 int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type);
 gg_resolver_t gg_session_get_resolver(struct gg_session *gs);
@@ -741,6 +739,8 @@ struct gg_event_msg {
 	int formats_length;	/**< Długość informacji o formatowaniu tekstu */
 	void *formats;		/**< Informacje o formatowaniu tekstu */
 	uint32_t seq;		/**< Numer sekwencyjny wiadomości */
+
+	char *xhtml_message;	/**< Treść wiadomości w formacie XHTML */
 };
 
 /**
@@ -1138,11 +1138,11 @@ extern unsigned long gg_local_ip;
 /**
  * Rodzaj kodowania znaków.
  */
-enum gg_encoding_t {
+typedef enum {
 	GG_ENCODING_CP1250 = 0,		/**< Kodowanie CP1250 */
 	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
 	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
-};
+} gg_encoding_t;
 
 #ifndef DOXYGEN
 
@@ -1309,7 +1309,6 @@ char *gg_proxy_auth(void);
 char *gg_base64_encode(const char *buf);
 char *gg_base64_decode(const char *buf);
 int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq);
-const char *gg_find_null(const char *buf, int start, int length);
 
 /**
  * Kolejka odbieranych obrazków.
@@ -1414,7 +1413,6 @@ struct gg_login60 {
 } GG_PACKED;
 
 #define GG_LOGIN70 0x0019
-#define GG_LOGIN80BETA 0x0029
 
 struct gg_login70 {
 	uint32_t uin;			/* mój numerek */
@@ -1435,8 +1433,6 @@ struct gg_login70 {
 
 #define GG_LOGIN_FAILED 0x0009
 
-#define GG_LOGIN_HASH_TYPE_INVALID 0x0016
-
 #define GG_PUBDIR50_REQUEST 0x0014
 
 struct gg_pubdir50_request {
@@ -1452,7 +1448,6 @@ struct gg_pubdir50_reply {
 } GG_PACKED;
 
 #define GG_NEW_STATUS 0x0002
-#define GG_NEW_STATUS80BETA 0x0028
 
 #ifndef DOXYGEN
 
@@ -1511,7 +1506,7 @@ enum {
  *
  * Maksymalna długośc opisu.
  */
-#define GG_STATUS_DESCR_MAXSIZE 0xff
+#define GG_STATUS_DESCR_MAXSIZE 255
 #define GG_STATUS_DESCR_MAXSIZE_PRE_8_0 70
 
 #define GG_STATUS_MASK 0xff
@@ -1636,7 +1631,6 @@ struct gg_status60 {
 } GG_PACKED;
 
 #define GG_NOTIFY_REPLY77 0x0018
-#define GG_NOTIFY_REPLY80BETA 0x002b
 
 struct gg_notify_reply77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -1650,7 +1644,6 @@ struct gg_notify_reply77 {
 } GG_PACKED;
 
 #define GG_STATUS77 0x0017
-#define GG_STATUS80BETA 0x002a
 
 struct gg_status77 {
 	uint32_t uin;			/* numerek plus flagi w MSB */
@@ -1855,8 +1848,6 @@ struct gg_recv_msg {
 
 #define GG_DISCONNECTING 0x000b
 
-#define GG_DISCONNECT_ACK 0x000d
-
 #define GG_USERLIST_REQUEST 0x0016
 
 #define GG_XML_EVENT 0x0027
@@ -2019,72 +2010,6 @@ struct gg_dcc7_dunno1 {
 #define GG_DCC7_TIMEOUT_GET 1800	/* 30 minut */
 #define GG_DCC7_TIMEOUT_FILE_ACK 300	/* 5 minut */
 #define GG_DCC7_TIMEOUT_VOICE_ACK 300	/* 5 minut */
-
-#define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
-
-#define GG_DCC7_RESERVED1		0xdeadc0de
-#define GG_DCC7_RESERVED2		0xdeadbeaf
-
-struct gg_dcc7_voice_auth {
-	uint8_t type;			/* 0x00 -> wysylanie ID
-					   0x01 -> potwierdzenie ID
-					*/
-	gg_dcc7_id_t id;		/* identyfikator połączenia */
-	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
-	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
-} GG_PACKED;
-
-struct gg_dcc7_voice_nodata {	/* wyciszony mikrofon, ten pakiet jest wysylany co 1s (jesli chcemy podtrzymac polaczenie) */
-	uint8_t type;			/* 0x02 */
-	gg_dcc7_id_t id;		/* identyfikator połączenia */
-	uint32_t reserved1;		/* GG_DCC7_RESERVED1 */
-	uint32_t reserved2;		/* GG_DCC7_RESERVED2 */
-} GG_PACKED;
-
-struct gg_dcc7_voice_data {
-	uint8_t type;			/* 0x03 */
-	uint32_t did;			/* XXX: co ile zwieksza sie u nas id pakietu [uzywac 0x28] */
-	uint32_t len;			/* rozmiar strukturki - 1 (sizeof(type)) */
-	uint32_t packet_id;		/* numerek pakietu */
-	uint32_t datalen;		/* rozmiar danych */
-	/* char data[]; */		/* ramki: albo gsm, albo speex, albo melp, albo inne. */
-} GG_PACKED;
-
-struct gg_dcc7_voice_init {
-	uint8_t type;			/* 0x04 */
-	uint32_t id;			/* nr kroku [0x1 - 0x5] */
-	uint32_t protocol;		/* XXX: wersja protokolu (0x29, 0x2a, 0x2b) */
-	uint32_t len;			/* rozmiar sizeof(protocol)+sizeof(len)+sizeof(data) = 0x08 + sizeof(data) */
-	/* char data[]; */		/* reszta danych */
-} GG_PACKED;
-
-struct gg_dcc7_voice_init_confirm {
-	uint8_t type;			/* 0x05 */
-	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
-} GG_PACKED;
-
-/* gg80 */
-
-#define GG_SEND_MSG80 0x002d
-
-struct gg_send_msg80 {
-	uint32_t recipient;
-	uint32_t seq;
-	uint32_t msgclass;
-	uint32_t offset_plain;
-	uint32_t offset_attr;
-} GG_PACKED;
-
-#define GG_RECV_MSG80 0x002e
-
-struct gg_recv_msg80 {
-	uint32_t sender;
-	uint32_t seq;
-	uint32_t time;
-	uint32_t msgclass;
-	uint32_t offset_plain;
-	uint32_t offset_attr;
-} GG_PACKED;
 
 #ifdef __cplusplus
 }

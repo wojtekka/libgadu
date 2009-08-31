@@ -19,6 +19,29 @@
  *  USA.
  */
 
+/*
+ * Funkcje konwersji między UTF-8 i CP1250 są oparte o kod biblioteki iconv.
+ * Informacje o prawach autorskich oryginalnego kodu zamieszczono poniżej:
+ *
+ * Copyright (C) 1999-2001, 2004 Free Software Foundation, Inc.
+ * This file is part of the GNU LIBICONV Library.
+ *
+ * The GNU LIBICONV Library is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * The GNU LIBICONV Library is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with the GNU LIBICONV Library; see the file COPYING.LIB.
+ * If not, write to the Free Software Foundation, Inc., 51 Franklin Street,
+ * Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 /**
  * \file common.c
  *
@@ -790,6 +813,9 @@ uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
 	return crc ^ 0xffffffffL;
 }
 
+/**
+ * \internal Tablica konwersji między CP1250 a UTF-8.
+ */
 static const uint16_t table_cp1250[] = {
 	0x20ac, '?',    0x201a,    '?', 0x201e, 0x2026, 0x2020, 0x2021, 
 	   '?', 0x2030, 0x0160, 0x2039, 0x015a, 0x0164, 0x017d, 0x0179, 
@@ -809,8 +835,13 @@ static const uint16_t table_cp1250[] = {
 	0x0159, 0x016f, 0x00fa, 0x0171, 0x00fc, 0x00fd, 0x0163, 0x02d9, 
 };
 
-/* some code based on libiconv utf8_mbtowc() && utf8_wctomb() from utf8.h under LGPL-2.1 */
-
+/**
+ * \internal Zamienia tekst kodowany CP1250 na UTF-8.
+ *
+ * \param b Tekst źródłowy w CP1250.
+ *
+ * \return Zaalokowany bufor z tekstem w UTF-8.
+ */
 char *gg_cp_to_utf8(const char *b)
 {
 	unsigned char *buf = (unsigned char *) b;
@@ -851,6 +882,19 @@ char *gg_cp_to_utf8(const char *b)
 	return newbuf;
 }
 
+/**
+ * \internal Dekoduje jeden znak UTF-8.
+ *
+ * \note Funkcja nie jest kompletną implementacją UTF-8, a wersją uproszczoną
+ * do potrzeb kodowania CP1250.
+ *
+ * \param s Tekst źródłowy.
+ * \param n Długość tekstu źródłowego.
+ * \param ch Wskaźnik na wynik dekodowania.
+ *
+ * \return Długość zdekodowanej sekwencji w bajtach lub wartość mniejsza
+ * od zera w przypadku błędu.
+ */
 static int gg_utf8_helper(unsigned char *s, int n, uint16_t *ch)
 {
 	unsigned char c = s[0];
@@ -884,6 +928,13 @@ static int gg_utf8_helper(unsigned char *s, int n, uint16_t *ch)
 	return -1;
 }
 
+/**
+ * \internal Zamienia tekst kodowany UTF-8 na CP1250.
+ *
+ * \param b Tekst źródłowy w UTF-8.
+ *
+ * \return Zaalokowany bufor z tekstem w CP1250.
+ */
 char *gg_utf8_to_cp(const char *b)
 {
 	unsigned char *buf = (unsigned char *) b;
@@ -900,10 +951,10 @@ char *gg_utf8_to_cp(const char *b)
 		
 		ret = gg_utf8_helper(&buf[i], len - i, &discard);
 
-		if (ret > 0)	i += ret;
-		else		goto illegal;
-
-		/* XXX, zamiast goto illegal; wstawiac znaki zapytania? */
+		if (ret > 0)
+			i += ret;
+		else
+			i++;
 	}
 
 	if (!(newbuf = malloc(newlen+1))) {
@@ -913,9 +964,16 @@ char *gg_utf8_to_cp(const char *b)
 
 	for (i = 0, j = 0; buf[i]; j++) {
 		uint16_t znak;
-		int k;
+		int ret, k;
 
-		i += gg_utf8_helper(&buf[i], len - i, &znak);
+		ret = gg_utf8_helper(&buf[i], len - i, &znak);
+
+		if (ret > 0) {
+			i += ret;
+		} else {
+			znak = '?';
+			i++;
+		}
 
 		if (znak < 0x80) {
 			newbuf[j] = znak;
@@ -934,31 +992,6 @@ char *gg_utf8_to_cp(const char *b)
 	newbuf[j] = '\0';
 
 	return newbuf;
-
-illegal:
-	gg_debug(GG_DEBUG_MISC, "// gg_utf8_to_cp() illegal character!\n");
-	return NULL;
-}
-
-/**
- * \internal Szuka znaku \\0 w buforze o ograniczonym rozmiarze.
- *
- * \param buf Bufor
- * \param start Początkowy offset poszukiwań
- * \param length Rozmiar bufora
- *
- * \return Wskaźnik na znak \\0 lub \c NULL jeśli nie znaleziono.
- */
-const char *gg_find_null(const char *buf, int start, int length)
-{
-	int i;
-
-	for (i = start; i < length; i++) {
-		if (buf[i] == 0)
-			return buf + i;
-	}
-
-	return NULL;
 }
 
 /*
