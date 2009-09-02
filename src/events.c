@@ -530,6 +530,11 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 		goto malformed;
 	}
 
+	if (memchr(packet + sizeof(struct gg_recv_msg80), 0, offset_plain) == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (3)\n");
+		goto malformed;
+	}
+
 	e->type = GG_EVENT_MSG;
 	e->event.msg.msgclass = gg_fix32(r->msgclass);
 	e->event.msg.sender = gg_fix32(r->sender);
