@@ -530,7 +530,7 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 		goto malformed;
 	}
 
-	if (memchr(packet + sizeof(struct gg_recv_msg80), 0, offset_plain - sizeof(struct gg_recv_msg80)) == NULL) {
+	if (offset_plain > sizeof(struct gg_recv_msg80) && memchr(packet + sizeof(struct gg_recv_msg80), 0, offset_plain - sizeof(struct gg_recv_msg80)) == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (3)\n");
 		goto malformed;
 	}
@@ -546,7 +546,7 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	else
 		e->event.msg.message = (unsigned char*) gg_cp_to_utf8(packet + offset_plain);
 
-	if (offset_plain > sizeof(*r)) {
+	if (offset_plain > sizeof(struct gg_recv_msg80)) {
 		if (sess->encoding == GG_ENCODING_UTF8)
 			e->event.msg.xhtml_message = strdup(packet + sizeof(struct gg_recv_msg80));
 		else
@@ -1434,7 +1434,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			char buf[1024], *client, *auth;
 			int res = 0;
 			unsigned int res_size = sizeof(res);
-			const char *host, *appmsg, *fmt;
+			const char *host;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
 
@@ -1461,27 +1461,26 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			else
 				host = "";
 
+			auth = gg_proxy_auth();
+
 #ifdef GG_CONFIG_HAVE_OPENSSL
 			if (sess->ssl) {
-				appmsg = "appmsg3.asp";
-				fmt = "";
+				snprintf(buf, sizeof(buf) - 1,
+					"GET %s/appsvc/appmsg3.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
+					"Host: " GG_APPMSG_HOST "\r\n"
+					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
+					"Pragma: no-cache\r\n"
+					"%s"
+					"\r\n", host, sess->uin, client, sess->last_sysmsg, (auth) ? auth : "");
 			} else
 #endif
 			{
-				/* XXX, appmsg_ver8.asp */
-				appmsg = "appmsg4.asp";
-				fmt = "&fmt=2";
+				snprintf(buf, sizeof(buf) - 1,
+					"GET %s/appsvc/appmsg_ver8.asp?fmnumber=%u&fmt=2&lastmsg=%d&version=%s HTTP/1.0\r\n"
+					"Host: " GG_APPMSG_HOST "\r\n"
+					"%s"
+					"\r\n", host, sess->uin, sess->last_sysmsg, client, (auth) ? auth : "");
 			}
-
-			auth = gg_proxy_auth();
-
-			snprintf(buf, sizeof(buf) - 1,
-				"GET %s/appsvc/%s?fmnumber=%u&version=%s%s&lastmsg=%d HTTP/1.0\r\n"
-				"Host: " GG_APPMSG_HOST "\r\n"
-				"User-Agent: " GG_HTTP_USERAGENT "\r\n"
-				"Pragma: no-cache\r\n"
-				"%s"
-				"\r\n", host, appmsg, sess->uin, client, fmt, sess->last_sysmsg, (auth) ? auth : "");
 
 			free(auth);
 			free(client);
