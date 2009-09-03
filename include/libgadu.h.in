@@ -184,6 +184,15 @@ typedef enum {
 } gg_resolver_t;
 
 /**
+ * Rodzaj kodowania znaków.
+ */
+typedef enum {
+	GG_ENCODING_CP1250 = 0,		/**< Kodowanie CP1250 */
+	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
+	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
+} gg_encoding_t;
+
+/**
  * Sesja Gadu-Gadu.
  *
  * Tworzona przez funkcję \c gg_login(), zwalniana przez \c gg_free_session().
@@ -251,7 +260,7 @@ struct gg_session {
 
 	struct gg_image_queue *images;	/**< Lista wczytywanych obrazków */
 
-	int hash_type;		/**< Rodzaj funkcji skrótu hasła */
+	int hash_type;		/**< Rodzaj funkcji skrótu hasła (\c GG_LOGIN_HASH_GG32 lub \c GG_LOGIN_HASH_SHA1) */
 
 	char *send_buf;		/**< Bufor z danymi do wysłania */
 	int send_left;		/**< Liczba bajtów do wysłania */
@@ -262,7 +271,7 @@ struct gg_session {
 
 	int protocol_flags;	/**< Flagi protokołu */
 
-	int encoding;		/**< Rodzaj kodowania znaków */
+	gg_encoding_t encoding;		/**< Rodzaj kodowania znaków */
 
 	gg_resolver_t resolver_type;	/**< Sposób rozwiązywania nazw serwerów */
 	int (*resolver_start)(int *fd, void **private_data, const char *hostname);	/**< Funkcja rozpoczynająca rozwiązywanie nazwy */
@@ -555,8 +564,8 @@ struct gg_login_params {
 #ifndef DOXYGEN
 	int era_omnix;			/**< Flaga udawania klienta Era Omnix (nieaktualna) */
 #endif
-	int hash_type;			/**< Rodzaj skrótu hasła (domyślnie SHA1) */
-	int encoding;			/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
+	int hash_type;			/**< Rodzaj skrótu hasła (\c GG_LOGIN_HASH_GG32 lub \c GG_LOGIN_HASH_SHA1, domyślnie SHA1) */
+	gg_encoding_t encoding;		/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*) */
 
@@ -1134,15 +1143,6 @@ extern unsigned long gg_local_ip;
 
 #define GG_LOGIN_HASH_GG32 0x01	/**< Algorytm Gadu-Gadu */
 #define GG_LOGIN_HASH_SHA1 0x02	/**< Algorytm SHA1 */
-
-/**
- * Rodzaj kodowania znaków.
- */
-typedef enum {
-	GG_ENCODING_CP1250 = 0,		/**< Kodowanie CP1250 */
-	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
-	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
-} gg_encoding_t;
 
 #ifndef DOXYGEN
 
