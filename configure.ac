@@ -1,7 +1,7 @@
 dnl $Id$
 
 AC_INIT(src/libgadu.c)
-AM_INIT_AUTOMAKE(libgadu, 1.9.0-pre)
+AM_INIT_AUTOMAKE(libgadu, 1.10.0-pre)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST

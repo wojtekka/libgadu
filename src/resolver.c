@@ -611,6 +611,25 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  * \param resolver_start Funkcja rozpoczynająca rozwiązywanie nazwy
  * \param resolver_cleanup Funkcja zwalniająca zasoby
  *
+ * Parametry funkcji rozpoczynającej rozwiązywanie nazwy wyglądają następująco:
+ *  - \c "int *fd" &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor potoku
+ *  - \c "void **priv_data" &mdash; wskaźnik na zmienną, gdzie można umieścić wskaźnik do prywatnych danych na potrzeby rozwiązywania nazwy
+ *  - \c "const char *name" &mdash; nazwa serwera do rozwiązania
+ *
+ * Parametry funkcji zwalniającej zasoby wyglądają następująco:
+ *  - \c "void **priv_data" &mdash; wskaźnik na zmienną przechowującą wskaźnik do prywatnych danych, należy go ustawić na \c NULL po zakończeniu
+ *  - \c "int force" &mdash; flaga mówiąca o tym, że zasoby są zwalniane przed zakończeniem rozwiązywania nazwy, np. z powodu zamknięcia sesji.
+ *
+ * Własny kod rozwiązywania nazwy powinien stworzyć potok, parę gniazd lub
+ * inny deskryptor pozwalający na co najmniej jednostronną komunikację i 
+ * przekazać go w parametrze \c fd. Po zakończeniu rozwiązywania nazwy,
+ * powinien wysłać otrzymany adres IP w postaci sieciowej (big-endian) do
+ * deskryptora. Jeśli rozwiązywanie nazwy się nie powiedzie, należy wysłać
+ * \c INADDR_NONE. Następnie zostanie wywołana funkcja zwalniająca zasoby
+ * z parametrem \c force równym \c 0. Gdyby sesja została zakończona przed
+ * rozwiązaniem nazwy, np. za pomocą funkcji \c gg_logoff(), funkcja
+ * zwalniająca zasoby zostanie wywołana z parametrem \c force równym \c 1.
+ *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
 int gg_session_set_custom_resolver(struct gg_session *gs, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
@@ -771,6 +790,8 @@ gg_resolver_t gg_global_get_resolver(void)
  *
  * \param resolver_start Funkcja rozpoczynająca rozwiązywanie nazwy
  * \param resolver_cleanup Funkcja zwalniająca zasoby
+ *
+ * Patrz \ref gg_session_set_custom_resolver.
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
