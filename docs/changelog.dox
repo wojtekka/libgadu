@@ -9,6 +9,14 @@ Poprawki dostarczające nową funkcjonalność w większości przypadków nie ma
 wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
 nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_9_0 libgadu 1.9.0
+
+- Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole \c encoding struktury \c gg_login_params pozwala zmienić kodowanie na UTF-8. Uwaga! Kodowanie danych innych niż wiadomości i opisy pozostaje w CP1250.
+
+- Ponieważ nowy klient przekazuje wiadomości w dwóch formatach &mdash; czysty tekst plus atrybuty i HTML, dodano pole \c xhtml_message do struktury \c gg_event_msg. Niestety, nie można jeszcze wysyłać wiadomości w tym formacie.
+
+- Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola \c resolver_type struktury \c gg_login_params dla procesów i wątków, lub globalnie za pomocą funkcji \c gg_global_set_resolver czy \c gg_global_set_custom_resolver.
+
 \section changelog-1_8_0 libgadu 1.8.0
 
 - Połączenia bezpośrednie Gadu-Gadu 7.x. \ref dcc7 "Szczegóły."
