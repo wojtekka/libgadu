@@ -15,7 +15,7 @@ nie zmieniają dotychczasowego zachowania.
 
 - Ponieważ nowy klient przekazuje wiadomości w dwóch formatach &mdash; czysty tekst plus atrybuty i HTML, dodano pole \c xhtml_message do struktury \c gg_event_msg. Niestety, nie można jeszcze wysyłać wiadomości w tym formacie. \ref gg_event_msg "Szczegóły."
 
-- Razem z nowym protokołem przyszły nowe statusy: \c GG_STATUS_FFC, \c GG_STATUS_DDC_DESCR, \c GG_STATUS_DND i \c GG_STATUS_DND_DESCR. \ref status "Szczegóły."
+- Razem z nowym protokołem przyszły nowe statusy: \c GG_STATUS_FFC, \c GG_STATUS_FFC_DESCR, \c GG_STATUS_DND i \c GG_STATUS_DND_DESCR. \ref status "Szczegóły."
 
 - Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola \c resolver_type struktury \c gg_login_params dla procesów i wątków, lub globalnie za pomocą funkcji \ref gg_global_set_resolver czy \ref gg_global_set_custom_resolver. \ref build-resolver "Szczegóły."
 
