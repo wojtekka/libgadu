@@ -753,7 +753,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 		goto malformed;
 	}
 
-	if (memchr(packet + sizeof(struct gg_recv_msg80), 0, offset_plain - sizeof(struct gg_recv_msg80)) == NULL) {
+	if (offset_plain > sizeof(struct gg_recv_msg80) && memchr(packet + sizeof(struct gg_recv_msg80), 0, offset_plain - sizeof(struct gg_recv_msg80)) == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() malformed packet, message out of bounds (3)\n");
 		goto malformed;
 	}
@@ -765,7 +765,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	e->event.msg.seq = gg_fix32(r->seq);
 	e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
 
-	if (offset_plain > sizeof(*r))
+	if (offset_plain > sizeof(struct gg_recv_msg80))
 		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
 	else
 		e->event.msg.xhtml_message = NULL;
