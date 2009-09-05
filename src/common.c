@@ -303,7 +303,7 @@ char *gg_read_line(int sock, char *buf, int length)
 
 	for (; length > 1; buf++, length--) {
 		do {
-			if ((ret = read(sock, buf, 1)) == -1 && errno != EINTR) {
+			if ((ret = read(sock, buf, 1)) == -1 && errno != EINTR && errno != EAGAIN) {
 				gg_debug(GG_DEBUG_MISC, "// gg_read_line() error on read (errno=%d, %s)\n", errno, strerror(errno));
 				*buf = 0;
 				return NULL;
@@ -312,7 +312,7 @@ char *gg_read_line(int sock, char *buf, int length)
 				*buf = 0;
 				return NULL;
 			}
-		} while (ret == -1 && errno == EINTR);
+		} while (ret == -1 && (errno == EINTR || errno == EAGAIN));
 
 		if (*buf == '\n') {
 			buf++;
