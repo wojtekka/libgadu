@@ -94,9 +94,10 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 	char *new_buf = NULL;
 	struct hostent he;
 	struct hostent *he_ptr = NULL;
-	int h_errnop, ret;
 	size_t buf_len = 1024;
 	int res = -1;
+	int h_errnop;
+	int ret = 0;
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	int old_state;
 #endif
@@ -182,21 +183,21 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 
 			(*result)[i].s_addr = INADDR_NONE;
 
-#ifdef GG_CONFIG_HAVE_PTHREAD
-			if (pthread)
-				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
-#endif
-
-			free(buf);
-			buf = NULL;
-
-#ifdef GG_CONFIG_HAVE_PTHREAD
-			if (pthread)
-				pthread_setcancelstate(old_state, NULL);
-#endif
-
 			res = 0;
 		}
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		if (pthread)
+			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
+		free(buf);
+		buf = NULL;
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		if (pthread)
+			pthread_setcancelstate(old_state, NULL);
+#endif
 	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
