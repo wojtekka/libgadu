@@ -631,7 +631,7 @@ void sigalrm(int sig)
 
 int main(int argc, char **argv)
 {
-	int i, test_from, test_to, result[TEST_MAX][2] = { { 0, } };
+	int i, test_from = 0, test_to = 0, result[TEST_MAX][2] = { { 0, } };
 	int exit_code = 0;
 
 	if (argc == 3) {
