@@ -129,8 +129,9 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		h->timeout = GG_DEFAULT_TIMEOUT;
 	} else {
 		struct in_addr *addr_list;
+		int addr_count;
 
-		if (gg_gethostbyname(hostname, &addr_list, 0) == -1 || addr_list[0].s_addr == INADDR_NONE) {
+		if (gg_gethostbyname(hostname, &addr_list, &addr_count, 0) == -1 || addr_count == 0) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() host not found\n");
 			gg_http_free(h);
 			free(addr_list);
@@ -526,6 +527,133 @@ void gg_http_free(struct gg_http *h)
 	gg_http_stop(h);
 	gg_http_free_fields(h);
 	free(h);
+}
+
+/**
+ * Zwraca wartość nagłówka.
+ *
+ * \param buf Wskaźnik na bufor z odebranymi danymi
+ * \param len Długość bufora
+ * \param name Nazwa nagłówka
+ *
+ * \ingroup http
+ */
+const char *gg_http_find_header(const char *buf, size_t len, const char *name)
+{
+	size_t name_len;
+	int i, nl;
+
+	name_len = strlen(name);
+	nl = 1;
+
+	for (i = 0; i < len; i++) {
+		if (nl) {
+			// koniec nagłówka
+			if (buf[i] == '\n' || (buf[i] == '\r' && i + 1 < len && buf[i + 1] == '\n'))
+				return NULL;
+
+			// za mało danych na nazwę nagłówka i dwukropek
+			if (i + name_len + 1 > len)
+				return NULL;
+
+			if (strncasecmp(buf + i, name, name_len) == 0 && buf[i + name_len] == ':') {
+				// przeskocz spacje
+				while (i < len && isspace(buf[i]))
+					i++;
+
+				return buf + i;
+			}
+
+		}
+
+		nl = (buf[i] == '\n');
+	}
+
+	return NULL;
+}
+
+int gg_http_get_header_int(const char *buf, size_t len, const char *name)
+{
+	const char *tmp;
+
+	tmp = gg_http_find_header(buf, len, name);
+
+	if (tmp == NULL)
+		return -1;
+
+	// XXX strtol
+
+	return atoi(tmp);
+}
+
+char *gg_http_get_header_string(const char *buf, size_t len, const char *name)
+{
+	const char *tmp;
+	char *res;
+	int res_len;
+
+	tmp = gg_http_find_header(buf, len, name);
+
+	if (tmp == NULL)
+		return NULL;
+
+	res_len = 0;
+
+	while (tmp + res_len < buf + len && tmp[res_len] != '\r' && tmp[res_len] != '\n')
+		res_len++;
+
+	res = malloc(res_len + 1);
+
+	if (res == NULL)
+		return NULL;
+
+	memcpy(res, tmp, res_len);
+	res[res_len] = 0;
+
+	return res;
+}
+
+const char *gg_http_find_body(const char *buf, size_t len)
+{
+	int i, nl = 1;
+
+	for (i = 0; i < len; i++) {
+		if (nl) {
+			if (buf[i] == '\n')
+				return buf + i + 1;
+
+			if (buf[i] == '\r' && i + 1 < len && buf[i + 1] == '\n')
+				return buf + i + 2;
+		}
+
+		nl = (buf[i] == '\n');
+	}
+
+	return NULL;
+}
+
+/**
+ * Sprawdza, czy odebrane dane są kompletne.
+ *
+ * \param buf Wskaźnik na bufor z odebranymi danymi
+ * \param len Długość bufora
+ *
+ * \ingroup http
+ */
+int gg_http_is_complete(const char *buf, size_t len)
+{
+	int clen, i;
+
+	clen = gg_http_get_header_int(buf, len, "Content-Length");
+
+	if (len == -1)
+		return 0;
+
+	for (i = 0; i < len; i++) {
+		
+	}
+
+	return 0;
 }
 
 /*
