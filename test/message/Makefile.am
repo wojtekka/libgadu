@@ -1,7 +1,6 @@
 noinst_PROGRAMS = message
-
-LDADD = ../../src/libgadu.la
-resolver_CFLAGS = -Wall
+message_CFLAGS = -Wall
+message_LDADD = $(top_builddir)/src/libgadu.la
 EXTRA_DIST = valgrind
 
 clean-local:

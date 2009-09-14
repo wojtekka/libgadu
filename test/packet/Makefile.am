@@ -1,7 +1,6 @@
 noinst_PROGRAMS = packet
-
-LDADD = ../../src/libgadu.la
-CFLAGS = -Wall
+packet_CFLAGS = -Wall
+packet_LDADD = $(top_builddir)/src/libgadu.la
 EXTRA_DIST = valgrind
 
 clean-local:

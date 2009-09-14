@@ -1,5 +1,5 @@
 noinst_PROGRAMS = send httphash conn-async register-sync register-async remind-sync remind-async status status2
-LDADD = ../src/libgadu.la
+LDADD = $(top_builddir)/src/libgadu.la
 
 register_sync_SOURCES = register.c
 

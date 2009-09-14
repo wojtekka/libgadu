@@ -1,7 +1,6 @@
 noinst_PROGRAMS = resolver
-
-LDADD = ../../src/libgadu.la
 resolver_CFLAGS = -Wall
+resolver_LDADD = $(top_builddir)/src/libgadu.la
 EXTRA_DIST = valgrind
 
 clean-local:

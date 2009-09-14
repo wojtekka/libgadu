@@ -1,8 +1,9 @@
 noinst_PROGRAMS = protocol
-LDADD = ../../src/libgadu.la
+protocol_CFLAGS = -Wall
+protocol_LDADD = $(top_builddir)/src/libgadu.la
 protocol_SOURCES = protocol.c
-noinst_HEADERS = script.h
 nodist_protocol_SOURCES = script.c
+noinst_HEADERS = script.h
 EXTRA_DIST = compile readme.txt valgrind
 SUBDIRS = tests
 

@@ -1,7 +1,6 @@
 noinst_PROGRAMS = convert
-
-LDADD = ../../src/libgadu.la
-CFLAGS = -Wall
+convert_CFLAGS = -Wall
+convert_LDADD = $(top_builddir)/src/libgadu.la
 EXTRA_DIST = valgrind
 
 clean-local:
