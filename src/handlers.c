@@ -65,8 +65,6 @@ typedef struct {
 	int (*handler)(struct gg_session *, uint32_t, const char *, size_t, struct gg_event *);
 } gg_packet_handler_t;
 
-extern int gg_watch_fd_connected(struct gg_session *sess, uint32_t, const char *p, size_t length, struct gg_event *e);
-
 static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	struct gg_welcome *w;
@@ -118,6 +116,9 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 
 			break;
 		}
+
+		default:
+			break;
 	}
 
 	if (gs->password != NULL && (gs->flags & (1 << GG_SESSION_FLAG_CLEAR_PASSWORD))) {
