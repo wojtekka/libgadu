@@ -23,6 +23,6 @@
 
 #include <arpa/inet.h>
 
-int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread);
+int gg_gethostbyname(const char *hostname, struct in_addr **result, int *count, int pthread);
 
 #endif /* LIBGADU_RESOLVER_H */

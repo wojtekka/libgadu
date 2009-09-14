@@ -83,11 +83,12 @@ static void gg_gethostbyname_cleaner(void *data)
  *
  * \param hostname Nazwa serwera
  * \param result Wskaźnik na wskaźnik z tablicą adresów zakończoną INADDR_NONE
+ * \param count Wskaźnik na zmienną, do ktorej zapisze się liczbę wyników
  * \param pthread Flaga blokowania unicestwiania wątku podczas alokacji pamięci
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
+int gg_gethostbyname(const char *hostname, struct in_addr **result, int *count, int pthread)
 {
 #ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
@@ -158,7 +159,6 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
 				;
 
-
 			/* Zaalokuj */
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -182,6 +182,8 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 				memcpy(&((*result)[i]), he_ptr->h_addr_list[i], sizeof(struct in_addr));
 
 			(*result)[i].s_addr = INADDR_NONE;
+
+			*count = i;
 
 			res = 0;
 		}
@@ -224,11 +226,9 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 	for (i = 0; he->h_addr_list[i] != NULL; i++)
 		;
 
-	*count = i;
-
 	/* Zaalokuj */
 
-	*result = malloc(i * sizeof(struct in_addr));
+	*result = malloc((i + 1) * sizeof(struct in_addr));
 
 	if (*result == NULL)
 		return -1;
@@ -237,6 +237,10 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 
 	for (i = 0; he->h_addr_list[i] != NULL; i++)
 		memcpy(&(*result[i]), he->h_addr_list[0], sizeof(struct in_addr));
+
+	(*result)[i].s_addr = INADDR_NONE;
+
+	*count = i;
 
 	return 0;
 #endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
@@ -253,27 +257,25 @@ int gg_gethostbyname(const char *hostname, struct in_addr **result, int pthread)
 int gg_resolver_run(int fd, const char *hostname)
 {
 	struct in_addr addr_ip[2], *addr_list;
+	int addr_count;
 	int res = 0;
-	int i;
 
 	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run(%d, %s)\n", fd, hostname);
 
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
-		if (gg_gethostbyname(hostname, &addr_list, 1) == -1) {
+		if (gg_gethostbyname(hostname, &addr_list, &addr_count, 1) == -1) {
 			addr_list = addr_ip;
 			/* addr_ip[0] już zawiera INADDR_NONE */
 		}
 	} else {
 		addr_list = addr_ip;
 		addr_ip[1].s_addr = INADDR_NONE;
+		addr_count = 1;
 	}
 
-	for (i = 0; addr_list[i].s_addr != INADDR_NONE; i++)
-		;
+	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run() count = %d\n", addr_count);
 
-	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run() count = %d\n", i);
-
-	if (write(fd, addr_list, (i + 1) * sizeof(struct in_addr)) != (i + 1) * sizeof(struct in_addr))
+	if (write(fd, addr_list, (addr_count + 1) * sizeof(struct in_addr)) != (addr_count + 1) * sizeof(struct in_addr))
 		res = -1;
 
 	if (addr_list != addr_ip)
