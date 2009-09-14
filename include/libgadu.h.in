@@ -312,6 +312,7 @@ struct gg_session {
 	const char *resolver_host;		/**< Nazwa do rozwiązania */
 	struct in_addr *resolver_result;	/**< Wynik rozwiązywania nazwy */
 	int resolver_index;			/**< Indeks aktualnie obsługiwanego wyniku rozwiązywania nazwy */
+	int resolver_count;			/**< Liczba wyników rozwiązywania nazwy */
 
 	uint32_t connect_addr;			/**< Lista adresów do połączenia */
 	uint16_t connect_port[2];		/**< Lista portów do połączenia */
@@ -563,6 +564,8 @@ enum gg_state_t {
 	GG_STATE_CONNECT_PROXY_HUB,
 	GG_STATE_CONNECT_GG,		/**< Nawiązanie połączenia z serwerem */
 	GG_STATE_CONNECT_PROXY_GG,
+	GG_STATE_CONNECTING_PROXY_HUB,
+	GG_STATE_CONNECTING_PROXY_GG,
 	GG_STATE_RESOLVE_HUB_SYNC,
 	GG_STATE_RESOLVE_HUB_ASYNC,
 	GG_STATE_RESOLVE_PROXY_SYNC,
@@ -570,7 +573,14 @@ enum gg_state_t {
 	GG_STATE_RESOLVING_HUB,
 	GG_STATE_RESOLVING_PROXY,
 	GG_STATE_SEND_HUB,
+	GG_STATE_SEND_PROXY_HUB,
+	GG_STATE_SEND_PROXY_GG,
 	GG_STATE_SENDING_HUB,
+	GG_STATE_SENDING_PROXY_HUB,
+	GG_STATE_SENDING_PROXY_GG,
+	GG_STATE_READING_HUB,
+	GG_STATE_READING_PROXY_HUB,
+	GG_STATE_READING_PROXY_GG,
 };
 
 /**

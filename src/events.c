@@ -40,6 +40,7 @@
 #include "encoding.h"
 #include "resolver.h"
 #include "debug.h"
+#include "http.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -66,7 +67,7 @@ void gg_event_free(struct gg_event *e)
 {
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_event_free(%p);\n", e);
 
-	if (!e)
+	if (e == NULL)
 		return;
 
 	switch (e->type) {
@@ -221,13 +222,11 @@ int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 struct gg_event *gg_watch_fd(struct gg_session *sess)
 {
 	struct gg_event *e;
-	int res = 0;
-	int port = 0;
-	int errno2 = 0;
+	int res;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd(%p, %s)\n", sess, (sess != NULL) ? gg_debug_state(sess->state) : "GG_STATE_NONE");
 
-	if (!sess) {
+	if (sess == NULL) {
 		errno = EFAULT;
 		return NULL;
 	}
@@ -245,7 +244,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	e->type = GG_EVENT_NONE;
 
-	if (sess->send_buf && (sess->state == GG_STATE_SENDING_HUB || sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
+	if (sess->send_buf && (sess->state == GG_STATE_SENDING_HUB || sess->state == GG_STATE_SENDING_PROXY_HUB || sess->state == GG_STATE_SENDING_PROXY_GG || sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
 
 		res = write(sess->fd, sess->send_buf, sess->send_left);
@@ -278,34 +277,47 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			struct in_addr addr;
 
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
+
 			if ((addr.s_addr = inet_addr(sess->resolver_host)) == INADDR_NONE) {
 				struct in_addr *addr_list;
+				int addr_count;
 
-				if (gg_gethostbyname(sess->resolver_host, &addr_list, 0) == -1) {
+				if (gg_gethostbyname(sess->resolver_host, &addr_list, &addr_count, 0) == -1) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host %s not found\n", sess->resolver_host);
 					goto fail_resolving;
 				}
 
 				sess->resolver_result = addr_list;
+				sess->resolver_count = addr_count;
 				sess->resolver_index = 0;
 			} else {
-				sess->resolver_result = malloc(sizeof(struct in_addr) * 2);
+				sess->resolver_result = malloc(sizeof(struct in_addr));
 				if (sess->resolver_result == NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory\n");
-					goto fail_resolving;
+					goto fail_completely;
 				}
 
 				sess->resolver_result[0].s_addr = addr.s_addr;
-				sess->resolver_result[1].s_addr = INADDR_NONE;
+				sess->resolver_count = 1;
 				sess->resolver_index = 0;
 			}
-			
-			goto goto_GG_STATE_CONNECT_HUB;
+
+			if (sess->state == GG_STATE_RESOLVE_HUB_SYNC)
+				sess->state = GG_STATE_CONNECT_HUB;
+			else if (sess->server_addr != 0)
+				sess->state = GG_STATE_CONNECT_PROXY_HUB;
+			else
+				sess->state = GG_STATE_CONNECT_PROXY_GG;
+
+			goto goto_GG_STATE_CONNECT_XXX;
 		}
 
 		case GG_STATE_RESOLVE_HUB_ASYNC:
 		case GG_STATE_RESOLVE_PROXY_ASYNC:
 		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
+
 			if (sess->resolver_start(&sess->fd, &sess->resolver, sess->resolver_host) == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
 				goto fail_resolving;
@@ -327,7 +339,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			char buf[256];
 			int i, count = -1;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_RESOLVING\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			res = read(sess->fd, buf, sizeof(buf));
 
@@ -349,7 +361,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				tmp = realloc(sess->recv_buf, sess->recv_done + res);
 
 				if (tmp == NULL)
-					goto fail_resolving;
+					goto fail_completely;
 
 				sess->recv_buf = tmp;
 				memcpy(sess->recv_buf + sess->recv_done, buf, res);
@@ -366,18 +378,21 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 
 			/* Nie znaleziono hosta */
+
 			if (count == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host not found\n");
 				goto fail_resolving;
 			}
 
 			/* Nie mamy pełnej listy, ale połączenie zerwane */
+
 			if (res == 0 && count == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection broken\n");
 				goto fail_resolving;
 			}
 
 			/* Nie mamy pełnej listy, normalna sytuacja */
+
 			if (count == -1)
 				break;
 
@@ -420,8 +435,15 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			sess->resolver_cleanup(&sess->resolver, 0);
 
-			sess->state = GG_STATE_CONNECT_HUB;
+			if (sess->state == GG_STATE_RESOLVING_HUB)
+				sess->state = GG_STATE_CONNECT_HUB;
+			else if (sess->server_addr != 0)
+				sess->state = GG_STATE_CONNECT_PROXY_HUB;
+			else
+				sess->state = GG_STATE_CONNECT_PROXY_GG;
+
 			sess->resolver_result = (struct in_addr*) sess->recv_buf;
+			sess->resolver_count = count;
 			sess->resolver_index = 0;
 			sess->recv_buf = NULL;
 			sess->recv_done = 0;
@@ -434,51 +456,42 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_CONNECT_PROXY_GG:
 		{
 			struct in_addr addr;
+			int port;
 
-goto_GG_STATE_CONNECT_HUB:
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECT_HUB\n");
+goto_GG_STATE_CONNECT_XXX:
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
-			if (sess->resolver_result[sess->resolver_index].s_addr == INADDR_NONE) {
+			if (sess->resolver_index >= sess->resolver_count) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of address to connect to\n");
 				goto fail_connecting;
 			}
 
-			addr = sess->resolver_result[sess->resolver_index++];
+			addr = sess->resolver_result[sess->resolver_index];
 
-			/* jeśli jesteśmy w resolverze i mamy ustawiony port
-			 * proxy, znaczy, że resolvowaliśmy proxy. zatem
-			 * wpiszmy jego adres. */
-			if (sess->proxy_port)
-				sess->proxy_addr = sess->resolver_result[sess->resolver_index].s_addr;
-
-			/* zapiszmy sobie adres huba i adres serwera (do
-			 * bezpośredniego połączenia, jeśli hub leży)
-			 * z resolvera. */
-			if (sess->proxy_addr && sess->proxy_port)
-				port = sess->proxy_port;
-			else {
-				sess->server_addr = sess->hub_addr = sess->resolver_result[sess->resolver_index].s_addr;
+			if (sess->state == GG_STATE_CONNECT_HUB) {
 				port = GG_APPMSG_PORT;
+			} else {
+				sess->proxy_addr = addr.s_addr;
+				port = sess->proxy_port;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connecting to %s:%d\n", inet_ntoa(addr), port);
 
-			/* łączymy się albo z hubem, albo z proxy, zależnie
-			 * od tego, co resolvowaliśmy. */
 			if ((sess->fd = gg_connect(&addr, port, sess->async)) == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-				goto goto_GG_STATE_CONNECT_HUB;
+				sess->resolver_index++;
+				goto goto_GG_STATE_CONNECT_XXX;
 			}
 
-			/* jeśli podano serwer i łączmy się przez proxy,
-			 * jest to bezpośrednie połączenie, inaczej jest
-			 * do huba. */
-
-			if (sess->proxy_addr && sess->proxy_port && sess->server_addr) {
-				sess->state = GG_STATE_CONNECTING_GG;
-				sess->soft_timeout = 1;
-			} else
+			if (sess->state == GG_STATE_CONNECT_HUB) {
 				sess->state = GG_STATE_CONNECTING_HUB;
+			} else if (sess->state == GG_STATE_CONNECT_PROXY_HUB) {
+				sess->state = GG_STATE_CONNECTING_PROXY_HUB;
+				sess->soft_timeout = 1;
+			} else {
+				sess->state = GG_STATE_CONNECTING_PROXY_GG;
+				sess->soft_timeout = 1;
+			}
 
 			sess->check = GG_CHECK_WRITE;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
@@ -488,37 +501,45 @@ goto_GG_STATE_CONNECT_HUB:
 		}
 
 		case GG_STATE_CONNECTING_HUB:
+		case GG_STATE_CONNECTING_PROXY_HUB:
+		case GG_STATE_CONNECTING_PROXY_GG:
 		{
-			int res;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			/* jeśli asynchroniczne, sprawdzamy, czy nie wystąpił
 			 * przypadkiem jakiś błąd. */
 			if (gg_async_connect_failed(sess, &res)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
-				goto goto_GG_STATE_CONNECT_HUB;
+				sess->resolver_index++;
+				goto goto_GG_STATE_CONNECT_XXX;
 			}
 
-			sess->state = GG_STATE_SEND_HUB;
+			if (sess->state == GG_STATE_CONNECTING_HUB)
+				sess->state = GG_STATE_SEND_HUB;
+			else if (sess->state == GG_STATE_CONNECTING_PROXY_HUB)
+				sess->state = GG_STATE_SEND_PROXY_HUB;
+			else {
+				sess->state = GG_STATE_SEND_PROXY_GG;
+				goto goto_GG_STATE_SEND_PROXY_GG;
+			}
 
 			/* fall through */
 		}
 
 		case GG_STATE_SEND_HUB:
+		case GG_STATE_SEND_PROXY_HUB:
 		{
 			char buf[1024], *client, *auth;
 			const char *host;
-			int res;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
 				goto fail_connecting;
 			}
 
-			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port)
+			if (sess->state == GG_STATE_SEND_PROXY_HUB)
 				host = "http://" GG_APPMSG_HOST;
 			else
 				host = "";
@@ -557,11 +578,17 @@ goto_GG_STATE_CONNECT_HUB:
 			}
 
 			if (res < strlen(buf)) {
-				sess->state = GG_STATE_SENDING_HUB;
+				if (sess->state == GG_STATE_SEND_HUB)
+					sess->state = GG_STATE_SENDING_HUB;
+				else
+					sess->state = GG_STATE_SENDING_PROXY_HUB;
 				sess->check = GG_CHECK_WRITE;
 				sess->timeout = GG_DEFAULT_TIMEOUT;
 			} else {
-				sess->state = GG_STATE_READING_DATA;
+				if (sess->state == GG_STATE_SEND_HUB)
+					sess->state = GG_STATE_READING_HUB;
+				else
+					sess->state = GG_STATE_READING_PROXY_HUB;
 				sess->check = GG_CHECK_READ;
 				sess->timeout = GG_DEFAULT_TIMEOUT;
 			}
@@ -570,105 +597,135 @@ goto_GG_STATE_CONNECT_HUB:
 		}
 
 		case GG_STATE_SENDING_HUB:
+		case GG_STATE_SENDING_PROXY_HUB:
+		case GG_STATE_SENDING_PROXY_GG:
 		{
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_SENDING_HUB\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (sess->send_left > 0)
 				break;
 
-			sess->state = GG_STATE_READING_DATA;
+			if (sess->state == GG_STATE_SENDING_HUB)
+				sess->state = GG_STATE_READING_HUB;
+			else if (sess->state == GG_STATE_SENDING_PROXY_HUB)
+				sess->state = GG_STATE_READING_PROXY_HUB;
+			else
+				sess->state = GG_STATE_READING_PROXY_GG;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
 
 			break;
 		}
 
-		case GG_STATE_READING_DATA:
+		case GG_STATE_READING_HUB:
+		case GG_STATE_READING_PROXY_HUB:
 		{
-			char buf[1024], *tmp, *host;
+			char buf[1024], *tmp, host[32];
 			int port = GG_DEFAULT_PORT;
+			int reply;
+			const char *body;
 			struct in_addr addr;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_DATA\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
-			/* czytamy linię z gniazda i obcinamy \r\n. */
-			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
-			gg_chomp(buf);
-			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() received http header (%s)\n", buf);
+			res = read(sess->fd, buf, sizeof(buf));
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+
+			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
+				res = 0;
+				break;
+			}
+
+			if (res == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
+				goto fail_connecting;
+			}
+
+			if (res != 0) {
+				char *tmp;
+
+				tmp = realloc(sess->recv_buf, sess->recv_done + res + 1);
+
+				if (tmp == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
+					goto fail_completely;
+				}
+
+				sess->recv_buf = tmp;
+				memcpy(sess->recv_buf + sess->recv_done, buf, res);
+				sess->recv_done += res;
+				sess->recv_buf[sess->recv_done] = 0;
+			}
+
+			if (res == 0 && sess->recv_buf == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
+				goto fail_connecting;
+			}
+
+			if (res != 0 && !gg_http_is_complete(sess->recv_buf, sess->recv_done))
+				break;
+
+			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// complete! %s", sess->recv_buf);
+
+			res = sscanf(sess->recv_buf, "HTTP/1.%*d %3d ", &reply);
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "res = %d, reply = %d\n", res, reply);
 
 			/* sprawdzamy, czy wszystko w porządku. */
-			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
+			if (res != 1 || reply != 200) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
 				goto fail_connecting;
 			}
 
-			/* ignorujemy resztę nagłówka. */
-			while (strcmp(buf, "\r\n") && strcmp(buf, ""))
-				gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+			body = gg_http_find_body(sess->recv_buf, sess->recv_done);
 
-			/* czytamy pierwszą linię danych. */
-			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
-			gg_chomp(buf);
+			if (body == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't find body\n");
+				goto fail_connecting;
+			}
+
+			// 17591 0 91.197.13.71:8074 91.197.13.71
+#ifdef GG_CONFIG_HAVE_OPENSSL
+			if (sess->ssl != NULL)
+				res = sscanf(body, "%*d %d %*d %32s", &reply, host);
+			else
+#endif
+				res = sscanf(body, "%d %*d %32s", &reply, host);
+
+			if (res != 2) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid hub reply, connection failed\n");
+				goto fail_connecting;
+			}
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "reply=%d, host=\"%s\"\n", reply, host);
 
 			/* jeśli pierwsza liczba w linii nie jest równa zeru,
 			 * oznacza to, że mamy wiadomość systemową. */
-			if (atoi(buf)) {
-				char tmp[1024], *foo, *sysmsg_buf = NULL;
-				int len = 0;
+			if (reply != 0) {
+				const char *tmp;
 
-				while (gg_read_line(sess->fd, tmp, sizeof(tmp) - 1)) {
-					if (!(foo = realloc(sysmsg_buf, len + strlen(tmp) + 2))) {
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for system message, ignoring\n");
-						break;
-					}
+				tmp = strchr(body, '\n');
 
-					sysmsg_buf = foo;
-
-					if (!len)
-						strcpy(sysmsg_buf, tmp);
-					else
-						strcat(sysmsg_buf, tmp);
-
-					len += strlen(tmp);
+				if (tmp != NULL) {
+					e->type = GG_EVENT_MSG;
+					e->event.msg.msgclass = reply;
+					e->event.msg.sender = 0;
+					e->event.msg.message = (unsigned char*) strdup(tmp + 1);
 				}
-
-				e->type = GG_EVENT_MSG;
-				e->event.msg.msgclass = atoi(buf);
-				e->event.msg.sender = 0;
-				e->event.msg.message = (unsigned char*) sysmsg_buf;
 			}
 
 			close(sess->fd);
 
-			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() received http data (%s)\n", buf);
+			tmp = strchr(host, ':');
 
-			/* analizujemy otrzymane dane. */
-			tmp = buf;
-
-#ifdef GG_CONFIG_HAVE_OPENSSL
-			if (!sess->ssl)
-#endif
-			{
-				while (*tmp && *tmp != ' ')
-					tmp++;
-				while (*tmp && *tmp == ' ')
-					tmp++;
-			}
-			while (*tmp && *tmp != ' ')
-				tmp++;
-			while (*tmp && *tmp == ' ')
-				tmp++;
-			host = tmp;
-			while (*tmp && *tmp != ' ')
-				tmp++;
-			*tmp = 0;
-
-			if ((tmp = strchr(host, ':'))) {
+			if (tmp != NULL) {
 				*tmp = 0;
 				port = atoi(tmp + 1);
 			}
 
-			if (!strcmp(host, "notoperating")) {
+			if (strcmp(host, "notoperating") == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
 				sess->fd = -1;
 				goto fail_unavailable;
@@ -677,17 +734,19 @@ goto_GG_STATE_CONNECT_HUB:
 			addr.s_addr = inet_addr(host);
 			sess->server_addr = addr.s_addr;
 
-			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port) {
-				sess->connect_addr = sess->proxy_addr;
-				sess->connect_port[0] = sess->proxy_port;
-				sess->connect_port[1] = 0;
-			} else {
-				sess->connect_addr = addr.s_addr;
-				sess->connect_port[0] = port;
-				sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
-			}
+			free(sess->recv_buf);
+			sess->recv_buf = NULL;
+			sess->recv_done = 0;
 
-			sess->state = GG_STATE_CONNECT_GG;
+			sess->connect_addr = addr.s_addr;
+			sess->connect_port[0] = port;
+			sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
+			if (sess->state == GG_STATE_READING_PROXY_HUB) {
+				sess->state = GG_STATE_CONNECT_PROXY_GG;
+				goto goto_GG_STATE_CONNECT_XXX;
+			} else {
+				sess->state = GG_STATE_CONNECT_GG;
+			}
 
 			/* fall through */
 		}
@@ -697,7 +756,7 @@ goto_GG_STATE_CONNECT_HUB:
 			uint16_t port;
 
 goto_GG_STATE_CONNECT_GG:
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECT_GG\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
@@ -726,9 +785,7 @@ goto_GG_STATE_CONNECT_GG:
 
 		case GG_STATE_CONNECTING_GG:
 		{
-			int res;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			sess->soft_timeout = 0;
 
@@ -740,48 +797,31 @@ goto_GG_STATE_CONNECT_GG:
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");
 
-			if (gg_proxy_http_only)
-				sess->proxy_port = 0;
+			// XXX TLS
+			sess->state = GG_STATE_READING_KEY;
+			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+			break;
+		}
 
-			/* jeśli mamy proxy, wyślijmy zapytanie. */
-			if (sess->proxy_addr && sess->proxy_port) {
-				char buf[100], *auth = gg_proxy_auth();
-				struct in_addr addr;
+		case GG_STATE_SEND_PROXY_GG:
+		{
+			char buf[128], *auth;
+			struct in_addr addr;
 
-				if (sess->server_addr)
-					addr.s_addr = sess->server_addr;
-				else
-					addr.s_addr = sess->hub_addr;
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
-				snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n", inet_ntoa(addr), sess->port);
+goto_GG_STATE_SEND_PROXY_GG:
+			if (sess->server_addr)
+				addr.s_addr = sess->server_addr;
+			else
+				addr.s_addr = sess->hub_addr;
 
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n//   %s", buf);
+			auth = gg_proxy_auth();
 
-				/* wysyłamy zapytanie. jest ono na tyle krótkie,
-				 * że musi się zmieścić w buforze gniazda. jeśli
-				 * write() zawiedzie, stało się coś złego. */
-				if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
-					free(auth);
-					goto fail_connecting;
-				}
+			snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n%s\r\n", inet_ntoa(addr), sess->port, (auth) ? auth : "");
 
-				if (auth) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "//   %s", auth);
-					if (write(sess->fd, auth, strlen(auth)) < (signed)strlen(auth)) {
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
-						free(auth);
-						goto fail_connecting;
-					}
-
-					free(auth);
-				}
-
-				if (write(sess->fd, "\r\n", 2) < 2) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
-					goto fail_connecting;
-				}
-			}
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n//   %s", buf);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 			if (sess->ssl) {
@@ -795,9 +835,22 @@ goto_GG_STATE_CONNECT_GG:
 			}
 #endif
 
-			sess->state = GG_STATE_READING_KEY;
-			sess->check = GG_CHECK_READ;
-			sess->timeout = GG_DEFAULT_TIMEOUT;
+			res = gg_write(sess, buf, strlen(buf));
+
+			if (res == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
+				goto fail_writing;
+			}
+
+			if (res < strlen(buf)) {
+				sess->state = GG_STATE_SENDING_PROXY_GG;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+			} else {
+				sess->state = GG_STATE_READING_PROXY_GG;
+				sess->check = GG_CHECK_READ;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+			}
 
 			break;
 		}
@@ -805,10 +858,9 @@ goto_GG_STATE_CONNECT_GG:
 #ifdef GG_CONFIG_HAVE_OPENSSL
 		case GG_STATE_TLS_NEGOTIATION:
 		{
-			int res;
 			X509 *peer;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if ((res = SSL_connect(sess->ssl)) <= 0) {
 				int err = SSL_get_error(sess->ssl, res);
@@ -880,6 +932,93 @@ goto_GG_STATE_CONNECT_GG:
 		}
 #endif
 
+		case GG_STATE_READING_PROXY_GG:
+		{
+			char buf[256];
+			int res;
+			int reply;
+			const char *body;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
+
+			res = read(sess->fd, buf, sizeof(buf));
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+
+			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
+				res = 0;
+				break;
+			}
+
+			if (res == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
+				// XXX kolejny port
+				goto fail_connecting;
+			}
+
+			if (res != 0) {
+				char *tmp;
+
+				tmp = realloc(sess->recv_buf, sess->recv_done + res + 1);
+
+				if (tmp == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
+					// XXX kolejny port
+					goto fail_completely;
+				}
+
+				sess->recv_buf = tmp;
+				memcpy(sess->recv_buf + sess->recv_done, buf, res);
+				sess->recv_done += res;
+				sess->recv_buf[sess->recv_done] = 0;
+			}
+
+			if (res == 0 && sess->recv_buf == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
+				// XXX kolejny port
+				goto fail_connecting;
+			}
+
+			body = gg_http_find_body(sess->recv_buf, sess->recv_done);
+
+			if (res != 0 && body == NULL)
+				break;
+
+			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// complete! %s", sess->recv_buf);
+
+			res = sscanf(sess->recv_buf, "HTTP/1.%*d %3d ", &reply);
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "res = %d, reply = %d\n", res, reply);
+
+			/* sprawdzamy, czy wszystko w porządku. */
+			if (res != 1 || reply != 200) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
+				// XXX kolejny port
+				goto fail_connecting;
+			}
+
+			if (body == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't find body\n");
+				// XXX kolejny port
+				goto fail_connecting;
+			}
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
+
+			// XXX jeśli zbuforowaliśmy za dużo, przeanalizuj
+
+			free(sess->recv_buf);
+			sess->recv_buf = NULL;
+			sess->recv_done = 0;
+
+			sess->state = GG_STATE_READING_KEY;
+			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			break;
+		}
+
 		case GG_STATE_READING_KEY:
 		case GG_STATE_READING_REPLY:
 		case GG_STATE_CONNECTED:
@@ -918,55 +1057,18 @@ goto_GG_STATE_CONNECT_GG:
 			if (gg_session_handle_data(sess, buf, res, e) == -1)
 				goto fail_completely;
 
-#if 0
-			// XXX jeśli pakiet gotowy, dawaj czadu!
-
-			struct gg_header *h;
-			struct gg_welcome *w;
-			unsigned char *password = (unsigned char*) sess->password;
-			int ret;
-			uint8_t hash_buf[64];
-			uint32_t local_ip;
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
-
-			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
-			 * się tekstu wrzucanego przez proxy. */
-			if (sess->proxy_addr && sess->proxy_port) {
-				char buf[100];
-
-				strcpy(buf, "");
-				gg_read_line(sess->fd, buf, sizeof(buf) - 1);
-				gg_chomp(buf);
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy response:\n//   %s\n", buf);
-
-				while (strcmp(buf, "")) {
-					gg_read_line(sess->fd, buf, sizeof(buf) - 1);
-					gg_chomp(buf);
-					if (strcmp(buf, ""))
-						gg_debug_session(sess, GG_DEBUG_MISC, "//   %s\n", buf);
-				}
-
-				/* XXX niech czeka jeszcze raz w tej samej
-				 * fazie. głupio, ale działa. */
-				sess->proxy_port = 0;
-
-				break;
-			}
-#endif
-
 			break;
 		}
 	}
 
 done:
-	if (res == -1) {
-		free(e);
-		e = NULL;
-	} else {
+//	if (res == -1) {
+//		free(e);
+//		e = NULL;
+//	} else {
 		if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED))
 			sess->check |= GG_CHECK_WRITE;
-	}
+//	}
 
 	return e;
 
@@ -976,6 +1078,8 @@ fail_completely:
 
 fail_connecting:
 	if (sess->fd != -1) {
+		int errno2;
+
 		errno2 = errno;
 		close(sess->fd);
 		errno = errno2;
@@ -988,6 +1092,8 @@ fail_connecting:
 
 fail_resolving:
 	if (sess->fd != -1) {
+		int errno2;
+
 		errno2 = errno;
 		close(sess->fd);
 		errno = errno2;
@@ -1003,6 +1109,8 @@ fail_resolving:
 
 fail_writing:
 	if (sess->fd != -1) {
+		int errno2;
+
 		errno2 = errno;
 		close(sess->fd);
 		errno = errno2;
