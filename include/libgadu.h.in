@@ -568,10 +568,13 @@ enum gg_state_t {
 	GG_STATE_CONNECTING_PROXY_GG,
 	GG_STATE_RESOLVE_HUB_SYNC,
 	GG_STATE_RESOLVE_HUB_ASYNC,
-	GG_STATE_RESOLVE_PROXY_SYNC,
-	GG_STATE_RESOLVE_PROXY_ASYNC,
+	GG_STATE_RESOLVE_PROXY_HUB_SYNC,
+	GG_STATE_RESOLVE_PROXY_HUB_ASYNC,
+	GG_STATE_RESOLVE_PROXY_GG_SYNC,
+	GG_STATE_RESOLVE_PROXY_GG_ASYNC,
 	GG_STATE_RESOLVING_HUB,
-	GG_STATE_RESOLVING_PROXY,
+	GG_STATE_RESOLVING_PROXY_HUB,
+	GG_STATE_RESOLVING_PROXY_GG,
 	GG_STATE_SEND_HUB,
 	GG_STATE_SEND_PROXY_HUB,
 	GG_STATE_SEND_PROXY_GG,
@@ -711,6 +714,7 @@ int gg_session_import_contacts(struct gg_session *gs);
 int gg_session_image_request(struct gg_session *gs, uin_t recipient, size_t size, uint32_t crc32);
 int gg_session_image_reply(struct gg_session *gs, uin_t recipient, const char *image, size_t size, uint32_t crc32);
 int gg_session_handle_io(struct gg_session *gs, int condition);
+int gg_session_handle_timeout(struct gg_session *gs);
 struct gg_event *gg_session_get_event(struct gg_session *gs);
 const struct gg_event *gg_session_peek_event(struct gg_session *gs);
 void gg_session_free(struct gg_session *gs);

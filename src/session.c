@@ -477,12 +477,12 @@ static int gg_session_set_status_7(struct gg_session *gs, int status, const char
 				     GG_NEW_STATUS,
 				     &p,
 				     sizeof(p),
-				     (tmp) ? tmp : NULL,
-				     (tmp) ? strlen(tmp) : 0,
+				     (tmp != NULL) ? tmp : NULL,
+				     (tmp != NULL) ? strlen(tmp) : 0,
 				     (time != 0) ? "\0" : NULL,
 				     (time != 0) ? 1 : 0,
-				     (time) ? &new_time : NULL,
-				     (time) ? sizeof(new_time) : 0,
+				     (time != 0) ? &new_time : NULL,
+				     (time != 0) ? sizeof(new_time) : 0,
 				     NULL);
 	}
 
@@ -598,8 +598,6 @@ int gg_session_ping(struct gg_session *gs)
 
 int gg_session_connect(struct gg_session *gs)
 {
-	int port;
-
 	GG_SESSION_CHECK(gs, -1);
 
 	if (!GG_SESSION_IS_IDLE(gs)) {
@@ -612,25 +610,38 @@ int gg_session_connect(struct gg_session *gs)
 		return -1;
 	}
 
-	port = gs->port;
-
-	if (port == 0)
-		port = (gg_proxy_enabled) ? GG_HTTPS_PORT : GG_DEFAULT_PORT;
-
-	if (gg_proxy_enabled) {
-		gs->resolver_host = gg_proxy_host;
-		gs->proxy_port = gg_proxy_port;
-		gs->state = (gs->async) ? GG_STATE_RESOLVE_PROXY_ASYNC : GG_STATE_RESOLVE_PROXY_SYNC;
-	} else if (gs->server_addr == 0) {
-		gs->resolver_host = GG_APPMSG_HOST;
-		gs->proxy_port = 0;
-		gs->state = (gs->async) ? GG_STATE_RESOLVE_HUB_ASYNC : GG_STATE_RESOLVE_HUB_SYNC;
+	if (gs->server_addr == 0) {
+		if (gg_proxy_enabled) {
+			gs->resolver_host = gg_proxy_host;
+			gs->proxy_port = gg_proxy_port;
+			gs->state = (gs->async) ? GG_STATE_RESOLVE_PROXY_HUB_ASYNC : GG_STATE_RESOLVE_PROXY_HUB_SYNC;
+		} else {
+			gs->resolver_host = GG_APPMSG_HOST;
+			gs->proxy_port = 0;
+			gs->state = (gs->async) ? GG_STATE_RESOLVE_HUB_ASYNC : GG_STATE_RESOLVE_HUB_SYNC;
+		}
 	} else {
-		gs->resolver_host = NULL;
 		gs->connect_addr = gs->server_addr;
-		gs->connect_port[0] = port;
-		gs->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
-		gs->state = GG_STATE_CONNECT_GG;
+		gs->connect_index = 0;
+
+		if (gg_proxy_enabled) {
+			gs->resolver_host = gg_proxy_host;
+			gs->proxy_port = gg_proxy_port;
+			gs->connect_port[0] = GG_HTTPS_PORT;
+			gs->connect_port[1] = 0;
+			gs->state = (gs->async) ? GG_STATE_RESOLVE_PROXY_GG_ASYNC : GG_STATE_RESOLVE_PROXY_GG_SYNC;
+		} else {
+			gs->resolver_host = NULL;
+			if (gs->port == 0) {
+				gs->connect_port[0] = GG_DEFAULT_PORT;
+				gs->connect_port[1] = GG_HTTPS_PORT;
+			} else {
+				gs->connect_port[0] = gs->port;
+				gs->connect_port[1] = 0;
+			}
+			gs->state = GG_STATE_CONNECT_GG;
+
+		}
 	}
 
 	// XXX inaczej gg_watch_fd() wyjdzie z timeoutem
@@ -704,6 +715,7 @@ int gg_session_shutdown(struct gg_session *gs)
 
 	return 0;
 }
+
 /**
  * Kończy połączenie z serwerem.
  *
@@ -1387,6 +1399,31 @@ int gg_session_handle_io(struct gg_session *gs, int condition)
 	struct gg_event *ge;
 
 	GG_SESSION_CHECK(gs, -1);
+
+	ge = gg_watch_fd(gs);
+
+	if (ge == NULL)
+		return -1;
+
+	if (gs->event_queue_head == NULL) {
+		gs->event_queue_head = ge;
+		gs->event_queue_tail = ge;
+	} else {
+		// XXX gs->event_queue_tail != NULL
+		gs->event_queue_tail->next = ge;
+		gs->event_queue_tail = ge;
+	}
+
+	return 0;
+}
+
+int gg_session_handle_timeout(struct gg_session *gs)
+{
+	struct gg_event *ge;
+
+	GG_SESSION_CHECK(gs, -1);
+
+	gs->timeout = 0;
 
 	ge = gg_watch_fd(gs);
 

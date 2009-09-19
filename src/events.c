@@ -273,7 +273,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	switch (sess->state) {
 		case GG_STATE_RESOLVE_HUB_SYNC:
-		case GG_STATE_RESOLVE_PROXY_SYNC:
+		case GG_STATE_RESOLVE_PROXY_HUB_SYNC:
+		case GG_STATE_RESOLVE_PROXY_GG_SYNC:
 		{
 			struct in_addr addr;
 
@@ -305,7 +306,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->state == GG_STATE_RESOLVE_HUB_SYNC)
 				sess->state = GG_STATE_CONNECT_HUB;
-			else if (sess->server_addr != 0)
+			else if (sess->state == GG_STATE_RESOLVE_PROXY_HUB_SYNC)
 				sess->state = GG_STATE_CONNECT_PROXY_HUB;
 			else
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
@@ -314,7 +315,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		}
 
 		case GG_STATE_RESOLVE_HUB_ASYNC:
-		case GG_STATE_RESOLVE_PROXY_ASYNC:
+		case GG_STATE_RESOLVE_PROXY_HUB_ASYNC:
+		case GG_STATE_RESOLVE_PROXY_GG_ASYNC:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
@@ -325,8 +327,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->state == GG_STATE_RESOLVE_HUB_ASYNC)
 				sess->state = GG_STATE_RESOLVING_HUB;
+			else if (sess->state == GG_STATE_RESOLVE_PROXY_HUB_ASYNC)
+				sess->state = GG_STATE_RESOLVING_PROXY_HUB;
 			else
-				sess->state = GG_STATE_RESOLVING_PROXY;
+				sess->state = GG_STATE_RESOLVING_PROXY_GG;
+
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
 
@@ -334,7 +339,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		}
 
 		case GG_STATE_RESOLVING_HUB:
-		case GG_STATE_RESOLVING_PROXY:
+		case GG_STATE_RESOLVING_PROXY_HUB:
+		case GG_STATE_RESOLVING_PROXY_GG:
 		{
 			char buf[256];
 			int i, count = -1;
@@ -437,7 +443,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->state == GG_STATE_RESOLVING_HUB)
 				sess->state = GG_STATE_CONNECT_HUB;
-			else if (sess->server_addr != 0)
+			else if (sess->state == GG_STATE_RESOLVING_PROXY_HUB)
 				sess->state = GG_STATE_CONNECT_PROXY_HUB;
 			else
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
@@ -644,8 +650,6 @@ goto_GG_STATE_CONNECT_XXX:
 			}
 
 			if (res != 0) {
-				char *tmp;
-
 				tmp = realloc(sess->recv_buf, sess->recv_done + res + 1);
 
 				if (tmp == NULL) {
@@ -704,8 +708,6 @@ goto_GG_STATE_CONNECT_XXX:
 			/* jeśli pierwsza liczba w linii nie jest równa zeru,
 			 * oznacza to, że mamy wiadomość systemową. */
 			if (reply != 0) {
-				const char *tmp;
-
 				tmp = strchr(body, '\n');
 
 				if (tmp != NULL) {
@@ -713,6 +715,11 @@ goto_GG_STATE_CONNECT_XXX:
 					e->event.msg.msgclass = reply;
 					e->event.msg.sender = 0;
 					e->event.msg.message = (unsigned char*) strdup(tmp + 1);
+
+					if (e->event.msg.message == NULL) {
+						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for system message\n");
+						goto fail_completely;
+					}
 				}
 			}
 
@@ -739,8 +746,15 @@ goto_GG_STATE_CONNECT_XXX:
 			sess->recv_done = 0;
 
 			sess->connect_addr = addr.s_addr;
-			sess->connect_port[0] = port;
-			sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
+
+			if (sess->port == 0) {
+				sess->connect_port[0] = port;
+				sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
+			} else {
+				sess->connect_port[0] = sess->port;
+				sess->connect_port[1] = 0;
+			}
+
 			if (sess->state == GG_STATE_READING_PROXY_HUB) {
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
 				goto goto_GG_STATE_CONNECT_XXX;
@@ -778,8 +792,6 @@ goto_GG_STATE_CONNECT_GG:
 			sess->timeout = GG_DEFAULT_TIMEOUT;
 			sess->soft_timeout = 1;
 
-			sess->port = port;
-
 			break;
 		}
 
@@ -808,18 +820,23 @@ goto_GG_STATE_CONNECT_GG:
 		{
 			char buf[128], *auth;
 			struct in_addr addr;
+			int port;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 goto_GG_STATE_SEND_PROXY_GG:
-			if (sess->server_addr)
-				addr.s_addr = sess->server_addr;
-			else
-				addr.s_addr = sess->hub_addr;
+			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
+				goto fail_connecting;
+			}
 
+			addr.s_addr = sess->connect_addr;
+			port = sess->connect_port[sess->connect_index];
+			sess->connect_index++;
+	
 			auth = gg_proxy_auth();
 
-			snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n%s\r\n", inet_ntoa(addr), sess->port, (auth) ? auth : "");
+			snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n%s\r\n", inet_ntoa(addr), port, (auth) ? auth : "");
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n//   %s", buf);
 
@@ -937,7 +954,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 			char buf[256];
 			int res;
 			int reply;
-			const char *body;
+			char *body;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
@@ -980,7 +997,8 @@ goto_GG_STATE_SEND_PROXY_GG:
 				goto fail_connecting;
 			}
 
-			body = gg_http_find_body(sess->recv_buf, sess->recv_done);
+			// XXX brzydkie rzutowanie const->nonconst
+			body = (char*) gg_http_find_body(sess->recv_buf, sess->recv_done);
 
 			if (res != 0 && body == NULL)
 				break;
@@ -1006,15 +1024,32 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
 
-			// XXX jeśli zbuforowaliśmy za dużo, przeanalizuj
-
-			free(sess->recv_buf);
-			sess->recv_buf = NULL;
-			sess->recv_done = 0;
-
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			// Jeśli zbuforowaliśmy za dużo, przeanalizuj
+
+			if (sess->recv_buf + sess->recv_done > body) {
+				char *ptr;
+				size_t len;
+
+				ptr = sess->recv_buf;
+				len = sess->recv_done - (body - sess->recv_buf);
+				sess->recv_buf = NULL;
+				sess->recv_done = 0;
+
+				if (gg_session_handle_data(sess, body, len, e) == -1) {
+					free(ptr);
+					goto fail_completely;
+				}
+
+				free(ptr);
+			} else {
+				free(sess->recv_buf);
+				sess->recv_buf = NULL;
+				sess->recv_done = 0;
+			}
 
 			break;
 		}
