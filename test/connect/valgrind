@@ -1,5 +1,0 @@
-#!/bin/sh
-LD_LIBRARY_PATH=$(pwd)/../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 .libs/connect "$@" 3> valgrind.log.tmp
-pid=$(head -n 1 valgrind.log.tmp | cut -d' ' -f1)
-grep "^$pid" valgrind.log.tmp > valgrind.log
-rm -f valgrind.log.tmp

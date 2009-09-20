@@ -1070,14 +1070,16 @@ goto_GG_STATE_SEND_PROXY_GG:
 				res = 0;
 				break;
 			}
-
+			
 			if (res == -1 || res == 0) {
 				if (res == -1)
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
 				else
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
 
-				if (sess->state == GG_STATE_READING_KEY) {
+				if (sess->state == GG_STATE_DISCONNECTING && res == 0) {
+					e->type = GG_EVENT_DISCONNECT_ACK;
+				} else if (sess->state == GG_STATE_READING_KEY) {
 					e->type = GG_EVENT_CONN_FAILED;
 					e->event.failure = GG_FAILURE_INVALID;
 					sess->state = GG_STATE_IDLE;

@@ -205,6 +205,38 @@ AC_CHECK_LIB(c, __connect, [
 	OPTIONAL_TESTS=""
 ])
 
-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile test/resolver/Makefile test/convert/Makefile test/message/Makefile test/packet/Makefile])
+dnl
+dnl  Biblioteki do testów
+dnl
+
+AC_SUBST([OPTIONAL_TESTS_VOICE7])
+
+tmp=x
+AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
+AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
+AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
+AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
+
+if test "x$tmp" = "xxxxxx"; then
+	OPTIONAL_TESTS_VOICE7="voice7"
+else
+	OPTIONAL_TESTS_VOICE7=""
+fi
+
+AC_SUBST([OPTIONAL_TESTS_SEARCH])
+
+tmp=x
+AC_CHECK_LIB(curl, curl_easy_init, [tmp="x$tmp"])
+AC_CHECK_HEADERS(curl/curl.h, [tmp="x$tmp"])
+AC_CHECK_LIB(expat, XML_ParserCreate, [tmp="x$tmp"])
+AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
+
+if test "x$tmp" = "xxxxxx"; then
+	if test "x$have_openssl" = "xyes"; then
+		OPTIONAL_TESTS_SEARCH="search"
+	fi
+fi
+
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/automatic/Makefile test/automatic/script/Makefile test/manual/Makefile test/manual/lib/Makefile])
 
 AC_OUTPUT

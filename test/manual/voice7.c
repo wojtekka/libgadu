@@ -1,3 +1,5 @@
+#if 0
+
 /* this test-program is based on ekg1 sources. */
 
 /*
@@ -675,3 +677,11 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+#else
+
+int main(void)
+{
+	return 0;
+}
+
+#endif
