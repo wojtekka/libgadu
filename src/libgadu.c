@@ -704,28 +704,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		goto fail;
 	}
 
-	if (p->status_descr) {
-		int max_length;
-
-		if (p->protocol_version >= 0x2d && p->encoding != GG_ENCODING_UTF8) {
-			sess->initial_descr = gg_cp_to_utf8(p->status_descr);
-			max_length = GG_STATUS_DESCR_MAXSIZE;
-		} else {
-			sess->initial_descr = strdup(p->status_descr);
-			max_length = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
-		}
-
-		if (!sess->initial_descr) {
-			gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for status\n");
-			goto fail;
-		}
-		
-		// XXX pamiętać, żeby nie ciąć w środku znaku utf-8
-		
-		if (strlen(sess->initial_descr) > max_length)
-			sess->initial_descr[max_length] = 0;
-	}
-	
 	if (p->hash_type < 0 || p->hash_type > GG_LOGIN_HASH_SHA1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unknown hash type (%d)\n", p->hash_type);
 		errno = EFAULT;
@@ -747,6 +725,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->external_addr = p->external_addr;
 	sess->protocol_features = p->protocol_features;
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
+
 	if (p->era_omnix)
 		sess->protocol_flags |= GG_ERA_OMNIX_MASK;
 	if (p->has_audio)
@@ -761,6 +740,30 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unsupported resolver type (%d)\n", p->resolver);
 		errno = EFAULT;
 		goto fail;
+	}
+
+	if (p->status_descr) {
+		int max_length;
+
+		if (sess->protocol_version >= 0x2d)
+			max_length = GG_STATUS_DESCR_MAXSIZE;
+		else
+			max_length = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
+
+		if (sess->protocol_version >= 0x2d && p->encoding != GG_ENCODING_UTF8)
+			sess->initial_descr = gg_cp_to_utf8(p->status_descr);
+		else
+			sess->initial_descr = strdup(p->status_descr);
+
+		if (!sess->initial_descr) {
+			gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for status\n");
+			goto fail;
+		}
+		
+		// XXX pamiętać, żeby nie ciąć w środku znaku utf-8
+		
+		if (strlen(sess->initial_descr) > max_length)
+			sess->initial_descr[max_length] = 0;
 	}
 
 	if (p->tls == 1) {
