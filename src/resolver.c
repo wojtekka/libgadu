@@ -92,9 +92,10 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 	char *new_buf = NULL;
 	struct hostent he;
 	struct hostent *he_ptr = NULL;
-	int h_errnop, ret;
 	size_t buf_len = 1024;
 	int result = -1;
+	int h_errnop;
+	int ret = 0;
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	int old_state;
 #endif
@@ -144,21 +145,21 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 
 		if (ret == 0 && he_ptr != NULL) {
 			memcpy(addr, he_ptr->h_addr, sizeof(struct in_addr));
-#ifdef GG_CONFIG_HAVE_PTHREAD
-			if (pthread)
-				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
-#endif
-
-			free(buf);
-			buf = NULL;
-
-#ifdef GG_CONFIG_HAVE_PTHREAD
-			if (pthread)
-				pthread_setcancelstate(old_state, NULL);
-#endif
-
 			result = 0;
 		}
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		if (pthread)
+			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
+		free(buf);
+		buf = NULL;
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		if (pthread)
+			pthread_setcancelstate(old_state, NULL);
+#endif
 	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
