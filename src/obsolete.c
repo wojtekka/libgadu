@@ -213,4 +213,19 @@ void gg_change_info_request_free(struct gg_change_info_request *r)
 
 }
 
+int gg_resolve(int *fd, int *pid, const char *hostname)
+{
+	return -1;
+}
+
+void gg_resolve_pthread_cleanup(void *arg, int kill)
+{
+
+}
+
+int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
+{
+	return -1;
+}
+
 /** \endcond */
