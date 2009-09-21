@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  *  (C) Copyright 2008-2009 Jakub Zawadzki <darkjames@darkjames.ath.cx>
  *                          Wojtek Kaniewski <wojtekka@irc.pl>

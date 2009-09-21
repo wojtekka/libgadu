@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  *  (C) Copyright 2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *

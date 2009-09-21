@@ -1,5 +1,3 @@
-/* $Id: register.c 299 2002-02-06 21:40:00Z wojtekka $ */
-
 #include <stdio.h>
 #include <string.h>
 #include "libgadu.h"

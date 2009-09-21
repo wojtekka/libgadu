@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id$
 
 echo aclocal && aclocal -I m4 || exit 1
 echo autoheader && autoheader || exit 1

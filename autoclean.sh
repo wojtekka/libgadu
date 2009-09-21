@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id$
 
 rm -rf \
 	aclocal.m4 \

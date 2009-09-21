@@ -1,5 +1,3 @@
-dnl $Id$
-
 AC_INIT(src/libgadu.c)
 AM_INIT_AUTOMAKE(libgadu, 1.10.0-pre)
 
