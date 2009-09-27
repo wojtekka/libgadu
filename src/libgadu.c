@@ -1241,6 +1241,8 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
 {
 	struct gg_send_msg s;
+	char *cp_msg = NULL;
+	int seq_no;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
 
@@ -1259,17 +1261,27 @@ int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipi
 		return -1;
 	}
 
-	s.recipient = gg_fix32(recipient);
+	if (sess->encoding == GG_ENCODING_UTF8) {
+		if (!(cp_msg = gg_utf8_to_cp((const char *) message)))
+			return -1;
+
+		message = (unsigned char *) cp_msg;
+	}
+
 	if (!sess->seq)
 		sess->seq = 0x01740000 | (rand() & 0xffff);
-	s.seq = gg_fix32(sess->seq);
-	s.msgclass = gg_fix32(msgclass);
+	seq_no = sess->seq;
 	sess->seq += (rand() % 0x300) + 0x300;
 
-	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
-		return -1;
+	s.msgclass = gg_fix32(msgclass);
+	s.recipient = gg_fix32(recipient);
+	s.seq = gg_fix32(seq_no);
 
-	return gg_fix32(s.seq);
+	if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
+		seq_no = -1;
+
+	free(cp_msg);
+	return seq_no;
 }
 
 /**
