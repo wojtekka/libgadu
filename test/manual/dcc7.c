@@ -15,6 +15,7 @@
 
 #include <libgadu.h>
 #include "../../include/compat.h"
+#include "userconfig.h"
 
 #define debug(msg...) \
 	do { \
@@ -23,15 +24,6 @@
 		fprintf(stderr, "\033[0m"); \
 		fflush(stderr); \
 	} while(0)
-
-unsigned int config_uin;
-char *config_password;
-unsigned int config_peer;
-char *config_file;
-char *config_dir;
-unsigned int config_size = 1048576;
-unsigned long config_ip = 0xffffffff;
-unsigned int config_port;
 
 int test_mode;
 int connected;
@@ -60,59 +52,6 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return __connect(socket, address, address_len);
 }
 
-int config_read(void)
-{
-	char buf[256];
-	FILE *f;
-
-	if (!(f = fopen("config", "r"))) {
-		if (!(f = fopen("../config", "r")))
-			return -1;
-	}
-
-	while (fgets(buf, sizeof(buf), f)) {
-		while (strlen(buf) > 0 && isspace(buf[strlen(buf) - 1]))
-			buf[strlen(buf) - 1] = 0;
-
-		if (!strncmp(buf, "uin ", 4))
-			config_uin = atoi(buf + 4);
-
-		if (!strncmp(buf, "password ", 9))
-			config_password = strdup(buf + 9);
-
-		if (!strncmp(buf, "peer ", 5))
-			config_peer = atoi(buf + 5);
-
-		if (!strncmp(buf, "file ", 5))
-			config_file = strdup(buf + 5);
-
-		if (!strncmp(buf, "dir ", 4))
-			config_dir = strdup(buf + 4);
-
-		if (!strncmp(buf, "size ", 5))
-			config_size = atoi(buf + 5);
-
-		if (!strncmp(buf, "ip ", 3))
-			config_ip = inet_addr(buf + 3);
-
-		if (!strncmp(buf, "port ", 5))
-			config_port = atoi(buf + 5);
-	}
-
-	fclose(f);
-
-	if (!config_uin || !config_password || !config_peer)
-		return -1;
-
-	return 0;
-}
-
-void config_free(void)
-{
-	free(config_password);
-	free(config_file);
-}
-
 int main(int argc, char **argv)
 {
 	struct gg_session *gs;
@@ -135,7 +74,7 @@ int main(int argc, char **argv)
 
 	test_mode = atoi(argv[1]);
 
-	if (config_read() == -1) {
+	if (config_read() == -1 || config_peer == 0) {
 		perror("config");
 		exit(1);
 	}

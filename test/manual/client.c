@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <arpa/inet.h>
 #include "libgadu.h"
+#include "userconfig.h"
 
 int disconnect_flag;
 
@@ -20,7 +21,7 @@ void sigint(int sig)
 
 void usage(const char *argv0)
 {
-	printf("usage: %s [OPTIONS] <uin> <password>\n"
+	printf("usage: %s [OPTIONS] [uin [password]]\n"
 		"\n"
 		"  -s ADRES[:PORT]  direct server connection\n"
 		"  -p ADRES:PORT    use proxy server\n"
@@ -76,10 +77,9 @@ int main(int argc, char **argv)
 
 	gg_session_set_async(gs, 1);
 
-	while ((ch = getopt(argc, argv, "DShHs:p:l:y")) != -1) {
-		char *host;
-		int port;
+	config_read();
 
+	while ((ch = getopt(argc, argv, "DShHs:p:l:y")) != -1) {
 		switch (ch) {
 			case 'D':
 				gg_debug_level = 0;
@@ -90,16 +90,13 @@ int main(int argc, char **argv)
 				break;
 
 			case 's':
-				parse_address(optarg, &host, &port);
-				gg_session_set_server(gs, inet_addr(host), port);
-				free(host);
+				free(config_server);
+				config_server = strdup(optarg);
 				break;
 
 			case 'p':
-				parse_address(optarg, &host, &port);
-				gg_proxy_enabled = 1;
-				gg_proxy_host = host;
-				gg_proxy_port = port;
+				free(config_proxy);
+				config_proxy = strdup(optarg);
 				break;
 
 			case 'H':
@@ -126,14 +123,43 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (argc - optind < 2) {
+	if (argc - optind >= 1) {
+		config_uin = atoi(argv[optind]);
+		optind++;
+
+		if (argc - optind >= 1) {
+			free(config_password);
+			config_password = strdup(argv[optind]);
+		}
+	}
+
+	if (config_uin == 0 || config_password == NULL) {
 		usage(argv[0]);
 		gg_session_free(gs);
 		return 1;
 	}
 
-	gg_session_set_uin(gs, atoi(argv[optind]));
-	gg_session_set_password(gs, argv[optind + 1]);
+	if (config_server != NULL) {
+		char *host;
+		int port;
+
+		parse_address(config_server, &host, &port);
+		gg_session_set_server(gs, inet_addr(host), port);
+		free(host);
+	}
+
+	if (config_proxy != NULL) {
+		char *host;
+		int port;
+
+		parse_address(optarg, &host, &port);
+		gg_proxy_enabled = 1;
+		gg_proxy_host = host;
+		gg_proxy_port = port;
+	}
+
+	gg_session_set_uin(gs, config_uin);
+	gg_session_set_password(gs, config_password);
 
 	signal(SIGINT, sigint);
 
@@ -226,6 +252,8 @@ int main(int argc, char **argv)
 	free(gg_proxy_host);
 	
 	gg_session_free(gs);
+
+	config_free();
 
 	return 0;
 }

@@ -1,0 +1,12 @@
+#!/bin/sh
+NAME=$(echo "$0" | sed -e 's/.*\///' -e 's/-\?valgrind$//')
+if [ -z "$NAME" ]; then
+	echo "Not to be run directly"
+	exit 1
+fi
+TEMP=$(mktemp $NAME.log.XXXXXX)
+trap 'rm -f "$TEMP"; trap 2; kill -2 $$' 1 2 3 13 15
+LD_LIBRARY_PATH=../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 "./.libs/$NAME" "$@" 3> "$TEMP"
+pid=$(head -n 1 "$TEMP" | cut -d' ' -f1)
+grep "^$pid" "$TEMP" > "$NAME.log"
+rm -f "$TEMP"

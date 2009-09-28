@@ -15,3 +15,6 @@ script/script.c:       $(wildcard script/*.scr) script/compile
 
 clean-local:
 	rm -f *.html *.log
+
+all-local:	$(noinst_PROGRAMS)
+	for i in $(noinst_PROGRAMS); do ln -s ../valgrind $${i}-valgrind; done
