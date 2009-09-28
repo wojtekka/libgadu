@@ -129,6 +129,22 @@ int gg_session_set_password(struct gg_session *gs, const char *password)
 	return 0;
 }
 
+int gg_session_set_data(struct gg_session *gs, void *data)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	gs->data_ptr = data;
+
+	return 0;
+}
+
+void *gg_session_get_data(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, NULL);
+
+	return gs->data_ptr;
+}
+
 const char *gg_session_get_password(struct gg_session *gs)
 {
 	GG_SESSION_CHECK(gs, NULL);

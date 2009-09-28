@@ -178,7 +178,7 @@ int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int fr
 
 /** \endcond */
 
-int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
+static int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 {
 	int res = 0;
 	unsigned int res_size = sizeof(res);
@@ -204,6 +204,41 @@ int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 	return 0;
 }
 
+static int gg_send_queued_data(struct gg_session *sess)
+{
+	int res;
+
+	if (sess->send_buf == NULL || sess->send_left == 0)
+		return 0;
+
+	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
+
+	res = write(sess->fd, sess->send_buf, sess->send_left);
+
+	if (res == -1) {
+		if (errno == EAGAIN || errno == EINTR)
+			return 0;
+			
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
+
+		return -1;
+	}
+
+	if (res == sess->send_left) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent all queued data\n");
+		free(sess->send_buf);
+		sess->send_buf = NULL;
+		sess->send_left = 0;
+	} else if (res > 0) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent %d bytes of queued data, %d bytes left\n", res, sess->send_left - res);
+
+		memmove(sess->send_buf, sess->send_buf + res, sess->send_left - res);
+		sess->send_left -= res;
+	}
+
+	return 0;
+}
+
 /**
  * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.
  *
@@ -220,7 +255,6 @@ int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 struct gg_event *gg_watch_fd(struct gg_session *sess)
 {
 	struct gg_event *e;
-	int res;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd(%p, %s)\n", sess, (sess != NULL) ? gg_debug_state(sess->state) : "GG_STATE_NONE");
 
@@ -242,33 +276,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	e->type = GG_EVENT_NONE;
 
-	if (sess->send_buf && (sess->state == GG_STATE_SENDING_HUB || sess->state == GG_STATE_SENDING_PROXY_HUB || sess->state == GG_STATE_SENDING_PROXY_GG || sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED)) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
-
-		res = write(sess->fd, sess->send_buf, sess->send_left);
-
-		if (res == -1 && errno != EAGAIN) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
-
-			if (sess->state == GG_STATE_READING_REPLY)
-				goto fail_connecting;
-			else
-				goto done;
-		}
-
-		if (res == sess->send_left) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent all queued data\n");
-			free(sess->send_buf);
-			sess->send_buf = NULL;
-			sess->send_left = 0;
-		} else if (res > 0) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sent %d bytes of queued data, %d bytes left\n", res, sess->send_left - res);
-
-			memmove(sess->send_buf, sess->send_buf + res, sess->send_left - res);
-			sess->send_left -= res;
-		}
-	}
-
 	switch (sess->state) {
 		case GG_STATE_RESOLVE_HUB_SYNC:
 		case GG_STATE_RESOLVE_PROXY_HUB_SYNC:
@@ -284,7 +291,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				if (gg_gethostbyname(sess->resolver_host, &addr_list, &addr_count, 0) == -1) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host %s not found\n", sess->resolver_host);
-					goto fail_resolving;
+					e->event.failure = GG_FAILURE_RESOLVING;
+					goto fail;
 				}
 
 				sess->resolver_result = addr_list;
@@ -294,7 +302,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->resolver_result = malloc(sizeof(struct in_addr));
 				if (sess->resolver_result == NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory\n");
-					goto fail_completely;
+					goto fail;
 				}
 
 				sess->resolver_result[0].s_addr = addr.s_addr;
@@ -320,7 +328,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->resolver_start(&sess->fd, &sess->resolver, sess->resolver_host) == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
-				goto fail_resolving;
+				e->event.failure = GG_FAILURE_RESOLVING;
+				goto fail;
 			}
 
 			if (sess->state == GG_STATE_RESOLVE_HUB_ASYNC)
@@ -341,7 +350,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_RESOLVING_PROXY_GG:
 		{
 			char buf[256];
-			int i, count = -1;
+			int count = -1;
+			int res;
+			int i;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
@@ -355,8 +366,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (res == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
-
-				goto fail_resolving;
+				e->event.failure = GG_FAILURE_RESOLVING;
+				goto fail;
 			}
 
 			if (res > 0) {
@@ -365,7 +376,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				tmp = realloc(sess->recv_buf, sess->recv_done + res);
 
 				if (tmp == NULL)
-					goto fail_completely;
+					goto fail;
 
 				sess->recv_buf = tmp;
 				memcpy(sess->recv_buf + sess->recv_done, buf, res);
@@ -385,14 +396,16 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (count == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host not found\n");
-				goto fail_resolving;
+				e->event.failure = GG_FAILURE_RESOLVING;
+				goto fail;
 			}
 
 			/* Nie mamy pełnej listy, ale połączenie zerwane */
 
 			if (res == 0 && count == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection broken\n");
-				goto fail_resolving;
+				e->event.failure = GG_FAILURE_RESOLVING;
+				goto fail;
 			}
 
 			/* Nie mamy pełnej listy, normalna sytuacja */
@@ -417,7 +430,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				list = malloc(len + 1);
 
 				if (list == NULL)
-					goto fail_completely;
+					goto fail;
 
 				list[0] = 0;
 
@@ -467,7 +480,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (sess->resolver_index >= sess->resolver_count) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of address to connect to\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			addr = sess->resolver_result[sess->resolver_index];
@@ -508,6 +522,8 @@ goto_GG_STATE_CONNECT_XXX:
 		case GG_STATE_CONNECTING_PROXY_HUB:
 		case GG_STATE_CONNECTING_PROXY_GG:
 		{
+			int res;
+
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			/* jeśli asynchroniczne, sprawdzamy, czy nie wystąpił
@@ -535,12 +551,13 @@ goto_GG_STATE_CONNECT_XXX:
 		{
 			char buf[1024], *client, *auth;
 			const char *host;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
-				goto fail_connecting;
+				goto fail;
 			}
 
 			if (sess->state == GG_STATE_SEND_PROXY_HUB)
@@ -578,7 +595,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (res == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
-				goto fail_writing;
+				e->event.failure = GG_FAILURE_WRITING;
+				goto fail;
 			}
 
 			if (res < strlen(buf)) {
@@ -606,6 +624,11 @@ goto_GG_STATE_CONNECT_XXX:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
+			if (gg_send_queued_data(sess) == -1) {
+				e->event.failure = GG_FAILURE_WRITING;
+				break;
+			}
+
 			if (sess->send_left > 0)
 				break;
 
@@ -629,6 +652,7 @@ goto_GG_STATE_CONNECT_XXX:
 			int reply;
 			const char *body;
 			struct in_addr addr;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
@@ -638,13 +662,13 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
-				res = 0;
 				break;
 			}
 
 			if (res == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			if (res != 0) {
@@ -652,7 +676,7 @@ goto_GG_STATE_CONNECT_XXX:
 
 				if (tmp == NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
-					goto fail_completely;
+					goto fail;
 				}
 
 				sess->recv_buf = tmp;
@@ -663,7 +687,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (res == 0 && sess->recv_buf == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			if (res != 0 && !gg_http_is_complete(sess->recv_buf, sess->recv_done))
@@ -678,14 +703,16 @@ goto_GG_STATE_CONNECT_XXX:
 			/* sprawdzamy, czy wszystko w porządku. */
 			if (res != 1 || reply != 200) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			body = gg_http_find_body(sess->recv_buf, sess->recv_done);
 
 			if (body == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't find body\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			// 17591 0 91.197.13.71:8074 91.197.13.71
@@ -698,7 +725,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (res != 2) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid hub reply, connection failed\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "reply=%d, host=\"%s\"\n", reply, host);
@@ -716,12 +744,13 @@ goto_GG_STATE_CONNECT_XXX:
 
 					if (e->event.msg.message == NULL) {
 						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for system message\n");
-						goto fail_completely;
+						goto fail;
 					}
 				}
 			}
 
 			close(sess->fd);
+			sess->fd = -1;
 
 			tmp = strchr(host, ':');
 
@@ -732,8 +761,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (strcmp(host, "notoperating") == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
-				sess->fd = -1;
-				goto fail_unavailable;
+				e->event.failure = GG_FAILURE_UNAVAILABLE;
+				goto fail;
 			}
 
 			addr.s_addr = inet_addr(host);
@@ -772,7 +801,8 @@ goto_GG_STATE_CONNECT_GG:
 
 			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_UNAVAILABLE;
+				goto fail;
 			}
 
 			port = sess->connect_port[sess->connect_index];
@@ -795,6 +825,8 @@ goto_GG_STATE_CONNECT_GG:
 
 		case GG_STATE_CONNECTING_GG:
 		{
+			int res;
+
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			sess->soft_timeout = 0;
@@ -819,13 +851,15 @@ goto_GG_STATE_CONNECT_GG:
 			char buf[128], *auth;
 			struct in_addr addr;
 			int port;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 goto_GG_STATE_SEND_PROXY_GG:
 			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			addr.s_addr = sess->connect_addr;
@@ -854,7 +888,8 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 			if (res == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
-				goto fail_writing;
+				e->event.failure = GG_FAILURE_WRITING;
+				goto fail;
 			}
 
 			if (res < strlen(buf)) {
@@ -874,6 +909,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 		case GG_STATE_TLS_NEGOTIATION:
 		{
 			X509 *peer;
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
@@ -962,14 +998,14 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
-				res = 0;
 				break;
 			}
 
 			if (res == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
 				// XXX kolejny port
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			if (res != 0) {
@@ -980,7 +1016,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 				if (tmp == NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
 					// XXX kolejny port
-					goto fail_completely;
+					goto fail;
 				}
 
 				sess->recv_buf = tmp;
@@ -992,7 +1028,8 @@ goto_GG_STATE_SEND_PROXY_GG:
 			if (res == 0 && sess->recv_buf == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection closed\n");
 				// XXX kolejny port
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			// XXX brzydkie rzutowanie const->nonconst
@@ -1011,13 +1048,15 @@ goto_GG_STATE_SEND_PROXY_GG:
 			if (res != 1 || reply != 200) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
 				// XXX kolejny port
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			if (body == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't find body\n");
 				// XXX kolejny port
-				goto fail_connecting;
+				e->event.failure = GG_FAILURE_CONNECTING;
+				goto fail;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
@@ -1031,18 +1070,19 @@ goto_GG_STATE_SEND_PROXY_GG:
 			if (sess->recv_buf + sess->recv_done > body) {
 				char *ptr;
 				size_t len;
+				int res;
 
 				ptr = sess->recv_buf;
 				len = sess->recv_done - (body - sess->recv_buf);
 				sess->recv_buf = NULL;
 				sess->recv_done = 0;
 
-				if (gg_session_handle_data(sess, body, len, e) == -1) {
-					free(ptr);
-					goto fail_completely;
-				}
+				res = gg_session_handle_data(sess, body, len, e);
 
 				free(ptr);
+
+				if (res == -1)
+					goto fail;
 			} else {
 				free(sess->recv_buf);
 				sess->recv_buf = NULL;
@@ -1058,14 +1098,17 @@ goto_GG_STATE_SEND_PROXY_GG:
 		case GG_STATE_DISCONNECTING:
 		{
 			char buf[1024];
+			int res;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
+
+			if (gg_send_queued_data(sess) == -1)
+				goto fail;
 
 			res = read(sess->fd, buf, sizeof(buf));
 
 			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
-				res = 0;
 				break;
 			}
 			
@@ -1083,49 +1126,27 @@ goto_GG_STATE_SEND_PROXY_GG:
 					sess->state = GG_STATE_IDLE;
 					res = 0;
 				} else {
-					goto fail_completely;
+					goto fail;
 				}
 
 				break;
 			}
 
 			if (gg_session_handle_data(sess, buf, res, e) == -1)
-				goto fail_completely;
+				goto fail;
 
-			break;
+			if (sess->send_buf != NULL)
+				sess->check |= GG_CHECK_WRITE;
 		}
 	}
 
-done:
-//	if (res == -1) {
-//		free(e);
-//		e = NULL;
-//	} else {
-		if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED))
-			sess->check |= GG_CHECK_WRITE;
-//	}
-
 	return e;
 
-fail_completely:
-	free(e);
-	return NULL;
+fail:
+	sess->resolver_cleanup(&sess->resolver, 1);
 
-fail_connecting:
-	if (sess->fd != -1) {
-		int errno2;
-
-		errno2 = errno;
-		close(sess->fd);
-		errno = errno2;
-		sess->fd = -1;
-	}
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_CONNECTING;
 	sess->state = GG_STATE_IDLE;
-	goto done;
 
-fail_resolving:
 	if (sess->fd != -1) {
 		int errno2;
 
@@ -1135,35 +1156,13 @@ fail_resolving:
 		sess->fd = -1;
 	}
 
-	sess->resolver_cleanup(&sess->resolver, 0);
-
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_RESOLVING;
-	sess->state = GG_STATE_IDLE;
-	goto done;
-
-fail_writing:
-	if (sess->fd != -1) {
-		int errno2;
-
-		errno2 = errno;
-		close(sess->fd);
-		errno = errno2;
-		sess->fd = -1;
+	if (e->event.failure != 0) {
+		e->type = GG_EVENT_CONN_FAILED;
+		return e;
+	} else {
+		free(e);
+		return NULL;
 	}
-
-	sess->resolver_cleanup(&sess->resolver, 0);
-
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_WRITING;
-	sess->state = GG_STATE_IDLE;
-	goto done;
-
-fail_unavailable:
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_UNAVAILABLE;
-	sess->state = GG_STATE_IDLE;
-	goto done;
 }
 
 /*

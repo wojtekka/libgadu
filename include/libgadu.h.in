@@ -317,6 +317,7 @@ struct gg_session {
 	int connect_index;			/**< Indeks aktualnie obsługiwanego portu */
 
 	int last_packet_type;			/**< Typ ostatnio odebranego pakietu */
+	void *data_ptr;				/**< Prywatne dane aplikacji */
 };
 
 /**
@@ -669,6 +670,8 @@ int gg_session_set_uin(struct gg_session *gs, uin_t uin);
 uin_t gg_session_get_uin(struct gg_session *gs);
 int gg_session_set_password(struct gg_session *gs, const char *password);
 const char *gg_session_get_password(struct gg_session *gs);
+int gg_session_set_private(struct gg_session *gs, void *priv);
+void *gg_session_get_private(struct gg_session *gs);
 int gg_session_set_async(struct gg_session *gs, int async);
 int gg_session_get_async(struct gg_session *gs);
 int gg_session_set_hash_type(struct gg_session *gs, gg_login_hash_t hash_type);
