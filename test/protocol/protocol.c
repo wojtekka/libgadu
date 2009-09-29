@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < script[state].data_len; i++) {
 					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
-						error(state, "Received invalid data at offset %d: expected %d, received %d\n", i, script[state].data[i], inbuf[i]);
+						error(state, "Received invalid data at offset %d: expected 0x%02x, received 0x%02x\n", i, script[state].data[i], inbuf[i]);
 						exit(1);
 					}
 				}
