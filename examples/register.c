@@ -19,40 +19,38 @@ void sigchld(int sig)
 
 #endif
 
-int main(void)
+int main(int argc, char **argv)
 {
 	struct gg_http *h;
 	struct gg_pubdir *p;
-	char email[100], password[100];
+	const char *email;
+	const char *password;
+	const char *tokenid;
+	const char *tokenval;
+
+	if (argc < 5) {
+		printf("Użycie: %s <e-mail> <hasło> <id-tokenu> <wartość-tokenu>\n", argv[0]);
+		return 1;
+	}
+
+	email = argv[1];
+	password = argv[2];
+	tokenid = argv[3];
+	tokenval = argv[4];
 
 	gg_debug_level = 255;
 	
-	printf("e-mail: ");
-	if (fgets(email, 99, stdin) == NULL)
-		return 1;
-	if (email[strlen(email)-1] == '\n')
-		email[strlen(email)-1] = 0;
-	printf("password: ");
-	if (fgets(password, 99, stdin) == NULL)
-		return 1;
-	if (password[strlen(password)-1] == '\n')
-		password[strlen(password)-1] = 0;
-
 #ifndef ASYNC
-
-	if (!(h = gg_register(email, password, 0))) {
+	if (!(h = gg_register3(email, password, tokenid, tokenval, 0))) {
 		printf("Błąd rejestracji.\n");
 		return 1;
 	}
-	p = h->data;
-	printf("success=%d, uin=%d\n", p->success, p->uin);
-	gg_free_register(h);
 
 #else
 
 	signal(SIGCHLD, sigchld);
 
-	if (!(h = gg_register(email, password, 1)))
+	if (!(h = gg_register3(email, password, tokenid, tokenval, 1)))
 		return 1;
 
         while (1) {
@@ -87,16 +85,15 @@ int main(void)
 				fprintf(stderr, "Błąd rejestracji.\n");
 				return 1;
 			}
-			if (h->state == GG_STATE_DONE) {
-				p = h->data;
-				printf("success=%d, uin=%d\n", p->success, p->uin);
-				gg_free_register(h);
+			if (h->state == GG_STATE_DONE)
 				break;
-			}
 		}
         }
-
 #endif
+
+	p = h->data;
+	printf("success=%d\nuin=%d\n", p->success, p->uin);
+	gg_free_register(h);
 
 	return 0;
 }
