@@ -1329,6 +1329,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 {
 	struct gg_send_msg s;
 	struct gg_msg_recipients r;
+	char *cp_msg = NULL;
 	int i, j, k;
 	uin_t *recps;
 
@@ -1349,6 +1350,13 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		return -1;
 	}
 
+	if (sess->encoding == GG_ENCODING_UTF8) {
+		if (!(cp_msg = gg_utf8_to_cp((const char *) message)))
+			return -1;
+
+		message = (const unsigned char *) cp_msg;
+	}
+
 	r.flag = 0x01;
 	r.count = gg_fix32(recipients_count - 1);
 
@@ -1361,6 +1369,8 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	if (!recps)
 		return -1;
 
+	sess->seq += (rand() % 0x300) + 0x300;
+
 	for (i = 0; i < recipients_count; i++) {
 
 		s.recipient = gg_fix32(recipients[i]);
@@ -1371,15 +1381,14 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 				k++;
 			}
 
-		if (!i)
-			sess->seq += (rand() % 0x300) + 0x300;
-
 		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1) {
+			free(cp_msg);
 			free(recps);
 			return -1;
 		}
 	}
 
+	free(cp_msg);
 	free(recps);
 
 	return gg_fix32(s.seq);
