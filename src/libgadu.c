@@ -826,7 +826,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 		if (!sess->server_addr) {
 			if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-				if (gg_gethostbyname(hostname, &addr, 0) == -1) {
+				if (gg_gethostbyname_real(hostname, &addr, 0) == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_login() host \"%s\" not found\n", hostname);
 					goto fail;
 				}

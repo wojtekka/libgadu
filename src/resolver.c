@@ -85,7 +85,7 @@ static void gg_gethostbyname_cleaner(void *data)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
+int gg_gethostbyname_real(const char *hostname, struct in_addr *addr, int pthread)
 {
 #ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
@@ -182,6 +182,30 @@ int gg_gethostbyname(const char *hostname, struct in_addr *addr, int pthread)
 }
 
 /**
+ * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
+ *
+ * Jeśli dany system dostarcza \c gethostbyname_r, używa się tej wersji, jeśli
+ * nie, to zwykłej \c gethostbyname.
+ *
+ * \param hostname Nazwa serwera
+ *
+ * \return Zaalokowana struktura \c in_addr lub NULL w przypadku błędu.
+ */
+struct in_addr *gg_gethostbyname(const char *hostname)
+{
+	struct in_addr *addr;
+
+	if (!(addr = malloc(sizeof(struct in_addr))))
+		return NULL;
+
+	if (gg_gethostbyname_real(hostname, addr, 0)) {
+		free(addr);
+		return NULL;
+	}
+	return addr;
+}
+
+/**
  * \internal Struktura przekazywana do wątku rozwiązującego nazwę.
  */
 struct gg_resolver_fork_data {
@@ -243,10 +267,10 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 		close(pipes[0]);
 
 		if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-			/* W przypadku błędu gg_gethostbyname() zwróci -1
+			/* W przypadku błędu gg_gethostbyname_real() zwróci -1
                          * i nie zmieni &addr. Tam jest już INADDR_NONE,
                          * więc nie musimy robić nic więcej. */
-			gg_gethostbyname(hostname, &addr, 0);
+			gg_gethostbyname_real(hostname, &addr, 0);
 		}
 
 		if (write(pipes[1], &addr, sizeof(addr)) != sizeof(addr))
@@ -363,10 +387,10 @@ static void *gg_resolver_pthread_thread(void *arg)
 	pthread_detach(pthread_self());
 
 	if ((addr.s_addr = inet_addr(data->hostname)) == INADDR_NONE) {
-		/* W przypadku błędu gg_gethostbyname() zwróci -1
+		/* W przypadku błędu gg_gethostbyname_real() zwróci -1
                  * i nie zmieni &addr. Tam jest już INADDR_NONE,
                  * więc nie musimy robić nic więcej. */
-		gg_gethostbyname(data->hostname, &addr, 1);
+		gg_gethostbyname_real(data->hostname, &addr, 1);
 	}
 
 	if (write(data->wfd, &addr, sizeof(addr)) == sizeof(addr))

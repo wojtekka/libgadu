@@ -1291,6 +1291,7 @@ char *gg_vsaprintf(const char *format, va_list ap);
 char *gg_get_line(char **ptr);
 
 int gg_connect(void *addr, int port, int async);
+struct in_addr *gg_gethostbyname(const char *hostname);
 char *gg_read_line(int sock, char *buf, int length);
 void gg_chomp(char *line);
 char *gg_urlencode(const char *str);
