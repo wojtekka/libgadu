@@ -1016,7 +1016,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			descr_len = gg_fix32(s->descr_len);
 
-			if (h->length-sizeof(*s) >= descr_len) {
+			if (descr_len > 0 && h->length-sizeof(*s) >= descr_len) {
 				char *buf = malloc(descr_len + 1);
 
 				if (buf) {
