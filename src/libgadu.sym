@@ -15,6 +15,8 @@ gg_change_status_descr_time
 gg_chomp
 gg_connect
 gg_crc32
+gg_dcc_ip
+gg_dcc_port
 gg_dcc7_accept
 gg_dcc7_free
 gg_dcc7_handle_accept
@@ -39,6 +41,10 @@ gg_dcc_voice_send
 gg_dcc_watch_fd
 gg_debug
 gg_debug_common
+gg_debug_file
+gg_debug_handler
+gg_debug_handler_session
+gg_debug_level
 gg_debug_session
 gg_event_free
 gg_file_hash_sha1
@@ -64,6 +70,7 @@ gg_image_queue_remove
 gg_image_reply
 gg_image_request
 gg_libgadu_version
+gg_local_ip
 gg_login
 gg_login_hash
 gg_login_hash_sha1
@@ -72,6 +79,12 @@ gg_notify
 gg_notify_ex
 gg_ping
 gg_proxy_auth
+gg_proxy_enabled
+gg_proxy_host
+gg_proxy_http_only
+gg_proxy_password
+gg_proxy_port
+gg_proxy_username
 gg_pubdir50
 gg_pubdir50_add
 gg_pubdir50_count
