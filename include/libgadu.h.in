@@ -567,10 +567,11 @@ struct gg_login_params {
 	int hash_type;			/**< Rodzaj skrótu hasła (\c GG_LOGIN_HASH_GG32 lub \c GG_LOGIN_HASH_SHA1, domyślnie SHA1) */
 	gg_encoding_t encoding;		/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
-	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*) */
+	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
+	int protocol_features_zero;	/**< Flaga mówiąca, że wartość \c 0 pola protocol_features jest żądaną wartością, a nie poleceniem ustawienia domyślnej wartości. */
 
 #ifndef DOXYGEN
-	char dummy[2 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
+	char dummy[1 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
