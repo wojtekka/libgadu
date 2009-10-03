@@ -1,7 +1,7 @@
 /* $Id$ */
 
 /*
- *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -1289,8 +1289,11 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
 {
 	struct gg_send_msg s;
+	struct gg_send_msg80 s80;
 	struct gg_msg_recipients r;
 	char *cp_msg = NULL;
+	char *utf_msg = NULL;
+	char *html_msg = NULL;
 	int seq_no;
 	int i, j, k;
 	uin_t *recps;
@@ -1316,48 +1319,320 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		if (!(cp_msg = gg_utf8_to_cp((const char *) message)))
 			return -1;
 
-		message = (const unsigned char *) cp_msg;
+		utf_msg = (char*) message;
+	} else {
+		if (sess->protocol_version >= 0x2d) {
+			if (!(utf_msg = gg_cp_to_utf8((const char *) message)))
+				return -1;
+		}
+
+		cp_msg = (char*) message;
 	}
 
-	if (!sess->seq)
-		sess->seq = 0x01740000 | (rand() & 0xffff);
-	seq_no = sess->seq;
-	sess->seq += (rand() % 0x300) + 0x300;
+	if (sess->protocol_version < 0x2d) {
+		if (!sess->seq)
+			sess->seq = 0x01740000 | (rand() & 0xffff);
+		seq_no = sess->seq;
+		sess->seq += (rand() % 0x300) + 0x300;
 
-	s.msgclass = gg_fix32(msgclass);
-	s.seq = gg_fix32(seq_no);
+		s.msgclass = gg_fix32(msgclass);
+		s.seq = gg_fix32(seq_no);
+	} else {
+		char *dst;
+		int len;
+		int format_idx;
+		int char_idx;
+		unsigned char old_attr;
+		unsigned char color[3];
+		
+		// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
+		// wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
+		// wartość, żeby każda wiadomość miała unikalny numer.
+
+		seq_no = time(NULL);
+
+		if (seq_no <= sess->seq)
+			seq_no = sess->seq + 1;
+
+		sess->seq = seq_no;
+
+		if (format == NULL || formatlen == 0) {
+			format = (unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00";
+			formatlen = 9;
+		}
+
+		len = 0;
+		format_idx = 3;
+		old_attr = 0;
+		char_idx = 0;
+
+		for (i = 0; utf_msg[i] != 0; i++) {
+			if (format_idx + 3 <= formatlen && (format[format_idx] | format[format_idx + 1] << 8) == char_idx) {
+				unsigned char attr;
+
+				attr = format[format_idx + 2];
+				format_idx += 3;
+
+				if (attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) {
+					if (char_idx != 0) {
+						if (old_attr & GG_FONT_UNDERLINE)
+							len += 4;	// </u>
+						if (old_attr & GG_FONT_ITALIC)
+							len += 4;	// </i>
+						if (old_attr & GG_FONT_BOLD)
+							len += 4;	// </b>
+
+						len += 7;	// </span>
+					}
+
+					if ((attr & GG_FONT_COLOR) && format_idx + 3 <= formatlen)
+						format_idx += 3;
+
+					len += 75;	// <span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; ">
+				}
+
+				if (attr & GG_FONT_BOLD)
+					len += 3;	// <b>
+
+				if (attr & GG_FONT_ITALIC)
+					len += 3;	// <i>
+
+				if (attr & GG_FONT_UNDERLINE)
+					len += 3;	// <u>
+
+				if ((attr & GG_FONT_IMAGE) && format_idx + 10 <= formatlen) {
+					len += 28;	// <img src="0123456789abcdef">
+					format_idx += 10;
+				}
+
+				old_attr = attr;
+			} else if (i == 0) {
+				len += 75;	// <span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; ">
+			}
+
+			switch (utf_msg[i]) {
+				case '&':
+					len += 5;	// "&amp;"
+					break;
+				case '<':
+				case '>':
+					len += 4;	// "&lt;" "&gt;"
+					break;
+				case '\'':
+				case '\"':
+					len += 6;	// "&apos;" "&quot;"
+					break;
+				case '\n':
+					len += 4;	// "<br>";
+					break;
+				case '\r':
+					break;
+				default:
+					len++;
+			}
+
+			if ((utf_msg[i] & 0xc0) != 0xc0)
+				char_idx++;
+		}
+
+		if (old_attr & GG_FONT_BOLD)
+			len += 4;	// </b>
+		if (old_attr & GG_FONT_ITALIC)
+			len += 4;	// </i>
+		if (old_attr & GG_FONT_UNDERLINE)
+			len += 4;	// </u>
+		len += 7;	// </span>
+
+		html_msg = malloc(len + 1);
+
+		if (html_msg == NULL) {
+			seq_no = -1;
+			goto cleanup;
+		}
+
+		dst = html_msg;
+		format_idx = 3;
+		old_attr = 0;
+		char_idx = 0;
+		memset(color, 0, sizeof(color));
+
+		for (i = 0; utf_msg[i] != 0; i++) {
+			if (format_idx + 3 <= formatlen && (format[format_idx] | format[format_idx + 1] << 8) == char_idx) {
+				unsigned char attr;
+
+				attr = format[format_idx + 2];
+				format_idx += 3;
+
+				if (attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) {
+					if (char_idx != 0) {
+						if (old_attr & GG_FONT_UNDERLINE) {
+							memcpy(dst, "</u>", 4);
+							dst += 4;
+						}
+						if (old_attr & GG_FONT_ITALIC) {
+							memcpy(dst, "</i>", 4);
+							dst += 4;
+						}
+						if (old_attr & GG_FONT_BOLD) {
+							memcpy(dst, "</b>", 4);
+							dst += 4;
+						}
+
+						memcpy(dst, "</span>", 7);
+						dst += 7;
+					}
+
+					if ((attr & GG_FONT_COLOR) && format_idx + 3 <= formatlen) {
+						memcpy(color, &format[format_idx], 3);
+						format_idx += 3;
+					} else
+						memset(color, 0, 3);
+
+					sprintf(dst, "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">", color[0], color[1], color[2]);
+					dst += 75;
+				}
+
+				if (attr & GG_FONT_BOLD) {
+					memcpy(dst, "<b>", 3);
+					dst += 3;
+				}
+
+				if (attr & GG_FONT_ITALIC) {
+					memcpy(dst, "<i>", 3);
+					dst += 3;
+				}
+
+				if (attr & GG_FONT_UNDERLINE) {
+					memcpy(dst, "<u>", 3);
+					dst += 3;
+				}
+
+				if ((attr & GG_FONT_IMAGE) && format_idx + 10 <= formatlen) {
+					sprintf(dst, "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">", format[format_idx], format[format_idx + 1], format[format_idx + 2], format[format_idx + 3], format[format_idx + 4], format[format_idx + 5], format[format_idx + 6], format[format_idx + 7]);
+					dst += 28;
+					format_idx += 10;
+				}
+
+				old_attr = attr;
+			} else if (i == 0) {
+				memcpy(dst, "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">", 75);
+				dst += 75;
+			}
+
+			switch (utf_msg[i]) {
+				case '&':
+					memcpy(dst, "&amp;", 5);
+					dst += 5;
+					break;
+				case '<':
+					memcpy(dst, "&lt;", 4);
+					dst += 4;
+					break;
+				case '>':
+					memcpy(dst, "&gt;", 4);
+					dst += 4;
+					break;
+				case '\'':
+					memcpy(dst, "&apos;", 6);
+					dst += 6;
+					break;
+				case '\"':
+					memcpy(dst, "&quot;", 6);
+					dst += 6;
+					break;
+				case '\n':
+					memcpy(dst, "<br>", 4);
+					dst += 4;
+					break;
+				case '\r':
+					break;
+				default:
+					*dst++ = utf_msg[i];
+			}
+
+			if ((utf_msg[i] & 0xc0) != 0xc0)
+				char_idx++;
+		}
+
+		if (old_attr & GG_FONT_UNDERLINE) {
+			memcpy(dst, "</u>", 4);
+			dst += 4;
+		}
+		if (old_attr & GG_FONT_ITALIC) {
+			memcpy(dst, "</i>", 4);
+			dst += 4;
+		}
+		if (old_attr & GG_FONT_BOLD) {
+			memcpy(dst, "</b>", 4);
+			dst += 4;
+		}
+
+		memcpy(dst, "</span>", 7);
+		dst += 7;
+
+		*dst = 0;
+
+		s80.seq = gg_fix32(seq_no);
+		s80.msgclass = gg_fix32(msgclass);
+		s80.offset_plain = gg_fix32(sizeof(s80) + strlen(html_msg) + 1);
+		s80.offset_attr = gg_fix32(sizeof(s80) + strlen(html_msg) + 1 + strlen(cp_msg) + 1);
+	}
 
 	if (recipients_count > 1) {
 		r.flag = 0x01;
 		r.count = gg_fix32(recipients_count - 1);
 
 		recps = malloc(sizeof(uin_t) * recipients_count);
-		if (!recps)
-			return -1;
+
+		if (!recps) {
+			seq_no = -1;
+			goto cleanup;
+		}
 
 		for (i = 0; i < recipients_count; i++) {
-
-			s.recipient = gg_fix32(recipients[i]);
-
-			for (j = 0, k = 0; j < recipients_count; j++)
+			for (j = 0, k = 0; j < recipients_count; j++) {
 				if (recipients[j] != recipients[i]) {
 					recps[k] = gg_fix32(recipients[j]);
 					k++;
 				}
+			}
 
-			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1)
-				seq_no = -1;
+			if (sess->protocol_version < 0x2d) {
+				s.recipient = gg_fix32(recipients[i]);
+
+				if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), cp_msg, strlen(cp_msg) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1)
+					seq_no = -1;
+			} else {
+				s80.recipient = gg_fix32(recipients[i]);
+
+				if (gg_send_packet(sess, GG_SEND_MSG80, &s80, sizeof(s80), html_msg, strlen(html_msg) + 1, cp_msg, strlen(cp_msg) + 1, &r, sizeof(r), recps, (recipients_count - 1) * sizeof(uin_t), format, formatlen, NULL) == -1)
+					seq_no = -1;
+			}
 		}
 
 		free(recps);
 	} else {
-		s.recipient = gg_fix32(recipients[0]);
+		if (sess->protocol_version < 0x2d) {
+			s.recipient = gg_fix32(recipients[0]);
 
-		if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), message, strlen((char*) message) + 1, format, formatlen, NULL) == -1)
-			seq_no = -1;
+			if (gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), cp_msg, strlen(cp_msg) + 1, format, formatlen, NULL) == -1)
+				seq_no = -1;
+		} else {
+			s80.recipient = gg_fix32(recipients[0]);
+
+			if (gg_send_packet(sess, GG_SEND_MSG80, &s80, sizeof(s80), html_msg, strlen(html_msg) + 1, cp_msg, strlen(cp_msg) + 1, format, formatlen, NULL) == -1)
+				seq_no = -1;
+		}
 	}
 
-	free(cp_msg);
+cleanup:
+	if (cp_msg != (char*) message)
+		free(cp_msg);
+
+	if (utf_msg != (char*) message)
+		free(utf_msg);
+
+	free(html_msg);
 
 	return seq_no;
 }
