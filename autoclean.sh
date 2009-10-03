@@ -31,6 +31,11 @@ rm -rf \
 	include/Makefile.in \
 	include/libgadu.h \
 	include/stamp* \
+	docs/Makefile.in \
+	examples/Makefile.in \
+	test/Makefile.in \
+	test/*/Makefile.in \
+	test/protocol/tests/Makefile.in \
 	pkgconfig/Makefile \
 	pkgconfig/Makefile.in \
 	pkgconfig/libgadu.pc \
