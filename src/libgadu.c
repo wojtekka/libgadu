@@ -1535,6 +1535,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		}
 
 		len = gg_convert_to_html(NULL, utf_msg, format, formatlen);
+
 		html_msg = malloc(len + 1);
 
 		if (html_msg == NULL) {
@@ -1543,7 +1544,6 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		}
 
 		gg_convert_to_html(html_msg, utf_msg, format, formatlen);
-		html_msg[len] = '\0';
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);
