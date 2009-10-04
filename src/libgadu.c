@@ -1298,9 +1298,9 @@ static void gg_append(char *dst, int *pos, const void *src, int len)
  */
 static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned char *format, int format_len)
 {
-	const char *span_fmt = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
+	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
 	const int span_len = 75;
-	const char *img_fmt = "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
+	const char img_fmt[] = "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
 	const int img_len = 28;
 	int char_pos = 0;
 	int format_idx = 3;
