@@ -1269,6 +1269,184 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 }
 
 /**
+ * \internal Dodaje tekst na koniec bufora.
+ * 
+ * \param dst Wskaźnik na bufor roboczy
+ * \param pos Wskaźnik na aktualne położenie w buforze roboczym
+ * \param src Dodawany tekst
+ * \param len Długość dodawanego tekstu
+ */
+static void gg_append(char *dst, int *pos, const void *src, int len)
+{
+	if (dst != NULL)
+		memcpy(&dst[*pos], src, len);
+
+	*pos += len;
+}
+
+/**
+ * \internal Zamienia tekst z formatowaniem Gadu-Gadu na HTML.
+ *
+ * \param dst Bufor wynikowy (może być \c NULL)
+ * \param utf_msg Tekst źródłowy
+ * \param format Atrybuty tekstu źródłowego
+ * \param format_len Długość bloku atrybutów tekstu źródłowego
+ *
+ * \note Dokleja \c \\0 na końcu bufora wynikowego.
+ *
+ * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
+ */
+static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned char *format, int format_len)
+{
+	const char *span_fmt = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
+	const int span_len = 75;
+	const char *img_fmt = "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
+	const int img_len = 28;
+	int char_pos = 0;
+	int format_idx = 3;
+	unsigned char old_attr = 0;
+
+	unsigned char color[3];
+	int len, i;
+
+	len = 0;
+	memset(color, 0, sizeof(color));
+
+	for (i = 0; utf_msg[i] != 0; i++) {
+		unsigned char attr;
+		int attr_pos;
+
+		if (format_idx + 3 <= format_len) {
+			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
+			attr = format[format_idx + 3];
+		} else {
+			attr_pos = -1;
+			attr = 0;
+		}
+
+		if (attr_pos == char_pos) {
+			format_idx += 3;
+
+			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
+				if (char_pos != 0) {
+					if ((old_attr & GG_FONT_UNDERLINE) != 0)
+						gg_append(dst, &len, "</u>", 4);
+
+					if ((old_attr & GG_FONT_ITALIC) != 0)
+						gg_append(dst, &len, "</i>", 4);
+
+					if ((old_attr & GG_FONT_BOLD) != 0)
+						gg_append(dst, &len, "</b>", 4);
+
+					gg_append(dst, &len, "</span>", 7);
+				}
+
+				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
+					memcpy(color, &format[format_idx], 3);
+					format_idx += 3;
+				} else {
+					memset(color, 0, 3);
+				}
+
+				if (dst != NULL)
+					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+				len += span_len;
+			}
+
+			if ((attr & GG_FONT_BOLD) != 0)
+				gg_append(dst, &len, "<b>", 3);
+
+			if ((attr & GG_FONT_ITALIC) != 0)
+				gg_append(dst, &len, "<i>", 3);
+
+			if ((attr & GG_FONT_UNDERLINE) != 0)
+				gg_append(dst, &len, "<u>", 3);
+
+			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
+				if (dst != NULL) {
+					sprintf(&dst[len], img_fmt,
+						format[format_idx + 2],
+						format[format_idx + 3], 
+						format[format_idx + 4],
+						format[format_idx + 5], 
+						format[format_idx + 6],
+						format[format_idx + 7],
+						format[format_idx + 8],
+						format[format_idx + 9]);
+				}
+
+				len += img_len;
+				format_idx += 10;
+			}
+
+			old_attr = attr;
+		} else if (i == 0) {
+			if (dst != NULL)
+				sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+			len += span_len;
+		}
+
+		switch (utf_msg[i]) {
+			case '&':
+				gg_append(dst, &len, "&amp;", 5);
+				break;
+			case '<':
+				gg_append(dst, &len, "&lt;", 4);
+				break;
+			case '>':
+				gg_append(dst, &len, "&gt;", 4);
+				break;
+			case '\'':
+				gg_append(dst, &len, "&apos;", 6);
+				break;
+			case '\"':
+				gg_append(dst, &len, "&quot;", 6);
+				break;
+			case '\n':
+				gg_append(dst, &len, "<br>", 4);
+				break;
+			case '\r':
+				break;
+			default:
+				if (dst != NULL)
+					dst[len] = utf_msg[i];
+				len++;
+		}
+
+		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
+
+		if ((utf_msg[i] & 0xc0) != 0xc0)
+			char_pos++;
+	}
+
+	if ((old_attr & GG_FONT_UNDERLINE) != 0)
+		gg_append(dst, &len, "</u>", 4);
+
+	if ((old_attr & GG_FONT_ITALIC) != 0)
+		gg_append(dst, &len, "</i>", 4);
+
+	if ((old_attr & GG_FONT_BOLD) != 0)
+		gg_append(dst, &len, "</b>", 4);
+
+	/* Dla pustych tekstów dodaj pusty <span>. */
+
+	if (i == 0) {
+		if (dst != NULL)
+			sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+		len += span_len;
+	}
+
+	gg_append(dst, &len, "</span>", 7);
+
+	if (dst != NULL)
+		dst[len] = 0;
+
+	return len;
+}
+
+/**
  * Wysyła wiadomość formatowaną w ramach konferencji.
  *
  * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
@@ -1338,12 +1516,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		s.msgclass = gg_fix32(msgclass);
 		s.seq = gg_fix32(seq_no);
 	} else {
-		char *dst;
 		int len;
-		int format_idx;
-		int char_idx;
-		unsigned char old_attr;
-		unsigned char color[3];
 		
 		// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
 		// wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
@@ -1361,88 +1534,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			formatlen = 9;
 		}
 
-		len = 0;
-		format_idx = 3;
-		old_attr = 0;
-		char_idx = 0;
-
-		for (i = 0; utf_msg[i] != 0; i++) {
-			if (format_idx + 3 <= formatlen && (format[format_idx] | format[format_idx + 1] << 8) == char_idx) {
-				unsigned char attr;
-
-				attr = format[format_idx + 2];
-				format_idx += 3;
-
-				if (attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) {
-					if (char_idx != 0) {
-						if (old_attr & GG_FONT_UNDERLINE)
-							len += 4;	// </u>
-						if (old_attr & GG_FONT_ITALIC)
-							len += 4;	// </i>
-						if (old_attr & GG_FONT_BOLD)
-							len += 4;	// </b>
-
-						len += 7;	// </span>
-					}
-
-					if ((attr & GG_FONT_COLOR) && format_idx + 3 <= formatlen)
-						format_idx += 3;
-
-					len += 75;	// <span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; ">
-				}
-
-				if (attr & GG_FONT_BOLD)
-					len += 3;	// <b>
-
-				if (attr & GG_FONT_ITALIC)
-					len += 3;	// <i>
-
-				if (attr & GG_FONT_UNDERLINE)
-					len += 3;	// <u>
-
-				if ((attr & GG_FONT_IMAGE) && format_idx + 10 <= formatlen) {
-					len += 28;	// <img src="0123456789abcdef">
-					format_idx += 10;
-				}
-
-				old_attr = attr;
-			} else if (i == 0) {
-				len += 75;	// <span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; ">
-			}
-
-			switch (utf_msg[i]) {
-				case '&':
-					len += 5;	// "&amp;"
-					break;
-				case '<':
-				case '>':
-					len += 4;	// "&lt;" "&gt;"
-					break;
-				case '\'':
-				case '\"':
-					len += 6;	// "&apos;" "&quot;"
-					break;
-				case '\n':
-					len += 4;	// "<br>";
-					break;
-				case '\r':
-					break;
-				default:
-					len++;
-			}
-
-			if ((utf_msg[i] & 0xc0) != 0xc0)
-				char_idx++;
-		}
-
-		if (old_attr & GG_FONT_BOLD)
-			len += 4;	// </b>
-		if (old_attr & GG_FONT_ITALIC)
-			len += 4;	// </i>
-		if (old_attr & GG_FONT_UNDERLINE)
-			len += 4;	// </u>
-		len += 7;	// </span>
-
+		len = gg_convert_to_html(NULL, utf_msg, format, formatlen);
 		html_msg = malloc(len + 1);
 
 		if (html_msg == NULL) {
@@ -1450,127 +1542,8 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-		dst = html_msg;
-		format_idx = 3;
-		old_attr = 0;
-		char_idx = 0;
-		memset(color, 0, sizeof(color));
-
-		for (i = 0; utf_msg[i] != 0; i++) {
-			if (format_idx + 3 <= formatlen && (format[format_idx] | format[format_idx + 1] << 8) == char_idx) {
-				unsigned char attr;
-
-				attr = format[format_idx + 2];
-				format_idx += 3;
-
-				if (attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) {
-					if (char_idx != 0) {
-						if (old_attr & GG_FONT_UNDERLINE) {
-							memcpy(dst, "</u>", 4);
-							dst += 4;
-						}
-						if (old_attr & GG_FONT_ITALIC) {
-							memcpy(dst, "</i>", 4);
-							dst += 4;
-						}
-						if (old_attr & GG_FONT_BOLD) {
-							memcpy(dst, "</b>", 4);
-							dst += 4;
-						}
-
-						memcpy(dst, "</span>", 7);
-						dst += 7;
-					}
-
-					if ((attr & GG_FONT_COLOR) && format_idx + 3 <= formatlen) {
-						memcpy(color, &format[format_idx], 3);
-						format_idx += 3;
-					} else
-						memset(color, 0, 3);
-
-					sprintf(dst, "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">", color[0], color[1], color[2]);
-					dst += 75;
-				}
-
-				if (attr & GG_FONT_BOLD) {
-					memcpy(dst, "<b>", 3);
-					dst += 3;
-				}
-
-				if (attr & GG_FONT_ITALIC) {
-					memcpy(dst, "<i>", 3);
-					dst += 3;
-				}
-
-				if (attr & GG_FONT_UNDERLINE) {
-					memcpy(dst, "<u>", 3);
-					dst += 3;
-				}
-
-				if ((attr & GG_FONT_IMAGE) && format_idx + 10 <= formatlen) {
-					sprintf(dst, "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">", format[format_idx], format[format_idx + 1], format[format_idx + 2], format[format_idx + 3], format[format_idx + 4], format[format_idx + 5], format[format_idx + 6], format[format_idx + 7]);
-					dst += 28;
-					format_idx += 10;
-				}
-
-				old_attr = attr;
-			} else if (i == 0) {
-				memcpy(dst, "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">", 75);
-				dst += 75;
-			}
-
-			switch (utf_msg[i]) {
-				case '&':
-					memcpy(dst, "&amp;", 5);
-					dst += 5;
-					break;
-				case '<':
-					memcpy(dst, "&lt;", 4);
-					dst += 4;
-					break;
-				case '>':
-					memcpy(dst, "&gt;", 4);
-					dst += 4;
-					break;
-				case '\'':
-					memcpy(dst, "&apos;", 6);
-					dst += 6;
-					break;
-				case '\"':
-					memcpy(dst, "&quot;", 6);
-					dst += 6;
-					break;
-				case '\n':
-					memcpy(dst, "<br>", 4);
-					dst += 4;
-					break;
-				case '\r':
-					break;
-				default:
-					*dst++ = utf_msg[i];
-			}
-
-			if ((utf_msg[i] & 0xc0) != 0xc0)
-				char_idx++;
-		}
-
-		if (old_attr & GG_FONT_UNDERLINE) {
-			memcpy(dst, "</u>", 4);
-			dst += 4;
-		}
-		if (old_attr & GG_FONT_ITALIC) {
-			memcpy(dst, "</i>", 4);
-			dst += 4;
-		}
-		if (old_attr & GG_FONT_BOLD) {
-			memcpy(dst, "</b>", 4);
-			dst += 4;
-		}
-
-		memcpy(dst, "</span>", 7);
-		dst += 7;
-
-		*dst = 0;
+		gg_convert_to_html(html_msg, utf_msg, format, formatlen);
+		html_msg[len] = '\0';
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);
