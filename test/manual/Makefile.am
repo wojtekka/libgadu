@@ -19,8 +19,8 @@ voice7_LDFLAGS = -lgsm -lspeex
 SUBDIRS = lib
 
 clean-local:
-	rm -f *.log
+	rm -f *.log *-valgrind
 
 all-local:      $(noinst_PROGRAMS)
-	for i in $(noinst_PROGRAMS); do ln -s ../valgrind $${i}-valgrind; done
+	for i in $(noinst_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
 
