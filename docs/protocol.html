@@ -236,7 +236,7 @@ struct gg_login80 {
         char hash_type;       <i>/* rodzaj funkcji skrótu hasła */</i>
         char hash[64];        <i>/* skrót hasła dopełniony \0 */</i>
         int status;           <i>/* początkowy status połączenia */</i>
-        int flags;            <i>/* flagi (przeznaczenie nieznane) */</i>
+        int flags;            <i>/* początkowe flagi połączenia */</i>
         int features;         <i>/* opcje protokołu (0x00000007)*/</i>
         int local_ip;         <i>/* lokalny adres połączeń bezpośrednich (nieużywany) */</i>
         short local_port;     <i>/* lokalny port połączeń bezpośrednich (nieużywany) */</i>
@@ -255,9 +255,8 @@ struct gg_login80 {
 <p>
 Pola określające adresy i port są pozostałościami po poprzednich wersjach
 protokołów i w obecnej wersji zawierają zera.</p>
-<p>Pole z flagami jest przekazywane innym kontaktom, ale jego znaczenie nie jest jeszcze znane.
-Ustalono jedynie, że wartość <tt>0x00100000</tt> powoduje wyświetlenie ikony telefonu komórkowego
-na liście kontaktów, a bitmaska <tt>0x00800000</tt> wyłącza "cenzurowanie" linków</p>
+
+
 <p>Pole opcji protokołu zawsze zawiera wartość <tt>0x00000007</tt> i jest mapą bitową:</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
@@ -265,6 +264,8 @@ na liście kontaktów, a bitmaska <tt>0x00800000</tt> wyłącza "cenzurowanie" l
 <tr class="tabf"><td>0</td><td><tt>0x00000001</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 2)<br /><tt>0</tt> &mdash; <tt>GG_STATUS77</tt>, <tt>GG_NOTIFY_REPLY77</tt><br /><tt>1</tt> &mdash; <tt>GG_STATUS80BETA</tt>, <tt>GG_NOTIFY_REPLY80BETA</tt></td></tr>
 <tr class="tabf"><td>1</td><td><tt>0x00000002</tt></td><td>Rodzaj pakietu z otrzymają wiadomością<br /><tt>0</tt> &mdash; <tt>GG_RECV_MSG</tt><br /><tt>1</tt> &mdash; <tt>GG_RECV_MSG80</tt></td></tr>
 <tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 0)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
+<tr class="tabf"><td>4</td><td><tt>0x00000010</tt></td><td>Klient obsługuje statusy "nie przeszkadzać" i "poGGadaj ze mną"</td></tr>
+<tr class="tabf"><td>5</td><td><tt>0x00000020</tt></td><td>Klient obsługuje statusy graficzne i <tt>GG_STATUS_DESCR_MASK</tt> (patrz <a href="#ch1.4">Zmiana stanu</a>)</td></tr>
 </table>
 
 <p>
@@ -277,9 +278,9 @@ Skrót hasła można liczyć na dwa sposoby:
 </div>
 
 <p>
-Pierwszy algorytm (<tt>GG_LOGIN_HASH_GG32</tt>) został wymyślony na potrzeby
-Gadu-Gadu i zwraca 32-bitową wartość dla danego ziarna i hasła. Jego
-implementacja w języku C wygląda następująco:
+Pierwszy, nieużywany już algorytm (<tt>GG_LOGIN_HASH_GG32</tt>) został
+wymyślony na potrzeby Gadu-Gadu i zwraca 32-bitową wartość dla danego ziarna
+i hasła. Jego implementacja w języku C wygląda następująco:
 </p>
 
 <div class="c">
@@ -366,8 +367,8 @@ Gadu-Gadu przewiduje kilka stanów klienta, które zmieniamy pakietem typu:
 <pre>#define GG_NEW_STATUS80 0x0038
 
 struct gg_new_status80 {
-	int status;		<i>/* na jaki zmienić? */</i>
-	int flags;              <i>/* flagi (nieznane przeznaczenie) */</i>
+	int status;		<i>/* nowy status */</i>
+	int flags;              <i>/* nowe flagi */</i>
 	int description_size;   <i>/* rozmiar opisu */</i>
 	char description[];	<i>/* opis (nie musi wystąpić, bez \0) */</i>
 };</pre>
@@ -392,10 +393,26 @@ Możliwe stany to:
 <tr class="tabf"><td><tt>GG_STATUS_INVISIBLE</tt></td><td><tt>0x0014</tt></td><td>Niewidoczny</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0016</tt></td><td>Niewidoczny (z opisem)</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_BLOCKED</tt></td><td><tt>0x0006</tt></td><td>Zablokowany</td></tr>
-<tr class="tabf"><td><tt>GG_STATUS80_DESCR_MASK</tt></td><td><tt>0x0100</tt></td><td>Maska bitowa oznaczająca ustawiony opis graficzny</td></tr>
-<tr class="tabf"><td><tt>GG_STATUS80_DESCR_MASK</tt></td><td><tt>0x4000</tt></td><td>Maska bitowa oznaczająca ustawiony opis</td></tr>
+<tr class="tabf"><td><tt>GG_STATUS_IMAGE_MASK</tt></td><td><tt>0x0100</tt></td><td>Maska bitowa oznaczająca ustawiony opis graficzny (tylko </td></tr>
+<tr class="tabf"><td><tt>GG_STATUS_DESCR_MASK</tt></td><td><tt>0x4000</tt></td><td>Maska bitowa oznaczająca ustawiony opis</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_FRIENDS_MASK</tt></td><td><tt>0x8000</tt></td><td>Maska bitowa oznaczająca tryb tylko dla przyjaciół</td></tr>
 </table>
+
+<p>
+Możliwe flagi to:
+</p>
+
+<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
+<tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
+<tr class="tabf"><td>0</td><td><tt>0x00000001</tt></td><td>Nieznane, zawsze występuje</td></tr>
+<tr class="tabf"><td>1</td><td><tt>0x00000002</tt></td><td>Klient obsługuje wideorozmowy</td></tr>
+<tr class="tabf"><td>20</td><td><tt>0x00100000</tt></td><td>Klient mobilny (ikona telefonu komórkowego)</td></tr>
+<tr class="tabf"><td>23</td><td><tt>0x00800000</tt></td><td>Klient chce otrzymywać linki od nieznajomych</td></tr>
+</table>
+
+<p>
+Jeśli klient obsługuje statusy graficzne, to statusy opisowe będą określane przez dodanie flagi <tt>GG_STATUS_DESCR_MASK</tt> zamiast używać statusu z przyrostkiem <tt>_DESCR</tt>. Dotyczy to zarówno statusów wysyłanych, jak i odbieranych z serwera.
+</p>
 
 <p>
 Należy pamiętać, żeby przed rozłączeniem się z serwerem należy zmienić
@@ -1055,7 +1072,7 @@ Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, t
 <div class="example">
 <pre>
 struct gg_new_status80 krol_popu = { 
-	.status           = GG_STATUS80_DESCR_MASK | GG_STATUS80_GRAPH_MASK | docelowy_opisowy_status; <i>/* 0x4100 | opis */</i>
+	.status           = GG_STATUS_DESCR_MASK | GG_STATUS_IMAGE_MASK | docelowy_opisowy_status; <i>/* 0x4100 | status */</i>
 	.flags            = 0x03;
 	.description_size = 9;
 	.description      = "Krol Popu"
@@ -1063,7 +1080,7 @@ struct gg_new_status80 krol_popu = {
 </div>
 
 <p>
-Gdy użytkownik ma ustawiony opis graficzny (.status &amp; GG_STATUS80_GRAPH_MASK)
+Gdy użytkownik ma ustawiony opis graficzny (.status &amp; GG_STATUS_IMAGE_MASK)
 możemy pobrać ZIP-paczkę z http://www.gadudodatki.pl/userbar/get/id/
 </p>
 <p>Dla przykładowego Króla Popu jest to adres: <span class="example">http://www.gadudodatki.pl/userbar/get/id/Krol%20Popu</span></p>
