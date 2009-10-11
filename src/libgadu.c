@@ -723,7 +723,15 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
-	sess->protocol_features = (p->protocol_features != 0 || p->protocol_features_zero) ? p->protocol_features : (GG_FEATURE_STATUS80 | GG_FEATURE_MSG80);
+
+	sess->protocol_features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
+
+	if (!(p->protocol_features & GG_FEATURE_STATUS77))
+		sess->protocol_features |= GG_FEATURE_STATUS80;
+
+	if (!(p->protocol_features & GG_FEATURE_MSG77))
+		sess->protocol_features |= GG_FEATURE_MSG80;
+
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 
 	if (p->era_omnix)
@@ -1114,7 +1122,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		struct gg_new_status80 p;
 
 		p.status		= gg_fix32(status);
-		p.flags			= gg_fix32(0x01);
+		p.flags			= gg_fix32(0x00800001);
 		p.description_size	= gg_fix32(descr_len);
 		res = gg_send_packet(sess,
 				packet_type,

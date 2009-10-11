@@ -31,6 +31,10 @@
 
 #define GG_LOGIN80 0x0031
 
+#define GG_FEATURE_STATUS80BETA		0x01
+#define GG_FEATURE_MSG80		0x02
+#define GG_FEATURE_STATUS80 		0x05
+
 #define GG8_LANG	"pl"
 #define GG8_VERSION	"Gadu-Gadu Client Build 8.0.0.8731"
 

@@ -1856,17 +1856,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_welcome *w;
 			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
-
-			int login_dunno2;
 			uint8_t login_hash[64];
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
 
 			memset(login_hash, 0, sizeof(login_hash));
-			if (sess->protocol_version >= 0x2d)
-				login_dunno2 = 0x64;
-			else
-				login_dunno2 = 0xbe;
 
 			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
 			 * się tekstu wrzucanego przez proxy. */
@@ -1985,14 +1979,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type     = sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.status        = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l.flags		= gg_fix32(0x01);
+				l.flags		= gg_fix32(0x00800001);
 				l.features	= gg_fix32(sess->protocol_features);
-			/*
-				l.local_ip      = (sess->external_addr) ? sess->external_addr : sess->client_addr;
-				l.local_port    = gg_fix16((sess->external_port > 1023) ? sess->external_port : gg_dcc_port);
-			*/
 				l.image_size    = sess->image_size;
-				l.dunno2        = login_dunno2;
+				l.dunno2        = 0x64;
 
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
 				ret = gg_send_packet(sess, GG_LOGIN80, 
@@ -2011,7 +2001,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type	= sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.image_size	= sess->image_size;
-				l.dunno2 	= login_dunno2;
+				l.dunno2 	= 0x64;
 				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
 
@@ -2031,7 +2021,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type	= sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.image_size	= sess->image_size;
-				l.dunno2	= login_dunno2;
+				l.dunno2	= 0xbe;
 				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
 

@@ -570,10 +570,9 @@ struct gg_login_params {
 	gg_encoding_t encoding;		/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
-	int protocol_features_zero;	/**< Flaga mówiąca, że wartość \c 0 pola protocol_features jest żądaną wartością, a nie poleceniem ustawienia domyślnej wartości. */
 
 #ifndef DOXYGEN
-	char dummy[1 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
+	char dummy[2 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
@@ -1355,12 +1354,29 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_ERA_OMNIX_MASK 0x04000000
 #undef GG_LIBGADU_VERSION
 
-#define GG_FEATURE_STATUS80BETA		0x01
-#define GG_FEATURE_MSG80		0x02
-#define GG_FEATURE_STATUS80 		(0x04|GG_FEATURE_STATUS80BETA)
-#define GG_FEATURE_DND_FFC		0x30
+#ifndef DOXYGEN
 
-#define GG_FEATURE_ALL 			(GG_FEATURE_STATUS80BETA|GG_FEATURE_MSG80|GG_FEATURE_STATUS80|GG_FEATURE_DND_FFC)
+#define GG_FEATURE_MSG77		0x01
+#define GG_FEATURE_STATUS77		0x02
+#define GG_FEATURE_DND_FFC		0x10
+#define GG_FEATURE_IMAGE_DESCR		0x20
+
+#else
+
+/** 
+ * \ingroup login
+ *
+ * Flagi opcji protokołu.
+ */
+enum {
+	GG_FEATURE_MSG77,	/**< Klient życzy sobie otrzymywać wiadomości zgodnie z protokołem 7.7 */
+	GG_FEATURE_STATUS77,	/**< Klient życzy sobie otrzymywać zmiany stanu zgodnie z protokołem 7.7 */
+	GG_FEATURE_DND_FFC,	/**< Klient obsługuje statusy "nie przeszkadzać" i "poGGadaj ze mną" */
+	GG_FEATURE_IMAGE_DESCR,	/**< Klient obsługuje opisy graficzne oraz flagę \c GG_STATUS80_DESCR_MASK */
+};
+
+
+#endif
 
 #define GG_DEFAULT_DCC_PORT 1550
 
@@ -1469,6 +1485,8 @@ struct gg_pubdir50_reply {
 #define GG_STATUS_INVISIBLE_DESCR 0x0016
 #define GG_STATUS_BLOCKED 0x0006
 
+#define GG_STATUS_IMAGE_MASK 0x0100
+#define GG_STATUS_DESCR_MASK 0x4000
 #define GG_STATUS_FRIENDS_MASK 0x8000
 
 #else
@@ -1492,6 +1510,8 @@ enum {
 	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
 	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
 	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
+	GG_STATUS_IMAGE_MASK,		/**< Flaga bitowa oznaczająca opis graficzny (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
+	GG_STATUS_DESCR_MASK,		/**< Flaga bitowa oznaczająca status z opisem (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
 	GG_STATUS_FRIENDS_MASK,		/**< Flaga bitowa dostępności tylko dla znajomych */
 };
 
