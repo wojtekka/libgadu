@@ -1361,6 +1361,12 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_FEATURE_DND_FFC		0x10
 #define GG_FEATURE_IMAGE_DESCR		0x20
 
+/* Poniższe makra zostały zachowane dla zgodności API */
+#define GG_FEATURE_MSG80		0
+#define GG_FEATURE_STATUS80		0
+#define GG_FEATURE_STATUS80BETA		0
+#define GG_FEATURE_ALL			(GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR)
+
 #else
 
 /** 
