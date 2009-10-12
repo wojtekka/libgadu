@@ -1326,7 +1326,7 @@ static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned cha
 
 		if (format_idx + 3 <= format_len) {
 			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
-			attr = format[format_idx + 3];
+			attr = format[format_idx + 2];
 		} else {
 			attr_pos = -1;
 			attr = 0;
@@ -1537,7 +1537,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 		sess->seq = seq_no;
 
-		if (format == NULL || formatlen == 0) {
+		if (format == NULL || formatlen < 3) {
 			format = (unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00";
 			formatlen = 9;
 		}
