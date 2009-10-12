@@ -228,4 +228,9 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
 	return -1;
 }
 
+int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
+{
+	return -1;
+}
+
 /** \endcond */

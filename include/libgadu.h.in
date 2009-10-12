@@ -1269,9 +1269,9 @@ struct gg_http *gg_userlist_remove(uin_t uin, const char *password, int async) G
 int gg_userlist_remove_watch_fd(struct gg_http *f) GG_DEPRECATED;
 void gg_userlist_remove_free(struct gg_http *f) GG_DEPRECATED;
 
-/** \endcond */
+int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length) GG_DEPRECATED;
 
-int gg_pubdir50_handle_reply(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
+/** \endcond */
 
 int gg_file_hash_sha1(int fd, uint8_t *result);
 

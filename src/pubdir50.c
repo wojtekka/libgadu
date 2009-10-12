@@ -314,14 +314,14 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_pubdir50_handle_reply(struct gg_session *sess, struct gg_event *e, const char *packet, int length)
+int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length)
 {
 	const char *end = packet + length, *p;
 	struct gg_pubdir50_reply *r = (struct gg_pubdir50_reply*) packet;
 	gg_pubdir50_t res;
 	int num = 0;
 	
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_handle_reply(%p, %p, %p, %d);\n", sess, e, packet, length);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_handle_reply_sess(%p, %p, %p, %d);\n", sess, e, packet, length);
 
 	if (!sess || !e || !packet) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_handle_reply() invalid arguments\n");
