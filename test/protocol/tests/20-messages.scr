@@ -6,7 +6,7 @@ call {
 	gg_send_message(session, GG_CLASS_CHAT, 0x123456, (unsigned char*) "Test");
 }
 
-expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 08 00 00 00, "Test" 00)
+expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 08 00 00 00, 6b 00 00 00, 70 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Test</span>" 00, "Test" 00, 02 06 00 00 00 08 00 00 00)
 
 #-----------------------------------------------------------------------------
 # Sending rich-text message
@@ -25,7 +25,8 @@ call {
 	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "Test", (unsigned char*) format, sizeof(format));
 }
 
-expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, "Test" 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
+#expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, "Test" 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
+expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, 76 01 00 00, 7b 01 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 "><b>T</b></span><span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 "><i>e</i></span><span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 "><u>s</u></span><span" 20 "style=" 22 "color:#123456;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">t</span>" 00, "Test" 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
 
 #-----------------------------------------------------------------------------
 # Sending conference message
@@ -37,9 +38,9 @@ call {
 	gg_send_message_confer(session, GG_CLASS_CHAT | GG_CLASS_ACK, 3, contacts, (unsigned char*) "Test");
 }
 
-expect data (0b 00 00 00, auto, 11 11 11 00, xx xx xx xx, 28 00 00 00, "Test" 00, 01, 02 00 00 00, 22 22 22 00, 33 33 33 00)
-expect data (0b 00 00 00, auto, 22 22 22 00, xx xx xx xx, 28 00 00 00, "Test" 00, 01, 02 00 00 00, 11 11 11 00, 33 33 33 00)
-expect data (0b 00 00 00, auto, 33 33 33 00, xx xx xx xx, 28 00 00 00, "Test" 00, 01, 02 00 00 00, 11 11 11 00, 22 22 22 00)
+expect data (2d 00 00 00, auto, 11 11 11 00, xx xx xx xx, 28 00 00 00, 6b 00 00 00, 70 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Test</span>" 00, "Test" 00, 01, 02 00 00 00, 22 22 22 00, 33 33 33 00, 02 06 00 00 00 08 00 00 00)
+expect data (2d 00 00 00, auto, 22 22 22 00, xx xx xx xx, 28 00 00 00, 6b 00 00 00, 70 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Test</span>" 00, "Test" 00, 01, 02 00 00 00, 11 11 11 00, 33 33 33 00, 02 06 00 00 00 08 00 00 00)
+expect data (2d 00 00 00, auto, 33 33 33 00, xx xx xx xx, 28 00 00 00, 6b 00 00 00, 70 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Test</span>" 00, "Test" 00, 01, 02 00 00 00, 11 11 11 00, 22 22 22 00, 02 06 00 00 00 08 00 00 00)
 
 #-----------------------------------------------------------------------------
 # Receiving regular message
