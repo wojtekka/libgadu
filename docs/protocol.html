@@ -1481,12 +1481,9 @@ Nie są wysyłane żadne parametry. Przykład:
 </p>
 
 <div class="http">
-<pre>POST /appsvc/regtoken.asp HTTP/1.0
+<pre>GET /appsvc/regtoken.asp HTTP/1.1
+Connection: Keep-Alive
 Host: register.gadu-gadu.pl
-Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 0
-Pragma: no-cache
 </pre>
 </div>
 
@@ -1508,9 +1505,9 @@ zwracającego obrazek z wartością tokenu. Przykładowa odpowiedź:
 </p>
 
 <div class="http">
-<pre>60 24 6
-06C05A44
-http://register.gadu-gadu.pl/appsvc/tokenpic.asp</pre></div>
+<pre>115 30 6
+e05622e7fcc844b3d582671e0458f0b1
+http://register.gadu-gadu.pl/regRndPictNew.php</pre></div>
 
 <p>
 Możemy teraz pobrać metodą GET z podanej ścieżki obrazek z tokenem, doklejając
@@ -1520,11 +1517,11 @@ przykładu to:
 </p>
 
 <div class="example">
-<pre>http://register.gadu-gadu.pl/appsvc/tokenpic.asp?tokenid=06C05A44</pre>
+<pre>http://register.gadu-gadu.pl/regRndPictNew.php?tokenid=e05622e7fcc844b3d582671e0458f0b1</pre>
 </div>
 
 <p>
-Pobrany obrazek (w tej chwili jest w formacie JPEG, ale prawdopodobnie może
+Pobrany obrazek (w tej chwili jest w formacie GIF, ale prawdopodobnie może
 się to zmienić na dowolny format obsługiwany domyślnie przez system Windows)
 najlepiej wyświetlić użytkownikowi, prosząc o podanie wartości na nim
 przedstawionej. Będzie ona niezbędna do przeprowadzenia kolejnych operacji.
@@ -1558,14 +1555,14 @@ Przykład:
 </p>
 
 <div class="http">
-<pre>POST /appsvc/fmregister3.asp HTTP/1.0
+<pre>POST /fmregister.php HTTP/1.1
 Host: register.gadu-gadu.pl
 Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 76
+User-Agent: Mozilla/4.7 [en] (Win98; I)
+Content-Length: 99
 Pragma: no-cache
 		
-pwd=sekret&amp;email=abc&#64;xyz.pl<!-- &amp;qa=5~Maria -->&amp;tokenid=06C05A44&amp;tokenval=e94d56&amp;code=1104465363</pre>
+code=283395733&amp;email=abc&#64;xyz.pl&amp;pwd=sekret&amp;tokenid=e05622e7fcc844b3d582671e0458f0b1&amp;tokenval=SEKYCA</pre>
 </div>
 
 <p>
@@ -1573,7 +1570,7 @@ Jeśli wszystko przebiegło poprawnie, serwer odpowie:
 </p>
 
 <div class="http">
-<pre>Tokens okregisterreply_packet.reg.dwUserId=<b>UIN</b></pre>
+<pre>reg_success:<b>UIN</b></pre>
 </div>
 
 <p>
@@ -1593,52 +1590,9 @@ Jeśli został podany nieprawidłowy token, serwer odpowie:
 <a name="ch2.4"></a>
 <h3>2.4. Usunięcie konta</h3>
 
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Pole nagłówka</b></td><td width="80%"><b>Wartość</b></td></tr>
-<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>ŚCIEŻKA</tt></td><td><tt>/appsvc/fmregister3.asp</tt></td></tr>
-</table>
-
-<p></p>
-
-<table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
-<tr class="tabh"><td width="20%"><b>Wysyłamy pole</b></td><td width="80%"><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td><tt>fmnumber</tt></td><td>usuwany numer</td></tr>
-<tr class="tabf"><td><tt>fmpwd</tt></td><td>hasło</td></tr>
-<tr class="tabf"><td><tt>delete</tt></td><td>wartość &bdquo;<tt>1</tt>&rdquo;</td></tr>
-<tr class="tabf"><td><tt>pwd</tt></td><td>losowa liczba</td></tr>
-<tr class="tabf"><td><tt>email</tt></td><td>wartość &bdquo;<tt>deletedaccount@gadu-gadu.pl</tt>&rdquo;</td></tr>
-<tr class="tabf"><td><tt>tokenid</tt></td><td>identyfikator tokenu</td></tr>
-<tr class="tabf"><td><tt>tokenval</tt></td><td>wartość tokenu</td></tr>
-<tr class="tabf"><td><tt>code</tt></td><td>hash liczony z pól <tt>pwd</tt> i <tt>email</tt></td></tr>
-</table>
-
 <p>
-Przykład:
-</p>
-
-<div class="http">
-<pre>POST /appsvc/fmregister2.asp HTTP/1.0
-Host: register.gadu-gadu.pl
-Content-Type: application/x-www-form-urlencoded
-User-Agent: Mozilla/4.0 (compatible; MSIE 5.0; Windows 98)
-Content-Length: 137
-Pragma: no-cache
-		
-fmnumber=4969256&amp;fmpwd=haslo&amp;delete=1&amp;email=deletedaccount@gadu-gadu.pl&amp;pwd=%2D38
-8046464&amp;tokenid=06C05A44&amp;tokenval=e94d56&amp;code=1483497094</pre>
-</div>
-
-<p>
-Jeśli wszystko przebiegło poprawnie, serwer odpowie:
-</p>
-
-<div class="http">
-<pre>reg_success:<b>UIN</b></pre>
-</div>
-
-<p>
-Gdzie <tt><b>UIN</b></tt> to numer, który skasowaliśmy.
+Nowe Gadu-Gadu zaprasza użytkownika na stronę https://deleteaccount.messenger.gadu-gadu.pl
+na której użytkownik może usunąć swoje konto.
 </p>
 
 <hr />
@@ -1649,7 +1603,7 @@ Gdzie <tt><b>UIN</b></tt> to numer, który skasowaliśmy.
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nagłówka</b></td><td width="80%"><b>Wartość</b></td></tr>
 <tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>ŚCIEŻKA</tt></td><td><tt>/appsvc/fmregister3.asp</tt></td></tr>
+<tr class="tabf"><td><tt>ŚCIEŻKA</tt></td><td><tt>/fmregister.php</tt></td></tr>
 </table>
 
 <p></p>
@@ -1680,8 +1634,8 @@ Jeśli wszystko przebiegło poprawnie, serwer odpowie:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td width="20%"><b>Pole nagłówka</b></td><td width="80%"><b>Wartość</b></td></tr>
-<tr class="tabf"><td><tt>HOST</tt></td><td><tt>retr.gadu-gadu.pl</tt></td></tr>
-<tr class="tabf"><td><tt>ŚCIEŻKA</tt></td><td><tt>/appsvc/fmsendpwd3.asp</tt></td></tr>
+<tr class="tabf"><td><tt>HOST</tt></td><td><tt>register.gadu-gadu.pl</tt></td></tr>
+<tr class="tabf"><td><tt>ŚCIEŻKA</tt></td><td><tt>/fmsendpwd.php</tt></td></tr>
 </table>
 
 <p></p>
