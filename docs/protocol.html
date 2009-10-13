@@ -711,7 +711,8 @@ obrazek umieszczony w wiadomości wygląda następująco:
 
 <div class="c">
 <pre>struct gg_msg_richtext_image {
-	short unknown1;	<i>/* 0x0109 */</i>
+	char length;	<i>/* długość opisu obrazka (0x09) */</i>
+	char type;	<i>/* rodzaj opisu obrazka (0x01) */</i>
 	int size;	<i>/* rozmiar obrazka */</i>
 	int crc32;	<i>/* suma kontrolna obrazka */</i>
 };</pre>
