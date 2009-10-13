@@ -603,11 +603,11 @@ Długość treści wiadomości nie powinna przekraczać 2000 znaków. Oryginalny
 klient zezwala na wysłanie do 1989 znaków. Treść w formacie HTML jest kodowana
 UTF-8. Treść zapisana czystym tekstem jest kodowana zestawem znaków CP1250.
 W obu przypadkach, mimo domyślnych atrybutów tekstu, oryginalny klient dodaje
-informacje o formatowaniu tekstu. Dla HTML wygląda to następująco:
+blok atrybutów tekstu. Dla HTML wygląda to następująco:
 </p>
 
 <div class="http">
-<pre>&lt;span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; "&gt;Treść&lt;/span&gt;</pre>
+<pre>&lt;span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; "&gt;Test&lt;/span&gt;</pre>
 </div>
 
 <p>
@@ -661,8 +661,64 @@ wiadomością o treści:
 <h4>1.6.2. Formatowanie tekstu</h4>
 
 <p>
+Dla protokołu Nowego Gadu-Gadu natywnym formatem jest HTML, ale blok
+atrybutów również jest przesyłany dla zachowania kompatybilności ze starszymi
+klientami.
+</p>
+
+<a name="ch1.6.2.1"></a>
+<h4>1.6.2.1. Format HTML</h4>
+
+<p>
+Każdy fragment tekstu o spójnych atrybutach jest zawarty w jednym znaczniku
+<tt>&lt;span&gt;</tt>, nawet jeśli są to atrybuty domyślne. Dla przykładu,
+wiadomość o treści &bdquo;Test&rdquo; wysłana bez zmiany atrybutów tekstu
+przedstawia się następująco:
+</p>
+
+<div class="http">
+<pre>&lt;span style="color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; "&gt;Test&lt;/span&gt;</pre>
+</div>
+
+<p>
+Oryginalny klient korzysta z następujących znaczników HTML:
+</p>
+
+<ul>
+<li>pogrubienie &mdash; <tt>&lt;b&gt;</tt></li>
+<li>kursywa &mdash; <tt>&lt;i&gt;</tt></li>
+<li>podkreślenie &mdash; <tt>&lt;u&gt;</tt></li>
+<li>kolor tła &mdash; <tt>&lt;span style="background-color:#... "&gt;</tt></li>
+<li>kolor tekstu &mdash; <tt>&lt;span style="color:#... "&gt;</tt></li>
+<li>czcionka &mdash; <tt>&lt;span style="font-family:'...' "&gt;</tt></li>
+<li>rozmiar czcionki &mdash; <tt>&lt;span style="font-size:...pt "&gt;</tt></li>
+<li>nowa linia &mdash; <tt>&lt;br&gt;</tt></li>
+<li>obrazek &mdash; <tt>&lt;img src="..."&gt;</tt></li>
+</ul>
+
+<p>
+Źródło obrazka obrazka jest połączeniem heksadecymalnego zapisu (małymi
+literami) sumy kontrolnej CRC32 oraz rozmiaru dopełnionego do czterech
+bajtów. Dla obrazka o sumie kontrolnej <tt>0x45fb2e46</tt> i rozmiarze
+16568 bajtów źródłem będzie <tt>45fb2e46000040b8</tt>.
+</p>
+
+<p>
+Przykładowa wiadomość wykorzystująca wszystkie dostępne znaczniki oraz
+obrazek:
+</p>
+
+<div class="http">
+&lt;span style="background-color:#00ff00; color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; "&gt;&lt;b&gt;&lt;i&gt;&lt;u&gt;Wiadomość&lt;br&gt;testowa&lt;/u&gt;&lt;/i&gt;&lt;/b&gt;&lt;img src="45fb2e46000040b8"&gt;&lt;/span&gt;
+</div>
+
+<a name="ch1.6.2.2"></a>
+<h4>1.6.2.2. Czysty tekst z atrybutami</h4>
+
+<p>
 Możliwe jest również dodawanie do wiadomości różnych atrybutów tekstu, jak
-pogrubienie czy kolory. Niezbędne jest dołączenie następującej struktury:
+pogrubienie czy kolory. Niezbędne jest dołączenie do wiadomości następującej
+struktury:
 </p>
 
 <div class="c">
@@ -740,9 +796,11 @@ przed formatowaniem.
 </p>
 
 <p>
-Jeśli obrazek jest przesyłany w wiadomości bez tekstu, jej treść powinna
-zawierać znak niełamliwej spacji (kod 160 w kodowaniu CP1250). W innym
-przypadku nowsze klienty (np. Nowe Gadu-Gadu) nie wyświetlą obrazka.
+Jeśli obrazek jest przesyłany w wiadomości bez tekstu, jej treść zapisana
+czystym tekstem powinna zawierać znak niełamliwej spacji (kod 160 w kodowaniu
+CP1250). W innym przypadku nowsze klienty (np. Nowe Gadu-Gadu) nie wyświetlą
+obrazka. Wiadomość w formacie HTML może zawierać wyłącznie znacznik
+<tt>&lt;img&gt;</tt>.
 </p>
 
 <a name="ch1.6.3"></a>
