@@ -1313,12 +1313,10 @@ static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned cha
 	int char_pos = 0;
 	int format_idx = 3;
 	unsigned char old_attr = 0;
-
-	unsigned char color[3];
+	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
 	int len, i;
 
 	len = 0;
-	memset(color, 0, sizeof(color));
 
 	for (i = 0; utf_msg[i] != 0; i++) {
 		unsigned char attr;
@@ -1350,14 +1348,18 @@ static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned cha
 				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
-					memcpy(color, &format[format_idx], 3);
+					color = &format[format_idx];
 					format_idx += 3;
 				} else {
-					memset(color, 0, 3);
+					color = (const unsigned char*) "\x00\x00\x00";
 				}
 
 				if (dst != NULL)
 					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+				len += span_len;
+			} else if (char_pos == 0) {
+				if (dst != NULL)
+					sprintf(&dst[len], span_fmt, 0, 0, 0);
 				len += span_len;
 			}
 
@@ -1373,14 +1375,14 @@ static int gg_convert_to_html(char *dst, const char *utf_msg, const unsigned cha
 			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
 				if (dst != NULL) {
 					sprintf(&dst[len], img_fmt,
-						format[format_idx + 2],
-						format[format_idx + 3], 
-						format[format_idx + 4],
-						format[format_idx + 5], 
-						format[format_idx + 6],
+						format[format_idx + 9],
+						format[format_idx + 8], 
 						format[format_idx + 7],
-						format[format_idx + 8],
-						format[format_idx + 9]);
+						format[format_idx + 6], 
+						format[format_idx + 5],
+						format[format_idx + 4],
+						format[format_idx + 3],
+						format[format_idx + 2]);
 				}
 
 				len += img_len;
