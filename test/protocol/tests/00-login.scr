@@ -51,7 +51,7 @@ expect disconnect
 #-----------------------------------------------------------------------------
 # Simple login before further tests
 #-----------------------------------------------------------------------------
-login (uin = 0x123456, password = "")
+login (uin = 0x123456, password = "", encoding = GG_ENCODING_UTF8)
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
 expect data (31 00 00 00, auto, xx*138)
