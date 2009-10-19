@@ -1,7 +1,7 @@
 dnl $Id$
 
 AC_INIT(src/libgadu.c)
-AM_INIT_AUTOMAKE(libgadu, 1.9.0-rc1)
+AM_INIT_AUTOMAKE(libgadu, 1.9.0-rc2)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
@@ -13,6 +13,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_C_CONST
 AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
 
 AC_SUBST(REQUIRES)
 AC_SUBST(INCLUDES)
@@ -210,6 +211,13 @@ dnl  Sprawdź, czy mamy czym generować dokumentację
 dnl
 
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [:])
+
+AC_SUBST([SUBDIRS_DOXYGEN])
+if test "x$DOXYGEN" = "xdoxygen"; then
+	SUBDIRS_DOXYGEN="docs"
+else
+	SUBDIRS_DOXYGEN=""
+fi
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile test/resolver/Makefile])
 
