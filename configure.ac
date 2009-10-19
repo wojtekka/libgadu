@@ -205,6 +205,12 @@ AC_CHECK_LIB(c, __connect, [
 	OPTIONAL_TESTS=""
 ])
 
+dnl
+dnl  Sprawdź, czy mamy czym generować dokumentację
+dnl
+
+AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [:])
+
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile test/resolver/Makefile])
 
 AC_OUTPUT
