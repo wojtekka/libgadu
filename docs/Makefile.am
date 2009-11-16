@@ -7,5 +7,5 @@ html-stamp:	../include/libgadu.h $(wildcard ../src/*.c) $(wildcard *.dox)
 	touch html-stamp
 
 clean-local:
-	rm -rf html
+	rm -rf html html-stamp
 
