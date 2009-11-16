@@ -317,7 +317,11 @@ struct gg_http {
 
 #ifdef __GNUC__
 #define GG_PACKED __attribute__ ((packed))
+#ifndef GG_IGNORE_DEPRECATED
 #define GG_DEPRECATED __attribute__ ((deprecated))
+#else
+#define GG_DEPRECATED
+#endif
 #else
 #define GG_PACKED
 #define GG_DEPRECATED
@@ -711,7 +715,7 @@ struct gg_pubdir50_entry {
 	int num;	/**< Numer wyniku */
 	char *field;	/**< Nazwa pola */
 	char *value;	/**< Wartość pola */
-};
+} /* GG_DEPRECATED */;
 
 /**
  * Zapytanie lub odpowiedź katalogu publicznego.
@@ -725,7 +729,7 @@ struct gg_pubdir50_s {
 	uint32_t seq;	/**< Numer sekwencyjny */
 	struct gg_pubdir50_entry *entries;	/**< Pola zapytania lub odpowiedzi */
 	int entries_count;	/**< Liczba pól */
-};
+} /* GG_DEPRECATED */;
 
 /**
  * Zapytanie lub odpowiedź katalogu publicznego.
@@ -1273,45 +1277,41 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 
 /** \endcond */
 
-int gg_file_hash_sha1(int fd, uint8_t *result);
-
-#ifdef _WIN32
-int gg_thread_socket(int thread_id, int socket);
-#endif
+int gg_file_hash_sha1(int fd, uint8_t *result) GG_DEPRECATED;
 
 #ifdef __GNUC__
-char *gg_saprintf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
+char *gg_saprintf(const char *format, ...) __attribute__ ((format (printf, 1, 2))) GG_DEPRECATED;
 #else
-char *gg_saprintf(const char *format, ...);
+char *gg_saprintf(const char *format, ...) GG_DEPRECATED;
 #endif
 
-char *gg_vsaprintf(const char *format, va_list ap);
+char *gg_vsaprintf(const char *format, va_list ap) GG_DEPRECATED;
 
 #define gg_alloc_sprintf gg_saprintf
 
-char *gg_get_line(char **ptr);
+char *gg_get_line(char **ptr) GG_DEPRECATED;
 
-int gg_connect(void *addr, int port, int async);
-struct in_addr *gg_gethostbyname(const char *hostname);
-char *gg_read_line(int sock, char *buf, int length);
-void gg_chomp(char *line);
-char *gg_urlencode(const char *str);
-int gg_http_hash(const char *format, ...);
-void gg_http_free_fields(struct gg_http *h);
-int gg_read(struct gg_session *sess, char *buf, int length);
-int gg_write(struct gg_session *sess, const char *buf, int length);
-void *gg_recv_packet(struct gg_session *sess);
-int gg_send_packet(struct gg_session *sess, int type, ...);
-unsigned int gg_login_hash(const unsigned char *password, unsigned int seed);
-void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result);
-uint32_t gg_fix32(uint32_t x);
-uint16_t gg_fix16(uint16_t x);
+int gg_connect(void *addr, int port, int async) GG_DEPRECATED;
+struct in_addr *gg_gethostbyname(const char *hostname) GG_DEPRECATED;
+char *gg_read_line(int sock, char *buf, int length) GG_DEPRECATED;
+void gg_chomp(char *line) GG_DEPRECATED;
+char *gg_urlencode(const char *str) GG_DEPRECATED;
+int gg_http_hash(const char *format, ...) GG_DEPRECATED;
+void gg_http_free_fields(struct gg_http *h) GG_DEPRECATED;
+int gg_read(struct gg_session *sess, char *buf, int length) GG_DEPRECATED;
+int gg_write(struct gg_session *sess, const char *buf, int length) GG_DEPRECATED;
+void *gg_recv_packet(struct gg_session *sess) GG_DEPRECATED;
+int gg_send_packet(struct gg_session *sess, int type, ...) GG_DEPRECATED;
+unsigned int gg_login_hash(const unsigned char *password, unsigned int seed) GG_DEPRECATED;
+void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result) GG_DEPRECATED;
+uint32_t gg_fix32(uint32_t x) GG_DEPRECATED;
+uint16_t gg_fix16(uint16_t x) GG_DEPRECATED;
 #define fix16 gg_fix16
 #define fix32 gg_fix32
-char *gg_proxy_auth(void);
-char *gg_base64_encode(const char *buf);
-char *gg_base64_decode(const char *buf);
-int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq);
+char *gg_proxy_auth(void) GG_DEPRECATED;
+char *gg_base64_encode(const char *buf) GG_DEPRECATED;
+char *gg_base64_decode(const char *buf) GG_DEPRECATED;
+int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int freeq) GG_DEPRECATED;
 
 /**
  * Kolejka odbieranych obrazków.
@@ -1325,13 +1325,13 @@ struct gg_image_queue {
 	uint32_t done;			/**< Rozmiar odebranych danych */
 
 	struct gg_image_queue *next;	/**< Kolejny element listy */
-};
+} GG_DEPRECATED;
 
-int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload, int len);
-int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payload, int len);
-int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *payload, int len);
-int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *payload, int len);
-int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *payload, int len);
+int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload, int len) GG_DEPRECATED;
+int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payload, int len) GG_DEPRECATED;
+int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *payload, int len) GG_DEPRECATED;
+int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *payload, int len) GG_DEPRECATED;
+int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *payload, int len) GG_DEPRECATED;
 
 #define GG_APPMSG_HOST "appmsg.gadu-gadu.pl"
 #define GG_APPMSG_PORT 80

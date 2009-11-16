@@ -182,7 +182,7 @@ const char *gg_libgadu_version()
 }
 
 /**
- * Zamienia kolejność bajtów w 32-bitowym słowie.
+ * \internal Zamienia kolejność bajtów w 32-bitowym słowie.
  *
  * Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach
  * big-endianowych odwraca kolejność bajtów w słowie.
@@ -207,7 +207,7 @@ uint32_t gg_fix32(uint32_t x)
 }
 
 /**
- * Zamienia kolejność bajtów w 16-bitowym słowie.
+ * \internal Zamienia kolejność bajtów w 16-bitowym słowie.
  *
  * Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach
  * big-endianowych zamienia kolejność bajtów w słowie.
@@ -1043,6 +1043,8 @@ void gg_free_session(struct gg_session *sess)
 	free(sess);
 }
 
+#ifndef DOXYGEN
+
 /**
  * \internal Funkcja wysyłająca pakiet zmiany statusu użytkownika.
  *
@@ -1152,6 +1154,8 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 	free(new_descr);
 	return res;
 }
+
+#endif /* DOXYGEN */
 
 /**
  * Zmienia status użytkownika.
