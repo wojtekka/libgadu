@@ -1,0 +1,54 @@
+/**
+
+\defgroup http Usługi HTTP
+\ingroup services
+
+\details
+
+Obecnie wszystkie usługi dodatkowe są realizowane za pomocą protokołu HTTP.
+Przy operacjach synchronicznych należy jedynie wywołać funkcję, sprawdzić kod
+błędu i jeśli operacja się powiodła, należy odczytać wynik funkcji
+z odpowiedniej struktury.
+
+Operacje asynchroniczne różnią się od zwykłych połączeń z serwerem jedynie
+tym, że zakończenie operacji jest określane przez pole \c state, które
+przyjmuje wartość \c GG_STATE_DONE w przypadku sukcesu lub
+\c GG_STATE_ERROR w przypadku błędu. Podobnie jak w przypadku połączenia
+z serwerem, należy wywoływać funkcję \c gg_http_watch_fd() po zaobserwowaniu
+zmian na określonym deskryptorze.
+
+Każdą operację asynchroniczną można ponadto zatrzymać w trakcie działania
+za pomocą funkcji \c gg_http_stop().
+
+Część operacji związanych z katalogiem publicznym w polu \c data struktury
+\c gg_http przekazuje strukturę \c gg_pubdir zawierającą wynik danej operacji.
+Szczegóły znajdują się na stronach poszczególnych usług dodatkowych.
+
+\defgroup register Rejestracja nowego użytkownika
+\ingroup services
+
+\details
+
+Po zakończeniu operacji, pole \c data struktury \c gg_http zawiera wskaźnik do
+struktury \c gg_pubdir. Ta ostatnia w polu \c success określa, czy operacja się
+powiodła. Jeśli tak, to w polu \c uin znajdzie się zarejestrowany numer.
+
+\defgroup passwd Zmiana hasła
+\ingroup services
+
+\details
+
+Po zakończeniu operacji, pole \c data struktury \c gg_http zawiera wskaźnik do
+struktury \c gg_pubdir. Ta ostatnia w polu \c success określa, czy operacja się
+powiodła.
+
+\defgroup unregister Usuwanie użytkownika
+\ingroup services
+
+\copydoc passwd
+
+\defgroup remind Przypomnienie hasła
+\ingroup services
+
+\copydoc passwd
+*/

@@ -1,0 +1,97 @@
+#-----------------------------------------------------------------------------
+# Storing contact list on server
+#-----------------------------------------------------------------------------
+
+call {
+	gg_userlist_request(session, GG_USERLIST_PUT, "Test");
+}
+
+expect data (16 00 00 00, auto, 00, "Test")
+
+send (10 00 00 00, auto, 00)
+
+expect event GG_EVENT_USERLIST
+
+#-----------------------------------------------------------------------------
+
+call {
+	char tmp[4096];
+
+	memset(tmp, 'A', 2047);
+	memset(tmp + 2047, 'B', 2047);
+	strcpy(tmp + 4094, "C");
+
+	gg_userlist_request(session, GG_USERLIST_PUT, tmp);
+}
+
+expect data (16 00 00 00, auto, 00, 41*2047)
+
+send (10 00 00 00, auto, 00)
+
+expect data (16 00 00 00, auto, 01, 42*2047)
+
+send (10 00 00 00, auto, 02)
+
+expect data (16 00 00 00, auto, 01, 43)
+
+send (10 00 00 00, auto, 02)
+
+expect event GG_EVENT_USERLIST
+
+#-----------------------------------------------------------------------------
+# Retrieving contact list from server
+#-----------------------------------------------------------------------------
+
+call {
+	gg_userlist_request(session, GG_USERLIST_GET, NULL);
+}
+
+expect data (16 00 00 00, auto, 02)
+
+send (10 00 00 00, auto, 06, "Test")
+
+expect event GG_EVENT_USERLIST (
+	userlist.type == GG_USERLIST_GET_REPLY
+	userlist.reply == "Test"
+)
+
+#-----------------------------------------------------------------------------
+
+call {
+	gg_userlist_request(session, GG_USERLIST_GET, NULL);
+}
+
+expect data (16 00 00 00, auto, 02)
+
+send (10 00 00 00, auto, 04, 41*2047)
+
+expect event GG_EVENT_NONE
+
+send (10 00 00 00, auto, 04, 42*2047)
+
+expect event GG_EVENT_NONE
+
+send (10 00 00 00, auto, 06, 43)
+
+expect event GG_EVENT_USERLIST {
+	int i;
+
+	if (type != GG_EVENT_USERLIST)
+		return FALSE;
+
+	if (event->userlist.type != GG_USERLIST_GET_REPLY)
+		return FALSE;
+
+	if (strlen(event->userlist.reply) != 4095)
+		return FALSE;
+
+	for (i = 0; i < 4095; i++) {
+		int ch = (i < 2047) ? 'A' : (i < 4094) ? 'B' : 'C';
+
+		if (event->userlist.reply[i] != ch)
+			return FALSE;
+	}
+
+	return TRUE;
+}
+

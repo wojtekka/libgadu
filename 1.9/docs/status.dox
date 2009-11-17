@@ -1,0 +1,33 @@
+/**
+
+\defgroup status Zmiana statusu użytkownika
+\ingroup session
+ 
+\details
+
+Domyślnym statusem użytkownika po połączeniu z serwerem jest
+\c GG_STATUS_AVAIL. Domyślny status połączenia można zmienić za pomocą pól
+\ref gg_login_params::status "\c status"
+i \ref gg_login_params::status_descr "\c status_descr"
+struktury \c gg_login_params. Już po połączeniu z serwerem, status można
+zmieniać za pomocą poniższych funkcji.
+
+Przykład zmiany stanu na zajęty z opisem, widoczny tylko dla znajomych:
+
+\code
+gg_change_status_descr(sesja, GG_STATUS_INVISIBLE_DESCR | GG_STATUS_FRIENDS_MASK, "Nie przeszkadzać!");
+\endcode
+
+Aby obserwować zmiany statusu kontaktów, należy najpierw
+\ref contacts "dodać do listy konktaktów" ich identyfikatory, a następnie
+obsługiwać \ref events-list "zdarzenia" związane ze zmianami statusu.
+
+Jeśli pole \c protocol_features struktury \c gg_login_params zawiera
+\c GG_FEATURE_IMAGE_DESCR, informacja o tym, że status zawiera opis jest
+dodatkowo przekazywana za pomocą flagi \c GG_STATUS_DESCR_MASK. To samo
+dotyczy zmiany statusów osób z listy kontaktów.
+
+\bug Nie ma możliwości poprawnego odbierania statusów zawierających czas
+powrotu.
+
+*/

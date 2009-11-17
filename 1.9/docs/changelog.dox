@@ -1,0 +1,41 @@
+/**
+
+\defgroup changelog Lista zmian
+
+\details
+
+Niniejsza strona zawiera listę zmian mających wpływ na API lub ABI biblioteki.
+Poprawki dostarczające nową funkcjonalność w większości przypadków nie mają
+wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
+nie zmieniają dotychczasowego zachowania.
+
+\section changelog-1_9_0 libgadu 1.9.0
+
+- Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole \c encoding struktury \c gg_login_params pozwala zmienić kodowanie na UTF-8. Mimo że katalog publiczny ze strony serwera jest obsługiwany w CP1250, biblioteka dokonuje konwersji. \ref gg_login_params "Szczegóły."
+
+- Ponieważ nowy klient przekazuje wiadomości w dwóch formatach &mdash; czysty tekst plus atrybuty i HTML, dodano pole \c xhtml_message do struktury \c gg_event_msg. Niestety, nie można jeszcze wysyłać wiadomości w tym formacie. \ref gg_event_msg "Szczegóły."
+
+- Razem z nowym protokołem przyszły nowe statusy: \c GG_STATUS_FFC, \c GG_STATUS_FFC_DESCR, \c GG_STATUS_DND i \c GG_STATUS_DND_DESCR. Uwaga! Jeśli pole \c protocol_features struktury \c gg_login_params zawiera \c GG_FEATURE_IMAGE_DESCR, statusy z opisami są przekazywane w inny sposób. \ref status "Szczegóły."
+
+- Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola \c resolver_type struktury \c gg_login_params dla procesów i wątków, lub globalnie za pomocą funkcji \ref gg_global_set_resolver czy \ref gg_global_set_custom_resolver. \ref build-resolver "Szczegóły."
+
+\section changelog-1_8_0 libgadu 1.8.0
+
+- Połączenia bezpośrednie Gadu-Gadu 7.x. \ref dcc7 "Szczegóły."
+
+- Pole \c hash_type struktury \c gg_login_params określa rodzaj użytej funkcji
+skrótu hasła. W nowej wersji protokołu domyślnie używany jest SHA-1.
+\ref gg_login_params "Szczegóły."
+
+- Pole \c soft_timeout struktur \c gg_session i \c gg_dcc7 informuje, że 
+po przekroczeniu czasu określnego w polu \c timeout zamiast zrywać połączenie,
+należy wywołać funkcję \c gg_watch_fd() lub \c gg_dcc7_watch_fd().
+\ref events "Szczegóły."
+
+- Zdarzenie \c GG_EVENT_MSG zawiera nowe pole \c seq zawierające numer
+sekwencyjny odebranej wiadomości. \ref gg_event_msg "Szczegóły."
+
+- Nowe zdarzenie \c GG_EVENT_XML_EVENT zawiera informacje w formacie XML
+otrzymane od serwera. \ref gg_event_xml_event "Szczegóły."
+
+*/

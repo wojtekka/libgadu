@@ -1,0 +1,114 @@
+/**
+
+\defgroup pubdir50 Katalog publiczny
+\ingroup session
+
+\details
+
+Funkcje katalogu publicznego pozwalają wyszukiwać znajomych oraz manipulować
+informacjami o sobie (imię, nazwisko, miejscowość, rok urodzenia itd.). Każda
+operacja na katalogu publicznym wymaga skonstruowania odpowiedniego zapytania
+do serwera i ewentualnej obsłudze odpowiedzi.
+
+Wyszukiwanie może wyglądać następująco:
+
+\code
+gg_pubdir50_t zapytanie;
+
+zapytanie = gg_pubdir50_new(GG_PUBDIR50_SEARCH_REQUEST);
+
+if (!zapytanie)
+    błąd("Brak pamięci");
+
+// Jeśli szukamy danego numeru...
+
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_UIN, "123456");
+
+// ...lub kobiet o imieniu Anna...
+
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_FIRSTNAME, "Anna");
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_GENDER, GG_PUBDIR50_GENDER_FEMALE);
+
+// ...lub osób urodzonych w latach 1979-1985, aktualnie dostępnych...
+
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_BIRTHYEAR, "1979 1985");
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_START, "0");
+gg_pubdir50_add(zapytanie, GG_PUBDIR50_ACTIVE, GG_PUBDIR50_ACTIVE_TRUE);
+
+// ...to po ustaleniu parametrów wywołujemy
+
+gg_pubdir50(sesja, zapytanie);
+
+// Po przetworzeniu wyników zwalniamy pamięć
+
+gg_pubdir50_free(zapytanie);
+\endcode
+
+Jak widać, \c gg_pubdir50_new() tworzy obiekt opisujący operację katalogu,
+\c gg_pubdir50_add() dodaje kolejne pola zapytania. Pole zapytania jest w
+rzeczywiści stałą tekstową, np. \c GG_PUBDIR50_UIN to \c "FmNumber". Należy
+pamiętać, że wszystkie argumenty są tekstami, ale nie trzeba się przejmować
+alokacją pamięci &mdash; biblioteka zapamięta to, co jest potrzebne. Kodowanie
+tekstów jest zgodne z ustawieniem sesji. Na końcu wywołujemy funkcję
+\c gg_pubdir50(), która zwróci numer sekwencyjny wyszukiwania (można zachować
+dla późniejszego rozróżnienia wyników).
+
+Aby otrzymać wynik, należy obsłużyć zdarzenia \c GG_EVENT_PUBDIR50_SEARCH_REPLY,
+\c GG_EVENT_PUBDIR50_WRITE i \c GG_EVENT_PUBDIR50_READ. Dla przykładu, obsługa
+wyników wyszukiwania wygląda następująco:
+
+\code
+gg_pubdir50_t wynik;
+int i, ilosc;
+
+wynik = event->event.pubdir50;
+ilosc = gg_pubdir50_count(wynik);
+
+if (ilosc < 1) {
+    wiadomość("Nie znaleziono");
+    return;
+}
+
+for (i = 0; i < ilosc; i++) {
+    const char *numer, *imie, *pseudo, *urodzony, *miasto, *status;
+
+    numer = gg_pubdir50_get(wynik, i, GG_PUBDIR50_UIN);
+    imie = gg_pubdir50_get(wynik, i, GG_PUBDIR50_FIRSTNAME);
+    pseudo = gg_pubdir50_get(wynik, i, GG_PUBDIR50_NICKNAME);
+    urodzony = gg_pubdir50_get(wynik, i, GG_PUBDIR50_BIRTHYEAR);
+    miasto = gg_pubdir50_get(wynik, i, GG_PUBDIR50_CITY);
+    status = gg_pubdir50_get(wynik, i, GG_PUBDIR50_STATUS);
+
+    printf("Numer: %s\nImię: %s\nPseudonim: %s\n"
+           "Urodzony: %s\nMiejscowość: %s\n",
+           numer, imie, pseudo, urodzony, miasto);;
+    
+    switch ((status) ? atoi(status) : -1) {
+        case GG_STATUS_AVAIL:
+            printf("Dostępny\n");
+            break;
+        case GG_STATUS_BUSY:
+            printf("Zajęty\n");
+            break;
+        default:
+            printf("Niedostępny\n")
+    }
+
+    printf("\n");
+}
+
+gg_event_free(zdarzenie);
+\endcode
+
+Jeśli chcemy wiedzieć, od jakiego numeru zacząć wyszukiwanie, żeby dostać
+dalszą część, używamy \c gg_pubdir50_next(). Numer sekwencyjny otrzymamy dzięki
+funkcji \c gg_pubdir50_seq().
+
+\note W żadnym wypadku nie można się odwoływać do pól \c gg_pubdir50_t,
+ponieważ mogą się zmieniać między wersjami biblioteki. Dzięki odwoływaniu
+się przez funkcje, mamy pewność, że bez względu na zmiany API/ABI otrzymamy
+to samo. Dodatkowo, jeśli pojawią się nowe pola, wystarczy odwoływać się
+do nich tak jak do obecnych, za pomocą funkcji \c gg_pubdir50_add()
+i \c gg_pubdir50_get().
+
+*/

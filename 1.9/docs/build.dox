@@ -1,0 +1,73 @@
+/**
+
+\defgroup build Kompilacja
+
+\details
+
+Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows
++ Cygwin) przeprowadza się według typowego schematu:
+
+\code
+$ ./configure
+$ make
+# make install
+\endcode
+
+Gdzie ostatnią komendę wykonuje się z prawami administratora. Aby zainstalować
+bibliotekę w katalogu użytkownika, można wykonać polecenia:
+
+\code
+$ ./configure --prefix=/katalog/użytkownika/libgadu
+$ make
+$ make install
+\endcode
+
+Następnie, aby użyć lokalnie zainstalowanej kopii biblioteki, zwykle należy
+dodać do zmiennej \c CFLAGS opcję \c -I/katalog/użytkownika/libgadu/include , a do \c LDFLAGS opcję \c -L/katalog/użytkownika/libgadu/lib.
+
+\section build-cross Kompilacja skrośna
+
+Przy kompilacji skrośnej konieczne jest użycie parametru
+\c --with-c99-vsnprintf lub \c --without-c99-vsnprintf w skrypcie \c configure,
+który mówi o tym, że funkcje rodziny \c sprintf() na docelowej platformie są
+zgodne lub niezgodne ze standardem C99. Jeśli żaden z powyższych parametrów
+nie zostanie użyty, skrypt \c configure spróbuje uruchomić program testowy,
+co przy kompilacji skrośnej się nie powiedzie.
+
+\section build-resolver Rozwiązywanie nazw
+
+Biblioteka oferuje dwa sposoby rozwiązywania nazw serwerów w trybie
+asynchronicznym: za pomocą osobnego procesu lub za pomocą osobnego wątku.
+Druga możliwość jest zalecana dla programów, które korzystają z wątków
+systemowych, ponieważ użycie funkcji \c fork() do tworzenia procesu potomnego
+w aplikacji korzystającej z wątków może powodować problemy. W wersjach
+wcześniejszych niż 1.9.0 sposób rozwiązywania nazw był wybierany na etapie
+kompilacji, co powodowało problemy, gdy w systemie były zainstalowane aplikacje
+korzystające i niekorzystające z wątków systemowych. Od wersji 1.9.0, jeśli
+jest to możliwe, kompilowane są obie wersje, a wybór jest dokonywany przez
+aplikację. Dostępność opcji przedstawia poniższa tabela:
+
+<table>
+<tr>
+<th>Opcja \c configure </th>
+<th>pthread dostępne</th>
+<th>pthread niedostępne</th>
+</tr>
+<tr>
+<td>brak</td>
+<td>\c GG_RESOLVER_FORK (domyślnie)<br>\c GG_RESOLVER_PTHREAD<br>\c GG_RESOLVER_CUSTOM</td>
+<td>\c GG_RESOLVER_FORK (domyślnie)<br>\c GG_RESOLVER_CUSTOM</td>
+</tr>
+<tr>
+<td>\c --with-pthread</td>
+<td>\c GG_RESOLVER_FORK<br>\c GG_RESOLVER_PTHREAD (domyślnie)<br>\c GG_RESOLVER_CUSTOM</td>
+<td>błąd</td>
+</tr>
+<tr>
+<td>\c --without-pthread</td>
+<td>\c GG_RESOLVER_FORK (domyślnie)<br>\c GG_RESOLVER_CUSTOM</td>
+<td>\c GG_RESOLVER_FORK (domyślnie)<br>\c GG_RESOLVER_CUSTOM</td>
+</tr>
+</table>
+
+*/

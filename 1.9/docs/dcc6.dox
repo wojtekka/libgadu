@@ -1,0 +1,237 @@
+/**
+
+\defgroup dcc6 Połączenia bezpośrednie do wersji Gadu-Gadu 6.x
+\ingroup dcc
+
+\details
+
+\note Funkcje opisane poniżej są zgodne ze starą wersją Gadu-Gadu. Nowy
+sposób przesyłania plików i przeprowadzania rozmów głosowych, wprowadzony
+w Gadu-Gadu 7.x, obsługiwany jest \ref dcc7 "innymi funkcjami".
+
+Gadu-Gadu, w przeciwieństwie do protokołów takich jak IRC, umożliwia
+połączenia w obie strony, bez względu na to, który klient nadaje,
+a który odbiera. Do tego, jeśli obie strony łączą się do serwera z tego
+samego \b publicznego adresu IP, serwer przesyła im ich adresy lokalne.
+
+Ze względu na kierunek i sposób połączenia, wyróżniamy kilka sytuacji:
+
+ - Mamy publiczny lub niepubliczny adres IP i chcemy wysłać plik do osoby
+   z publicznym adresem -- łączymy się z jego klientem, przedstawiamy się,
+   mówimy czego chcemy i jeśli druga strona to zaakceptuje, zaczynam
+   wysyłać plik. Przypomina zwykłe połączenia DCC klientów IRC. 
+
+ - Mamy publiczny adres IP i wysyłam plik do kogoś za NAT -- wysyłamy
+   na jego numer odpowiednią wiadomość przeznaczoną dla klienta (klasa
+   \c GG_CLASS_CTCP). Druga strona po odebraniu takiego pakietu łączy się
+   znaku o kodzie \c 0x02. druga strona, odebrawszy taki pakiet łączy się
+   z nami, mówi, że proszono ją o połączenie i czeka na dalsze instrukcje.
+   My wtedy wysyłamy informację, że owszem, chcemy wysłać plik, mówimy jaki
+   i jeśli druga strona to zaakceptuje, nadajemy.
+
+ - Mamy niepubliczny adres IP, tak samo jak i druga strona -- tutaj
+   nawiązanie połączenia jest możliwe tylko i wyłącznie, gdy oba klienty
+   znajdują się w tej samej sieci (tj. oba łączą się z serwerem z tego
+   samego adresu zewnętrznego) i wygląda to wtedy identycznie jak w punkcie
+   pierwszym.
+
+To, czy możemy się z kimś połączyć widać po porcie połączeń bezpośrednich
+drugiej strony, jaki dostajemy w zdarzeniach o zmianie statusu. Jeśli port
+jest niższy od 10, połączenie nie jest możliwe i należy wysłać specjalną 
+wiadomość za pomocą funkcji \c gg_dcc_request().
+
+Każde połączenie bezpośrednie i gniazdo nasłuchujące opisywane jest przez
+strukturę \c gg_dcc. To ostatnie możemy stworzyć za pomocą:
+
+\code
+struct gg_dcc *gniazdo;
+
+gniazdo = gg_dcc_socket_create(numer_gg, port_nasłuchujący);
+
+if (!gniazdo)
+    błąd("Nie można utworzyć gniazda");
+
+dodaj_do_obserwowanych(gniazdo);
+\endcode
+
+Jeśli podamy port 0, libgadu spróbuje znaleźć pierwszy wolny port w okolicy
+domyślnego portu połączeń bezpośrednich. W przypadku powodzenia zwraca
+zaalokowaną strukturę \c gg_dcc, której najbardziej interesującym polem
+\c port zawierające numer przyznanego portu. Jeśli zwróci \c NULL, w zmiennej
+systemowej \c errno znajdzie się powód błędu: \c EINVAL to niewłaściwie
+parametry, \c ENOMEM to brak pamięci, a reszta możliwych błędów to błędy
+związane z gniazdami, np. \c EADDRINUSE gdy nie można znaleźć wolnego portu.
+
+Następnie należy w zmiennej globalnej \c gg_dcc_port ustawić zaalokowany port,
+do zmiennej \c gg_dcc_ip wpisać publiczny adres IP i połączyć się z serwerem,
+żeby poinformować świat o swoich namiarach. Jeśli publiczny adres IP to
+\c 255.255.255.255, automatycznie jest przypisywany adres IP, z którego 
+wychodzi połączenie do serwera. Należy pamiętać, że wartości tych zmiennych
+są używane przez \c gg_login(), więc ich wartości trzeba ustawić przez 
+połączeniem.
+
+Po połączeniu obserwujemy deskryptor gniazda nasłuchującego i gdy coś się
+pojawi, wywołujemy:
+
+\code
+struct gg_event *zdarzenie;
+
+zdarzenie = gg_dcc_watch_fd(gniazdo);
+
+if (!zdarzenie) {
+    usuń_z_obserwowanych(gniazdo);
+    gg_dcc_free(gniazdo);
+    
+    błąd("Poważny błąd!");
+}
+\endcode
+
+Błąd jest zwracany tylko w naprawdę krytycznych sytuacjach, gdy
+brakuje pamięci, lub nie powiodła się operacja na gniazdach, która
+nie miała się nie powieść (i przy okazji dalsza praca jest kompletnie
+bezcelowa).
+
+Jeśli błędu nie będzie, dostaniemy informacje o zdarzeniu. W przypadku
+\c GG_SESSION_DCC_SOCKET mogą to być:
+
+ - \c GG_EVENT_NONE -- nic ciekawego się nie wydarzyło.
+
+ - \c GG_EVENT_DCC_ERROR -- wystąpił błąd, którego kod znajduje się w
+   polu \c dcc_error struktury zdarzenia. W przypadku tego typu sesji
+   możliwy jest tylko G\c G_ERROR_DCC_HANDSHAKE, który mówi, że nie udało
+   się porozumieć z klientem, który się połączył.
+   
+ - \c GG_EVENT_DCC_NEW -- nowe połączenie bezpośrednie. W polu \c dcc_new
+   struktury zdarzenia jest struktura \c gg_dcc typu \c GG_SESSION_DCC,
+   którą dodajemy do listy obserwowanych.
+
+W każdym z tych wypadków należy po sprawdzeniu zdarzenia wywołać funkcję...
+
+\code
+gg_event_free(zdarzenie);
+\endcode
+
+...by zwolnić pamięć po zdarzeniu.
+
+\par
+
+Gdy nadejdzie połączenie i dopiszemy je do listy obserwowanych, należy
+zwracać uwagę na następujące zdarzenia:
+
+ - \c GG_EVENT_NONE -- nic się nie zdarzyło.
+
+ - \c GG_EVENT_DCC_CLIENT_ACCEPT -- klient się przedstawił i czeka na
+   autoryzację połączenia. Sprawdzamy w strukturze \c gg_dcc pole \c uin
+   jest naszym numerem, a \c peer_uin jest na naszej liście kontaktów
+   i czy chcemy z nim nawiązywać połączenie. Jeśli nie, to po prostu
+   usuwamy połączenie:
+   \code
+if (!połączenie_dozwolone(dcc->uin, dcc->peer_uin)) {
+    usuń_z_obserwowanych(dcc);
+    gg_dcc_free(dcc);
+}
+   \endcode
+
+ - \c GG_EVENT_DCC_CALLBACK -- poprosiliśmy klienta, żeby się z nami połączył
+   za pomocą gg_dcc_request() i on teraz pyta się, czego chcemy. Zaraz po
+   tym zdarzeniu należy wywołać funkcję:
+   \code
+gg_dcc_set_type(dcc, rodzaj);
+   \endcode
+   gdzie \c connection_type to \c GG_SESSION_DCC_SEND lub
+   \c GG_SESSION_DCC_VOICE. Jeśli wysyłamy plik, można od razu wywołać
+   \c gg_dcc_fill_file_info(), ale nie jest to wymagane. Kiedy przyjdzie
+   pora, biblioteka sama nas o to poprosi.
+
+ - \c GG_EVENT_DCC_NEED_FILE_ACK -- klient chce wysłać nam plik. W polu
+   \c file_info struktury \c gg_dcc znajdują się wszystkie informacje na
+   temat pliku, jak jego nazwa, rozmiar, atrybuty, data i czas utworzenia
+   itp. Jeśli nie chcemy pliku, zamykamy połączenie w podobny sposób jak
+   przy braku autoryzacji -- zamykamy połączenie, ponieważ biblioteka nie
+   potrafi odpowiadać negatywnie na prośby połączeń bezpośrednich. Jeśli
+   plik nas interesuje, otwieramy lokalnie plik do zapisu i numer jego
+   deskryptora zapisujemy do \c file_fd w strukturze \c gg_dcc. Jeśli
+   chcemy wznowić przerwany transfer, otwieramy plik w trybie dopisywania
+   i do pola \c offset wpisujemy ile bajtów już mamy. Biblioteka dalej się
+   wszystkim zajmie.
+
+ - \c GG_EVENT_DCC_NEED_FILE_INFO -- wcześniej poprosiliśmy drugą stronę by
+   się z nami połączyła, bo jest za NAT, a my chcemy wysłać plik.
+   Możemy albo sami wypełnić strukturę \c file_info, którą biblioteka
+   wyśle drugiej stronie, albo skorzystać z funkcji
+   \c gg_dcc_fill_file_info().
+   \code
+if (gg_dcc_fill_file_info(dcc, nazwa_pliku)) {
+    błąd("Nie można otworzyć pliku");
+    usuń_z_obserwowanych(dcc);
+    gg_dcc_free(dcc);
+}
+   \endcode
+
+ - \c GG_EVENT_DCC_DONE -- zakończono transfer. Można przestać obserwować
+   deskryptor i zwolnić zasoby po połączeniu.
+
+ - \c GG_EVENT_DCC_ERROR -- błąd. Możliwy kod błędu to
+   \c GG_ERROR_DCC_HANDSHAKE, gdy nie powiodło się ustanowienie połączenia
+   z klientem, \c GG_ERROR_DCC_NET kiedy nie udało się wysłać lub odczytać
+   czegoś z gniazda, \c GG_ERROR_DCC_FILE gdy nie można było odczytać albo
+   zapisać do pliku, \c GG_ERROR_DCC_EOF gdy plik lub połączenie zbyt
+   wcześnie się skończy, \c GG_ERROR_DCC_REFUSED gdy użytkownik po drugiej
+   stronie odmówił połączenia.
+
+Tutaj również należy pamiętać o wywoływaniu \c gg_event_free().
+
+\par
+
+Jeśli chcemy sami wysłać plik, sprawdzamy najpierw, czy druga strona
+może przyjąć połączenie, patrząc na jej port. Jeśli jest wyższy niż 10,
+możemy śmiało wywołać funkcję:
+
+\code
+struct gg_dcc *dcc;
+
+dcc = gg_dcc_send_file(adres_odbiorcy, port_odbiorcy, numer_wlasny, numer_odbiorcy);
+
+if (!dcc)
+    błąd("Nie można ustanowić połączenia");
+\endcode
+
+Zaraz potem możemy wywołać funkcję \c gg_dcc_fill_file_info(), by uzupełnić
+informację o pliku...
+
+\code
+gg_dcc_fill_file_info(conn, filename);
+\endcode
+
+...ale jeśli tego nie zrobimy teraz, biblioteka poprosi nas o to
+w odpowiedniej za pomocą zdarzenia \c GG_EVENT_DCC_NEED_FILE_INFO.
+
+Jeśli port jest podejrzanie niski, znaczy że połączenie jest niemożliwe
+i wtedy wywołujemy funkcję:
+
+\code
+gg_dcc_request(sesja, numer_odbiorcy);
+\endcode
+
+gdzie \c session to nasza sesja Gadu-Gadu (musi być połączona), a \c peer_uin
+to numer drugiej strony. Wiadomość spowoduje, że druga strona spróbuje się
+z nami połączyć, jeśli ma taką możliwość.
+
+\par
+
+Gdy otrzymamy wiadomość klasy \c GG_CLASS_CTCP o treści składającej się
+z bajtu 0x02 znaczy, że ktoś chce nam coś przesłać i mamy się z nim
+połączyć. Wywołujemy wtedy:
+
+\code
+struct gg_dcc *dcc;
+
+dcc = gg_dcc_get_file(adres_nadawcy, port_nadawcy, numer_wlasny, numer_nadawcy);
+
+if (!dcc)
+    błąd("Nie można ustanowić połączenia");
+\endcode
+
+Dalej tak samo, jak przy zwykłym odbieraniu pliku.
+
+*/

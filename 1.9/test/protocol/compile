@@ -1,0 +1,393 @@
+#!/usr/bin/perl -w
+
+use vars qw(@script $test);
+
+sub parse
+{
+	my ($filename) = @_;
+	my $line = 0;
+	
+	open(FILE, $filename) || die "Unable to open file\n";
+
+	while (<FILE>) {
+		$line++;
+
+		s/^\s*//;
+
+		next if (/^#/ || /^$/);
+
+		if (/^include\s+(.*)\s*/) {
+			parse($1);
+			next;
+		}
+
+		if (/^test\s+(.*)\s*$/) {
+			push @tests, "\t\"$1\",\n";
+			$test++;
+		}
+
+		if (/^login\s*\((.*)\)\s*$/) {
+			if ($1 eq "") {
+				print STDERR "$filename:$line: login requires arguments\n";
+				exit(1);
+			}
+
+			@params = ();
+			
+			foreach (split(/\s*,\s*/, $1)) {
+				if (/^([a-zA-Z0-9_]+)\s*=\s*([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)$/) {
+					$_ = "$1 = ip($2,$3,$4,$5)";
+				}
+				
+				push @params, $_;
+			}
+
+			print "static struct gg_login_params script_glp_$state =\n";
+			print "{\n";
+			print "\t." . join(",\n\t.", @params) . "\n";
+			print "};\n\n";
+
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = ACTION_LOGIN,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.glp = &script_glp_$state,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^logoff/) {
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = ACTION_LOGOFF,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^expect\s+(dis)*connect/) {
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = EXPECT_" . uc($1) . "CONNECT,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^expect\s+event\s+(GG_EVENT_[A-Z0-9_]+)\s*([{(])*(.*)/) {
+			if (defined($2) && ($2 eq "{")) {
+				print "static int script_check_event_$state(int type, union gg_event_union *event)\n";
+				print "{\n";
+				while (<FILE>) {
+					$line++;
+					last if (/^}/);
+					print "$_";
+				}
+				print "}\n";
+				print "\n";
+			}
+
+			if (defined($2) && ($2 eq "(")) {
+				print "static int script_check_event_$state(int type, union gg_event_union *event)\n";
+				print "{\n";
+
+				@rules = ();
+
+				while (<FILE>) {
+					$line++;
+					next if (/^#/);
+					last if (/^\)/);
+					s/\s*[,;]?\s*$//;
+					s/^\s*//;
+					next if (/^$/);
+					push @rules, $_;
+				}
+				print "\treturn (";
+				$first = 1;
+				foreach $i (@rules) {
+					if (!$first) {
+						print " && ";		
+					}
+					if ($i =~ /\s*([^=]+)\s*(==|!=)\s*(".*")/) {
+						print "strcmp((char*) event->$1, (char*) $3) $2 0";
+					} elsif ($i =~ /\s*([^=]+)\s*(\[[^\]]\])\s*(==|!=|<|>|<=|>=)\s*\(([^)]+)\)\s*(.*)/) {
+						print "(($4*)(event->$1))$2 $3 $5";
+					} elsif ($i =~ /\s*([^=]+)\s*(==|!=)\s*([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)/) {
+						print "event->$1 $2 ip($3,$4,$5,$6)";
+					} else {
+						print "event->$i";
+					}
+					$first = 0;
+				}
+				if ($first) {
+					print "true)";
+				}
+				print ");\n";
+
+				print "}\n";
+				print "\n";
+			}
+
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = EXPECT_EVENT,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			if ($1 ne "") {
+				$entry .= "\t\t.event = $1,\n";
+			} else {
+				$entry .= "\t\t.event = -1,\n";
+			}
+			if (defined($2) && ($2 ne "")) {
+				$entry .= "\t\t.check_event = script_check_event_$state,\n";
+			}
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^expect\s+data\s+\((.+)\)\s*$/) {
+			@data = split(/[\s,]+/, $1);
+			@data_new = ();
+			@data_mask = ();
+			$auto = 0;
+
+			for ($i = 0; $i < scalar @data; $i++) {
+				my $count;
+
+				if ($data[$i] eq "auto" && $i == 4) {
+					$auto = 1;
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					push @data_mask, "ff";
+					next;
+				}
+
+				if ($data[$i] =~ /"(.*)"/) {
+					my $j;
+
+					foreach $j (split(//, $1)) {
+						push @data_new, sprintf("%02x", ord($j));
+						push @data_mask, "ff";
+					}
+
+					next;
+				}
+
+				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
+
+					$byte = $1;
+					$count = $2;
+				} else {
+					$byte = $data[$i];
+					$count = 1;
+				}
+
+				for ($j = 0; $j < $count; $j++) {
+					if ($byte eq "xx") {
+						push @data_new, "00";
+						push @data_mask, "00";
+					} else {
+						push @data_new, $byte;
+						push @data_mask, "ff";
+					}
+				}
+			}
+
+			$data_len = scalar @data_new;
+
+			if ($auto) {
+				$data_new[4] = sprintf("%02x", ($data_len - 8) & 255);
+				$data_new[5] = sprintf("%02x", (($data_len - 8) >> 8) & 255);
+				$data_new[6] = sprintf("%02x", (($data_len - 8) >> 16) & 255);
+				$data_new[7] = sprintf("%02x", (($data_len - 8) >> 24) & 255);
+			}
+
+			$data = join '', map { "\\x$_" } @data_new;
+			$data_mask = join '', map { "\\x$_" } @data_mask;
+
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = EXPECT_DATA,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t\t.data = (unsigned char*) \"$data\",\n";
+			$entry .= "\t\t.data_mask = (unsigned char*) \"$data_mask\",\n";
+			$entry .= "\t\t.data_len = $data_len,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^send\s+\((.+)\)\s*$/) {
+			@data = split(/[\s,]+/, $1);
+			@data_new = ();
+			$auto = 0;
+
+			for ($i = 0; $i < scalar @data; $i++) {
+				my $count;
+
+				if ($data[$i] eq "auto" && $i == 4) {
+					$auto = 1;
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					push @data_new, "00";
+					next;
+				}
+
+				if ($data[$i] =~ /"(.*)"/) {
+					my $j;
+
+					foreach $j (split(//, $1)) {
+						push @data_new, sprintf("%02x", ord($j));
+					}
+
+					next;
+				}
+					
+				if ($data[$i] =~ /^([0-9a-fA-F]+|xx)\*([0-9]+)/) {
+
+					$byte = $1;
+					$count = $2;
+				} else {
+					$byte = $data[$i];
+					$count = 1;
+				}
+
+				for ($j = 0; $j < $count; $j++) {
+					push @data_new, $byte;
+				}
+			}
+
+			$data_len = scalar @data_new;
+
+			if ($auto) {
+				$data_new[4] = sprintf("%02x", ($data_len - 8) & 255);
+				$data_new[5] = sprintf("%02x", (($data_len - 8) >> 8) & 255);
+				$data_new[6] = sprintf("%02x", (($data_len - 8) >> 16) & 255);
+				$data_new[7] = sprintf("%02x", (($data_len - 8) >> 24) & 255);
+			}
+
+			$data = join '', map { "\\x$_" } @data_new;
+
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = ACTION_SEND,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t\t.data = (unsigned char*) \"$data\",\n";
+			$entry .= "\t\t.data_len = $data_len,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		if (/^call\s+{/) {
+			print "static void script_call_$state(struct gg_session *session)\n";
+			print "{\n";
+			while (<FILE>) {
+				$line++;
+				last if (/^}/);
+				print "$_";
+			}
+			print "}\n";
+			print "\n";
+
+			$entry = "\t/* state $state */\n";
+			$entry .= "\t{\n";
+			$entry .= "\t\t.type = ACTION_CALL,\n";
+			$entry .= "\t\t.filename = \"$filename\",\n";
+			$entry .= "\t\t.line = $line,\n";
+			$entry .= "\t\t.test = $test,\n";
+			$entry .= "\t\t.call = script_call_$state,\n";
+			$entry .= "\t},\n";
+			$entry .= "\n";
+
+			push @script, $entry;
+			$state++;
+
+			next;
+		}
+
+		print STDERR "$filename:$line: invalid command\n";
+		exit(1);
+	}
+}
+
+print "/* Generated from script. Do not edit. */\n";
+print "\n";
+print "#include <stdio.h>\n";
+print "#include <stdlib.h>\n";
+print "#include <string.h>\n";
+print "#include <arpa/inet.h>\n";
+print "#include \"script.h\"\n";
+print "\n";
+
+$state = 0;
+$test = -1;
+
+foreach $i (@ARGV) {
+	parse($i);
+}
+
+print "const char *tests[] =\n";
+print "{\n";
+print @tests;
+print "\tNULL\n";
+print "};\n";
+print "\n";
+
+$entry = "\t/* state $state */\n";
+$entry .= "\t{\n";
+$entry .= "\t\t.type = ACTION_END,\n";
+$entry .= "\t},\n";
+$entry .= "\n";
+
+push @script, $entry;
+
+print "state_t script[] =\n";
+print "{\n";
+print @script;
+print "};\n";

@@ -1,0 +1,28 @@
+libgadu 1.9.0-rc2
+(C) Copyright 2001-2009 Autorzy (pełna lista w pliku AUTHORS)
+
+libgadu jest biblioteką przeznaczoną do obsługi protokołu komunikatora
+Gadu-Gadu. Przez dłuższy czas była integralną częścią Eksperymentalnego
+Klienta Gadu-Gadu, lecz ze względu na problemy z dystrybucją pakietów
+i wykorzystaniem w innych projektach, została wydzielona. Własnościowy
+protokół został rozszyfrowany metodą inżynierii wstecznej (ang. "reverse
+engineering"), przez co libgadu może nie być w 100% zgodna
+z pierwowzorem.
+
+Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1,
+której treść znajduje się w pliku COPYING. Biblioteka została napisana
+w języku C i jest niezależna od systemu operacyjnego czy środowiska.
+Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS
+i Win32, choć ten ostatni nie jest wspierany ze względu na istnienie
+oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach konsolowych,
+jak i graficznych GTK+ i Qt.
+
+Strona projektu znajduje się pod adresem http://toxygen.net/libgadu/.
+Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
+libgadu-devel poświęconą rozwojowi biblioteki, programowaniu przy jej
+użyciu oraz protokołowi Gadu-Gadu. Istnieje również lista
+libgadu-commit, na którą są wysyłane informacje o zmianach w kodzie
+źródłowym.
+
+Ostrzeżenie: Należy pamiętać, że używanie alternatywnych klientów jest
+niezgodne z regulaminem korzystania z serwisu Gadu-Gadu.

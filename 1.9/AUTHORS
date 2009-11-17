@@ -1,0 +1,44 @@
+Wymienione osoby miały mniejszy lub większy wpływ na rozwój biblioteki
+i klienta. Niektórzy pisali kod, pomagali analizować protokół, testowali
+na różnych systemach, inni podsyłali patche i bugreporty. Jeśli ktoś
+został pominięty, niech da znać. W każdym razie za to, jak wygląda ekg i
+libgadu, odpowiedzialni są (w porządku alfabetycznym):
+
+Tomasz Chiliński <chilek@chilan.com>
+Piotr Domagalski <szalik@szalik.net>
+Rafał Florek <raf@regionet.regionet.pl>
+Dawid Jarosz <dawjar@poczta.onet.pl>
+Tomasz Jarzynka <tomee@cpi.pl>
+Robert J. Woźny <speedy@ziew.org>
+Wojtek Kaniewski <wojtekka@irc.pl>
+Marek Kozina <klith@irc.pl>
+Marcin Krzyżanowski <krzak@hakore.com>
+Piotr Kupisiewicz <deli@rzepaknet.us>
+Adam Ludwikowski <adam.ludwikowski@wp.pl>
+Piotr Mach [pm] <p@gg.wha.la>
+Rafał Malinowski <malinowskirafal@wp.pl>
+Arkadiusz Miśkiewicz <arekm@pld-linux.org>
+Marcin Owsiany <porridge@debian.org>
+Marcin Ślusarz <joi@kadu.net>
+Adam Wysocki <gophi@ekg.chmurka.net>
+Piotr Wysocki <wysek@linux.bydg.org>
+Jakub Zawadzki <darkjames@darkjames.ath.cx>
+
+Marek Antoniak <kfazi@kfazi.polnet.trzepak.pl>
+Michał Bartoszkiewicz <embe@magma-net.pl>
+Wojciech Bojdoł <wojboj@htcon.pl>
+Artur Gawryszczak <gawrysz@camk.edu.pl>
+Krzysztof Gibas [sdas] <duparyba@wp.pl>
+Stanisław Gurgacz <sgurgacz@o2.pl>
+Rafał Janiczek <jojo@dexter.zst.bytom.pl>
+Marcin Mikuła <meecash@meecash.prv.pl>
+Jacek Osiecki <joshua@ceti.pl>
+Adam Osuchowski <adwol@polsl.gliwice.pl>
+Paweł Pruszkowski <arim@botrm.org>
+Adrian Smarzewski <adrians@aska.com.pl>
+Adam Strzelecki <ono@java.pl>
+Szymon Zygmunt <zigi@student.agh.edu.pl>
+
+Wykorzystano kod udostępniony na zasadach domeny publicznej autorstwa:
+
+Steve Reid <steve@edmweb.com>

@@ -1,0 +1,24 @@
+/**
+
+\defgroup todo Brakująca funkcjonalność
+
+\details
+
+Ze względu na konieczność użycia \ref re "inżynierii wstecznej", biblioteka
+nie gwarantuje stuprocentowej zgodności z oryginalnym klientem. Poza tym,
+część funkcjonalności z braku czasu, zasobów lub zainteresowania nie
+została jeszcze zaimplementowana:
+
+ - przesyłanie plików przez serwer w Gadu-Gadu 7.x,
+ - bezpośrednie połączenia głosowe w Gadu-Gadu 7.x,
+ - statusy zawierające czas powrotu,
+ - możliwość wyboru rozwiązywania nazw przez procesy lub wątki w czasie pracy,
+   nie tylko przy kompilacji,
+ - konfiguracja adresów IP i serwerów pośredniczących dla każdego połączenia
+   osobno.
+
+Jeśli jesteś w stanie pomóc, skontaktuj się z autorami na liście dyskusyjnej
+libgadu-devel.
+
+*/
+
