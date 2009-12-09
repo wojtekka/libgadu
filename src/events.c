@@ -289,7 +289,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				struct in_addr *addr_list;
 				int addr_count;
 
-				if (gg_gethostbyname(sess->resolver_host, &addr_list, &addr_count, 0) == -1) {
+				if (gg_gethostbyname_real(sess->resolver_host, &addr_list, &addr_count, 0) == -1) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() host %s not found\n", sess->resolver_host);
 					e->event.failure = GG_FAILURE_RESOLVING;
 					goto fail;
@@ -675,7 +675,7 @@ goto_GG_STATE_CONNECT_XXX:
 				tmp = realloc(sess->recv_buf, sess->recv_done + res + 1);
 
 				if (tmp == NULL) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory for http reply\n");
 					goto fail;
 				}
 
@@ -743,7 +743,7 @@ goto_GG_STATE_CONNECT_XXX:
 					e->event.msg.message = (unsigned char*) strdup(tmp + 1);
 
 					if (e->event.msg.message == NULL) {
-						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for system message\n");
+						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory for system message\n");
 						goto fail;
 					}
 				}
@@ -1014,7 +1014,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 				tmp = realloc(sess->recv_buf, sess->recv_done + res + 1);
 
 				if (tmp == NULL) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_data() not enough memory for http reply\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory for http reply\n");
 					// XXX kolejny port
 					goto fail;
 				}

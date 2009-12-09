@@ -1,5 +1,7 @@
+/* $Id$ */
+
 /*
- *  (C) Copyright 2008 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2009 Jakub Zawadzki <darkjames@darkjames.ath.cx>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -16,11 +18,11 @@
  *  USA.
  */
 
-#ifndef LIBGADU_RESOLVER_H
-#define LIBGADU_RESOLVER_H
+#ifndef LIBGADU_INTERNAL_H
+#define LIBGADU_INTERNAL_H
 
-#include <arpa/inet.h>
+#include "libgadu.h"
 
-int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *count, int pthread);
+int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
 
-#endif /* LIBGADU_RESOLVER_H */
+#endif /* LIBGADU_INTERNAL_H */

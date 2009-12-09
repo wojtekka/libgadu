@@ -48,8 +48,8 @@ Jak widać, \c gg_pubdir50_new() tworzy obiekt opisujący operację katalogu,
 \c gg_pubdir50_add() dodaje kolejne pola zapytania. Pole zapytania jest w
 rzeczywiści stałą tekstową, np. \c GG_PUBDIR50_UIN to \c "FmNumber". Należy
 pamiętać, że wszystkie argumenty są tekstami, ale nie trzeba się przejmować
-alokacją pamięci &mdash; biblioteka zapamięta to, co jest potrzebne. Teksty
-muszą być oczywiście kodowane w CP1250. Na końcu wywołujemy funkcję
+alokacją pamięci &mdash; biblioteka zapamięta to, co jest potrzebne. Kodowanie
+tekstów jest zgodne z ustawieniem sesji. Na końcu wywołujemy funkcję
 \c gg_pubdir50(), która zwróci numer sekwencyjny wyszukiwania (można zachować
 dla późniejszego rozróżnienia wyników).
 

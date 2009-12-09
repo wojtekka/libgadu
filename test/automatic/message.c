@@ -3,13 +3,18 @@
 void test_text_to_html(const char *input, const char *output)
 {
 	char *result;
+	size_t len;
 
-	result = gg_message_text_to_html(input, NULL, 0);
+	len = gg_message_text_to_html(NULL, input, NULL, 0);
+
+	result = malloc(len + 1);
 
 	if (result == NULL) {
 		perror("gg_message_text_to_html");
 		exit(1);
 	}
+
+	gg_message_text_to_html(result, input, NULL, 0);
 
 	printf("text: \"%s\"\n", input);
 	printf("output: \"%s\"\n", result);
@@ -27,13 +32,18 @@ void test_text_to_html(const char *input, const char *output)
 void test_html_to_text(const char *input, const char *output)
 {
 	char *result;
+	size_t len;
 
-	result = gg_message_html_to_text(input);
+	len = gg_message_html_to_text(NULL, input);
+
+	result = malloc(len + 1);
 
 	if (result == NULL) {
 		perror("gg_message_html_to_text");
 		exit(1);
 	}
+
+	gg_message_html_to_text(result, input);
 
 	printf("html: \"%s\"\n", input);
 	printf("output: \"%s\"\n", result);

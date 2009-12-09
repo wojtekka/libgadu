@@ -86,7 +86,7 @@ static void gg_gethostbyname_cleaner(void *data)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_gethostbyname(const char *hostname, struct in_addr **result, int *count, int pthread)
+int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *count, int pthread)
 {
 #ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
@@ -261,7 +261,7 @@ int gg_resolver_run(int fd, const char *hostname)
 	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run(%d, %s)\n", fd, hostname);
 
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
-		if (gg_gethostbyname(hostname, &addr_list, &addr_count, 1) == -1) {
+		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 1) == -1) {
 			addr_list = addr_ip;
 			/* addr_ip[0] już zawiera INADDR_NONE */
 		}
@@ -280,6 +280,27 @@ int gg_resolver_run(int fd, const char *hostname)
 		free(addr_list);
 
 	return res;
+}
+
+/**
+ * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
+ *
+ * Jeśli dany system dostarcza \c gethostbyname_r, używa się tej wersji, jeśli
+ * nie, to zwykłej \c gethostbyname.
+ *
+ * \param hostname Nazwa serwera
+ *
+ * \return Zaalokowana struktura \c in_addr lub NULL w przypadku błędu.
+ */
+struct in_addr *gg_gethostbyname(const char *hostname)
+{
+	struct in_addr *result;
+	int count;
+
+	if (gg_gethostbyname_real(hostname, &result, &count, 0) == -1)
+		return NULL;
+
+	return result;
 }
 
 /**

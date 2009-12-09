@@ -43,7 +43,7 @@
 #include "libgadu.h"
 
 /**
- * Odpowiednik funkcji \c vsprintf alokujący miejsce na wynik.
+ * \internal Odpowiednik funkcji \c vsprintf alokujący miejsce na wynik.
  *
  * Funkcja korzysta z funkcji \c vsnprintf, sprawdzając czy dostępna funkcja
  * systemowa jest zgodna ze standardem C99 czy wcześniejszymi.
@@ -121,7 +121,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 }
 
 /**
- * Odpowiednik funkcji \c sprintf alokujący miejsce na wynik.
+ * \internal Odpowiednik funkcji \c sprintf alokujący miejsce na wynik.
  *
  * Funkcja korzysta z funkcji \c vsnprintf, sprawdzając czy dostępna funkcja
  * systemowa jest zgodna ze standardem C99 czy wcześniejszymi.
@@ -224,7 +224,7 @@ char *gg_read_line(int sock, char *buf, int length)
 }
 
 /**
- * Nawiązuje połączenie TCP.
+ * \internal Nawiązuje połączenie TCP.
  *
  * \param addr Wskaźnik na strukturę \c in_addr z adresem serwera
  * \param port Port serwera
@@ -298,7 +298,7 @@ int gg_connect(void *addr, int port, int async)
 }
 
 /**
- * Usuwa znaki końca linii.
+ * \internal Usuwa znaki końca linii.
  *
  * Funkcja działa bezpośrednio na buforze.
  *
@@ -322,7 +322,7 @@ void gg_chomp(char *line)
 }
 
 /**
- * Koduje ciąg znaków do postacji adresu HTTP.
+ * \internal Koduje ciąg znaków do postacji adresu HTTP.
  *
  * Zamienia znaki niedrukowalne, spoza ASCII i mające specjalne znaczenie
  * dla protokołu HTTP na encje postaci \c %XX, gdzie \c XX jest szesnastkową
@@ -496,7 +496,7 @@ static char gg_base64_charset[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /**
- * Koduje ciąg znaków do base64.
+ * \internal Koduje ciąg znaków do base64.
  *
  * Wynik funkcji należy zwolnić za pomocą \c free.
  *
@@ -555,7 +555,7 @@ char *gg_base64_encode(const char *buf)
 }
 
 /**
- * Dekoduje ciąg znaków zapisany w base64.
+ * \internal Dekoduje ciąg znaków zapisany w base64.
  *
  * Wynik funkcji należy zwolnić za pomocą \c free.
  *

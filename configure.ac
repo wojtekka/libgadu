@@ -13,6 +13,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_C_CONST
 AC_PROG_LIBTOOL
+AC_SUBST(LIBTOOL_DEPS)
 
 AC_SUBST(REQUIRES)
 AC_SUBST(INCLUDES)
@@ -235,6 +236,19 @@ if test "x$tmp" = "xxxxxx"; then
 	if test "x$have_openssl" = "xyes"; then
 		OPTIONAL_TESTS_SEARCH="search"
 	fi
+fi
+
+dnl
+dnl  Sprawdź, czy mamy czym generować dokumentację
+dnl
+
+AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [:])
+
+AC_SUBST([SUBDIRS_DOXYGEN])
+if test "x$DOXYGEN" = "xdoxygen"; then
+	SUBDIRS_DOXYGEN="docs"
+else
+	SUBDIRS_DOXYGEN=""
 fi
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/automatic/Makefile test/automatic/script/Makefile test/manual/Makefile test/manual/lib/Makefile])

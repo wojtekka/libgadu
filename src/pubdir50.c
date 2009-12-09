@@ -28,6 +28,8 @@
 #include <time.h>
 
 #include "libgadu.h"
+#include "internal.h"
+#include "encoding.h"
 
 /**
  * Tworzy nowe zapytanie katalogu publicznego.
@@ -215,8 +217,32 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		if (req->entries[i].num)
 			continue;
 		
-		size += strlen(req->entries[i].field) + 1;
-		size += strlen(req->entries[i].value) + 1;
+		if (sess->encoding == GG_ENCODING_CP1250) {
+			size += strlen(req->entries[i].field) + 1;
+			size += strlen(req->entries[i].value) + 1;
+		} else {
+			char *tmp;
+
+			// XXX zoptymalizować
+			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
+
+			if (tmp == NULL)
+				return -1;
+
+			size += strlen(tmp) + 1;
+
+			free(tmp);
+
+			// XXX zoptymalizować
+			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
+
+			if (tmp == NULL)
+				return -1;
+
+			size += strlen(tmp) + 1;
+
+			free(tmp);
+		}
 	}
 
 	if (!(buf = malloc(size))) {
@@ -237,11 +263,40 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		if (req->entries[i].num)
 			continue;
 
-		strcpy(p, req->entries[i].field);
-		p += strlen(p) + 1;
+		if (sess->encoding == GG_ENCODING_CP1250) {
+			strcpy(p, req->entries[i].field);
+			p += strlen(p) + 1;
 
-		strcpy(p, req->entries[i].value);
-		p += strlen(p) + 1;
+			strcpy(p, req->entries[i].value);
+			p += strlen(p) + 1;
+		} else {
+			char *tmp;
+
+			// XXX zoptymalizować
+			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
+
+			if (tmp == NULL) {
+				free(buf);
+				return -1;
+			}
+
+			strcpy(p, tmp);
+			p += strlen(tmp) + 1;
+			free(tmp);
+
+			// XXX zoptymalizować
+			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
+
+
+			if (tmp == NULL) {
+				free(buf);
+				return -1;
+			}
+
+			strcpy(p, tmp);
+			p += strlen(tmp) + 1;
+			free(tmp);
+		}
 	}
 
 	if (gg_send_packet(sess, GG_PUBDIR50_REQUEST, buf, size, NULL, 0) == -1)
@@ -256,22 +311,23 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
  * \internal Analizuje przychodzący pakiet odpowiedzi i zapisuje wynik
  * w strukturze \c gg_event.
  *
+ * \param sess Struktura sesji
  * \param e Struktura zdarzenia
  * \param packet Pakiet odpowiedzi
  * \param length Długość pakietu odpowiedzi
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
+int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length)
 {
 	const char *end = packet + length, *p;
 	struct gg_pubdir50_reply *r = (struct gg_pubdir50_reply*) packet;
 	gg_pubdir50_t res;
 	int num = 0;
 	
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_handle_reply(%p, %p, %d);\n", e, packet, length);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_pubdir50_handle_reply_sess(%p, %p, %p, %d);\n", sess, e, packet, length);
 
-	if (!e || !packet) {
+	if (!sess || !e || !packet) {
 		gg_debug(GG_DEBUG_MISC, "// gg_pubdir50_handle_reply() invalid arguments\n");
 		errno = EFAULT;
 		return -1;
@@ -358,8 +414,24 @@ int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length)
 			res->next = atoi(value);
 			num--;
 		} else {
-			if (gg_pubdir50_add_n(res, num, field, value) == -1)
-				goto failure;
+			if (sess->encoding == GG_ENCODING_CP1250) {
+				if (gg_pubdir50_add_n(res, num, field, value) == -1)
+					goto failure;
+			} else {
+				char *tmp;
+
+				tmp = gg_encoding_convert(value, GG_ENCODING_CP1250, sess->encoding, -1, -1);
+
+				if (tmp == NULL)
+					goto failure;
+
+				if (gg_pubdir50_add_n(res, num, field, tmp) == -1) {
+					free(tmp);
+					goto failure;
+				}
+
+				free(tmp);
+			}
 		}
 	}	
 

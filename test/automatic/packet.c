@@ -115,6 +115,11 @@ ssize_t read(int fd, char *buf, size_t len)
 	return result;
 }
 
+static void resolver_cleanup(void **priv_data, int force)
+{
+
+}
+
 int main(void)
 {
 	struct gg_session gs;
@@ -127,6 +132,7 @@ int main(void)
 	gs.state = GG_STATE_CONNECTED;
 	gs.flags = (1 << GG_SESSION_FLAG_RAW_PACKET);
 	gs.timeout = -1;
+	gs.resolver_cleanup = resolver_cleanup;
 
 	for (i = 0; i < sizeof(input) / sizeof(input[0]); ) {
 		struct gg_event *ge;
@@ -143,6 +149,8 @@ int main(void)
 			free(gs.recv_buf);
 			gs.recv_buf = NULL;
 			gs.recv_done = 0;
+			gs.fd = 123;
+			gs.state = GG_STATE_CONNECTED;
 		} else if (ge->type == GG_EVENT_NONE) {
 			if (input[state-1].expect != EXPECT_NOTHING) {
 				fprintf(stderr, "Returned no event, expected something\n");

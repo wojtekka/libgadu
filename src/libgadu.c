@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -141,7 +141,7 @@ const char *gg_libgadu_version()
 }
 
 /**
- * Zamienia kolejność bajtów w 32-bitowym słowie.
+ * \internal Zamienia kolejność bajtów w 32-bitowym słowie.
  *
  * Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach
  * big-endianowych odwraca kolejność bajtów w słowie.
@@ -166,7 +166,7 @@ uint32_t gg_fix32(uint32_t x)
 }
 
 /**
- * Zamienia kolejność bajtów w 16-bitowym słowie.
+ * \internal Zamienia kolejność bajtów w 16-bitowym słowie.
  *
  * Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach
  * big-endianowych zamienia kolejność bajtów w słowie.
@@ -1158,8 +1158,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 	if (p->protocol_version != 0)
 		gg_session_set_protocol_version(gs, p->protocol_version);
-	else
-		gg_session_set_protocol_version(gs, 0x2a);	// XXX
 
 	if (p->client_version != NULL)
 		gg_session_set_client_version(gs, p->client_version);

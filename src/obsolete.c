@@ -211,4 +211,25 @@ void gg_change_info_request_free(struct gg_change_info_request *r)
 
 }
 
+int gg_resolve(int *fd, int *pid, const char *hostname)
+{
+	return -1;
+}
+
+void gg_resolve_pthread_cleanup(void *arg, int kill)
+{
+
+}
+
+int gg_resolve_pthread(int *fd, void **resolver, const char *hostname)
+{
+	return -1;
+}
+
+int gg_pubdir50_handle_reply(struct gg_event *e, const char *packet, int length
+)
+{
+	return -1;
+}
+
 /** \endcond */

@@ -63,6 +63,13 @@ int gg_message_set_auto_convert(gg_message_t *gm, int auto_convert)
 
 	gm->auto_convert = !!auto_convert;
 
+	if (!gm->auto_convert) {
+		free(gm->text_converted);
+		free(gm->html_converted);
+		gm->text_converted = NULL;
+		gm->html_converted = NULL;
+	}
+
 	return 0;
 }
 
@@ -184,6 +191,9 @@ int gg_message_set_text(gg_message_t *gm, const char *text)
 		gm->text = tmp;
 	}
 
+	free(gm->html_converted);
+	gm->html_converted = NULL;
+
 	return 0;
 }
 
@@ -191,9 +201,23 @@ const char *gg_message_get_text(gg_message_t *gm)
 {
 	GG_MESSAGE_CHECK(gm, NULL);
 
+	if (gm->text_converted != NULL)
+		return gm->text_converted;
+
 	if (gm->text == NULL && gm->html != NULL && gm->auto_convert) {
+		size_t len;
+
 		free(gm->text_converted);
-		gm->text_converted = gg_message_html_to_text(gm->html);
+
+		len = gg_message_html_to_text(NULL, gm->html);
+
+		gm->text_converted = malloc(len + 1);
+
+		if (gm->text_converted == NULL)
+			return NULL;
+
+		gg_message_html_to_text(gm->text_converted, gm->html);
+
 		return gm->text_converted;
 	}
 
@@ -219,6 +243,9 @@ int gg_message_set_html(gg_message_t *gm, const char *html)
 		gm->html = tmp;
 	}
 
+	free(gm->text_converted);
+	gm->text_converted = NULL;
+
 	return 0;
 }
 
@@ -226,9 +253,23 @@ const char *gg_message_get_html(gg_message_t *gm)
 {
 	GG_MESSAGE_CHECK(gm, NULL);
 
+	if (gm->html_converted != NULL)
+		return gm->html_converted;
+
 	if (gm->html == NULL && gm->text != NULL && gm->auto_convert) {
+		size_t len;
+
 		free(gm->html_converted);
-		gm->html_converted = gg_message_text_to_html(gm->html, gm->attributes, gm->attributes_length);
+
+		len = gg_message_text_to_html(NULL, gm->text, gm->attributes, gm->attributes_length);
+
+		gm->html_converted = malloc(len + 1);
+
+		if (gm->html_converted == NULL)
+			return NULL;
+
+		gg_message_text_to_html(gm->html_converted, gm->text, gm->attributes, gm->attributes_length);
+
 		return gm->html_converted;
 	}
 
@@ -260,6 +301,9 @@ int gg_message_set_attributes(gg_message_t *gm, const char *attributes, size_t l
 		gm->attributes_length = length;
 	}
 
+	free(gm->html_converted);
+	gm->html_converted = NULL;
+
 	return 0;
 }
 
@@ -277,23 +321,208 @@ int gg_message_get_attributes(gg_message_t *gm, const char **attributes, size_t 
 }
 
 /**
- * \brief Zamienia HTML na czysty tekst.
+ * \internal Dodaje tekst na koniec bufora.
+ * 
+ * \param dst Wskaźnik na bufor roboczy
+ * \param pos Wskaźnik na aktualne położenie w buforze roboczym
+ * \param src Dodawany tekst
+ * \param len Długość dodawanego tekstu
+ */
+static void gg_append(char *dst, int *pos, const void *src, int len)
+{
+	if (dst != NULL)
+		memcpy(&dst[*pos], src, len);
+
+	*pos += len;
+}
+
+/**
+ * \internal Zamienia tekst z formatowaniem Gadu-Gadu na HTML.
  *
- * \param html Kod źrodłowy
+ * \param dst Bufor wynikowy (może być \c NULL)
+ * \param utf_msg Tekst źródłowy
+ * \param format Atrybuty tekstu źródłowego
+ * \param format_len Długość bloku atrybutów tekstu źródłowego
+ *
+ * \note Wynikowy tekst nie jest idealnym kodem HTML, ponieważ ma jak
+ * dokładniej odzwierciedlać to, co wygenerowałby oryginalny klient.
+ *
+ * \note Dokleja \c \\0 na końcu bufora wynikowego.
+ *
+ * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
+ */
+size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *format, size_t format_len)
+{
+	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
+	const int span_len = 75;
+	const char img_fmt[] = "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
+	const int img_len = 28;
+	int char_pos = 0;
+	int format_idx = 3;
+	unsigned char old_attr = 0;
+	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
+	int len, i;
+
+	len = 0;
+
+	for (i = 0; utf_msg[i] != 0; i++) {
+		unsigned char attr;
+		int attr_pos;
+
+		if (format_idx + 3 <= format_len) {
+			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
+			attr = format[format_idx + 2];
+		} else {
+			attr_pos = -1;
+			attr = 0;
+		}
+
+		if (attr_pos == char_pos) {
+			format_idx += 3;
+
+			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
+				if (char_pos != 0) {
+					if ((old_attr & GG_FONT_UNDERLINE) != 0)
+						gg_append(dst, &len, "</u>", 4);
+
+					if ((old_attr & GG_FONT_ITALIC) != 0)
+						gg_append(dst, &len, "</i>", 4);
+
+					if ((old_attr & GG_FONT_BOLD) != 0)
+						gg_append(dst, &len, "</b>", 4);
+
+					gg_append(dst, &len, "</span>", 7);
+				}
+
+				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
+					color = (unsigned char *) &format[format_idx];
+					format_idx += 3;
+				} else {
+					color = (unsigned char*) "\x00\x00\x00";
+				}
+
+				if (dst != NULL)
+					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+				len += span_len;
+			} else if (char_pos == 0) {
+				if (dst != NULL)
+					sprintf(&dst[len], span_fmt, 0, 0, 0);
+				len += span_len;
+			}
+
+			if ((attr & GG_FONT_BOLD) != 0)
+				gg_append(dst, &len, "<b>", 3);
+
+			if ((attr & GG_FONT_ITALIC) != 0)
+				gg_append(dst, &len, "<i>", 3);
+
+			if ((attr & GG_FONT_UNDERLINE) != 0)
+				gg_append(dst, &len, "<u>", 3);
+
+			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
+				if (dst != NULL) {
+					sprintf(&dst[len], img_fmt,
+						format[format_idx + 9],
+						format[format_idx + 8], 
+						format[format_idx + 7],
+						format[format_idx + 6], 
+						format[format_idx + 5],
+						format[format_idx + 4],
+						format[format_idx + 3],
+						format[format_idx + 2]);
+				}
+
+				len += img_len;
+				format_idx += 10;
+			}
+
+			old_attr = attr;
+		} else if (i == 0) {
+			if (dst != NULL)
+				sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+			len += span_len;
+		}
+
+		switch (utf_msg[i]) {
+			case '&':
+				gg_append(dst, &len, "&amp;", 5);
+				break;
+			case '<':
+				gg_append(dst, &len, "&lt;", 4);
+				break;
+			case '>':
+				gg_append(dst, &len, "&gt;", 4);
+				break;
+			case '\'':
+				gg_append(dst, &len, "&apos;", 6);
+				break;
+			case '\"':
+				gg_append(dst, &len, "&quot;", 6);
+				break;
+			case '\n':
+				gg_append(dst, &len, "<br>", 4);
+				break;
+			case '\r':
+				break;
+			default:
+				if (dst != NULL)
+					dst[len] = utf_msg[i];
+				len++;
+		}
+
+		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
+
+		if ((utf_msg[i] & 0xc0) != 0xc0)
+			char_pos++;
+	}
+
+	if ((old_attr & GG_FONT_UNDERLINE) != 0)
+		gg_append(dst, &len, "</u>", 4);
+
+	if ((old_attr & GG_FONT_ITALIC) != 0)
+		gg_append(dst, &len, "</i>", 4);
+
+	if ((old_attr & GG_FONT_BOLD) != 0)
+		gg_append(dst, &len, "</b>", 4);
+
+	/* Dla pustych tekstów dodaj pusty <span>. */
+
+	if (i == 0) {
+		if (dst != NULL)
+			sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+		len += span_len;
+	}
+
+	gg_append(dst, &len, "</span>", 7);
+
+	if (dst != NULL)
+		dst[len] = 0;
+
+	return len;
+}
+
+/**
+ * \internal Zamienia tekst w formacie HTML na czysty tekst.
+ *
+ * \param dst Bufor wynikowy (może być \c NULL)
+ * \param html Tekst źródłowy
+ *
+ * \note Dokleja \c \\0 na końcu bufora wynikowego.
  *
  * \note Funkcja służy do zachowania kompatybilności przy przesyłaniu
  * wiadomości HTML do klientów, które tego formatu nie obsługują. Z tego
  * powodu funkcja nie zachowuje formatowania, a jedynie usuwa tagi i
  * zamienia podstawowe encje na ich odpowiedniki ASCII.
  *
- * \return Zaalokowany bufor z czystym tekstem.
+ * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-char *gg_message_html_to_text(const char *html)
+size_t gg_message_html_to_text(char *dst, const char *html)
 {
 	const char *src, *entity, *tag;
-	char *result, *dst;
-	size_t len;
 	int in_tag, in_entity;
+	size_t len;
 
 	len = 0;
 	in_tag = 0;
@@ -309,57 +538,10 @@ char *gg_message_html_to_text(const char *html)
 		}
 
 		if (in_tag && (*src == '>')) {
-			if (strncmp(tag, "<br", 4) == 0)
-				len += 2;
-			in_tag = 0;
-			continue;
-		}
-
-		if (in_tag)
-			continue;
-
-		if (*src == '&') {
-			in_entity = 1;
-			continue;
-		}
-
-		if (in_entity && *src == ';') {
-			in_entity = 0;
-			len++;
-			continue;
-		}
-
-		if (in_entity && !(isalnum(*src) || *src == '#'))
-			in_entity = 0;
-
-		if (in_entity)
-			continue;
-
-		len++;
-	}
-
-	result = malloc(len + 1);
-
-	if (result == NULL)
-		return NULL;
-
-	dst = result;
-	in_tag = 0;
-	tag = NULL;
-	in_entity = 0;
-	entity = NULL;
-
-	for (src = html; *src != 0; src++) {
-		if (*src == '<') {
-			tag = src;
-			in_tag = 1;
-			continue;
-		}
-
-		if (in_tag && (*src == '>')) {
 			if (strncmp(tag, "<br", 3) == 0) {
-				*dst++ = '\r';
-				*dst++ = '\n';
+				if (dst != NULL)
+					dst[len] = '\n';
+				len++;
 			}
 			in_tag = 0;
 			continue;
@@ -376,19 +558,21 @@ char *gg_message_html_to_text(const char *html)
 
 		if (in_entity && *src == ';') {
 			in_entity = 0;
-			if (strncmp(entity, "&lt;", 4) == 0)
-				*dst = '<';
-			else if (strncmp(entity, "&gt;", 4) == 0)
-				*dst = '>';
-			else if (strncmp(entity, "&quot;", 6) == 0)
-				*dst = '"';
-			else if (strncmp(entity, "&apos;", 6) == 0)
-				*dst = '\'';
-			else if (strncmp(entity, "&amp;", 5) == 0)
-				*dst = '&';
-			else
-				*dst = '?';
-			dst++;
+			if (dst != NULL) {
+				if (strncmp(entity, "&lt;", 4) == 0)
+					dst[len] = '<';
+				else if (strncmp(entity, "&gt;", 4) == 0)
+					dst[len] = '>';
+				else if (strncmp(entity, "&quot;", 6) == 0)
+					dst[len] = '"';
+				else if (strncmp(entity, "&apos;", 6) == 0)
+					dst[len] = '\'';
+				else if (strncmp(entity, "&amp;", 5) == 0)
+					dst[len] = '&';
+				else
+					dst[len] = '?';
+			}
+			len++;
 			continue;
 		}
 
@@ -398,166 +582,15 @@ char *gg_message_html_to_text(const char *html)
 		if (in_entity)
 			continue;
 
-		*dst++ = *src;
-	}
-
-	*dst = 0;
-
-	return result;
-}
-
-/** Domyślny początek kodu HTML przy braku atrybutów. */
-static const char *gg_message_html_default_prefix = "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
-
-/** Domyślny koniec kodu HTML przy braku atrybutów. */
-static const char *gg_message_html_default_suffix = "</span>";
-
-/**
- * \brief Zamienia czysty tekst z atrybutami na HTML.
- *
- * \param text Treść wiadomości
- * \param attributes Atrybuty wiadomości
- * \param attributes_length Długość bloku atrybutów
- *
- * \note Wynikowy tekst nie jest idealnym kodem HTML, ponieważ ma jak
- * dokładniej odzwierciedlać to, co wygenerowałby oryginalny klient.
- *
- * \warning Obecnie funkcja ignoruje atrybuty tekstu.
- *
- * \return Zaalokowany bufor z tekstem w formacie HTML.
- */
-char *gg_message_text_to_html(const char *text, const char *attributes, size_t attributes_length)
-{
-/*
-	const char *src;
-	char *result, *dst;
-	size_t len, src_ofs, attr_ofs;
-	uint8_t attr_last;
-
-	len = 0;
-	attr_ofs = 0;
-	src_ofs = 0;
-
-	for (src = text; *src != 0; src++, src_ofs++) {
-		while ((attr_ofs < attributes_length) && (attributes_length - attr_ofs >= 3)) {
-			uint16_t ofs;
-			uint8_t attr;
-
-			ofs = (uint16_t) attributes[attr_ofs];
-			ofs |= ((uint16_t) attributes[attr_ofs + 1]) << 8;
-			attr = (uint8_t) attributes[attr_ofs + 2];
-
-			if (src_ofs != ofs)
-				break;
-
-			if (attr & GG_FONT_BOLD) {
-				// ...
-			}
-			if (attr & GG_FONT_ITALIC) {
-				// ...
-			}
-			if (attr & GG_FONT_UNDERLINE) {
-				// ...
-			}
-			if (attr & GG_FONT_COLOR) {
-				// ...
-				attr_ofs += 3;
-			}
-			if (attr & GG_FONT_IMAGE) {
-				// ...
-				attr_ofs += (uint8_t) attributes[attr_ofs + 3] + 1;
-				// <img src="12345678">
-				len += 32;
-			}
-
-			attr_ofs += 3;
-		}
-
-		if (*src == '\r')
-			continue;
-
-		if (*src == '\n') {
-			len += 4;
-			continue;
-		}
+		if (dst != NULL)
+			dst[len] = *src;
 
 		len++;
 	}
 
-	result = malloc(len + 1);
-
-	if (result == NULL)
-		return NULL;
-
-	dst = result;
-
-	// ...
-
-	*dst = 0;
-
-	return result;
-*/
-	const char *src;
-	char *result, *dst;
-	size_t len;
-
-	len = strlen(gg_message_html_default_prefix) + strlen(gg_message_html_default_suffix);
-
-	for (src = text; *src != 0; src++) {
-		if (*src == '<')
-			len += 4;
-		else if (*src == '>')
-			len += 4;
-		else if (*src == '"')
-			len += 6;
-		else if (*src == '\'')
-			len += 6;
-		else if (*src == '&')
-			len += 5;
-		if (*src == '\n')
-			len += 4;
-		if (*src != '\r')
-			len++;
-	}
+	if (dst != NULL)
+		dst[len] = 0;
 	
-	result = malloc(len + 1);
-
-	if (result == NULL)
-		return NULL;
-
-	dst = result;
-
-	memcpy(dst, gg_message_html_default_prefix, strlen(gg_message_html_default_prefix));
-	dst += strlen(gg_message_html_default_prefix);
-
-	for (src = text; *src != 0; src++) {
-		if (*src == '<') {
-			memcpy(dst, "&lt;", 4);
-			dst += 4;
-		} else if (*src == '>') {
-			memcpy(dst, "&gt;", 4);
-			dst += 4;
-		} else if (*src == '"') {
-			memcpy(dst, "&quot;", 6);
-			dst += 6;
-		} else if (*src == '\'') {
-			memcpy(dst, "&apos;", 6);
-			dst += 6;
-		} else if (*src == '&') {
-			memcpy(dst, "&amp;", 5);
-			dst += 5;
-		} else if (*src == '\n') {
-			memcpy(dst, "<br>", 4);
-			dst += 4;
-		} else if (*src != '\r') {
-			*dst++ = *src;
-		}
-	}
-
-	memcpy(dst, gg_message_html_default_suffix, strlen(gg_message_html_default_suffix));
-	dst += strlen(gg_message_html_default_suffix);
-
-	*dst = 0;
-
-	return result;
+	return len;
 }
+

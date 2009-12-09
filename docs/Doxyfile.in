@@ -41,7 +41,7 @@ MAX_INITIALIZER_LINES  = 30
 OPTIMIZE_OUTPUT_FOR_C  = YES
 OPTIMIZE_OUTPUT_JAVA   = NO
 SHOW_USED_FILES        = YES
-DETAILS_AT_TOP         = YES
+#DETAILS_AT_TOP         = YES
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
 #---------------------------------------------------------------------------

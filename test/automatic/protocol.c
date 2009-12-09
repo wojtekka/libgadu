@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
 				for (i = 0; i < script[state].data_len; i++) {
 					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
-						error(state, "Received invalid data at offset %d: expected %d, received %d\n", i, script[state].data[i], inbuf[i]);
+						error(state, "Received invalid data at offset %d: expected 0x%02x, received 0x%02x\n", i, (unsigned char) script[state].data[i], (unsigned char) inbuf[i]);
 						exit(1);
 					}
 				}
@@ -347,7 +347,7 @@ int main(int argc, char **argv)
 				}
 
 				if ((script[state].event != -1 && ge->type != script[state].event)) {
-					error(state, "Invalid event %d\n", ge->type);
+					error(state, "Invalid event %d, expected %d/%d/%d\n", ge->type, script[state].event, GG_EVENT_NOTIFY60, GG_EVENT_STATUS60);
 					exit(1);
 				}
 

@@ -111,7 +111,7 @@ void gg_debug_common(struct gg_session *sess, int level, const char *format, va_
 
 
 /**
- * Przekazuje informację odpluskawiania.
+ * \internal Przekazuje informację odpluskawiania.
  *
  * \param level Poziom wiadomości
  * \param format Format wiadomości (zgodny z \c printf)
@@ -129,7 +129,7 @@ void gg_debug(int level, const char *format, ...)
 }
 
 /**
- * Przekazuje informację odpluskwiania związaną z sesją.
+ * \internal Przekazuje informację odpluskwiania związaną z sesją.
  *
  * \param sess Struktura sesji
  * \param level Poziom wiadomości
@@ -148,7 +148,7 @@ void gg_debug_session(struct gg_session *gs, int level, const char *format, ...)
 }
 
 /**
- * Przekazuje zrzut bufora do odpluskwiania.
+ * \internal Przekazuje zrzut bufora do odpluskwiania.
  *
  * \param sess Struktura sesji
  * \param level Poziom wiadomości
@@ -203,7 +203,7 @@ void gg_debug_dump(struct gg_session *gs, int level, const char *buf, int len)
 }
 
 /**
- * Zwraca ciąg z nazwą podanego stanu sesji.
+ * \internal Zwraca ciąg z nazwą podanego stanu sesji.
  *
  * \param state Stan sesji.
  *

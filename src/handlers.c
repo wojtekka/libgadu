@@ -42,6 +42,7 @@
 #include "encoding.h"
 #include "message.h"
 #include "buffer.h"
+#include "internal.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -155,12 +156,12 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		l80.hash_type = gs->hash_type;
 		memcpy(l80.hash, hash_buf, sizeof(l80.hash));
 		l80.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
-		l80.flags = 0;
+		l80.flags = gg_fix32(0x00800001);
 		l80.features = gg_fix32(gs->protocol_features);
 		l80.image_size = gs->image_size;
-		l80.dunno3 = 0x64;
+		l80.dunno2 = 0x64;
 
-		version = "Gadu-Gadu Client build 8.0.0.7669";
+		version = GG8_VERSION;
 		version_len = gg_fix32(strlen(version));
 
 		descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
@@ -312,7 +313,7 @@ static int gg_session_handle_pubdir50_reply(struct gg_session *gs, uint32_t type
 {
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received pubdir/search reply\n");
 
-	return gg_pubdir50_handle_reply(ge, ptr, len);
+	return gg_pubdir50_handle_reply_sess(gs, ge, ptr, len);
 }
 
 static int gg_session_handle_userlist_reply(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
@@ -762,7 +763,24 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	e->event.msg.sender = gg_fix32(r->sender);
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
-	e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
+
+	if (sess->encoding == GG_ENCODING_CP1250) {
+		e->event.msg.message = (unsigned char*) strdup(packet + offset_plain);
+	} else {
+		if (offset_plain > sizeof(struct gg_recv_msg80)) {
+			int len;
+
+			len = gg_message_html_to_text(NULL, packet + sizeof(struct gg_recv_msg80));
+			e->event.msg.message = malloc(len + 1);
+
+			if (e->event.msg.message == NULL)
+				goto fail;
+
+			gg_message_html_to_text((char*) e->event.msg.message, packet + sizeof(struct gg_recv_msg80));
+		} else {
+			e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
+		}
+	}
 
 	if (offset_plain > sizeof(struct gg_recv_msg80))
 		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
@@ -1208,7 +1226,7 @@ static const gg_packet_handler_t handlers[] = {
 	{ GG_STATUS, GG_STATE_CONNECTED, sizeof(struct gg_status), gg_session_handle_status },
 	{ GG_STATUS60, GG_STATE_CONNECTED, sizeof(struct gg_status60), gg_session_handle_status_60_77 },
 	{ GG_STATUS77, GG_STATE_CONNECTED, sizeof(struct gg_status77), gg_session_handle_status_60_77 },
-	{ GG_STATUS80, GG_STATE_CONNECTED, sizeof(struct gg_notify_reply), gg_session_handle_notify_reply_80 },
+	{ GG_STATUS80, GG_STATE_CONNECTED, sizeof(struct gg_notify_reply80), gg_session_handle_notify_reply_80 },
 	{ GG_NOTIFY_REPLY, GG_STATE_CONNECTED, 0, gg_session_handle_notify_reply },
 	{ GG_NOTIFY_REPLY60, GG_STATE_CONNECTED, 0, gg_session_handle_notify_reply_60 },
 	{ GG_NOTIFY_REPLY77, GG_STATE_CONNECTED, 0, gg_session_handle_notify_reply_77 },

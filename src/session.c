@@ -262,7 +262,7 @@ int gg_session_set_protocol_version(struct gg_session *gs, int protocol)
 
 	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
 		gs->max_descr_length = GG_STATUS_DESCR_MAXSIZE;
-		gs->ping_period = 256;
+		gs->ping_period = 240;
 	} else {
 		gs->max_descr_length = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
 		gs->ping_period = 60;	// XXX sprawdzić
@@ -437,7 +437,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 		struct gg_new_status80 p;
 
 		p.status = gg_fix32(status);
-		p.flags = 0;
+		p.flags = gg_fix32(0x00800001);;
 		p.descr_len = gg_fix32((tmp != NULL) ? strlen(tmp) : 0);
 
 		gs->status = status;
@@ -813,15 +813,22 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 	if (gm->text != NULL) {
 		if (gs->encoding != GG_ENCODING_CP1250) {
 			text = gg_encoding_convert(gm->text, gs->encoding, GG_ENCODING_CP1250, -1, -1);
-			goto failure;
+			if (text == NULL)
+				goto failure;
 		} else {
 			text = gm->text;
 		}
 	} else if (gm->text == NULL && gm->html != NULL) {
-		text = gg_message_html_to_text(gm->html);
+		size_t len;
+
+		len = gg_message_html_to_text(NULL, gm->html);
+
+		text = malloc(len + 1);
 
 		if (text == NULL)
 			goto failure;
+
+		gg_message_html_to_text(text, gm->html);
 
 		if (gs->encoding != GG_ENCODING_CP1250) {
 			char *tmp;
@@ -863,7 +870,7 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 		r.flag = 0x01;
 		r.count = gg_fix32(gm->recipient_count - 1);
 
-		// XXX potencjalny integer overflow
+		// gm->recipient_count < 65536
 
 		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
@@ -923,10 +930,16 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 		} else
 			html = gm->html;
 	} else if (gm->html == NULL && gm->text != NULL) {
-		html = gg_message_text_to_html(gm->text, gm->attributes, gm->attributes_length);
+		size_t len;
+
+		len = gg_message_text_to_html(NULL, gm->text, gm->attributes, gm->attributes_length);
+
+		html = malloc(len + 1);
 
 		if (html == NULL)
 			goto failure;
+
+		gg_message_text_to_html(html, gm->text, gm->attributes, gm->attributes_length);
 
 		if (gs->encoding != GG_ENCODING_UTF8) {
 			char *tmp;
@@ -954,10 +967,16 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 			text = gm->text;
 		}
 	} else if (gm->text == NULL && gm->html != NULL) {
-		text = gg_message_html_to_text(gm->html);
+		size_t len;
+
+		len = gg_message_html_to_text(NULL, gm->html);
+
+		text = malloc(len + 1);
 
 		if (text == NULL)
 			goto failure;
+
+		gg_message_html_to_text(text, gm->html);
 
 		if (gs->encoding != GG_ENCODING_CP1250) {
 			char *tmp;
@@ -1010,7 +1029,7 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 		r.flag = 0x01;
 		r.count = gg_fix32(gm->recipient_count - 1);
 
-		// XXX potencjalny integer overflow
+		// gm->recipient_count < 65536
 
 		recipients = malloc(sizeof(uin_t) * gm->recipient_count);
 
@@ -1062,7 +1081,7 @@ uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
 {
 	GG_SESSION_CHECK_CONNECTED(gs, (uint32_t) -1);
 
-	if (gm->recipient_count < 1) {
+	if (gm->recipient_count < 1 || gm->recipient_count > 65535) {
 		errno = EINVAL;
 		return (uint32_t) -1;
 	}

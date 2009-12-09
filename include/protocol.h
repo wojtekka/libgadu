@@ -30,6 +30,13 @@
 
 #define GG_LOGIN80 0x0031
 
+#undef GG_FEATURE_STATUS80BETA
+#undef GG_FEATURE_MSG80
+#undef GG_FEATURE_STATUS80
+#define GG_FEATURE_STATUS80BETA		0x01
+#define GG_FEATURE_MSG80		0x02
+#define GG_FEATURE_STATUS80 		0x05
+
 #define GG8_LANG        "pl"
 #define GG8_VERSION     "Gadu-Gadu Client Build 8.0.0.8731"
 
@@ -46,7 +53,7 @@ struct gg_login80 {
 	uint32_t external_ip;		/* zewnętrzny adres ip (???) */
 	uint16_t external_port;		/* zewnętrzny port (???) */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
-	uint8_t dunno3;			/* 0x64 */
+	uint8_t dunno2;			/* 0x64 */
 	/* uint32_t version_length; */	/* długość wersji */
 	/* char version[]; */		/* wersja */
 	/* uint32_t descr_length; */	/* długość opisu */
