@@ -1312,8 +1312,8 @@ void *gg_recv_packet(struct gg_session *sess) GG_DEPRECATED;
 int gg_send_packet(struct gg_session *sess, int type, ...) GG_DEPRECATED;
 unsigned int gg_login_hash(const unsigned char *password, unsigned int seed) GG_DEPRECATED;
 void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result) GG_DEPRECATED;
-uint32_t gg_fix32(uint32_t x) GG_DEPRECATED;
-uint16_t gg_fix16(uint16_t x) GG_DEPRECATED;
+uint32_t gg_fix32(uint32_t x);
+uint16_t gg_fix16(uint16_t x);
 #define fix16 gg_fix16
 #define fix32 gg_fix32
 char *gg_proxy_auth(void) GG_DEPRECATED;
