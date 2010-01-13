@@ -22,7 +22,7 @@ gg_message_t *gg_message_new(void)
 	return gm;
 }
 
-int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *html, char *attributes, size_t attributes_length, int auto_convert)
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, size_t recipient_count, char *text, char *html, char *attributes, size_t attributes_length, int auto_convert)
 {
 	GG_MESSAGE_CHECK(gm, -1);
 
@@ -80,7 +80,7 @@ int gg_message_get_auto_convert(gg_message_t *gm)
 	return gm->auto_convert;
 }
 
-int gg_message_set_recipients(gg_message_t *gm, const uin_t *recipients, unsigned int recipient_count)
+int gg_message_set_recipients(gg_message_t *gm, const uin_t *recipients, size_t recipient_count)
 {
 	GG_MESSAGE_CHECK(gm, -1);
 
@@ -115,7 +115,7 @@ int gg_message_set_recipient(gg_message_t *gm, uin_t recipient)
 	return gg_message_set_recipients(gm, &recipient, 1);
 }
 
-int gg_message_get_recipients(gg_message_t *gm, const uin_t **recipients, unsigned int *recipient_count)
+int gg_message_get_recipients(gg_message_t *gm, const uin_t **recipients, size_t *recipient_count)
 {
 	GG_MESSAGE_CHECK(gm, -1);
 
@@ -128,7 +128,7 @@ int gg_message_get_recipients(gg_message_t *gm, const uin_t **recipients, unsign
 	return 0;
 }
 
-uin_t gg_message_recipient(gg_message_t *gm)
+uin_t gg_message_get_recipient(gg_message_t *gm)
 {
 	GG_MESSAGE_CHECK(gm, (uin_t) -1);
 
@@ -341,7 +341,7 @@ static void gg_append(char *dst, int *pos, const void *src, int len)
  *
  * \param dst Bufor wynikowy (może być \c NULL)
  * \param utf_msg Tekst źródłowy
- * \param format Atrybuty tekstu źródłowego
+ * \param format_ Atrybuty tekstu źródłowego
  * \param format_len Długość bloku atrybutów tekstu źródłowego
  *
  * \note Wynikowy tekst nie jest idealnym kodem HTML, ponieważ ma jak
@@ -351,31 +351,40 @@ static void gg_append(char *dst, int *pos, const void *src, int len)
  *
  * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *format, size_t format_len)
+size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *format_, size_t format_len)
 {
 	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
 	const int span_len = 75;
-	const char img_fmt[] = "<img src=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
-	const int img_len = 28;
+	const char img_fmt[] = "<img name=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
+	const int img_len = 29;
 	int char_pos = 0;
-	int format_idx = 3;
+	int format_idx = 0;
 	unsigned char old_attr = 0;
 	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
 	int len, i;
+	const unsigned char *format = (const unsigned char*) format_;
 
 	len = 0;
 
-	for (i = 0; utf_msg[i] != 0; i++) {
+	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
+	 * na końcu tekstu. */
+
+	for (i = 0; ; i++) {
 		unsigned char attr;
 		int attr_pos;
 
 		if (format_idx + 3 <= format_len) {
 			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
-			attr = format[format_idx + 2];
+			attr = (unsigned char) format[format_idx + 2];
 		} else {
 			attr_pos = -1;
 			attr = 0;
 		}
+
+		/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
+
+		if (utf_msg[i] == 0)
+			attr &= ~(GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR);
 
 		if (attr_pos == char_pos) {
 			format_idx += 3;
@@ -464,6 +473,7 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 				gg_append(dst, &len, "<br>", 4);
 				break;
 			case '\r':
+			case 0:
 				break;
 			default:
 				if (dst != NULL)
@@ -475,7 +485,12 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 
 		if ((utf_msg[i] & 0xc0) != 0xc0)
 			char_pos++;
+
+		if (utf_msg[i] == 0)
+			break;
 	}
+
+	/* Zamknij tagi. */
 
 	if ((old_attr & GG_FONT_UNDERLINE) != 0)
 		gg_append(dst, &len, "</u>", 4);
@@ -485,15 +500,6 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 
 	if ((old_attr & GG_FONT_BOLD) != 0)
 		gg_append(dst, &len, "</b>", 4);
-
-	/* Dla pustych tekstów dodaj pusty <span>. */
-
-	if (i == 0) {
-		if (dst != NULL)
-			sprintf(&dst[len], span_fmt, 0, 0, 0);
-
-		len += span_len;
-	}
 
 	gg_append(dst, &len, "</span>", 7);
 
@@ -560,19 +566,27 @@ size_t gg_message_html_to_text(char *dst, const char *html)
 			in_entity = 0;
 			if (dst != NULL) {
 				if (strncmp(entity, "&lt;", 4) == 0)
-					dst[len] = '<';
+					dst[len++] = '<';
 				else if (strncmp(entity, "&gt;", 4) == 0)
-					dst[len] = '>';
+					dst[len++] = '>';
 				else if (strncmp(entity, "&quot;", 6) == 0)
-					dst[len] = '"';
+					dst[len++] = '"';
 				else if (strncmp(entity, "&apos;", 6) == 0)
-					dst[len] = '\'';
+					dst[len++] = '\'';
 				else if (strncmp(entity, "&amp;", 5) == 0)
-					dst[len] = '&';
+					dst[len++] = '&';
+				else if (strncmp(entity, "&nbsp;", 6) == 0) {
+					dst[len++] = 0xc2;
+					dst[len++] = 0xa0;
+				} else
+					dst[len++] = '?';
+			} else {
+				if (strncmp(entity, "&nbsp;", 6) == 0)
+					len += 2;
 				else
-					dst[len] = '?';
+					len++;
 			}
-			len++;
+
 			continue;
 		}
 
