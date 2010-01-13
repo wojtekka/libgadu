@@ -6,10 +6,118 @@
 // - testowanie cięcia tekstów na wejściu i wyjściu,
 // - testowanie czy cięcie nie potnie znaków UTF-8 w środku,
 // - ...
+// TODO ograniczanie stringów
+
 
 #include "encoding.h"
 
-void test_utf8(const char *input, int src_len, int dst_len, const char *match)
+struct test_data
+{
+	const char *src;
+	const char *dst;
+	ssize_t src_len;
+	ssize_t dst_len;
+};
+
+#define TEST(src,dst) { src, dst, -1, -1 }
+#define TEST_SIZE(src,dst,src_len,dst_len) { src, dst, src_len, dst_len }
+
+const struct test_data utf8_to_cp1250[] =
+{
+	TEST("zażółć gęślą jaźń", "za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1"),
+
+	TEST("\xc0", "?"),
+	TEST("\xc0test", "?test"),
+	TEST("\xc0\x80", "?"),
+	TEST("\xc0\x80test", "?test"),
+	TEST("\xc0\x80\x80", "?"),
+	TEST("\xc0\x80\x80test", "?test"),
+	TEST("\xc0\x80\x80\x80", "?"),
+	TEST("\xc0\x80\x80\x80test", "?test"),
+	TEST("\xc0\x80\x80\x80\x80", "?"),
+	TEST("\xc0\x80\x80\x80\x80test", "?test"),
+	TEST("\xc0\x80\x80\x80\x80\x80", "?"),
+	TEST("\xc0\x80\x80\x80\x80\x80test", "?test"),
+	TEST("\xc0\x80\x80\x80\x80\x80\x80", "?"),
+	TEST("\xc0\x80\x80\x80\x80\x80\x80test", "?test"),
+	TEST("\xc0\x80\x80\x80\x80\x80\x80\x80", "?"),
+	TEST("\xc0\x80\x80\x80\x80\x80\x80\x80test", "?test"),
+
+	TEST("\xc1", "?"),
+	TEST("\xc1test", "?test"),
+	TEST("\xc1\x80", "?"),
+	TEST("\xc1\x80test", "?test"),
+
+	TEST("\xc0\xc1", "??"),
+	TEST("\xc0\xc1test", "??test"),
+	TEST("\xc0test\xc1test", "?test?test"),
+	TEST("\xc0\x80\xc1\x80test", "??test"),
+	TEST("\xc0\x80test\xc1\x80test", "?test?test"),
+
+	TEST("\xe0", "?"),
+	TEST("\xe0test", "?test"),
+	TEST("\xe0\x80", "?"),
+	TEST("\xe0\x80test", "?test"),
+	TEST("\xe0\x80\x80", "?"),
+	TEST("\xe0\x80\x80test", "?test"),
+
+	TEST("\xf0", "?"),
+	TEST("\xf0test", "?test"),
+	TEST("\xf0\x80", "?"),
+	TEST("\xf0\x80test", "?test"),
+	TEST("\xf0\x80\x80", "?"),
+	TEST("\xf0\x80\x80test", "?test"),
+	TEST("\xf0\x80\x80\x80", "?"),
+	TEST("\xf0\x80\x80\x80test", "?test"),
+
+	TEST("\xf5", "?"),
+	TEST("\xf5test", "?test"),
+	TEST("\xf5\x80", "?"),
+	TEST("\xf5\x80test", "?test"),
+	TEST("\xf5\x80\x80", "?"),
+	TEST("\xf5\x80\x80test", "?test"),
+	TEST("\xf5\x80\x80\x80", "?"),
+	TEST("\xf5\x80\x80\x80test", "?test"),
+
+	TEST("\xf8", "?"),
+	TEST("\xf8test", "?test"),
+	TEST("\xf8\x80", "?"),
+	TEST("\xf8\x80test", "?test"),
+	TEST("\xf8\x80\x80", "?"),
+	TEST("\xf8\x80\x80test", "?test"),
+	TEST("\xf8\x80\x80\x80", "?"),
+	TEST("\xf8\x80\x80\x80test", "?test"),
+	TEST("\xf8\x80\x80\x80\x80", "?"),
+	TEST("\xf8\x80\x80\x80\x80test", "?test"),
+
+	TEST("\xfc", "?"),
+	TEST("\xfctest", "?test"),
+	TEST("\xfc\x80", "?"),
+	TEST("\xfc\x80test", "?test"),
+	TEST("\xfc\x80\x80", "?"),
+	TEST("\xfc\x80\x80test", "?test"),
+	TEST("\xfc\x80\x80\x80", "?"),
+	TEST("\xfc\x80\x80\x80test", "?test"),
+	TEST("\xfc\x80\x80\x80\x80", "?"),
+	TEST("\xfc\x80\x80\x80\x80test", "?test"),
+	TEST("\xfc\x80\x80\x80\x80\x80", "?"),
+	TEST("\xfc\x80\x80\x80\x80\x80test", "?test"),
+
+	TEST("\xfe", "?"),
+	TEST("\xfetest", "?test"),
+	TEST("\xff", "?"),
+	TEST("\xfftest", "?test"),
+
+	TEST("\xef\xbb\xbf", ""),
+	TEST("\xef\xbb\xbftest", "test"),
+};
+
+const struct test_data cp1250_to_utf8[] =
+{
+	TEST("za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1", "zażółć gęślą jaźń"),
+};
+
+void test_utf8(const char *input, const char *match, int src_len, int dst_len)
 {
 	char *output;
 
@@ -23,7 +131,7 @@ void test_utf8(const char *input, int src_len, int dst_len, const char *match)
 	free(output);
 }
 
-void test_cp1250(const char *input, int src_len, int dst_len, const char *match)
+void test_cp1250(const char *input, const char *match, int src_len, int dst_len)
 {
 	char *output;
 
@@ -39,97 +147,14 @@ void test_cp1250(const char *input, int src_len, int dst_len, const char *match)
 
 int main(void)
 {
-	test_utf8("zażółć gęślą jaźń", -1, -1, "za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1");
+	int i;
 
-	test_utf8("\xc0", -1, -1, "?");
-	test_utf8("\xc0test", -1, -1, "?test");
-	test_utf8("\xc0\x80", -1, -1, "?");
-	test_utf8("\xc0\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80\x80\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xc0\x80\x80\x80\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xc0\x80\x80\x80\x80\x80\x80\x80test", -1, -1, "?test");
+	for (i = 0; i < sizeof(cp1250_to_utf8) / sizeof(cp1250_to_utf8[0]); i++)
+		test_cp1250(cp1250_to_utf8[i].src, cp1250_to_utf8[i].dst, cp1250_to_utf8[i].src_len, cp1250_to_utf8[i].dst_len);
 
-	test_utf8("\xc1", -1, -1, "?");
-	test_utf8("\xc1test", -1, -1, "?test");
-	test_utf8("\xc1\x80", -1, -1, "?");
-	test_utf8("\xc1\x80test", -1, -1, "?test");
+	for (i = 0; i < sizeof(utf8_to_cp1250) / sizeof(utf8_to_cp1250[0]); i++)
+		test_cp1250(utf8_to_cp1250[i].src, utf8_to_cp1250[i].dst, utf8_to_cp1250[i].src_len, utf8_to_cp1250[i].dst_len);
 
-	test_utf8("\xc0\xc1", -1, -1, "??");
-	test_utf8("\xc0\xc1test", -1, -1, "??test");
-	test_utf8("\xc0test\xc1test", -1, -1, "?test?test");
-	test_utf8("\xc0\x80\xc1\x80test", -1, -1, "??test");
-	test_utf8("\xc0\x80test\xc1\x80test", -1, -1, "?test?test");
-
-	test_utf8("\xe0", -1, -1, "?");
-	test_utf8("\xe0test", -1, -1, "?test");
-	test_utf8("\xe0\x80", -1, -1, "?");
-	test_utf8("\xe0\x80test", -1, -1, "?test");
-	test_utf8("\xe0\x80\x80", -1, -1, "?");
-	test_utf8("\xe0\x80\x80test", -1, -1, "?test");
-
-	test_utf8("\xf0", -1, -1, "?");
-	test_utf8("\xf0test", -1, -1, "?test");
-	test_utf8("\xf0\x80", -1, -1, "?");
-	test_utf8("\xf0\x80test", -1, -1, "?test");
-	test_utf8("\xf0\x80\x80", -1, -1, "?");
-	test_utf8("\xf0\x80\x80test", -1, -1, "?test");
-	test_utf8("\xf0\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xf0\x80\x80\x80test", -1, -1, "?test");
-
-	test_utf8("\xf5", -1, -1, "?");
-	test_utf8("\xf5test", -1, -1, "?test");
-	test_utf8("\xf5\x80", -1, -1, "?");
-	test_utf8("\xf5\x80test", -1, -1, "?test");
-	test_utf8("\xf5\x80\x80", -1, -1, "?");
-	test_utf8("\xf5\x80\x80test", -1, -1, "?test");
-	test_utf8("\xf5\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xf5\x80\x80\x80test", -1, -1, "?test");
-
-	test_utf8("\xf8", -1, -1, "?");
-	test_utf8("\xf8test", -1, -1, "?test");
-	test_utf8("\xf8\x80", -1, -1, "?");
-	test_utf8("\xf8\x80test", -1, -1, "?test");
-	test_utf8("\xf8\x80\x80", -1, -1, "?");
-	test_utf8("\xf8\x80\x80test", -1, -1, "?test");
-	test_utf8("\xf8\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xf8\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xf8\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xf8\x80\x80\x80\x80test", -1, -1, "?test");
-
-	test_utf8("\xfc", -1, -1, "?");
-	test_utf8("\xfctest", -1, -1, "?test");
-	test_utf8("\xfc\x80", -1, -1, "?");
-	test_utf8("\xfc\x80test", -1, -1, "?test");
-	test_utf8("\xfc\x80\x80", -1, -1, "?");
-	test_utf8("\xfc\x80\x80test", -1, -1, "?test");
-	test_utf8("\xfc\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xfc\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xfc\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xfc\x80\x80\x80\x80test", -1, -1, "?test");
-	test_utf8("\xfc\x80\x80\x80\x80\x80", -1, -1, "?");
-	test_utf8("\xfc\x80\x80\x80\x80\x80test", -1, -1, "?test");
-
-	test_utf8("\xfe", -1, -1, "?");
-	test_utf8("\xfetest", -1, -1, "?test");
-	test_utf8("\xff", -1, -1, "?");
-	test_utf8("\xfftest", -1, -1, "?test");
-
-	test_utf8("\xef\xbb\xbf", -1, -1, "");
-	test_utf8("\xef\xbb\xbftest", -1, -1, "test");
-
-	test_cp1250("za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1", -1, -1, "zażółć gęślą jaźń");
-
-	// TODO ograniczanie stringów
-	
 	printf("okay\n");
 
 	return 0;
