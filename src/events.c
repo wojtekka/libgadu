@@ -479,7 +479,7 @@ goto_GG_STATE_CONNECT_XXX:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (sess->resolver_index >= sess->resolver_count) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of address to connect to\n");
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of addresses to connect to\n");
 				e->event.failure = GG_FAILURE_CONNECTING;
 				goto fail;
 			}
@@ -715,12 +715,13 @@ goto_GG_STATE_CONNECT_XXX:
 				goto fail;
 			}
 
-			// 17591 0 91.197.13.71:8074 91.197.13.71
 #ifdef GG_CONFIG_HAVE_OPENSSL
 			if (sess->ssl != NULL)
+				// 0 17591 0 91.197.13.71:443 91.197.13.71
 				res = sscanf(body, "%*d %d %*d %32s", &reply, host);
 			else
 #endif
+				// 17591 0 91.197.13.71:8074 91.197.13.71
 				res = sscanf(body, "%d %*d %32s", &reply, host);
 
 			if (res != 2) {

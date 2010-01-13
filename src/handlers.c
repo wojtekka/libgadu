@@ -1204,7 +1204,8 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs, uint32_t typ
 	return 0;
 }
 
-static const gg_packet_handler_t handlers[] = {
+static const gg_packet_handler_t handlers[] =
+{
 	{ GG_WELCOME, GG_STATE_READING_KEY, 0, gg_session_handle_welcome },
 	{ GG_LOGIN_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
 	{ GG_LOGIN_OK80, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
