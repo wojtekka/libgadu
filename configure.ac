@@ -239,6 +239,23 @@ if test "x$tmp" = "xxxxxx"; then
 fi
 
 dnl
+dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
+dnl
+
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
+
+PKG_PROG_PKG_CONFIG
+
+if test "x$PKG_CONFIG" != "x"; then
+	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
+	AC_SUBST([LIBXML2_CFLAGS])
+	AC_SUBST([LIBXML2_LIBS])
+	if test "x$LIBXML2_LIBS" != "x"; then
+		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
+	fi
+fi
+
+dnl
 dnl  Sprawdź, czy mamy czym generować dokumentację
 dnl
 
