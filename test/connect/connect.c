@@ -516,7 +516,7 @@ void serve(void)
 				len += res;
 
 				if (strstr(buf, "\r\n\r\n")) {
-					snprintf(buf, sizeof(buf), "HTTP/1.0 200 OK\r\n\r\n0 %s:%d %s\r\n", LOCALHOST, 8074, LOCALHOST);
+					snprintf(buf, sizeof(buf), "HTTP/1.0 200 OK\r\n\r\n0 0 %s:%d %s\r\n", LOCALHOST, 8074, LOCALHOST);
 					send(cfds[0], buf, strlen(buf), 0);
 					close(cfds[0]);
 					cfds[0] = -1;
@@ -631,7 +631,7 @@ void sigalrm(int sig)
 
 int main(int argc, char **argv)
 {
-	int i, test_from, test_to, result[TEST_MAX][2] = { { 0, } };
+	int i, test_from = 0, test_to = 0, result[TEST_MAX][2] = { { 0, } };
 	int exit_code = 0;
 
 	if (argc == 3) {
