@@ -347,7 +347,7 @@ int main(int argc, char **argv)
 				}
 
 				if ((script[state].event != -1 && ge->type != script[state].event)) {
-					error(state, "Invalid event %d, expected %d/%d/%d\n", ge->type, script[state].event, GG_EVENT_NOTIFY60, GG_EVENT_STATUS60);
+					error(state, "Invalid event %d, expected %d\n", ge->type, script[state].event);
 					exit(1);
 				}
 
