@@ -25,7 +25,7 @@
 
 struct gg_message {
 	uin_t *recipients;
-	unsigned int recipient_count;
+	size_t recipient_count;
 	char *text;
 	char *html;
 	char *attributes;
@@ -44,7 +44,7 @@ struct gg_message {
 		return (result); \
 	}
 
-int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, int recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length, int auto_convert);
+int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, size_t recipient_count, char *text, char *xhtml, char *attributes, size_t attributes_length, int auto_convert);
 
 size_t gg_message_html_to_text(char *dst, const char *html);
 size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *format, size_t format_len);
