@@ -237,15 +237,15 @@ struct gg_login80 {
         char hash[64];        <i>/* skrót hasła dopełniony \0 */</i>
         int status;           <i>/* początkowy status połączenia */</i>
         int flags;            <i>/* początkowe flagi połączenia */</i>
-        int features;         <i>/* opcje protokołu (0x00000007)*/</i>
+        int features;         <i>/* opcje protokołu (0x00000367)*/</i>
         int local_ip;         <i>/* lokalny adres połączeń bezpośrednich (nieużywany) */</i>
         short local_port;     <i>/* lokalny port połączeń bezpośrednich (nieużywany) */</i>
         int external_ip;      <i>/* zewnętrzny adres (nieużywany) */</i>
         short external_port;  <i>/* zewnętrzny port (nieużywany) */</i>
         char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
         char unknown2;        <i>/* 0x64 */</i>
-        int version_len;      <i>/* długość ciągu z wersją (0x21) */</i>
-        char version[];       <i>/* "Gadu-Gadu Client build 8.0.0.7669" (bez \0) */</i>
+        int version_len;      <i>/* długość ciągu z wersją (0x23) */</i>
+        char version[];       <i>/* "Gadu-Gadu Client build 10.0.0.10450" (bez \0) */</i>
         int description_size; <i>/* rozmiar opisu */</i>
         char description[];   <i>/* opis (nie musi wystąpić, bez \0) */</i>
 };</pre>
@@ -257,7 +257,7 @@ Pola określające adresy i port są pozostałościami po poprzednich wersjach
 protokołów i w obecnej wersji zawierają zera.</p>
 
 
-<p>Pole opcji protokołu zawsze zawiera wartość <tt>0x00000007</tt> i jest mapą bitową:</p>
+<p>Pole opcji protokołu zawsze zawiera wartość <tt>0x00000367</tt> i jest mapą bitową:</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
@@ -1136,7 +1136,7 @@ struct gg_new_status80 krol_popu = {
 	.status           = GG_STATUS_DESCR_MASK | GG_STATUS_IMAGE_MASK | docelowy_opisowy_status; <i>/* 0x4100 | status */</i>
 	.flags            = 0x03;
 	.description_size = 9;
-	.description      = "Krol Popu"
+	.description      = "Krol Popu";
 };</pre>
 </div>
 
@@ -1398,9 +1398,10 @@ Pakiety wysyłane:
 <tr class="tabf2"><td><tt>0x0028</tt></td><td><tt>GG_NEW_STATUS80BETA</tt></td><td>Zmiana stanu przed Nowym Gadu-Gadu</td></tr>
 <tr class="tabf2"><td><tt>0x0029</tt></td><td><tt>GG_LOGIN80BETA</tt></td><td>Logowanie przed Nowym Gadu-Gadu</td></tr>
 <tr class="tabf"><td><tt>0x002d</tt></td><td><tt>GG_SEND_MSG80</tt></td><td>Wysłanie wiadomości</td></tr>
-<tr class="tabf"><td><tt>0x002f</tt></td><td><tt>GG_USERLIST_REQUEST80</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
+<tr class="tabf2"><td><tt>0x002f</tt></td><td><tt>GG_USERLIST_REQUEST80</tt></td><td>Zapytanie listy kontaktów na serwerze przed Gadu-Gadu 10</td></tr>
 <tr class="tabf"><td><tt>0x0031</tt></td><td><tt>GG_LOGIN80</tt></td><td>Logowanie</td></tr>
 <tr class="tabf"><td><tt>0x0038</tt></td><td><tt>GG_NEW_STATUS80</tt></td><td>Zmiana stanu</td></tr>
+<tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST_REQUEST100</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
 </table>
 
 <p>
@@ -1436,13 +1437,15 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0025</tt></td><td><tt>GG_DCC7_ABORTED</tt></td><td></td></tr>
 <tr class="tabf"><td><tt>0x0027</tt></td><td><tt>GG_XML_EVENT</tt></td><td>Odebrano wiadomość systemową</td></tr>
 <tr class="tabf2"><td><tt>0x002a</tt></td><td><tt>GG_STATUS80BETA</tt></td><td>Zmiana stanu przed Nowym Gadu-Gadu</td></tr>
-<tr class="tabf"><td><tt>0x002b</tt></td><td><tt>GG_NOTIFY_REPLY80BETA</tt></td><td>Stan listy kontaktów przed Nowym Gadu-Gadu</td></tr>
+<tr class="tabf2"><td><tt>0x002b</tt></td><td><tt>GG_NOTIFY_REPLY80BETA</tt></td><td>Stan listy kontaktów przed Nowym Gadu-Gadu</td></tr>
 <tr class="tabf"><td><tt>0x002c</tt></td><td><tt>GG_XML_ACTION</tt></td><td></td></tr>
 <tr class="tabf"><td><tt>0x002e</tt></td><td><tt>GG_RECV_MSG80</tt></td><td>Przychodząca wiadomość</td></tr>
-<tr class="tabf"><td><tt>0x0030</tt></td><td><tt>GG_USERLIST_REPLY80</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
+<tr class="tabf2"><td><tt>0x0030</tt></td><td><tt>GG_USERLIST_REPLY80</tt></td><td>Odpowiedź listy kontaktów na serwerze przed Gadu-Gadu 10</td></tr>
 <tr class="tabf"><td><tt>0x0035</tt></td><td><tt>GG_LOGIN_OK80</tt></td><td>Logowanie powiodło się</td></tr>
 <tr class="tabf"><td><tt>0x0036</tt></td><td><tt>GG_STATUS80</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0037</tt></td><td><tt>GG_NOTIFY_REPLY80</tt></td><td>Stan listy kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x0041</tt></td><td><tt>GG_USERLIST_REPLY100</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0044</tt></td><td><tt>GG_USER_DATA</tt></td><td>Dodatkowe informacje o liście kontaktów</td></tr>
 </table>
 
 <hr />
