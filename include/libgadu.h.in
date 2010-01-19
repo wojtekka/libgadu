@@ -317,10 +317,8 @@ struct gg_http {
 
 #ifdef __GNUC__
 #define GG_PACKED __attribute__ ((packed))
-#define GG_OBSOLETE __attribute__ ((deprecated))
 #else
 #define GG_PACKED
-#define GG_OBSOLETE
 #endif
 
 /** \endcond */
@@ -1193,12 +1191,12 @@ struct gg_search_request {
 	char *email;
 	char *phone;
 	uin_t uin;
-} /* GG_OBSOLETE */;
+};
 
 struct gg_search {
 	int count;
 	struct gg_search_result *results;
-} GG_OBSOLETE;
+};
 
 struct gg_search_result {
 	uin_t uin;
@@ -1209,35 +1207,35 @@ struct gg_search_result {
 	int gender;
 	char *city;
 	int active;
-} GG_OBSOLETE;
+};
 
 #define GG_GENDER_NONE 0
 #define GG_GENDER_FEMALE 1
 #define GG_GENDER_MALE 2
 
-struct gg_http *gg_search(const struct gg_search_request *r, int async) GG_OBSOLETE;
-int gg_search_watch_fd(struct gg_http *f) GG_OBSOLETE;
-void gg_free_search(struct gg_http *f) GG_OBSOLETE;
+struct gg_http *gg_search(const struct gg_search_request *r, int async);
+int gg_search_watch_fd(struct gg_http *f);
+void gg_free_search(struct gg_http *f);
 #define gg_search_free gg_free_search
 
-const struct gg_search_request *gg_search_request_mode_0(char *nickname, char *first_name, char *last_name, char *city, int gender, int min_birth, int max_birth, int active, int start) GG_OBSOLETE;
-const struct gg_search_request *gg_search_request_mode_1(char *email, int active, int start) GG_OBSOLETE;
-const struct gg_search_request *gg_search_request_mode_2(char *phone, int active, int start) GG_OBSOLETE;
-const struct gg_search_request *gg_search_request_mode_3(uin_t uin, int active, int start) GG_OBSOLETE;
-void gg_search_request_free(struct gg_search_request *r) GG_OBSOLETE;
+const struct gg_search_request *gg_search_request_mode_0(char *nickname, char *first_name, char *last_name, char *city, int gender, int min_birth, int max_birth, int active, int start);
+const struct gg_search_request *gg_search_request_mode_1(char *email, int active, int start);
+const struct gg_search_request *gg_search_request_mode_2(char *phone, int active, int start);
+const struct gg_search_request *gg_search_request_mode_3(uin_t uin, int active, int start);
+void gg_search_request_free(struct gg_search_request *r);
 
-struct gg_http *gg_register(const char *email, const char *password, int async) GG_OBSOLETE;
-struct gg_http *gg_register2(const char *email, const char *password, const char *qa, int async) GG_OBSOLETE;
+struct gg_http *gg_register(const char *email, const char *password, int async);
+struct gg_http *gg_register2(const char *email, const char *password, const char *qa, int async);
 
-struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email, int async) GG_OBSOLETE;
-struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, int async) GG_OBSOLETE;
+struct gg_http *gg_unregister(uin_t uin, const char *password, const char *email, int async);
+struct gg_http *gg_unregister2(uin_t uin, const char *password, const char *qa, int async);
 
-struct gg_http *gg_remind_passwd(uin_t uin, int async) GG_OBSOLETE;
-struct gg_http *gg_remind_passwd2(uin_t uin, const char *tokenid, const char *tokenval, int async) GG_OBSOLETE;
+struct gg_http *gg_remind_passwd(uin_t uin, int async);
+struct gg_http *gg_remind_passwd2(uin_t uin, const char *tokenid, const char *tokenval, int async);
 
-struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async) GG_OBSOLETE;
-struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *newpasswd, const char *email, const char *newemail, int async) GG_OBSOLETE;
-struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *newpasswd, const char *qa, int async) GG_OBSOLETE;
+struct gg_http *gg_change_passwd(uin_t uin, const char *passwd, const char *newpasswd, const char *newemail, int async);
+struct gg_http *gg_change_passwd2(uin_t uin, const char *passwd, const char *newpasswd, const char *email, const char *newemail, int async);
+struct gg_http *gg_change_passwd3(uin_t uin, const char *passwd, const char *newpasswd, const char *qa, int async);
 
 struct gg_change_info_request {
 	char *first_name;
@@ -1247,29 +1245,27 @@ struct gg_change_info_request {
 	int born;
 	int gender;
 	char *city;
-} /* GG_OBSOLETE */;
+};
 
-struct gg_change_info_request *gg_change_info_request_new(const char *first_name, const char *last_name, const char *nickname, const char *email, int born, int gender, const char *city) GG_OBSOLETE;
-void gg_change_info_request_free(struct gg_change_info_request *r) GG_OBSOLETE;
+struct gg_change_info_request *gg_change_info_request_new(const char *first_name, const char *last_name, const char *nickname, const char *email, int born, int gender, const char *city);
+void gg_change_info_request_free(struct gg_change_info_request *r);
 
-struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_change_info_request *request, int async) GG_OBSOLETE;
+struct gg_http *gg_change_info(uin_t uin, const char *passwd, const struct gg_change_info_request *request, int async);
 #define gg_change_pubdir_watch_fd gg_pubdir_watch_fd
 #define gg_change_pubdir_free gg_pubdir_free
 #define gg_free_change_pubdir gg_pubdir_free
 
-struct gg_http *gg_userlist_get(uin_t uin, const char *password, int async) GG_OBSOLETE;
-int gg_userlist_get_watch_fd(struct gg_http *f) GG_OBSOLETE;
-void gg_userlist_get_free(struct gg_http *f) GG_OBSOLETE;
+struct gg_http *gg_userlist_get(uin_t uin, const char *password, int async);
+int gg_userlist_get_watch_fd(struct gg_http *f);
+void gg_userlist_get_free(struct gg_http *f);
 
-struct gg_http *gg_userlist_put(uin_t uin, const char *password, const char *contacts, int async) GG_OBSOLETE;
-int gg_userlist_put_watch_fd(struct gg_http *f) GG_OBSOLETE;
-void gg_userlist_put_free(struct gg_http *f) GG_OBSOLETE;
+struct gg_http *gg_userlist_put(uin_t uin, const char *password, const char *contacts, int async);
+int gg_userlist_put_watch_fd(struct gg_http *f);
+void gg_userlist_put_free(struct gg_http *f);
 
-struct gg_http *gg_userlist_remove(uin_t uin, const char *password, int async) GG_OBSOLETE;
-int gg_userlist_remove_watch_fd(struct gg_http *f) GG_OBSOLETE;
-void gg_userlist_remove_free(struct gg_http *f) GG_OBSOLETE;
-
-struct in_addr *gg_gethostbyname(const char *hostname) GG_OBSOLETE;
+struct gg_http *gg_userlist_remove(uin_t uin, const char *password, int async);
+int gg_userlist_remove_watch_fd(struct gg_http *f);
+void gg_userlist_remove_free(struct gg_http *f);
 
 /** \endcond */
 
