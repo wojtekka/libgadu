@@ -266,6 +266,8 @@ protokołów i w obecnej wersji zawierają zera.</p>
 <tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 0)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
 <tr class="tabf"><td>4</td><td><tt>0x00000010</tt></td><td>Klient obsługuje statusy "nie przeszkadzać" i "poGGadaj ze mną"</td></tr>
 <tr class="tabf"><td>5</td><td><tt>0x00000020</tt></td><td>Klient obsługuje statusy graficzne i <tt>GG_STATUS_DESCR_MASK</tt> (patrz <a href="#ch1.4">Zmiana stanu</a>)</td></tr>
+<tr class="tabf"><td>9</td><td><tt>0x00000200</tt></td><td>Klient obsługuje dodatkowe informacje o liście kontaktów (patrz <a href="#ch1.5.1">Dodatkowe informacje o kontaktach</a>)</td></tr>
+<tr class="tabf"><td>10</td><td><tt>0x00000400</tt></td><td>Klient wysyła potwierdzenia odebrania wiadomości (patrz <a href="#ch1.7.1">Potwierdzenie odebrania wiadomości</a>)</td></tr>
 </table>
 
 <p>
@@ -552,6 +554,37 @@ którego struktura jest identyczna z <tt>GG_NOTIFY_REPLY80</tt>.
 
 <div class="c">
 <pre>#define GG_STATUS80 0x0036</pre>
+</div>
+
+<a name="ch1.5.1"></a>
+<h4>1.5.1 Dodatkowe informacje o kontaktach</h4>
+
+<p>
+Jeśli podczas logowania klient wyśle w polu <tt>features</tt> maskę bitową
+<tt>0x00000200</tt>, to będzie otrzymywał od serwera pakiety typu
+<tt>GG_USER_DATA</tt> o następującej strukturze:
+</p>
+
+<div class="c">
+<pre>#define GG_USER_DATA 0x0044
+
+struct gg_user_data {
+	int type;	<i>/* typ */</i>
+	int num;	<i>/* liczba struktur gg_user_data_user */</i>
+};
+
+struct gg_user_data_user {
+	int uin;	<i>/* numer użytkownika */</i>
+	int num;	<i>/* liczba struktur gg_user_data_attr */</i>
+};
+
+struct gg_user_data_attr {
+	int name_size;	<i>/* długość nazwy atrybutu */</i>
+	char name[];	<i>/* nazwa atrybutu (bez znaku \0) */</i>
+	int type;		<i>/* typ atrybutu */</i>
+	int value_size;	<i>/* długość wartości atrybutu */</i>
+	char value[];	<i>/* wartość atrybutu (bez znaku \0) */</i>
+};</pre>
 </div>
 
 <hr />
@@ -931,6 +964,23 @@ W przypadku pakietów &bdquo;konferencyjnych&rdquo; na końcu pakietu doklejona
 jest struktura identyczna z <tt>gg_msg_recipients</tt> zawierająca pozostałych
 rozmówców.
 </p>
+
+<a name="ch1.7.1"></a>
+<h4>1.7.1. Potwierdzenie</h4>
+
+<p>
+Jeśli podczas logowania klient wyśle w polu <tt>features</tt> maskę bitową
+<tt>0x00000400</tt>, to zobowiązuje się wysłać potwierdzenie po każdej odebranej
+wiadomości. Wysyła je w postaci pakietu:
+</p>
+
+<div class="c">
+<pre>#define GG_RECV_MSG_ACK 0x0046
+	
+struct gg_recv_msg_ack {
+	int num;	<i>/* liczba odebranych wiadomości podczas tego połączenia */</i>
+};</pre>
+</div>
 
 <hr />
 
@@ -1402,6 +1452,7 @@ Pakiety wysyłane:
 <tr class="tabf"><td><tt>0x0031</tt></td><td><tt>GG_LOGIN80</tt></td><td>Logowanie</td></tr>
 <tr class="tabf"><td><tt>0x0038</tt></td><td><tt>GG_NEW_STATUS80</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST_REQUEST100</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0046</tt></td><td><tt>GG_RECV_MSG_ACK</tt></td><td>Potwierdzenie odebrania wiadomości przez klienta</td></tr>
 </table>
 
 <p>
@@ -2185,6 +2236,7 @@ napisz na listę dyskusyjną
 	<li><b>Krystian Kołodziej</b> (krystiankolodziej%gmail.com): znaczenie
 	GG_DISCONNECT_ACK.</li>
 	<li><b>Adrian Warecki</b> (bok%kokosoftware.pl): Przykładowe pakiety GG_XML_ACTION</li>
+	<li><b>Piotr Latosiński</b> (piotr.latosinski%gmail.com): Opis pakietów GG_USER_DATA i GG_RECV_MSG_ACK</li>
 </ul>
 
 <hr />
