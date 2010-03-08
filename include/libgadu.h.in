@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2001-2003 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -357,15 +357,17 @@ struct gg_http {
 
 #ifdef __GNUC__
 #define GG_PACKED __attribute__ ((packed))
+#define GG_FORMAT(x,y,z) __attribute__ ((format(x,y,z)))
 #ifndef GG_IGNORE_DEPRECATED
 #define GG_DEPRECATED __attribute__ ((deprecated))
 #else
 #define GG_DEPRECATED
 #endif
-#else
+#else /* __GNUC__ */
 #define GG_PACKED
+#define GG_FORMAT(x,y,z)
 #define GG_DEPRECATED
-#endif
+#endif /* __GNUC__ */
 
 /** \endcond */
 
@@ -601,7 +603,7 @@ enum gg_check_t {
 	GG_CHECK_NONE = 0,		/**< Nie sprawdzaj niczego */
 	GG_CHECK_WRITE = 1,		/**< Sprawdź możliwość zapisu */
 	GG_CHECK_READ = 2		/**< Sprawdź możliwość odczytu */
-};
+} GG_DEPRECATED;
 
 /**
  * Parametry połączenia z serwerem Gadu-Gadu. Parametry zostały przeniesione
@@ -647,7 +649,7 @@ struct gg_login_params {
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
 
-};
+} GG_DEPRECATED;
 
 /**
  * Flagi sesji.
@@ -690,6 +692,8 @@ int gg_session_set_bind_address(struct gg_session *gs, uint32_t address);
 uint32_t gg_session_get_bind_address(struct gg_session *gs);
 int gg_session_set_protocol_version(struct gg_session *gs, int protocol);
 int gg_session_get_protocol_version(struct gg_session *gs);
+int gg_session_set_protocol_features(struct gg_session *gs, int features);
+int gg_session_get_protocol_features(struct gg_session *gs);
 int gg_session_set_client_version(struct gg_session *gs, const char *version);
 const char *gg_session_get_client_version(struct gg_session *gs);
 int gg_session_set_image_size(struct gg_session *gs, int image_size);
@@ -745,23 +749,23 @@ const char *gg_message_get_html(gg_message_t *gm);
 int gg_message_set_attributes(gg_message_t *gm, const char *attributes, size_t length);
 int gg_message_get_attributes(gg_message_t *gm, const char **attributes, size_t *attributes_length);
 
-struct gg_session *gg_login(const struct gg_login_params *p);
-void gg_free_session(struct gg_session *sess);
-void gg_logoff(struct gg_session *sess);
-int gg_change_status(struct gg_session *sess, int status);
-int gg_change_status_descr(struct gg_session *sess, int status, const char *descr);
-int gg_change_status_descr_time(struct gg_session *sess, int status, const char *descr, int time);
-int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message);
-int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen);
-int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message);
-int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen);
-int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, int message_len);
-int gg_ping(struct gg_session *sess);
-int gg_userlist_request(struct gg_session *sess, char type, const char *request);
-int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_t crc32);
-int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size);
+struct gg_session *gg_login(const struct gg_login_params *p) GG_DEPRECATED;
+void gg_free_session(struct gg_session *sess) GG_DEPRECATED;
+void gg_logoff(struct gg_session *sess) GG_DEPRECATED;
+int gg_change_status(struct gg_session *sess, int status) GG_DEPRECATED;
+int gg_change_status_descr(struct gg_session *sess, int status, const char *descr) GG_DEPRECATED;
+int gg_change_status_descr_time(struct gg_session *sess, int status, const char *descr, int time) GG_DEPRECATED;
+int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message) GG_DEPRECATED;
+int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen) GG_DEPRECATED;
+int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message) GG_DEPRECATED;
+int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen) GG_DEPRECATED;
+int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, int message_len) GG_DEPRECATED;
+int gg_ping(struct gg_session *sess) GG_DEPRECATED;
+int gg_userlist_request(struct gg_session *sess, char type, const char *request) GG_DEPRECATED;
+int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_t crc32) GG_DEPRECATED;
+int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size) GG_DEPRECATED;
 
-uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len);
+uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len) GG_DEPRECATED;
 
 int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type);
 gg_resolver_t gg_session_get_resolver(struct gg_session *gs);
@@ -878,7 +882,7 @@ struct gg_pubdir50_entry {
 	int num;	/**< Numer wyniku */
 	char *field;	/**< Nazwa pola */
 	char *value;	/**< Wartość pola */
-} /* GG_DEPRECATED */;
+} GG_DEPRECATED;
 
 /**
  * Zapytanie lub odpowiedź katalogu publicznego.
@@ -892,7 +896,7 @@ struct gg_pubdir50_s {
 	uint32_t seq;	/**< Numer sekwencyjny */
 	struct gg_pubdir50_entry *entries;	/**< Pola zapytania lub odpowiedzi */
 	int entries_count;	/**< Liczba pól */
-} /* GG_DEPRECATED */;
+} GG_DEPRECATED;
 
 /**
  * Zapytanie lub odpowiedź katalogu publicznego.
@@ -1110,20 +1114,20 @@ struct gg_event {
 	struct gg_event *next;		/**< Kolejne zdarzenie w kolejce */
 };
 
-struct gg_event *gg_watch_fd(struct gg_session *sess);
-void gg_event_free(struct gg_event *e);
+struct gg_event *gg_watch_fd(struct gg_session *sess) GG_DEPRECATED;
+void gg_event_free(struct gg_event *e) GG_DEPRECATED;
 
-int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int count);
-int gg_notify(struct gg_session *sess, uin_t *userlist, int count);
-int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type);
-int gg_add_notify(struct gg_session *sess, uin_t uin);
-int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type);
-int gg_remove_notify(struct gg_session *sess, uin_t uin);
+int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int count) GG_DEPRECATED;
+int gg_notify(struct gg_session *sess, uin_t *userlist, int count) GG_DEPRECATED;
+int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type) GG_DEPRECATED;
+int gg_add_notify(struct gg_session *sess, uin_t uin) GG_DEPRECATED;
+int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type) GG_DEPRECATED;
+int gg_remove_notify(struct gg_session *sess, uin_t uin) GG_DEPRECATED;
 
-struct gg_http *gg_http_connect(const char *hostname, int port, int async, const char *method, const char *path, const char *header);
-int gg_http_watch_fd(struct gg_http *h);
-void gg_http_stop(struct gg_http *h);
-void gg_http_free(struct gg_http *h);
+struct gg_http *gg_http_connect(const char *hostname, int port, int async, const char *method, const char *path, const char *header) GG_DEPRECATED;
+int gg_http_watch_fd(struct gg_http *h) GG_DEPRECATED;
+void gg_http_stop(struct gg_http *h) GG_DEPRECATED;
+void gg_http_free(struct gg_http *h) GG_DEPRECATED;
 
 uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req);
 gg_pubdir50_t gg_pubdir50_new(int type);
@@ -1278,7 +1282,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length);
 #define GG_DCC_VOICE_FRAME_LENGTH 195		/**< Rozmiar pakietu głosowego przed wersją Gadu-Gadu 5.0.5 */
 #define GG_DCC_VOICE_FRAME_LENGTH_505 326	/**< Rozmiar pakietu głosowego od wersji Gadu-Gadu 5.0.5 */
 
-struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port);
+struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port) GG_DEPRECATED;
 #ifndef DOXYGEN
 #define gg_dcc_socket_free gg_dcc_free
 #define gg_dcc_socket_watch_fd gg_dcc_watch_fd
@@ -1381,7 +1385,7 @@ struct gg_search_request {
 	char *email;
 	char *phone;
 	uin_t uin;
-} /* GG_DEPRECATED */;
+} GG_DEPRECATED;
 
 struct gg_search {
 	int count;
@@ -1435,7 +1439,7 @@ struct gg_change_info_request {
 	int born;
 	int gender;
 	char *city;
-} /* GG_DEPRECATED */;
+} GG_DEPRECATED;
 
 struct gg_change_info_request *gg_change_info_request_new(const char *first_name, const char *last_name, const char *nickname, const char *email, int born, int gender, const char *city) GG_DEPRECATED;
 void gg_change_info_request_free(struct gg_change_info_request *r) GG_DEPRECATED;
@@ -1461,12 +1465,11 @@ void gg_userlist_remove_free(struct gg_http *f) GG_DEPRECATED;
 
 int gg_file_hash_sha1(int fd, uint8_t *result) GG_DEPRECATED;
 
-#ifdef __GNUC__
-char *gg_saprintf(const char *format, ...) __attribute__ ((format (printf, 1, 2))) GG_DEPRECATED;
-#else
-char *gg_saprintf(const char *format, ...) GG_DEPRECATED;
+#ifdef _WIN32
+int gg_win32_thread_socket(int thread_id, int socket) GG_DEPRECATED;
 #endif
 
+char *gg_saprintf(const char *format, ...) GG_FORMAT(printf, 1, 2) GG_DEPRECATED;
 char *gg_vsaprintf(const char *format, va_list ap) GG_DEPRECATED;
 
 #define gg_alloc_sprintf gg_saprintf
@@ -1546,7 +1549,7 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 /* Poniższe makra zostały zachowane dla zgodności API */
 #define GG_FEATURE_MSG80               0
 #define GG_FEATURE_STATUS80            0
-#define GG_FEATURE_STATUS80BETA                0
+#define GG_FEATURE_STATUS80BETA        0
 #define GG_FEATURE_ALL                 (GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR)
 
 #else
@@ -1570,14 +1573,14 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 struct gg_header {
 	uint32_t type;			/* typ pakietu */
 	uint32_t length;		/* długość reszty pakietu */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_WELCOME 0x0001
 #define GG_NEED_EMAIL 0x0014
 
 struct gg_welcome {
 	uint32_t key;			/* klucz szyfrowania hasła */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_LOGIN 0x000c
 
@@ -1588,7 +1591,7 @@ struct gg_login {
 	uint32_t version;		/* moja wersja klienta */
 	uint32_t local_ip;		/* mój adres ip */
 	uint16_t local_port;		/* port, na którym słucham */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_LOGIN_EXT 0x0013
 
@@ -1601,7 +1604,7 @@ struct gg_login_ext {
 	uint16_t local_port;		/* port, na którym słucham */
 	uint32_t external_ip;		/* zewnętrzny adres ip */
 	uint16_t external_port;		/* zewnętrzny port */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_LOGIN60 0x0015
 
@@ -1617,7 +1620,7 @@ struct gg_login60 {
 	uint16_t external_port;		/* zewnętrzny port */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno2;			/* 0xbe */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_LOGIN70 0x0019
 
@@ -1634,7 +1637,7 @@ struct gg_login70 {
 	uint16_t external_port;		/* zewnętrzny port (???) */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno2;			/* 0xbe */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_LOGIN_OK 0x0003
 
@@ -1645,14 +1648,14 @@ struct gg_login70 {
 struct gg_pubdir50_request {
 	uint8_t type;			/* GG_PUBDIR50_* */
 	uint32_t seq;			/* czas wysłania zapytania */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_PUBDIR50_REPLY 0x000e
 
 struct gg_pubdir50_reply {
 	uint8_t type;			/* GG_PUBDIR50_* */
 	uint32_t seq;			/* czas wysłania zapytania */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_NEW_STATUS 0x0002
 
@@ -1771,7 +1774,7 @@ enum {
  */
 struct gg_new_status {
 	uint32_t status;			/**< Nowy status */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_NOTIFY_FIRST 0x000f
 #define GG_NOTIFY_LAST 0x0010
@@ -1781,7 +1784,7 @@ struct gg_new_status {
 struct gg_notify {
 	uint32_t uin;				/* numerek danej osoby */
 	uint8_t dunno1;				/* rodzaj wpisu w liście */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #ifndef DOXYGEN
 
@@ -1815,7 +1818,7 @@ struct gg_notify_reply {
 	uint16_t remote_port;		/* port, na którym słucha klient */
 	uint32_t version;		/* wersja klienta */
 	uint16_t dunno2;		/* znowu port? */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_NOTIFY_REPLY60 0x0011
 
@@ -1827,7 +1830,7 @@ struct gg_notify_reply60 {
 	uint8_t version;		/* wersja klienta */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno1;			/* 0x00 */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_STATUS60 0x000f
 
@@ -1839,7 +1842,7 @@ struct gg_status60 {
 	uint8_t version;		/* wersja klienta */
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno1;			/* 0x00 */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_NOTIFY_REPLY77 0x0018
 
@@ -1852,7 +1855,7 @@ struct gg_notify_reply77 {
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno1;			/* 0x00 */
 	uint32_t dunno2;		/* ? */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_STATUS77 0x0017
 
@@ -1865,7 +1868,7 @@ struct gg_status77 {
 	uint8_t image_size;		/* maksymalny rozmiar grafiki w KiB */
 	uint8_t dunno1;			/* 0x00 */
 	uint32_t dunno2;		/* ? */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_ADD_NOTIFY 0x000d
 #define GG_REMOVE_NOTIFY 0x000e
@@ -1873,14 +1876,14 @@ struct gg_status77 {
 struct gg_add_remove {
 	uint32_t uin;			/* numerek */
 	uint8_t dunno1;			/* bitmapa */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_STATUS 0x0002
 
 struct gg_status {
 	uint32_t uin;			/* numerek */
 	uint32_t status;		/* nowy stan */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_SEND_MSG 0x000b
 
@@ -1924,12 +1927,12 @@ struct gg_send_msg {
 	uint32_t recipient;
 	uint32_t seq;
 	uint32_t msgclass;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_msg_richtext {
 	uint8_t flag;
 	uint16_t length;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 /**
  * Struktura opisująca formatowanie tekstu. W zależności od wartości pola
@@ -1941,7 +1944,7 @@ struct gg_msg_richtext {
 struct gg_msg_richtext_format {
 	uint16_t position;	/**< Początkowy znak formatowania (liczony od 0) */
 	uint8_t font;		/**< Atrybuty formatowania */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #ifndef DOXYGEN
 
@@ -1977,7 +1980,7 @@ struct gg_msg_richtext_color {
 	uint8_t red;		/**< Składowa czerwona koloru */
 	uint8_t green;		/**< Składowa zielona koloru */
 	uint8_t blue;		/**< Składowa niebieska koloru */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 /**
  * Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu
@@ -1989,18 +1992,18 @@ struct gg_msg_richtext_image {
 	uint16_t unknown1;	/**< Nieznane pole o wartości 0x0109 */
 	uint32_t size;		/**< Rozmiar obrazka */
 	uint32_t crc32;		/**< Suma kontrolna CRC32 obrazka */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_msg_recipients {
 	uint8_t flag;
 	uint32_t count;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_msg_image_request {
 	uint8_t flag;
 	uint32_t size;
 	uint32_t crc32;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_msg_image_reply {
 	uint8_t flag;
@@ -2008,7 +2011,7 @@ struct gg_msg_image_reply {
 	uint32_t crc32;
 	/* char filename[]; */
 	/* char image[]; */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_SEND_MSG_ACK 0x0005
 
@@ -2042,7 +2045,7 @@ struct gg_send_msg_ack {
 	uint32_t status;
 	uint32_t recipient;
 	uint32_t seq;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_RECV_MSG 0x000a
 
@@ -2051,7 +2054,7 @@ struct gg_recv_msg {
 	uint32_t seq;
 	uint32_t time;
 	uint32_t msgclass;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_PING 0x0008
 
@@ -2085,7 +2088,7 @@ enum {
 
 struct gg_userlist_request {
 	uint8_t type;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_USERLIST_REPLY 0x0010
 
@@ -2112,21 +2115,21 @@ enum {
 
 struct gg_userlist_reply {
 	uint8_t type;
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_dcc_tiny_packet {
 	uint8_t type;		/* rodzaj pakietu */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_dcc_small_packet {
 	uint32_t type;		/* rodzaj pakietu */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 struct gg_dcc_big_packet {
 	uint32_t type;		/* rodzaj pakietu */
 	uint32_t dunno1;		/* niewiadoma */
 	uint32_t dunno2;		/* niewiadoma */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 /*
  * póki co, nie znamy dokładnie protokołu. nie wiemy, co czemu odpowiada.
@@ -2152,7 +2155,7 @@ struct gg_dcc7_info {
 	uint32_t type;			/* sposób połączenia */
 	gg_dcc7_id_t id;		/* identyfikator połączenia */
 	char info[GG_DCC7_INFO_LEN];	/* informacje o połączeniu "ip port" */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_DCC7_NEW 0x20
 
@@ -2165,7 +2168,7 @@ struct gg_dcc7_new {
 	uint32_t size;			/* rozmiar pliku */
 	uint32_t size_hi;		/* rozmiar pliku (starsze bajty) */
 	unsigned char hash[GG_DCC7_HASH_LEN];	/* hash SHA1 */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_DCC7_ACCEPT 0x21
 
@@ -2174,7 +2177,7 @@ struct gg_dcc7_accept {
 	gg_dcc7_id_t id;		/* identyfikator połączenia */
 	uint32_t offset;		/* offset przy wznawianiu transmisji */
 	uint32_t dunno1;		/* 0x00000000 */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 // XXX API
 #define GG_DCC7_TYPE_P2P 0x00000001	/**< Połączenie bezpośrednie */
@@ -2186,7 +2189,7 @@ struct gg_dcc7_reject {
 	uint32_t uin;			/**< Numer odrzucającego połączenie */
 	gg_dcc7_id_t id;		/**< Identyfikator połączenia */
 	uint32_t reason;		/**< Powód rozłączenia */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 // XXX API
 #define GG_DCC7_REJECT_BUSY 0x00000001	/**< Połączenie bezpośrednie już trwa, nie umiem obsłużyć więcej */
@@ -2197,7 +2200,7 @@ struct gg_dcc7_reject {
 
 struct gg_dcc7_id_request {
 	uint32_t type;			/**< Rodzaj tranmisji */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 // XXX API
 #define GG_DCC7_TYPE_VOICE 0x00000001	/**< Transmisja głosu */
@@ -2208,13 +2211,13 @@ struct gg_dcc7_id_request {
 struct gg_dcc7_id_reply {
 	uint32_t type;			/** Rodzaj transmisji */
 	gg_dcc7_id_t id;		/** Przyznany identyfikator */
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_DCC7_DUNNO1 0x24
 
 struct gg_dcc7_dunno1 {
 	// XXX
-} GG_PACKED;
+} GG_PACKED GG_DEPRECATED;
 
 #define GG_DCC7_TIMEOUT_CONNECT 10	/* 10 sekund */
 #define GG_DCC7_TIMEOUT_SEND 1800	/* 30 minut */
