@@ -1,6 +1,8 @@
 noinst_PROGRAMS = client dcc7 $(OPTIONAL_TESTS_SEARCH) $(OPTIONAL_TESTS_VOICE7)
 EXTRA_PROGRAMS = client dcc7 search voice7
 
+CFLAGS = -DGG_IGNORE_DEPRECATED
+
 dcc7_CFLAGS = -Wall
 dcc7_LDADD = $(top_builddir)/src/libgadu.la
 dcc7_SOURCES = dcc7.c userconfig.c userconfig.h
