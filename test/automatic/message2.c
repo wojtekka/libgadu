@@ -33,6 +33,15 @@ const struct test_data text_to_html[] =
 	/* Obrazek poza tekstem */
 	{ "test", SPAN("test"), "\x05\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
+	/* Bez tekstu, tylko obrazek -- bez <span> */
+	{ "", "<img name=\"8877665544332211\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Bez tekstu, dwa obrazki -- nadal bez <span> */
+	{ "", "<img name=\"8877665544332211\"><img name=\"1122334455667788\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x00\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+
+	/* Bez tekstu, dwa obrazki, w tym jeden poza */
+	{ "", "<img name=\"8877665544332211\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+
 	/* Atrybuty na początku, w środku i na końcu tekstu */
 	{ "foobarbaz", SPAN("<b>foo</b>") SPAN("<i>bar</i>") SPAN("<u>baz</u>"), "\x00\x00\x01\x03\x00\x02\x06\x00\x04", 9 },
 
@@ -75,8 +84,13 @@ const struct test_data text_to_html[] =
 	/* Niekompletny atrybut obrazka */
 	{ "test", SPAN("test"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77", 12 },
 
-	/* Pusty tekst */
-	{ "", SPAN("") },
+	/* Atrybut w środku znaku unikodowego */
+	{ "żółć", SPAN("<b>ż</b>") SPAN("<i>ółć</i>"), "\x00\x00\x01\x01\x00\x02", 6 },
+
+	/* Pusty tekst. Oryginalny klient co prawda nie wysyła pustego tekstu,
+	 * ale przy wiadomości zawierającej jedynie obrazek, nie dokleja tagów
+	 * <span>, więc improwizujemy. */
+	{ "", "" },
 };
 
 const struct test_data html_to_text[] =
