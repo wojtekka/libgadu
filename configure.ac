@@ -141,7 +141,7 @@ AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);],
 ])
 
 AC_ARG_ENABLE(debug, 
-	[  --disable-debug         compile without debugging support])
+	[  --disable-debug         compile without debugging support (recommended only on embedded systems)])
 
 if test "x$enable_debug" = "xno"; then 
 	AC_MSG_WARN([--disable-debug is obsolete.])
@@ -238,6 +238,15 @@ if test "x$tmp" = "xxxxxx"; then
 	fi
 fi
 
+AC_SUBST([OPTIONAL_TESTS_PERL])
+
+AC_CHECK_PROG([PERL], [perl], [perl], [:])
+if test "x$PERL" != "x:"; then
+	OPTIONAL_TESTS_PERL="protocol"
+else
+	OPTIONAL_TESTS_PERL=""
+fi
+
 dnl
 dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
 dnl
@@ -262,7 +271,7 @@ dnl
 AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [:])
 
 AC_SUBST([SUBDIRS_DOXYGEN])
-if test "x$DOXYGEN" = "xdoxygen"; then
+if test "x$DOXYGEN" != "x:"; then
 	SUBDIRS_DOXYGEN="docs"
 else
 	SUBDIRS_DOXYGEN=""
