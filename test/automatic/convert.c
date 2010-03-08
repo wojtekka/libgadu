@@ -13,14 +13,15 @@
 
 struct test_data
 {
+	int line;
 	const char *src;
 	const char *dst;
 	ssize_t src_len;
 	ssize_t dst_len;
 };
 
-#define TEST(src,dst) { src, dst, -1, -1 }
-#define TEST_SIZE(src,dst,src_len,dst_len) { src, dst, src_len, dst_len }
+#define TEST(src,dst) { __LINE__, src, dst, -1, -1 }
+#define TEST_SIZE(src,dst,src_len,dst_len) { __LINE__, src, dst, src_len, dst_len }
 
 const struct test_data utf8_to_cp1250[] =
 {
@@ -117,32 +118,32 @@ const struct test_data cp1250_to_utf8[] =
 	TEST("za\xbf\xf3\xb3\xe6 g\xea\x9cl\xb9 ja\x9f\xf1", "zażółć gęślą jaźń"),
 };
 
-void test_utf8(const char *input, const char *match, int src_len, int dst_len)
+void test_utf8_to_cp1250(const struct test_data *t)
 {
-	char *output;
+	char *res;
 
-	output = gg_encoding_convert(input, GG_ENCODING_UTF8, GG_ENCODING_CP1250, src_len, dst_len);
+	res = gg_encoding_convert(t->src, GG_ENCODING_UTF8, GG_ENCODING_CP1250, t->src_len, t->dst_len);
 
-	if (strcmp(output, match) != 0) {
-		printf("utf8->cp1250: input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", input, output, match, src_len, dst_len);
+	if (strcmp(res, t->dst) != 0) {
+		printf("utf8->cp1250: line %d, input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", t->line, t->src, res, t->dst, t->src_len, t->dst_len);
 		exit(1);
 	}
 
-	free(output);
+	free(res);
 }
 
-void test_cp1250(const char *input, const char *match, int src_len, int dst_len)
+void test_cp1250_to_utf8(const struct test_data *t)
 {
-	char *output;
+	char *res;
 
-	output = gg_encoding_convert(input, GG_ENCODING_CP1250, GG_ENCODING_UTF8, src_len, dst_len);
+	res = gg_encoding_convert(t->src, GG_ENCODING_CP1250, GG_ENCODING_UTF8, t->src_len, t->dst_len);
 
-	if (strcmp(output, match) != 0) {
-		printf("cp1250->utf8: input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", input, output, match, src_len, dst_len);
+	if (strcmp(res, t->dst) != 0) {
+		printf("cp1250->utf8: line %d, input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", t->line, t->src, res, t->dst, t->src_len, t->dst_len);
 		exit(1);
 	}
 
-	free(output);
+	free(res);
 }
 
 int main(void)
@@ -150,10 +151,10 @@ int main(void)
 	int i;
 
 	for (i = 0; i < sizeof(cp1250_to_utf8) / sizeof(cp1250_to_utf8[0]); i++)
-		test_cp1250(cp1250_to_utf8[i].src, cp1250_to_utf8[i].dst, cp1250_to_utf8[i].src_len, cp1250_to_utf8[i].dst_len);
+		test_cp1250_to_utf8(&cp1250_to_utf8[i]);
 
 	for (i = 0; i < sizeof(utf8_to_cp1250) / sizeof(utf8_to_cp1250[0]); i++)
-		test_cp1250(utf8_to_cp1250[i].src, utf8_to_cp1250[i].dst, utf8_to_cp1250[i].src_len, utf8_to_cp1250[i].dst_len);
+		test_utf8_to_cp1250(&utf8_to_cp1250[i]);
 
 	printf("okay\n");
 
