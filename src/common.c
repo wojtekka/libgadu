@@ -261,10 +261,6 @@ int gg_connect(void *addr, int port, int async)
 		return -1;
 	}
 
-#ifdef ASSIGN_SOCKETS_TO_THREADS
-	gg_win32_thread_socket(0, sock);
-#endif
-
 	if (async) {
 #ifdef FIONBIO
 		if (ioctl(sock, FIONBIO, &one) == -1) {
@@ -336,7 +332,8 @@ void gg_chomp(char *line)
  */
 char *gg_urlencode(const char *str)
 {
-	char *q, *buf, hex[] = "0123456789abcdef";
+	char *q, *buf;
+	const char hex[] = "0123456789abcdef";
 	const char *p;
 	unsigned int size = 0;
 
@@ -414,80 +411,6 @@ int gg_http_hash(const char *format, ...)
 
 	return (b < 0 ? -b : b);
 }
-
-#ifdef ASSIGN_SOCKETS_TO_THREADS
-
-typedef struct gg_win32_thread {
-	int id;
-	int socket;
-	struct gg_win32_thread *next;
-} gg_win32_thread;
-
-struct gg_win32_thread *gg_win32_threads = 0;
-
-/**
- * \internal Zwraca deskryptor gniazda, które było ostatnio tworzone dla wątku.
- *
- * Jeśli na win32 przy połączeniach synchronicznych zapamiętamy w jakim
- * wątku uruchomiliśmy funkcję, która się z czymkolwiek łączy, to z osobnego
- * wątku możemy anulować połączenie poprzez \c gg_win32_thread_socket(watek,-1)
- *
- * \param thread_id Identyfikator wątku (jeśli jest równe 0, brany jest
- *                  aktualny wątek, jeśli równe -1, usuwa wpis dotyczący
- *                  danego gniazda sockecie)
- * \param socket Deskryptor gniazda (jeśli równe 0, zwraca deskryptor gniazda
- *               dla podanego wątku, jeśli równe -1, usuwa wpis, jeśli coś
- *               innego, ustawia dla podanego wątku dany numer deskryptora)
- *
- * \return Jeśli socket jest równe 0, zwraca deskryptor gniazda dla podanego
- *         wątku.
- */
-int gg_win32_thread_socket(int thread_id, int socket)
-{
-	char close = (thread_id == -1) || socket == -1;
-	gg_win32_thread *wsk = gg_win32_threads;
-	gg_win32_thread **p_wsk = &gg_win32_threads;
-
-	if (!thread_id)
-		thread_id = GetCurrentThreadId();
-
-	while (wsk) {
-		if ((thread_id == -1 && wsk->socket == socket) || wsk->id == thread_id) {
-			if (close) {
-				/* socket zostaje usuniety */
-				closesocket(wsk->socket);
-				*p_wsk = wsk->next;
-				free(wsk);
-				return 1;
-			} else if (!socket) {
-				/* socket zostaje zwrocony */
-				return wsk->socket;
-			} else {
-				/* socket zostaje ustawiony */
-				wsk->socket = socket;
-				return socket;
-			}
-		}
-		p_wsk = &(wsk->next);
-		wsk = wsk->next;
-	}
-
-	if (close && socket != -1)
-		closesocket(socket);
-	if (close || !socket)
-		return 0;
-
-	/* Dodaje nowy element */
-	wsk = malloc(sizeof(gg_win32_thread));
-	wsk->id = thread_id;
-	wsk->socket = socket;
-	wsk->next = 0;
-	*p_wsk = wsk;
-
-	return socket;
-}
-
-#endif /* ASSIGN_SOCKETS_TO_THREADS */
 
 /**
  * \internal Zestaw znaków kodowania base64.
