@@ -340,8 +340,8 @@ static void gg_append(char *dst, int *pos, const void *src, int len)
  * \internal Zamienia tekst z formatowaniem Gadu-Gadu na HTML.
  *
  * \param dst Bufor wynikowy (może być \c NULL)
- * \param utf_msg Tekst źródłowy
- * \param format_ Atrybuty tekstu źródłowego
+ * \param src Tekst źródłowy w UTF-8
+ * \param format Atrybuty tekstu źródłowego
  * \param format_len Długość bloku atrybutów tekstu źródłowego
  *
  * \note Wynikowy tekst nie jest idealnym kodem HTML, ponieważ ma jak
@@ -351,7 +351,7 @@ static void gg_append(char *dst, int *pos, const void *src, int len)
  *
  * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *format_, size_t format_len)
+size_t gg_message_text_to_html(char *dst, const char *src, const char *format, size_t format_len)
 {
 	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
 	const int span_len = 75;
@@ -362,31 +362,44 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 	unsigned char old_attr = 0;
 	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
 	int len, i;
-	const unsigned char *format = (const unsigned char*) format_;
+	const unsigned char *format_ = (const unsigned char*) format;
 
 	len = 0;
+
+	/* Nie mamy atrybutów dla pierwsze znaku, a tekst nie jest pusty, więc
+	 * tak czy inaczej trzeba otworzyć <span>. */
+
+	if (src[0] != 0 && (format_idx + 3 > format_len || (format_[format_idx] | (format_[format_idx + 1] << 8)) != 0)) {
+		if (dst != NULL)
+			sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+		len += span_len;
+	}
 
 	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
 	 * na końcu tekstu. */
 
 	for (i = 0; ; i++) {
-		unsigned char attr;
-		int attr_pos;
+		/* Analizuj atrybuty tak długo jak dotyczą aktualnego znaku. */
+		for (;;) {
+			unsigned char attr;
+			int attr_pos;
 
-		if (format_idx + 3 <= format_len) {
-			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
-			attr = (unsigned char) format[format_idx + 2];
-		} else {
-			attr_pos = -1;
-			attr = 0;
-		}
+			if (format_idx + 3 > format_len)
+				break;
 
-		/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
+			attr_pos = format_[format_idx] | (format_[format_idx + 1] << 8);
 
-		if (utf_msg[i] == 0)
-			attr &= ~(GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR);
+			if (attr_pos != char_pos)
+				break;
 
-		if (attr_pos == char_pos) {
+			attr = format_[format_idx + 2];
+
+			/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
+
+			if (src[i] == 0)
+				attr &= ~(GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR);
+
 			format_idx += 3;
 
 			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
@@ -404,7 +417,7 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
-					color = (unsigned char *) &format[format_idx];
+					color = &format_[format_idx];
 					format_idx += 3;
 				} else {
 					color = (unsigned char*) "\x00\x00\x00";
@@ -413,7 +426,7 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 				if (dst != NULL)
 					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
 				len += span_len;
-			} else if (char_pos == 0) {
+			} else if (char_pos == 0 && src[0] != 0) {
 				if (dst != NULL)
 					sprintf(&dst[len], span_fmt, 0, 0, 0);
 				len += span_len;
@@ -431,14 +444,14 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
 				if (dst != NULL) {
 					sprintf(&dst[len], img_fmt,
-						format[format_idx + 9],
-						format[format_idx + 8], 
-						format[format_idx + 7],
-						format[format_idx + 6], 
-						format[format_idx + 5],
-						format[format_idx + 4],
-						format[format_idx + 3],
-						format[format_idx + 2]);
+						format_[format_idx + 9],
+						format_[format_idx + 8], 
+						format_[format_idx + 7],
+						format_[format_idx + 6], 
+						format_[format_idx + 5],
+						format_[format_idx + 4],
+						format_[format_idx + 3],
+						format_[format_idx + 2]);
 				}
 
 				len += img_len;
@@ -446,14 +459,11 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 			}
 
 			old_attr = attr;
-		} else if (i == 0) {
-			if (dst != NULL)
-				sprintf(&dst[len], span_fmt, 0, 0, 0);
-
-			len += span_len;
 		}
 
-		switch (utf_msg[i]) {
+		/* Doklej znak zachowując htmlowe escapowanie. */
+
+		switch (src[i]) {
 			case '&':
 				gg_append(dst, &len, "&amp;", 5);
 				break;
@@ -477,16 +487,16 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 				break;
 			default:
 				if (dst != NULL)
-					dst[len] = utf_msg[i];
+					dst[len] = src[i];
 				len++;
 		}
 
 		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
 
-		if ((utf_msg[i] & 0xc0) != 0xc0)
+		if ((src[i] & 0xc0) != 0xc0)
 			char_pos++;
 
-		if (utf_msg[i] == 0)
+		if (src[i] == 0)
 			break;
 	}
 
@@ -501,7 +511,8 @@ size_t gg_message_text_to_html(char *dst, const char *utf_msg, const char *forma
 	if ((old_attr & GG_FONT_BOLD) != 0)
 		gg_append(dst, &len, "</b>", 4);
 
-	gg_append(dst, &len, "</span>", 7);
+	if (src[0] != 0)
+		gg_append(dst, &len, "</span>", 7);
 
 	if (dst != NULL)
 		dst[len] = 0;
