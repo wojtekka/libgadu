@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <errno.h>
+
+#include "libgadu.h"
 
 typedef struct gg_buffer gg_buffer_t;
 
