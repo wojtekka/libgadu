@@ -441,7 +441,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					strcat(list, inet_ntoa(((struct in_addr*) sess->recv_buf)[i]));
 				}
 
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolved: %s\n", list);
+				gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_watch_fd() resolved: %s\n", list);
 
 				free(list);
 			}
