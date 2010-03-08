@@ -75,7 +75,7 @@ struct gg_session *gg_session_new(void)
 	gs->pid = -1;
 	gs->encoding = GG_ENCODING_UTF8;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
-	gs->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80;	// XXX trzeba jakoś to zmieniać
+	gs->protocol_features = GG_PROTOCOL_FEATURE_MSG80 | GG_PROTOCOL_FEATURE_STATUS80;
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
@@ -284,6 +284,22 @@ int gg_session_get_protocol_version(struct gg_session *gs)
 	GG_SESSION_CHECK(gs, -1);
 
 	return gs->protocol_version;
+}
+
+int gg_session_set_protocol_features(struct gg_session *gs, int features)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	gs->protocol_features = features;
+
+	return 0;
+}
+
+int gg_session_get_protocol_features(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	return gs->protocol_features;
 }
 
 int gg_session_set_client_version(struct gg_session *gs, const char *version)
@@ -809,6 +825,7 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 	struct gg_send_msg s;
 	unsigned char *attr_header = NULL, attr_buf[3];
 	char *text = NULL;
+	uint32_t seq;
 
 	if (gm->text != NULL) {
 		if (gs->encoding != GG_ENCODING_CP1250) {
@@ -847,11 +864,12 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 		goto failure;
 	}
 
-	if (gm->seq != (uint32_t) -1)
-		s.seq = gg_fix32(gm->seq);
-	else
-		s.seq = gg_fix32(rand());
+	seq = gm->seq;
 
+	if (seq == (uint32_t) -1)
+		seq = rand();
+
+	s.seq = gg_fix32(seq);
 	s.msgclass = gg_fix32(gm->msgclass);
 
 	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
@@ -903,7 +921,7 @@ static uint32_t gg_session_send_message_7(struct gg_session *gs, gg_message_t *g
 	if (text != gm->text)
 		free(text);
 
-	return gg_fix32(s.seq);
+	return seq;
 
 failure:
 	if (text != gm->text)
@@ -919,7 +937,7 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 	const char *attr;
 	int attr_len;
 	char *text = NULL, *html = NULL;
-	time_t now;
+	uint32_t seq;
 
 	if (gm->html != NULL) {
 		if (gs->encoding != GG_ENCODING_UTF8) {
@@ -996,17 +1014,21 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 	// w ciągu jednej sekundy, zwiększamy poprzednią wartość, żeby każda
 	// wiadomość miała unikalny numer.
 
-	now = time(NULL);
+	seq = gm->seq;
 
-	if (now > gm->seq)
-		gm->seq = now;
-	else
-		gm->seq++;
+	if (seq == (uint32_t) -1) {
+		seq = time(NULL);
 
-	s.seq = gg_fix32(gm->seq);
+		if (seq <= gm->seq)
+			seq = gm->seq + 1;
+
+		gs->seq = seq;
+	}
+
+	s.seq = gg_fix32(seq);
 	s.msgclass = gg_fix32(gm->msgclass);
 	s.offset_plain = gg_fix32(sizeof(s) + strlen(html) + 1);
-	s.offset_attr = gg_fix32(s.offset_plain + strlen(text) + 1);
+	s.offset_attr = gg_fix32(sizeof(s) + strlen(html) + 1 + strlen(text) + 1);
 
 	if ((gm->attributes != NULL) && (gm->attributes_length > 0)) {
 		attr = gm->attributes;
@@ -1065,7 +1087,7 @@ static uint32_t gg_session_send_message_8(struct gg_session *gs, gg_message_t *g
 	if (text != gm->text)
 		free(text);
 
-	return gg_fix32(s.seq);
+	return seq;
 
 failure:
 	if (html != gm->html)

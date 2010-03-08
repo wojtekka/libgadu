@@ -39,6 +39,7 @@
 #include "resolver.h"
 #include "message.h"
 #include "session.h"
+#include "protocol.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -1115,6 +1116,7 @@ int gg_userlist_request(struct gg_session *gs, char type, const char *request)
 struct gg_session *gg_login(const struct gg_login_params *p)
 {
 	struct gg_session *gs = NULL;
+	int features;
 
 	if (p == NULL) {
 		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
@@ -1158,6 +1160,16 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 	if (p->protocol_version != 0)
 		gg_session_set_protocol_version(gs, p->protocol_version);
+
+	features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
+
+	if (!(p->protocol_features & GG_FEATURE_STATUS77))
+		features |= GG_PROTOCOL_FEATURE_STATUS80;
+	
+	if (!(p->protocol_features & GG_FEATURE_MSG77))
+		features |= GG_PROTOCOL_FEATURE_MSG80;
+
+	gg_session_set_protocol_features(gs, features);
 
 	if (p->client_version != NULL)
 		gg_session_set_client_version(gs, p->client_version);
