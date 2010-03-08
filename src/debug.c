@@ -101,11 +101,11 @@ FILE *gg_debug_file = NULL;
  */
 void gg_debug_common(struct gg_session *sess, int level, const char *format, va_list ap)
 {
-	if (gg_debug_handler_session)
+	if (gg_debug_handler_session != NULL)
 		(*gg_debug_handler_session)(sess, level, format, ap);
-	else if (gg_debug_handler)
+	else if (gg_debug_handler != NULL)
 		(*gg_debug_handler)(level, format, ap);
-	else if (gg_debug_level & level)
+	else if ((gg_debug_level & level) != 0)
 		vfprintf((gg_debug_file) ? gg_debug_file : stderr, format, ap);
 }
 
@@ -122,6 +122,7 @@ void gg_debug(int level, const char *format, ...)
 {
 	va_list ap;
 	int old_errno = errno;
+
 	va_start(ap, format);
 	gg_debug_common(NULL, level, format, ap);
 	va_end(ap);
@@ -141,6 +142,7 @@ void gg_debug_session(struct gg_session *gs, int level, const char *format, ...)
 {
 	va_list ap;
 	int old_errno = errno;
+
 	va_start(ap, format);
 	gg_debug_common(gs, level, format, ap);
 	va_end(ap);
