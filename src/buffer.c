@@ -272,8 +272,9 @@ int gg_buffer_unpack_string(gg_buffer_t *buf, char **str, size_t len)
 	return -1;
 }
 
-// XXX zrobić z tego funkcję inline? sprawdzić, czy na x86 gcc zoptymalizuje
-// do zwykłego odczytu. jeśli nie, ifdefować.
+// XXX zrobić z tego funkcję inline? gcc 4.4.1 nie zoptymalizuje tego do
+// zwykłego odczytu, więc fajnie by było to ifdefować prostym kodem dla
+// maszyn little-endian z niewyrównanym dostępem do pamięci (__i386__?)
 //
 uint32_t gg_buffer_get_uint32(const char *ptr)
 {
