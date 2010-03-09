@@ -195,23 +195,21 @@ if test "x$have_openssl" = "xyes"; then
 fi
 
 dnl
-dnl  Sprawdź, czy można korzystać z __funkcji w libc.
+dnl  Sprawdź, czy możemy kompilować testy.
 dnl 
 
 AC_SUBST([OPTIONAL_TESTS])
 OPTIONAL_TESTS=""
 
-AC_CHECK_LIB(c, __connect, [
-	OPTIONAL_TESTS="$OPTIONAL_TESTS dcc7 connect resolver"
-])
+AC_ARG_ENABLE(tests, 
+	[  --disable-tests         do not compile tests])
 
-dnl
-dnl  Sprawdź, czy mamy Perla
-dnl 
-
-AC_CHECK_PROG(PERL, [perl], [perl])
-if test "x$PERL" != "x"; then
-	OPTIONAL_TESTS="$OPTIONAL_TESTS protocol"
+if test "x$enable_tests" != "xno"; then 
+	AC_CHECK_LIB(c, __connect, [OPTIONAL_TESTS="$OPTIONAL_TESTS dcc7 connect resolver"])
+	AC_CHECK_PROG(PERL, [perl], [perl])
+	if test "x$PERL" != "x"; then
+		OPTIONAL_TESTS="$OPTIONAL_TESTS protocol"
+	fi
 fi
 
 dnl
