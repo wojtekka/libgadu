@@ -199,12 +199,20 @@ dnl  Sprawdź, czy można korzystać z __funkcji w libc.
 dnl 
 
 AC_SUBST([OPTIONAL_TESTS])
+OPTIONAL_TESTS=""
+
 AC_CHECK_LIB(c, __connect, [
-	OPTIONAL_TESTS="dcc7 connect resolver"
-],
-[
-	OPTIONAL_TESTS=""
+	OPTIONAL_TESTS="$OPTIONAL_TESTS dcc7 connect resolver"
 ])
+
+dnl
+dnl  Sprawdź, czy mamy Perla
+dnl 
+
+AC_CHECK_PROG(PERL, [perl], [perl])
+if test "x$PERL" != "x"; then
+	OPTIONAL_TESTS="$OPTIONAL_TESTS protocol"
+fi
 
 dnl
 dnl  Sprawdź, czy mamy czym generować dokumentację
