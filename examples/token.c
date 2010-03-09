@@ -1,6 +1,6 @@
-/* $Id: remind.c 299 2002-02-06 21:40:00Z wojtekka $ */
-
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include "libgadu.h"
 
 #ifdef ASYNC
@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <errno.h>
 
-void sigchld()
+void sigchld(int sig)
 {
 	wait(NULL);
 	signal(SIGCHLD, sigchld);
@@ -18,36 +18,27 @@ void sigchld()
 
 #endif
 
-int main(int argc, char **argv)
+int main(void)
 {
 	struct gg_http *h;
-	struct gg_pubdir *p;
-	uin_t uin;
-	const char *email;
-	const char *tokenid;
-	const char *tokenval;
-
-	if (argc < 5) {
-		printf("Użycie: %s <uin> <e-mail> <id-tokenu> <wartość-tokenu>\n", argv[0]);
-		return 1;
-	}
-
-	uin = atoi(argv[1]);
-	email = argv[2];
-	tokenid = argv[3];
-	tokenval = argv[4];
+	struct gg_token *t;
+	char path[] = "token.XXXXXX";
+	FILE *f;
 
 	gg_debug_level = 255;
-
+	
 #ifndef ASYNC
-	if (!(h = gg_remind_passwd3(uin, email, tokenid, tokenval, 0))) {
-		printf("Błąd przypominania hasła.\n");
+
+	if (!(h = gg_token(0))) {
+		printf("Błąd pobierania tokenu.\n");
 		return 1;
 	}
+
 #else
+
 	signal(SIGCHLD, sigchld);
 
-	if (!(h = gg_remind_passwd3(uin, email, tokenid, tokenval, 1)))
+	if (!(h = gg_token(1)))
 		return 1;
 
         while (1) {
@@ -66,31 +57,63 @@ int main(int argc, char **argv)
                 if (select(h->fd + 1, &rd, &wr, &ex, NULL) == -1 || FD_ISSET(h->fd, &ex)) {
 			if (errno == EINTR)
 				continue;
-			gg_free_remind_passwd(h);
+			gg_token_free(h);
 			perror("select");
 			return 1;
 		}
 
                 if (FD_ISSET(h->fd, &rd) || FD_ISSET(h->fd, &wr)) {
-			if (gg_remind_passwd_watch_fd(h) == -1) {
-				gg_free_remind_passwd(h);
+			if (gg_token_watch_fd(h) == -1) {
+				gg_token_free(h);
 				fprintf(stderr, "Błąd połączenia.\n");
 				return 1;
 			}
 			if (h->state == GG_STATE_ERROR) {
-				gg_free_remind_passwd(h);
-				fprintf(stderr, "Błąd przypominania hasła.\n");
+				gg_token_free(h);
+				fprintf(stderr, "Błąd pobierania tokenu.\n");
 				return 1;
 			}
 			if (h->state == GG_STATE_DONE)
 				break;
+
 		}
         }
+
 #endif
 
-	p = h->data;
-	printf("success=%d\n", p->success);
-	gg_free_remind_passwd(h);
+	t = h->data;
+
+#if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || _XOPEN_SOURCE >= 500
+	if (mkstemp(path) == -1) {
+#else
+	if (strcmp(mktemp(path), "") == 0) {
+#endif
+		printf("Błąd tworzenia pliku tymczasowego.\n");
+		gg_token_free(h);
+		return 1;
+	}
+
+	f = fopen(path, "w");
+
+	if (f == NULL) {
+		printf("Błąd otwierania pliku tymczasowego %s.\n", path);
+		gg_token_free(h);
+		return 1;
+	}
+
+	if (fwrite(h->body, h->body_size, 1, f) != 1) {
+		printf("Błąd zapisu do pliku tymczasowego %s.\n", path);
+		gg_token_free(h);
+		fclose(f);
+		unlink(path);
+		return 1;
+	}
+
+	fclose(f);
+
+	printf("id=%s\nwidth=%d\nheight=%d\nlength=%d\npath=%s\n", t->tokenid, t->width, t->height, t->length, path);
+
+	gg_token_free(h);
 
 	return 0;
 }

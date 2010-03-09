@@ -7,7 +7,7 @@ EXTRA_DIST = compile readme.txt valgrind
 SUBDIRS = tests
 
 script.c:	$(wildcard tests/*.scr) compile
-	./compile tests/*.scr > script.c
+	$(PERL) compile tests/*.scr > script.c
 
 clean-local:
 	rm -f *.log script.c

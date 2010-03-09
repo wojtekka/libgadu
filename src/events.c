@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <ctype.h>
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/x509.h>
@@ -482,6 +483,91 @@ fail:
 }
 
 /**
+ * \internal Zamienia tekst w formacie HTML na czysty tekst.
+ *
+ * \param dst Bufor wynikowy (może być \c NULL)
+ * \param html Tekst źródłowy
+ *
+ * \note Dokleja \c \\0 na końcu bufora wynikowego.
+ *
+ * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
+ */
+static int gg_convert_from_html(char *dst, const char *html)
+{
+	const char *src, *entity, *tag;
+	int len, in_tag, in_entity;
+
+	len = 0;
+	in_tag = 0;
+	tag = NULL;
+	in_entity = 0;
+	entity = NULL;
+
+	for (src = html; *src != 0; src++) {
+		if (*src == '<') {
+			tag = src;
+			in_tag = 1;
+			continue;
+		}
+
+		if (in_tag && (*src == '>')) {
+			if (strncmp(tag, "<br", 3) == 0) {
+				if (dst != NULL)
+					dst[len] = '\n';
+				len++;
+			}
+			in_tag = 0;
+			continue;
+		}
+
+		if (in_tag)
+			continue;
+
+		if (*src == '&') {
+			in_entity = 1;
+			entity = src;
+			continue;
+		}
+
+		if (in_entity && *src == ';') {
+			in_entity = 0;
+			if (dst != NULL) {
+				if (strncmp(entity, "&lt;", 4) == 0)
+					dst[len] = '<';
+				else if (strncmp(entity, "&gt;", 4) == 0)
+					dst[len] = '>';
+				else if (strncmp(entity, "&quot;", 6) == 0)
+					dst[len] = '"';
+				else if (strncmp(entity, "&apos;", 6) == 0)
+					dst[len] = '\'';
+				else if (strncmp(entity, "&amp;", 5) == 0)
+					dst[len] = '&';
+				else
+					dst[len] = '?';
+			}
+			len++;
+			continue;
+		}
+
+		if (in_entity && !(isalnum(*src) || *src == '#'))
+			in_entity = 0;
+
+		if (in_entity)
+			continue;
+
+		if (dst != NULL)
+			dst[len] = *src;
+
+		len++;
+	}
+
+	if (dst != NULL)
+		dst[len] = 0;
+	
+	return len;
+}
+
+/**
  * \internal Analizuje przychodzący pakiet z wiadomością protokołu Gadu-Gadu 8.0.
  *
  * Rozbija pakiet na poszczególne składniki -- tekst, informacje
@@ -541,18 +627,33 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 
-	if (sess->encoding == GG_ENCODING_CP1250)
+	if (sess->encoding == GG_ENCODING_CP1250) {
 		e->event.msg.message = (unsigned char*) strdup(packet + offset_plain);
-	else
-		e->event.msg.message = (unsigned char*) gg_cp_to_utf8(packet + offset_plain);
+	} else {
+		if (offset_plain > sizeof(struct gg_recv_msg80)) {
+			int len;
+
+			len = gg_convert_from_html(NULL, packet + sizeof(struct gg_recv_msg80));
+
+			e->event.msg.message = malloc(len + 1);
+
+			if (e->event.msg.message == NULL)
+				goto fail;
+
+			gg_convert_from_html((char*) e->event.msg.message, packet + sizeof(struct gg_recv_msg80));
+		} else {
+			e->event.msg.message = (unsigned char*) gg_cp_to_utf8(packet + offset_plain);
+		}
+	}
 
 	if (offset_plain > sizeof(struct gg_recv_msg80)) {
 		if (sess->encoding == GG_ENCODING_UTF8)
 			e->event.msg.xhtml_message = strdup(packet + sizeof(struct gg_recv_msg80));
 		else
 			e->event.msg.xhtml_message = gg_utf8_to_cp(packet + sizeof(struct gg_recv_msg80));
-	} else
+	} else {
 		e->event.msg.xhtml_message = NULL;
+	}
 
 	if (offset_attr != 0) {
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + h->length)) {
@@ -1016,7 +1117,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 			descr_len = gg_fix32(s->descr_len);
 
-			if (h->length-sizeof(*s) >= descr_len) {
+			if (descr_len > 0 && h->length-sizeof(*s) >= descr_len) {
 				char *buf = malloc(descr_len + 1);
 
 				if (buf) {
@@ -1172,7 +1273,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_PUBDIR50_REPLY:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received pubdir/search reply\n");
-			if (gg_pubdir50_handle_reply(e, p, h->length) == -1)
+			if (gg_pubdir50_handle_reply_sess(sess, e, p, h->length) == -1)
 				goto fail;
 			break;
 		}
@@ -1856,17 +1957,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			struct gg_welcome *w;
 			unsigned char *password = (unsigned char*) sess->password;
 			int ret;
-
-			int login_dunno2;
 			uint8_t login_hash[64];
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
 
 			memset(login_hash, 0, sizeof(login_hash));
-			if (sess->protocol_version >= 0x2d)
-				login_dunno2 = 0x64;
-			else
-				login_dunno2 = 0xbe;
 
 			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
 			 * się tekstu wrzucanego przez proxy. */
@@ -1985,14 +2080,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type     = sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.status        = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l.flags		= gg_fix32(0x01);
+				l.flags		= gg_fix32(0x00800001);
 				l.features	= gg_fix32(sess->protocol_features);
-			/*
-				l.local_ip      = (sess->external_addr) ? sess->external_addr : sess->client_addr;
-				l.local_port    = gg_fix16((sess->external_port > 1023) ? sess->external_port : gg_dcc_port);
-			*/
 				l.image_size    = sess->image_size;
-				l.dunno2        = login_dunno2;
+				l.dunno2        = 0x64;
 
 				gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
 				ret = gg_send_packet(sess, GG_LOGIN80, 
@@ -2011,7 +2102,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type	= sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.image_size	= sess->image_size;
-				l.dunno2 	= login_dunno2;
+				l.dunno2 	= 0x64;
 				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
 
@@ -2031,7 +2122,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type	= sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.image_size	= sess->image_size;
-				l.dunno2	= login_dunno2;
+				l.dunno2	= 0xbe;
 				l.status	= gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
 				l.version	= gg_fix32(sess->protocol_version | sess->protocol_flags);
 

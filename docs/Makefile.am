@@ -1,10 +1,11 @@
 EXTRA_DIST = Doxyfile protocol.html *.dox
 
-all-local:	html
+all-local:	html-stamp
 
-html:	../include/libgadu.h
-	test -d html || doxygen || true
+html-stamp:	../include/libgadu.h $(wildcard ../src/*.c) $(wildcard *.dox)
+	$(DOXYGEN)
+	touch html-stamp
 
 clean-local:
-	rm -rf html
+	rm -rf html html-stamp
 

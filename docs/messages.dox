@@ -66,11 +66,12 @@ Jeśli występuje atrybut \c GG_FONT_COLOR, zaraz za strukturą
 opisująca kolor za pomocą składowych RGB.
 
 Jeśli występuje atrybut \c GG_FONT_IMAGE, za strukturą znajduje się
-struktura \c gg_msg_richtext_image. Pole \c unknown1 jest nieznane, ale
-powinno zawierać wartość \c 0x0109. Pola \c size i \c crc32 identyfikują
-obrazek, który można pobrać od nadawcy lub z dysku lokalnego, jeśli był już
-wcześniej pobierany (np. często używana ikonka). Opis pobierania obrazków
-od nadawcy znajduje się \ref messages-images "poniżej".
+struktura \c gg_msg_richtext_image. Pole \c unknown1 zawiera rozmiar (0x09)
+oraz rodzaj struktury (0x01), ale ze względów historycznych jest liczbą
+16-bitową i należy przypisać mu wartość \c 0x0109. Pola \c size i \c crc32
+identyfikują obrazek, który można pobrać od nadawcy lub z dysku lokalnego,
+jeśli był już wcześniej pobierany (np. często używana ikonka). Opis pobierania
+obrazków od nadawcy znajduje się \ref messages-images "poniżej".
 
 \note Biblioteka nie ingeruje w zawartość bloku formatowania, więc kolejność
 bajtów może się różnić od używanej na danej architekturze. By pobrać lub

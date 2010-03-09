@@ -6,7 +6,7 @@ call {
 	gg_change_status(session, GG_STATUS_AVAIL);
 }
 
-expect data (02 00 00 00, auto, 02 00 00 00)
+expect data (38 00 00 00, auto, 02 00 00 00, 01 00 80 00, 00 00 00 00)
 
 #-----------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ call {
 	gg_change_status_descr(session, GG_STATUS_AVAIL_DESCR, "Test");
 }
 
-expect data (02 00 00 00, auto, 04 00 00 00, "Test")
+expect data (38 00 00 00, auto, 04 00 00 00, 01 00 80 00, 04 00 00 00, "Test")
 
 #-----------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ call {
 	gg_change_status(session, GG_STATUS_NOT_AVAIL);
 }
 
-expect data (02 00 00 00, auto, 01 00 00 00)
+expect data (38 00 00 00, auto, 01 00 00 00, 01 00 80 00, 00 00 00 00)
 
 #-----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ call {
 	gg_change_status_descr(session, GG_STATUS_NOT_AVAIL_DESCR, "Test");
 }
 
-expect data (02 00 00 00, auto, 15 00 00 00, "Test")
+expect data (38 00 00 00, auto, 15 00 00 00, 01 00 80 00, 04 00 00 00, "Test")
 
 #-----------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ call {
 	gg_change_status(session, GG_STATUS_BUSY);
 }
 
-expect data (02 00 00 00, auto, 03 00 00 00)
+expect data (38 00 00 00, auto, 03 00 00 00, 01 00 80 00, 00 00 00 00)
 
 #-----------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ call {
 	gg_change_status_descr(session, GG_STATUS_BUSY_DESCR, "Test");
 }
 
-expect data (02 00 00 00, auto, 05 00 00 00, "Test")
+expect data (38 00 00 00, auto, 05 00 00 00, 01 00 80 00, 04 00 00 00, "Test")
 
 #-----------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ call {
 	gg_change_status(session, GG_STATUS_INVISIBLE);
 }
 
-expect data (02 00 00 00, auto, 14 00 00 00)
+expect data (38 00 00 00, auto, 14 00 00 00, 01 00 80 00, 00 00 00 00)
 
 #-----------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ call {
 	gg_change_status_descr(session, GG_STATUS_INVISIBLE_DESCR, "Test");
 }
 
-expect data (02 00 00 00, auto, 16 00 00 00, "Test")
+expect data (38 00 00 00, auto, 16 00 00 00, 01 00 80 00, 04 00 00 00, "Test")
 
 #-----------------------------------------------------------------------------
 
@@ -70,13 +70,13 @@ call {
 	gg_change_status(session, GG_STATUS_AVAIL | GG_STATUS_FRIENDS_MASK);
 }
 
-expect data (02 00 00 00, auto, 02 80 00 00)
+expect data (38 00 00 00, auto, 02 80 00 00, 01 00 80 00, 00 00 00 00)
 
 #-----------------------------------------------------------------------------
 
 call {
-	gg_change_status_descr_time(session, GG_STATUS_AVAIL, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<This part should be truncated>", 0x12345678);
+	gg_change_status_descr_time(session, GG_STATUS_AVAIL, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<This_part_should_not_be_truncated><But_this_one_should>", 0x12345678);
 }
 
-expect data (02 00 00 00, 4f 00 00 00, 02 00 00 00, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" 00, 78 56 34 12)
+expect data (38 00 00 00, 0b 01 00 00, 02 00 00 00, 01 00 80 00, ff 00 00 00, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<This_part_should_not_be_truncated>")
 

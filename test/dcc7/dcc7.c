@@ -335,6 +335,14 @@ int main(int argc, char **argv)
 					debug("Accepted\n");
 					break;
 
+				case GG_EVENT_DCC7_CONNECTED:
+					debug("Connected\n");
+					break;
+
+				case GG_EVENT_DCC7_PENDING:
+					debug("Pending ...\n");
+					break;
+
 				case GG_EVENT_DCC7_REJECT:
 					debug("Rejected\n");
 					exit(1);
