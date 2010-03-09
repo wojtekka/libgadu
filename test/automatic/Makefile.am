@@ -26,7 +26,7 @@ EXTRA_DIST = protocol.txt connect.txt
 SUBDIRS = script
 
 script/script.c:       $(wildcard script/*.scr) script/compile
-	script/compile script/*.scr > script/script.c
+	$(PERL) script/compile script/*.scr > script/script.c
 
 clean-local:
 	rm -f *.html *.log *-valgrind
