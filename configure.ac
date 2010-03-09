@@ -141,7 +141,7 @@ AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);],
 ])
 
 AC_ARG_ENABLE(debug, 
-	[  --disable-debug         compile without debugging support (recommended only on embedded systems)])
+	[  --disable-debug         compile without debugging support])
 
 if test "x$enable_debug" = "xno"; then 
 	AC_MSG_WARN([--disable-debug is obsolete.])
