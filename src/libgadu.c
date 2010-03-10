@@ -960,7 +960,10 @@ int gg_ping(struct gg_session *sess)
  *
  * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
  * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
- * utracone przy zrywaniu połączenia.
+ * utracone przy zrywaniu połączenia. Aby mieć pewność, że opis statusu
+ * zostanie zachowany, należy ustawić stan \c GG_STATUS_NOT_AVAIL_DESCR
+ * za pomocą funkcji \c gg_change_status_descr() i poczekać na zdarzenie
+ * \c GG_EVENT_DISCONNECT_ACK.
  *
  * \param sess Struktura sesji
  *
@@ -972,9 +975,6 @@ void gg_logoff(struct gg_session *sess)
 		return;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_logoff(%p);\n", sess);
-
-	if (GG_S_NA(sess->status))
-		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
