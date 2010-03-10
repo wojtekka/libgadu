@@ -218,6 +218,12 @@ i co minutę wywoływać funkcję \c gg_ping().
 <td>\copydoc gg_event_t::GG_EVENT_DISCONNECT</td>
 </tr>
 <tr>
+<td>\c GG_EVENT_DISCONNECT_ACK</td>
+<td>-</td>
+<td>-</td>
+<td>\copydoc gg_event_t::GG_EVENT_DISCONNECT_ACK</td>
+</tr>
+<tr>
 <th colspan="4">Wiadomości</th>
 </tr>
 <tr>
@@ -333,6 +339,24 @@ i co minutę wywoływać funkcję \c gg_ping().
 <td>\c event.dcc7_reject</td>
 <td>\c gg_event_dcc7_reject</td>
 <td>\copydoc gg_event_t::GG_EVENT_DCC7_REJECT</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_PENDING</td>
+<td>\c event.dcc7_pending</td>
+<td>\c gg_event_dcc7_pending</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_PENDING</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_CONNECTED</td>
+<td>\c event.dcc7_connected</td>
+<td>\c gg_event_dcc7_connected</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_CONNECTED</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_DCC7_DONE</td>
+<td>\c event.dcc7_connected</td>
+<td>\c gg_event_dcc7_connected</td>
+<td>\copydoc gg_event_t::GG_EVENT_DCC7_DONE</td>
 </tr>
 <tr>
 <td>\c GG_EVENT_DCC7_ERROR</td>

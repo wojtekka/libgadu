@@ -19,6 +19,8 @@ nie zmieniają dotychczasowego zachowania.
 
 - Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola \c resolver_type struktury \c gg_login_params dla procesów i wątków, lub globalnie za pomocą funkcji \ref gg_global_set_resolver czy \ref gg_global_set_custom_resolver. \ref build-resolver "Szczegóły."
 
+- Opisy zdarzenia \c GG_EVENT_DCC7_PENDING i \c GG_EVENT_DCC7_DONE zawiera wskaźniki do struktur połączeń, których dotyczą.
+
 \section changelog-1_8_0 libgadu 1.8.0
 
 - Połączenia bezpośrednie Gadu-Gadu 7.x. \ref dcc7 "Szczegóły."
