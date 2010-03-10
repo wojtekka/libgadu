@@ -518,14 +518,7 @@ void *gg_recv_packet(struct gg_session *sess)
 
 	sess->recv_left = 0;
 
-	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet(%.2x)", h.type);
-		for (i = 0; i < sizeof(h) + h.length; i++)
-			gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) buf[i]);
-		gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
-	}
+	gg_debug_dump_session(sess, buf, sizeof(h) + h.length, "// gg_recv_packet(0x%.2x)", h.type);
 
 	return buf;
 }
@@ -593,14 +586,7 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->type = gg_fix32(type);
 	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
-	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
-		for (i = 0; i < tmp_length; ++i)
-			gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) tmp[i]);
-		gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
-	}
+	gg_debug_dump_session(sess, tmp, tmp_length, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
 
 	res = gg_write(sess, tmp, tmp_length);
 
@@ -677,6 +663,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	struct gg_session *sess = NULL;
 	char *hostname;
 	int port;
+	char *relay_hostname;
+	struct in_addr relay_addr;
 
 	if (!p) {
 		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
@@ -723,6 +711,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
+	sess->client_port = p->client_port;
 
 	sess->protocol_features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
 
@@ -823,6 +812,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		hostname = GG_APPMSG_HOST;
 		port = GG_APPMSG_PORT;
 	}
+
+	relay_hostname = GG_RELAY_HOST;
+	if (gg_gethostbyname_real(relay_hostname, &relay_addr, 0) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() relay host \"%s\" not found\n", relay_hostname);
+		sess->relay_addr = INADDR_NONE;
+	}
+	else
+		sess->relay_addr = relay_addr.s_addr;
 
 	if (p->hash_type)
 		sess->hash_type = p->hash_type;

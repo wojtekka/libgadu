@@ -141,6 +141,33 @@ void gg_debug_session(struct gg_session *sess, int level, const char *format, ..
 	errno = old_errno;
 }
 
+/**
+ * \internal Przekazuje informację odpluskwiania związane z zawartością pamięci.
+ *
+ * \param sess Struktura sesji
+ * \param buf Adres w pamięci
+ * \param buf_length Ilość danych do wyświetlenia
+ * \param format Format wiadomości (zgodny z \c printf)
+ *
+ * \ingroup debug
+ */
+void gg_debug_dump_session(struct gg_session *sess, const char *buf, unsigned int buf_length, const char *format, ...)
+{
+	va_list ap;
+
+	if ((gg_debug_level & GG_DEBUG_DUMP)) {
+		  unsigned int i;
+		  unsigned char *p = buf;
+
+		  va_start(ap, format);
+		  gg_debug_common(sess, GG_DEBUG_DUMP, format, ap);
+		  for (i = 0; i < buf_length; ++i)
+			  gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+		  gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
+		  va_end(ap);
+	  }
+}
+
 #endif
 
 /**
