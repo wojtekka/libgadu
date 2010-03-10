@@ -860,7 +860,6 @@ struct gg_event_xml_event {
  */
 struct gg_event_dcc7_connected {
 	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
-	// XXX czy coś się przyda?
 };
 
 /**
@@ -886,6 +885,13 @@ struct gg_event_dcc7_accept {
 	int type;		/**< Sposób połączenia (P2P, przez serwer) */
 	uint32_t remote_ip;	/**< Adres zdalnego klienta */
 	uint16_t remote_port;	/**< Port zdalnego klienta */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_DCC7_DONE.
+ */
+struct gg_event_dcc7_done {
+	struct gg_dcc7 *dcc7;	/**< Struktura połączenia */
 };
 
 /**
@@ -917,6 +923,7 @@ union gg_event_union {
 	struct gg_event_dcc7_pending dcc7_pending;	/**< Trwa próba połączenia bezpośredniego (\c GG_EVENT_DCC7_PENDING) */
 	struct gg_event_dcc7_reject dcc7_reject;	/**< Odrzucono połączenia bezpośredniego (\c GG_EVENT_DCC7_REJECT) */
 	struct gg_event_dcc7_accept dcc7_accept;	/**< Zaakceptowano połączenie bezpośrednie (\c GG_EVENT_DCC7_ACCEPT) */
+	struct gg_event_dcc7_done dcc7_done;	/**< Zakończono połączenie bezpośrednie (\c GG_EVENT_DCC7_DONE) */
 };
 
 /**
