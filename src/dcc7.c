@@ -849,6 +849,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	char *tmp;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_info(%p, %p, %p, %d)\n", sess, e, payload, len);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "// gg_dcc7_handle_info() received adress: %s, hash: %s\n", p->info, p->hash);
 
 	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unknown dcc session\n");
