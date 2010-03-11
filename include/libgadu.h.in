@@ -387,7 +387,8 @@ struct gg_dcc {
 
 #define GG_DCC7_HASH_LEN	20	/**< Maksymalny rozmiar skrótu pliku w połączeniach bezpośrenich */
 #define GG_DCC7_FILENAME_LEN	255	/**< Maksymalny rozmiar nazwy pliku w połączeniach bezpośrednich */
-#define GG_DCC7_INFO_LEN	64	/**< Maksymalny rozmiar informacji o połączeniach bezpośrednich */
+#define GG_DCC7_INFO_LEN	32	/**< Maksymalny rozmiar informacji o połączeniach bezpośrednich */
+#define GG_DCC7_INFO_HASH_LEN	32	/**< Maksymalny rozmiar skrótu ip informacji o połączeniach bezpośrednich */
 
 /**
  * Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.
@@ -1996,6 +1997,7 @@ struct gg_dcc7_info {
 	uint32_t type;			/* sposób połączenia */
 	gg_dcc7_id_t id;		/* identyfikator połączenia */
 	char info[GG_DCC7_INFO_LEN];	/* informacje o połączeniu "ip port" */
+	char hash[GG_DCC7_INFO_HASH_LEN];/* skrót "ip" */
 } GG_PACKED;
 
 #define GG_DCC7_NEW 0x20
