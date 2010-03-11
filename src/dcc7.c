@@ -861,36 +861,81 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 		return 0;
 	}
 	
-	if (p->type != GG_DCC7_TYPE_P2P) {
+	if (p->type != GG_DCC7_TYPE_P2P && p->type != GG_DCC7_TYPE_SERVER) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unhandled transfer type (%d)\n", p->type);
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
 
-	if ((dcc->remote_addr = inet_addr(p->info)) == INADDR_NONE) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP address\n");
-		e->type = GG_EVENT_DCC7_ERROR;
-		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+	if (dcc->state == GG_STATE_CONNECTED) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() state is already connected\n");
 		return 0;
 	}
 
-	if (!(tmp = strchr(p->info, ' ')) || !(dcc->remote_port = atoi(tmp + 1))) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP port\n");
-		e->type = GG_EVENT_DCC7_ERROR;
-		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
-		return 0;
+	if (p->type == GG_DCC7_TYPE_P2P) {
+		if ((dcc->remote_addr = inet_addr(p->info)) == INADDR_NONE) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP address\n");
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+			return 0;
+		}
+
+		if (!(tmp = strchr(p->info, ' ')) || !(dcc->remote_port = atoi(tmp + 1))) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid IP port\n");
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+			return 0;
+		}
+
+		if (dcc->state == GG_STATE_WAITING_FOR_INFO) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() wainting for info so send one\n");
+			gg_dcc7_listen_and_send_info(dcc);
+			return 0;
+		}
+	}
+
+	if (p->type == GG_DCC7_TYPE_SERVER) {
+		if (!(tmp = strchr(p->info, 'GG'))) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unknown info packet\n");
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+			return 0;
+		}
+
+		/*if (dcc->cid != (gg_dcc7_)atoi(tmp + 1)) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid session id\n");
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+			return 0;
+		}*/
+
+		if (!dcc->dcc_relays[0].relay_addr) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() have no relay servers\n");
+			e->type = GG_EVENT_DCC7_ERROR;
+			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+			return 0;
+		}
+
+		gg_send_packet(dcc->sess, 0x1f, payload, len, NULL);
+		dcc->relay = 1;
+		dcc->remote_addr = dcc->dcc_relays[0].relay_addr;
+		dcc->remote_port = dcc->dcc_relays[0].relay_port;
+		
+		if (gg_dcc7_connect(sess, dcc) != -1)
+			return 0;
+
 	}
 
 	// jeśli nadal czekamy na połączenie przychodzące, a druga strona nie
 	// daje rady i oferuje namiary na siebie, bierzemy co dają.
 
-	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid state\n");
-		e->type = GG_EVENT_DCC7_ERROR;
-		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
-		return 0;
-	}
+// 	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
+// 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid state\n");
+// 		e->type = GG_EVENT_DCC7_ERROR;
+// 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+// 		return 0;
+// 	}
 
 	if (dcc->state == GG_STATE_LISTENING) {
 		close(dcc->fd);
