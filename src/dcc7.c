@@ -375,15 +375,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_PROXY);
 	pkt.dunno1 = gg_fix16(GG_DCC7_RELAY_DUNNO1);
 
-	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-		unsigned char *p = &pkt;
-
-		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
-		for (i = 0; i < sizeof(pkt); ++i)
-			gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
-		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
-	}
+	gg_debug_dump_session(dcc->sess, &pkt, sizeof(pkt), "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
 
 	if (write(fd, &pkt, sizeof(pkt)) == -1)
 		return -1;
@@ -394,15 +386,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 
 	close(fd);
 
-	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		unsigned int i;
-		unsigned char *p = &reply_pkt;
-
-		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
-		for (i = 0; i < sizeof(reply_pkt); ++i)
-			gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
-		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
-	}
+	gg_debug_dump_session(dcc->sess, &reply_pkt, sizeof(reply_pkt), "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
 
 	// change query type to relay proxy
 	pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_SERVER);
@@ -425,15 +409,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 		else
 			relay_port = GG_RELAY_PORT;
 
-		if ((gg_debug_level & GG_DEBUG_DUMP)) {
-			  unsigned int i;
-			  unsigned char *p = &pkt;
-
-			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
-			  for (i = 0; i < sizeof(pkt); ++i)
-				  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
-			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
-		}
+		gg_debug_dump_session(dcc->sess, &pkt, sizeof(pkt), "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
 
 		if (write(fd, &pkt, sizeof(pkt)) == -1)
 			  return -1;
@@ -442,17 +418,9 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 
 		ret = read(fd, &reply_pkt, sizeof(reply_pkt));
 		  
-		if ((gg_debug_level & GG_DEBUG_DUMP)) {
-			  unsigned int i;
-			  unsigned char *p = &reply_pkt;
-
-			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
-			  for (i = 0; i < sizeof(reply_pkt); ++i)
-				  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
-			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
-		  }
-		  close(fd);
-		  retries--;
+		gg_debug_dump_session(dcc->sess, &reply_pkt, sizeof(reply_pkt), "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
+		close(fd);
+		retries--;
 	}
 	
 	if (reply_pkt.magic != gg_fix32(GG_DCC7_RELAY_REPLY))
