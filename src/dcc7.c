@@ -1196,23 +1196,45 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 		case GG_STATE_READING_ID:
 		{
-			gg_dcc7_id_t id;
 			int res;
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_READING_ID\n");
 
-			if ((res = read(dcc->fd, &id, sizeof(id))) != sizeof(id)) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
-				e->type = GG_EVENT_DCC7_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
-				return e;
-			}
+			if (!dcc->relay) {
+				struct gg_dcc7_welcome_p2p welcome, welcome_ok;
+				welcome_ok.id = dcc->cid;
 
-			if (memcmp(&id, &dcc->cid, sizeof(id))) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid id\n");
-				e->type = GG_EVENT_DCC7_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
-				return e;
+				if ((res = read(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)", res, strerror(errno));
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
+
+				if (memcmp(&welcome, &welcome_ok, sizeof(welcome))) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid id\n");
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
+			} else {
+				struct gg_dcc7_welcome_server welcome, welcome_ok;
+				welcome_ok.magic = GG_DCC7_WELCOME_SERVER;
+				welcome_ok.id = dcc->cid;
+
+				if ((res = read(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)", res, strerror(errno));
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
+
+				if (memcmp(&welcome, &welcome_ok, sizeof(welcome))) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() invalid id\n");
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
 			}
 
 			if (dcc->incoming) {
@@ -1233,11 +1255,27 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_SENDING_ID\n");
 
-			if ((res = write(dcc->fd, &dcc->cid, sizeof(dcc->cid))) != sizeof(dcc->cid)) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)", res, strerror(errno));
-				e->type = GG_EVENT_DCC7_ERROR;
-				e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
-				return e;
+			if (!dcc->relay) {
+				struct gg_dcc7_welcome_p2p welcome;
+				welcome.id = dcc->cid;
+
+				if ((res = write(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)", res, strerror(errno));
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
+			} else {
+				struct gg_dcc7_welcome_server welcome;
+				welcome.magic = GG_DCC7_WELCOME_SERVER;
+				welcome.id = dcc->cid;
+
+				if ((res = write(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)", res, strerror(errno));
+					e->type = GG_EVENT_DCC7_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
+					return e;
+				}
 			}
 
 			if (dcc->incoming) {
