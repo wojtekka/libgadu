@@ -465,8 +465,8 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	dcc->dcc_relays[1].relay_port = reply_pkt.port2;
 	dcc->dcc_relays[1].relay_type = reply_pkt.type2;
 	
-	gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() found relay proxy: %s:%d,", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[0].relay_addr)), dcc->dcc_relays[0].relay_port);
-	gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %s:%d\n", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[1].relay_addr)), dcc->dcc_relays[1].relay_port);
+	gg_debug_session(dcc->sess, GG_DEBUG_MISC, "// gg_dcc7_get_relay() found relay proxy: %s:%d,", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[0].relay_addr)), dcc->dcc_relays[0].relay_port);
+	gg_debug_session(dcc->sess, GG_DEBUG_MISC, " %s:%d\n", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[1].relay_addr)), dcc->dcc_relays[1].relay_port);
 
 	return 0;
 }
