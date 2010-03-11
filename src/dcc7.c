@@ -290,6 +290,9 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
 	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
+	// TODO: implement hash count
+	// we MUST fill hash to recive from server request for server connection
+	snprintf((char*) pkt.hash, sizeof(pkt.hash), "0");
 
 	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
 }
