@@ -272,12 +272,13 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 	if (gg_dcc7_listen(dcc, local_port) == -1)
 		return -1;
 
-	if (!dcc->sess->external_port)
+	
+	if (!dcc->sess->external_port || dcc->local_port != local_port)
 		external_port = dcc->local_port;
 	else
 		external_port = dcc->sess->external_port;
 
-	if (!dcc->sess->external_addr)
+	if (!dcc->sess->external_addr || dcc->local_port != local_port)
 		dcc->local_addr = dcc->sess->client_addr;
 	else
 		dcc->local_addr = dcc->sess->external_addr;
