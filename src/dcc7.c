@@ -50,9 +50,13 @@
 
 #include "compat.h"
 #include "libgadu.h"
+#include "protocol.h"
+#include "resolver.h"
 
 #define gg_debug_dcc(dcc, fmt...) \
 	gg_debug_session((dcc) ? (dcc)->sess : NULL, fmt)
+
+static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc);
 
 /**
  * \internal Dodaje połączenie bezpośrednie do sesji.
@@ -311,6 +315,157 @@ static int gg_dcc7_reverse_connect(struct gg_dcc7 *dcc)
 	dcc->reverse = 1;
 
 	return gg_dcc7_listen_and_send_info(dcc);
+}
+
+/*
+laczymy sie na relay.gadu-gadu.pl:80 z pakietem GG_DCC7_RELAY_REQUEST i typem 
+ustawionym na GG_DCC7_RELAY_TYPE_SERVER w odpowiedzi dostaniemy adres serwera 
+na ktory pytac o serwery (dlatego port = 0x0000) pewnie to jest w razie czego.
+Nastepnie wysylamy pakiet na ten adres i port 80 z pakietem GG_DCC7_RELAY_REQUEST
+oraz typem ustawionym na GG_DCC7_RELAY_TYPE_PROXY dopiero teraz dostajemy faktyczne
+adresy na ktore bedziemy sie autoryzowac z pakietem GG_DCC7_WELCOME_SERVER i wysylac plik.
+*/
+
+/**
+ * \internal Pobiera adres serwera relay
+ *
+ * \param dcc Struktura połączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
+{
+	struct gg_dcc7_relay_req pkt;
+	struct gg_dcc7_relay_reply reply_pkt;
+	struct in_addr relay_addr;
+	char *relay_hostname;
+	int fd;
+
+	if (!dcc) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_get_relay() invalid parameters\n");
+		return -1;
+	}
+
+	if (!dcc->sess->relay_addr) {
+		relay_hostname = GG_RELAY_HOST;
+		if (gg_gethostbyname_real(relay_hostname, &relay_addr, 0) == -1) {
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc7_get_relay() relay host \"%s\" not found\n", relay_hostname);
+			// or set here host 91.197.13.101/102?
+			return -1;
+		}
+
+		// update session data
+		dcc->sess->relay_addr = relay_addr.s_addr;
+	}
+
+	if ((fd = gg_connect(&dcc->sess->relay_addr, GG_RELAY_PORT, 0)) == -1) {
+		gg_debug_session(dcc->sess, GG_DEBUG_MISC, "// gg_dcc7_get_relay() connection failed\n");
+		return -1;
+	}
+
+	memset(&pkt, 0, sizeof(pkt));
+	pkt.magic = gg_fix32(GG_DCC7_RELAY_REQUEST);
+	pkt.len = gg_fix32(sizeof(pkt));
+	pkt.id = dcc->cid;
+	pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_PROXY);
+	pkt.dunno1 = gg_fix16(GG_DCC7_RELAY_DUNNO1);
+
+	if ((gg_debug_level & GG_DEBUG_DUMP)) {
+		unsigned int i;
+		unsigned char *p = &pkt;
+
+		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
+		for (i = 0; i < sizeof(pkt); ++i)
+			gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
+	}
+
+	if (write(fd, &pkt, sizeof(pkt)) == -1)
+		return -1;
+	
+	memset(&reply_pkt, 0, sizeof(reply_pkt));
+
+	int ret = 1;
+	ret = read(fd, &reply_pkt, sizeof(reply_pkt));
+
+	close(fd);
+
+	if ((gg_debug_level & GG_DEBUG_DUMP)) {
+		unsigned int i;
+		unsigned char *p = &reply_pkt;
+
+		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
+		for (i = 0; i < sizeof(reply_pkt); ++i)
+			gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+		gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
+	}
+
+	// change query type to relay proxy
+	pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_SERVER);
+	// take first proxy but if server does reply with 0 use this server
+	if (reply_pkt.magic != 0)
+		dcc->sess->relay_addr = reply_pkt.ip;//.proxies[0]
+
+	reply_pkt.magic = 0;
+	int relay_port = GG_RELAY_PORT;
+	int retries = 6;
+	while (reply_pkt.magic != gg_fix32(GG_DCC7_RELAY_REPLY) || retries == 0)
+	{
+		if ((fd = gg_connect(&dcc->sess->relay_addr, relay_port, 0)) == -1) {
+			gg_debug_session(dcc->sess, GG_DEBUG_MISC, "// gg_dcc7_get_relay() connection failed\n");
+			return -1;
+		}
+		
+		if (relay_port == GG_RELAY_PORT)
+			relay_port = 443;
+		else
+			relay_port = GG_RELAY_PORT;
+
+		if ((gg_debug_level & GG_DEBUG_DUMP)) {
+			  unsigned int i;
+			  unsigned char *p = &pkt;
+
+			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() send pkt(0x%.2x)", gg_fix32(pkt.magic));
+			  for (i = 0; i < sizeof(pkt); ++i)
+				  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
+		}
+
+		if (write(fd, &pkt, sizeof(pkt)) == -1)
+			  return -1;
+
+		memset(&reply_pkt, 0, sizeof(reply_pkt));
+
+		ret = 1;
+			  ret = read(fd, &reply_pkt, sizeof(reply_pkt));
+		  
+		if ((gg_debug_level & GG_DEBUG_DUMP)) {
+			  unsigned int i;
+			  unsigned char *p = &reply_pkt;
+
+			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() read pkt(0x%.2x)", gg_fix32(reply_pkt.magic));
+			  for (i = 0; i < sizeof(reply_pkt); ++i)
+				  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+			  gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "\n");
+		  }
+		  close(fd);
+		  retries--;
+	}
+	
+	if (reply_pkt.magic != gg_fix32(GG_DCC7_RELAY_REPLY))
+		return -1;
+
+	dcc->dcc_relays[0].relay_addr = reply_pkt.ip;
+	dcc->dcc_relays[0].relay_port = reply_pkt.port;
+	dcc->dcc_relays[0].relay_type = reply_pkt.type;
+	dcc->dcc_relays[1].relay_addr = reply_pkt.ip2;
+	dcc->dcc_relays[1].relay_port = reply_pkt.port2;
+	dcc->dcc_relays[1].relay_type = reply_pkt.type2;
+	
+	gg_debug_session(dcc->sess, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() found relay proxy: %s:%d,", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[0].relay_addr)), dcc->dcc_relays[0].relay_port);
+	gg_debug_session(dcc->sess, GG_DEBUG_DUMP, " %s:%d\n", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[1].relay_addr)), dcc->dcc_relays[1].relay_port);
+
+	return 0;
 }
 
 /**
