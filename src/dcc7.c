@@ -344,6 +344,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	struct in_addr relay_addr;
 	char *relay_hostname;
 	int fd;
+	int ret = 1;
 
 	if (!dcc) {
 		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_get_relay() invalid parameters\n");
@@ -389,7 +390,6 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	
 	memset(&reply_pkt, 0, sizeof(reply_pkt));
 
-	int ret = 1;
 	ret = read(fd, &reply_pkt, sizeof(reply_pkt));
 
 	close(fd);
@@ -440,8 +440,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 
 		memset(&reply_pkt, 0, sizeof(reply_pkt));
 
-		ret = 1;
-			  ret = read(fd, &reply_pkt, sizeof(reply_pkt));
+		ret = read(fd, &reply_pkt, sizeof(reply_pkt));
 		  
 		if ((gg_debug_level & GG_DEBUG_DUMP)) {
 			  unsigned int i;
