@@ -661,8 +661,10 @@ static int gg_session_callback(struct gg_session *sess)
 struct gg_session *gg_login(const struct gg_login_params *p)
 {
 	struct gg_session *sess = NULL;
-	char *hostname, relay_hostname;
+	char *hostname;
 	int port;
+	char *relay_hostname;
+	struct in_addr relay_addr;
 
 	if (!p) {
 		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
@@ -812,7 +814,6 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 
 	relay_hostname = GG_RELAY_HOST;
-	struct in_addr relay_addr;
 	if (gg_gethostbyname_real(relay_hostname, &relay_addr, 0) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_login() relay host \"%s\" not found\n", relay_hostname);
 		sess->relay_addr = INADDR_NONE;
