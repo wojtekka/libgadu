@@ -31,7 +31,8 @@ char *config_file;
 char *config_dir;
 unsigned int config_size = 1048576;
 unsigned long config_ip = 0xffffffff;
-unsigned int config_port;
+unsigned int config_port = 0;
+unsigned int config_localport = 0;
 
 int test_mode;
 int connected;
@@ -97,6 +98,9 @@ int config_read(void)
 
 		if (!strncmp(buf, "port ", 5))
 			config_port = atoi(buf + 5);
+
+		if (!strncmp(buf, "localport ", 10))
+			config_localport = atoi(buf + 10);
 	}
 
 	fclose(f);
@@ -153,9 +157,10 @@ int main(int argc, char **argv)
 	glp.uin = config_uin;
 	glp.password = config_password;
 	glp.async = 1;
-//	glp.client_addr = config_ip;
-//	glp.client_port = config_port;
-	glp.protocol_version = 0x2a;
+	glp.external_addr = config_ip;
+	glp.external_port = config_port;
+	glp.client_port = config_localport;
+	glp.protocol_version = 0x2e;
 
 	gg_dcc_ip = config_ip;
 
