@@ -217,8 +217,6 @@ struct gg_session {
 	uint32_t hub_addr;	/**< Adres huba po rozwiązaniu nazwy */
 	uint32_t server_addr;	/**< Adres serwera otrzymany od huba */
 
-	uint32_t relay_addr;	/**< Adres relay po rozwiązaniu nazwy */
-
 	uint32_t client_addr;	/**< Adres gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
 	uint16_t client_port;	/**< Port gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
 
@@ -280,6 +278,8 @@ struct gg_session {
 	void (*resolver_cleanup)(void **private_data, int force);	/**< Funkcja zwalniająca zasoby po rozwiązaniu nazwy */
 
 	int protocol_features;	/**< Opcje protokołu */
+
+	uint32_t relay_addr;	/**< Adres relay po rozwiązaniu nazwy */
 };
 
 /**
