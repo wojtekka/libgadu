@@ -431,6 +431,8 @@ struct gg_dcc7 {
 	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_dcc7_watch_fd() */
 	int seek;		/**< Flaga mówiąca, że można zmieniać położenie w wysyłanym pliku */
 
+	int relay;		/**< Flaga mówiąca, że laczymy sie przez serwer */
+
 	struct {
 	uint32_t relay_addr;	/**< Adres serwera relay */
 	uint16_t relay_port;	/**< Port serwera relay */
