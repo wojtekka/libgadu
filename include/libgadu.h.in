@@ -217,6 +217,8 @@ struct gg_session {
 	uint32_t hub_addr;	/**< Adres huba po rozwiązaniu nazwy */
 	uint32_t server_addr;	/**< Adres serwera otrzymany od huba */
 
+	uint32_t relay_addr;	/**< Adres relay po rozwiązaniu nazwy */
+
 	uint32_t client_addr;	/**< Adres gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
 	uint16_t client_port;	/**< Port gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
 
@@ -1356,6 +1358,8 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_REGISTER_PORT 80
 #define GG_REMIND_HOST "retr.gadu-gadu.pl"
 #define GG_REMIND_PORT 80
+#define GG_RELAY_HOST "relay.gadu-gadu.pl"
+#define GG_RELAY_PORT 80
 
 #define GG_DEFAULT_PORT 8074
 #define GG_HTTPS_PORT 443
