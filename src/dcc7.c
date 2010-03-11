@@ -255,21 +255,36 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 {
 	struct gg_dcc7_info pkt;
+	uint16_t external_port;
+	uint16_t local_port;
 
 	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen_and_send_info(%p)\n", dcc);
 
-	// XXX dać możliwość konfiguracji?
-	
-	dcc->local_addr = dcc->sess->client_addr;
+	if (!dcc->sess->client_port)
+		local_port = dcc->sess->external_port;
+	else
+		local_port = dcc->sess->client_port;
 
-	if (gg_dcc7_listen(dcc, 0) == -1)
+	if (gg_dcc7_listen(dcc, local_port) == -1)
 		return -1;
+
+	if (!dcc->sess->external_port)
+		external_port = dcc->local_port;
+	else
+		external_port = dcc->sess->external_port;
+
+	if (!dcc->sess->external_addr)
+		dcc->local_addr = dcc->sess->client_addr;
+	else
+		dcc->local_addr = dcc->sess->external_addr;
+
+	gg_debug_dcc(dcc, GG_DEBUG_MISC, "// dcc7_listen_and_send_info() sending IP address %s and port %d\n", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.uin = gg_fix32(dcc->peer_uin);
 	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
-	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), dcc->local_port);
+	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
 
 	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
 }
