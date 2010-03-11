@@ -709,7 +709,10 @@ int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset)
 
 	dcc->offset = offset;
 
-	return gg_dcc7_listen_and_send_info(dcc);
+	int ret = gg_dcc7_listen_and_send_info(dcc);
+	gg_dcc7_get_relay_addr(dcc);
+
+	return ret;
 }
 
 /**
@@ -816,6 +819,8 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
 	}
+
+	gg_dcc7_get_relay_addr(dcc);
 
 	if (dcc->state != GG_STATE_WAITING_FOR_ACCEPT) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_accept() invalid state\n");
