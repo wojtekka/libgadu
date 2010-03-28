@@ -41,7 +41,7 @@ events "obsłudze zdarzeń".
 Nowe statusy (nie przeszkadzać, poGGadaj ze mną), opisy graficzne i wiadomości
 kodowane UTF-8 będą dostępne dopiero po ustawieniu odpowiednich parametrów
 połączenia. Jest to niezbędne, ponieważ starsze klienty mogłyby nie działać
-prawidłowo, gdyby przy domyślnych parametrach połączenia zmieniłoby się
+prawidłowo, gdyby przy domyślnych parametrach połączenia zmieniło się
 zachowanie biblioteki.
 
 \code

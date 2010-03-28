@@ -278,6 +278,7 @@ struct gg_session {
 	void (*resolver_cleanup)(void **private_data, int force);	/**< Funkcja zwalniająca zasoby po rozwiązaniu nazwy */
 
 	int protocol_features;	/**< Opcje protokołu */
+	int status_flags;	/**< Flagi statusu */
 };
 
 /**
@@ -574,9 +575,10 @@ struct gg_login_params {
 	gg_encoding_t encoding;		/**< Rodzaj kodowania używanego w sesji (domyślnie CP1250) */
 	gg_resolver_t resolver;		/**< Sposób rozwiązywania nazw (patrz \ref build-resolver) */
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
+	int status_flags;		/**< Flagi statusu (flagi GG_STATUS_FLAG_*, patrz \ref status). */
 
 #ifndef DOXYGEN
-	char dummy[2 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
+	char dummy[1 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
 					  parametrów, żeby wraz z dodawaniem kolejnych
 					  parametrów nie zmieniał się rozmiar struktury */
 #endif
@@ -589,6 +591,7 @@ void gg_logoff(struct gg_session *sess);
 int gg_change_status(struct gg_session *sess, int status);
 int gg_change_status_descr(struct gg_session *sess, int status, const char *descr);
 int gg_change_status_descr_time(struct gg_session *sess, int status, const char *descr, int time);
+int gg_change_status_flags(struct gg_session *sess, int flags);
 int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message);
 int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen);
 int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message);
@@ -1510,6 +1513,11 @@ struct gg_pubdir50_reply {
 #define GG_STATUS_DESCR_MASK 0x4000
 #define GG_STATUS_FRIENDS_MASK 0x8000
 
+#define GG_STATUS_FLAG_UNKNOWN 0x00000001
+#define GG_STATUS_FLAG_VIDEO 0x00000002
+#define GG_STATUS_FLAG_MOBILE 0x00100000
+#define GG_STATUS_FLAG_SPAM 0x00800000
+
 #else
 
 /**
@@ -1534,6 +1542,18 @@ enum {
 	GG_STATUS_IMAGE_MASK,		/**< Flaga bitowa oznaczająca opis graficzny (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
 	GG_STATUS_DESCR_MASK,		/**< Flaga bitowa oznaczająca status z opisem (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
 	GG_STATUS_FRIENDS_MASK,		/**< Flaga bitowa dostępności tylko dla znajomych */
+};
+
+/**
+ * Rodzaje statusów użytkownika. Mapa bitowa.
+ *
+ * \ingroup status
+ */
+enum {
+	GG_STATUS_FLAG_UNKNOWN,		/**< Przeznaczenie nieznane, ale występuje zawsze */
+	GG_STATUS_FLAG_VIDEO,		/**< Klient obsługuje wideorozmowy */
+	GG_STATUS_FLAG_MOBILE,		/**< Klient mobilny (ikona telefonu komórkowego) */
+	GG_STATUS_FLAG_SPAM,		/**< Klient chce otrzymywać linki od nieznajomych */
 };
 
 #endif	/* DOXYGEN */

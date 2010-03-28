@@ -2080,7 +2080,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type     = sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.status        = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l.flags		= gg_fix32(0x00800001);
+				l.flags		= gg_fix32(sess->status_flags);
 				l.features	= gg_fix32(sess->protocol_features);
 				l.image_size    = sess->image_size;
 				l.dunno2        = 0x64;

@@ -718,6 +718,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (!(p->protocol_features & GG_FEATURE_MSG77))
 		sess->protocol_features |= GG_FEATURE_MSG80;
 
+	if (!(sess->status_flags = p->status_flags))
+		sess->status_flags = 0x00800001;
+
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 
 	if (p->era_omnix)
@@ -1110,7 +1113,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		struct gg_new_status80 p;
 
 		p.status		= gg_fix32(status);
-		p.flags			= gg_fix32(0x00800001);
+		p.flags			= gg_fix32(sess->status_flags);
 		p.description_size	= gg_fix32(descr_len);
 		res = gg_send_packet(sess,
 				packet_type,
@@ -1195,6 +1198,33 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, time);
 
 	return gg_change_status_common(sess, status, descr, time);
+}
+
+/**
+ * Funkcja zmieniająca flagi statusu.
+ *
+ * \param sess Struktura sesji
+ * \param flags Nowe flagi statusu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \note Aby zmiany weszły w życie, należy ponownie ustawić status za pomocą
+ * funkcji z rodziny \c gg_change_status().
+ *
+ * \ingroup status
+ */
+int gg_change_status_flags(struct gg_session *sess, int flags)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_flags(%p, 0x%08x);\n", sess, flags);
+
+	if (sess == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	sess->status_flags = flags;
+
+	return 0;
 }
 
 /**
