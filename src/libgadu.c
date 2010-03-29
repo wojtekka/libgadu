@@ -719,7 +719,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		sess->protocol_features |= GG_FEATURE_MSG80;
 
 	if (!(sess->status_flags = p->status_flags))
-		sess->status_flags = 0x00800001;
+		sess->status_flags = GG_STATUS_FLAG_UNKNOWN | GG_STATUS_FLAG_SPAM;
 
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 
