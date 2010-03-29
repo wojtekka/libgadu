@@ -453,7 +453,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 		struct gg_new_status80 p;
 
 		p.status = gg_fix32(status);
-		p.flags = gg_fix32(0x00800001);;
+		p.flags = gg_fix32(0x00800001);
 		p.descr_len = gg_fix32((tmp != NULL) ? strlen(tmp) : 0);
 
 		gs->status = status;
