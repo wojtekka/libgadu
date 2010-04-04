@@ -783,7 +783,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			RAND_seed((void *) &rstruct, sizeof(rstruct));
 		}
 
-		sess->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
+		sess->ssl_ctx = SSL_CTX_new(SSLv3_client_method());
 
 		if (!sess->ssl_ctx) {
 			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));

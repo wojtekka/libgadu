@@ -1565,14 +1565,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			auth = gg_proxy_auth();
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-			if (sess->ssl) {
+			if (sess->ssl != NULL) {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET %s/appsvc/appmsg3.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
+					"GET %s/appsvc/appmsg_ver10.asp?fmnumber=%u&fmt=2&lastmsg=%d&version=%s HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
 					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
 					"Pragma: no-cache\r\n"
 					"%s"
-					"\r\n", host, sess->uin, client, sess->last_sysmsg, (auth) ? auth : "");
+					"\r\n", host, sess->uin, sess->last_sysmsg, client, (auth) ? auth : "");
 			} else
 #endif
 			{
@@ -1677,15 +1677,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* analizujemy otrzymane dane. */
 			tmp = buf;
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-			if (!sess->ssl)
-#endif
-			{
-				while (*tmp && *tmp != ' ')
-					tmp++;
-				while (*tmp && *tmp == ' ')
-					tmp++;
-			}
+			while (*tmp && *tmp != ' ')
+				tmp++;
+			while (*tmp && *tmp == ' ')
+				tmp++;
 			while (*tmp && *tmp != ' ')
 				tmp++;
 			while (*tmp && *tmp == ' ')
@@ -1725,6 +1720,67 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 
 			sess->port = port;
+
+			/* Jeśli podano nazwę, nie adres serwera... */
+			if (sess->server_addr == INADDR_NONE) {
+				if (sess->resolver_start(&sess->fd, &sess->resolver, host) == -1) {
+					gg_debug(GG_DEBUG_MISC, "// gg_login() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_resolving;
+				}
+
+				sess->state = GG_STATE_RESOLVING_GG;
+				sess->check = GG_CHECK_READ;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+				break;
+			}
+
+			/* łączymy się z właściwym serwerem. */
+			if ((sess->fd = gg_connect(&addr, sess->port, sess->async)) == -1) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", errno, strerror(errno));
+
+				sess->port = GG_HTTPS_PORT;
+
+				/* nie wyszło? próbujemy portu 443. */
+				if ((sess->fd = gg_connect(&addr, GG_HTTPS_PORT, sess->async)) == -1) {
+					/* ostatnia deska ratunku zawiodła?
+					 * w takim razie zwijamy manatki. */
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+					goto fail_connecting;
+				}
+			}
+
+			sess->state = GG_STATE_CONNECTING_GG;
+			sess->check = GG_CHECK_WRITE;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+			sess->soft_timeout = 1;
+
+			break;
+		}
+
+		case GG_STATE_RESOLVING_GG:
+		{
+			struct in_addr addr;
+			int failed = 0;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_RESOLVING_GG\n");
+
+			if (read(sess->fd, &addr, sizeof(addr)) < (signed)sizeof(addr) || addr.s_addr == INADDR_NONE) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed\n");
+				failed = 1;
+				errno2 = errno;
+			}
+
+			close(sess->fd);
+			sess->fd = -1;
+
+			sess->resolver_cleanup(&sess->resolver, 0);
+
+			if (failed) {
+				errno = errno2;
+				goto fail_resolving;
+			}
+
+			sess->server_addr = addr.s_addr;
 
 			/* łączymy się z właściwym serwerem. */
 			if ((sess->fd = gg_connect(&addr, sess->port, sess->async)) == -1) {
