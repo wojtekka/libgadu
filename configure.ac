@@ -155,7 +155,7 @@ dnl  Resolver libgadu oparty na pthread
 dnl
 
 AC_ARG_WITH(pthread,
-  [  --without-pthread       do not use pthread resolver even if possible])
+  [  --without-pthread       do not use pthread resolver even if found])
 
 if test "x$with_pthread" != "xno"; then
 	ACX_PTHREAD(
@@ -184,17 +184,49 @@ if test "x$with_pthread" = "xyes"; then
 fi
 
 dnl
-dnl  Sprawdzamy OpenSSL
+dnl  Sprawdzamy GnuTLS
 dnl
 
-AC_CHECK_OPENSSL
+AC_ARG_WITH(gnutls,
+  [  --without-gnutls        do not use GnuTLS even if found])
+
+have_gnutls=""
+
+if test "x$with_gnutls" != "xno"; then
+	AC_CHECK_PROG([PKGCONFIG], [pkg-config], [pkg-config], [no])
+	if test "x$PKGCONFIG" != "xno"; then
+		AC_MSG_CHECKING([for GnuTLS])
+		GNUTLS_LIBS=$($PKGCONFIG --libs gnutls)
+		GNUTLS_CFLAGS=$($PKGCONFIG --cflags gnutls)
+		if test "x$GNUTLS_LIBS" != "x" -o "x$GNUTLS_CFLAGS" != "x"; then
+			AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+			AC_MSG_RESULT([yes])
+			AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
+			REQUIRES="$REQUIRES gnutls"
+			CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
+			INCLUDES="$INCLUDES $GNUTLS_CFLAGS"
+			LIBS="$LIBS $GNUTLS_LIBS"
+			have_gnutls="yes"
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+fi
+
+dnl
+dnl  Sprawdzamy OpenSSL, jeśli nie ma GnuTLS
+dnl
+
+if test "x$have_gnutls" != "xyes"; then
+	AC_CHECK_OPENSSL
+fi
 
 if test "x$have_openssl" = "xyes"; then
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
 	REQUIRES="$REQUIRES openssl"
-	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
+	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
 
 dnl
