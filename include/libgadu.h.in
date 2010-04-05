@@ -70,7 +70,10 @@ extern "C" {
 /* Defined if this machine supports long long. */
 #undef GG_CONFIG_HAVE_LONG_LONG
 
-/* Defined if libgadu was compiled and linked with TLS support. */
+/* Defined if libgadu was compiled and linked with GnuTLS support. */
+#undef GG_CONFIG_HAVE_GNUTLS
+
+/* Defined if libgadu was compiled and linked with OpenSSL support. */
 #undef GG_CONFIG_HAVE_OPENSSL
 
 /* Defined if uintX_t types are defined in <stdint.h>. */
@@ -523,7 +526,8 @@ enum gg_state_t {
 	GG_STATE_WAITING_FOR_INFO,	/**< Oczekiwanie na informacje o połączeniu bezpośrednim */
 
 	GG_STATE_READING_ID,		/**< Odebranie identyfikatora połączenia bezpośredniego */
-	GG_STATE_SENDING_ID		/**< Wysłano identyfikatora połączenia bezpośredniego */
+	GG_STATE_SENDING_ID,		/**< Wysłano identyfikatora połączenia bezpośredniego */
+	GG_STATE_RESOLVING_GG,		/**< Oczekiwanie na rozwiązanie nazwy serwera Gadu-Gadu */
 };
 
 /**

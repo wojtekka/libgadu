@@ -50,6 +50,9 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#ifdef GG_CONFIG_HAVE_GNUTLS
+#  include <gnutls/gnutls.h>
+#endif
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/rand.h>
@@ -264,7 +267,9 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 /**
  * \internal Odbiera od serwera dane binarne.
  *
- * Funkcja odbiera dane od serwera zajmując się TLS w razie konieczności.
+ * Funkcja odbiera dane od serwera zajmując się SSL/TLS w razie konieczności.
+ * Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi
+ * wywołaniami systemowymi.
  *
  * \param sess Struktura sesji
  * \param buf Bufor na danymi
@@ -274,28 +279,131 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
  */
 int gg_read(struct gg_session *sess, char *buf, int length)
 {
-	int res;
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res;
+
+			res = gnutls_record_recv(GG_SESSION_GNUTLS(sess), buf, length);
+
+			if (res < 0) {
+				if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
+					continue;
+
+				if (res == GNUTLS_E_AGAIN)
+					errno = EAGAIN;
+				else
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl) {
-		int err;
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res, err;
 
-		res = SSL_read(sess->ssl, buf, length);
+			res = SSL_read(sess->ssl, buf, length);
 
-		if (res < 0) {
-			err = SSL_get_error(sess->ssl, res);
+			if (res < 0) {
+				err = SSL_get_error(sess->ssl, res);
 
-			if (err == SSL_ERROR_WANT_READ)
-				errno = EAGAIN;
+				if (err == SSL_ERROR_SYSCALL && errno == EINTR)
+					continue;
 
-			return -1;
+				if (err == SSL_ERROR_WANT_READ)
+					errno = EAGAIN;
+				else if (err != SSL_ERROR_SYSCALL)
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
 		}
-	} else
+	}
 #endif
-		res = read(sess->fd, buf, length);
 
-	return res;
+	return read(sess->fd, buf, length);
 }
+
+/**
+ * \internal Wysyła do serwera dane binarne.
+ *
+ * Funkcja wysyła dane do serwera zajmując się SSL/TLS w razie konieczności.
+ * Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi
+ * wywołaniami systemowymi.
+ *
+ * \note Funkcja nie zajmuje się buforowaniem wysyłanych danych (patrz
+ * gg_write()).
+ *
+ * \param sess Struktura sesji
+ * \param buf Bufor z danymi
+ * \param length Długość bufora
+ *
+ * \return To samo co funkcja systemowa \c write
+ */
+static int gg_write_common(struct gg_session *sess, const char *buf, int length)
+{
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res;
+
+			res = gnutls_record_send(GG_SESSION_GNUTLS(sess), buf, length);
+
+			if (res < 0) {
+				if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
+					continue;
+
+				if (res == GNUTLS_E_AGAIN)
+					errno = EAGAIN;
+				else
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res, err;
+
+			res = SSL_write(sess->ssl, buf, length);
+
+			if (res < 0) {
+				err = SSL_get_error(sess->ssl, res);
+
+				if (err == SSL_ERROR_SYSCALL && errno == EINTR)
+					continue;
+
+				if (err == SSL_ERROR_WANT_WRITE)
+					errno = EAGAIN;
+				else if (err != SSL_ERROR_SYSCALL)
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
+
+	return write(sess->fd, buf, length);
+}
+
+
 
 /**
  * \internal Wysyła do serwera dane binarne.
@@ -312,66 +420,41 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 {
 	int res = 0;
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl) {
-		int err;
+	if (!sess->async) {
+		int written = 0;
 
-		res = SSL_write(sess->ssl, buf, length);
+		while (written < length) {
+			res = gg_write_common(sess, buf + written, length - written);
 
-		if (res < 0) {
-			err = SSL_get_error(sess->ssl, res);
+			if (res == -1)
+				return -1;
 
-			if (err == SSL_ERROR_WANT_WRITE)
-				errno = EAGAIN;
-
-			return -1;
+			written += res;
+			res = written;
 		}
-	} else
-#endif
-	{
-		if (!sess->async) {
-			int written = 0;
+	} else {
+		res = 0;
 
-			while (written < length) {
-				res = write(sess->fd, buf + written, length - written);
+		if (sess->send_buf == NULL) {
+			res = gg_write_common(sess, buf, length);
 
-				if (res == -1) {
-					if (errno != EINTR)
-						break;
+			if (res == -1)
+				return -1;
+		}
 
-					continue;
-				}
+		if (res < length) {
+			char *tmp;
 
-				written += res;
-				res = written;
-			}
-		} else {
-			if (!sess->send_buf)
-				res = write(sess->fd, buf, length);
-			else
-				res = 0;
-
-			if (res == -1) {
-				if (errno != EAGAIN)
-					return res;
-
-				res = 0;
+			if (!(tmp = realloc(sess->send_buf, sess->send_left + length - res))) {
+				errno = ENOMEM;
+				return -1;
 			}
 
-			if (res < length) {
-				char *tmp;
+			sess->send_buf = tmp;
 
-				if (!(tmp = realloc(sess->send_buf, sess->send_left + length - res))) {
-					errno = ENOMEM;
-					return -1;
-				}
+			memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
 
-				sess->send_buf = tmp;
-
-				memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
-
-				sess->send_left += length - res;
-			}
+			sess->send_left += length - res;
 		}
 	}
 
@@ -427,11 +510,6 @@ void *gg_recv_packet(struct gg_session *sess)
 			}
 
 			if (ret == -1) {
-				if (errno == EINTR) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() interrupted system call, resuming\n");
-					continue;
-				}
-
 				if (errno == EAGAIN) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
 
@@ -509,10 +587,9 @@ void *gg_recv_packet(struct gg_session *sess)
 				sess->recv_done = offset;
 				return NULL;
 			}
-			if (errno != EINTR) {
-				free(buf);
-				return NULL;
-			}
+
+			free(buf);
+			return NULL;
 		}
 	}
 
@@ -764,7 +841,25 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 
 	if (p->tls == 1) {
-#ifdef GG_CONFIG_HAVE_OPENSSL
+#ifdef GG_CONFIG_HAVE_GNUTLS
+		gg_session_gnutls_t *tmp;
+
+		tmp = malloc(sizeof(gg_session_gnutls_t));
+
+		if (tmp == NULL) {
+			gg_debug(GG_DEBUG_MISC, "// gg_login() out of memory for GnuTLS session\n");
+			goto fail;
+		}
+
+		sess->ssl = tmp;
+
+		gnutls_global_init();
+		gnutls_certificate_allocate_credentials(&tmp->xcred);
+		gnutls_init(&tmp->session, GNUTLS_CLIENT);
+		gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
+//		gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+		gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
+#elif defined(GG_CONFIG_HAVE_OPENSSL)
 		char buf[1024];
 
 		OpenSSL_add_ssl_algorithms();
@@ -965,8 +1060,13 @@ void gg_logoff(struct gg_session *sess)
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_logoff(%p);\n", sess);
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL)
+		gnutls_bye(GG_SESSION_GNUTLS(sess), GNUTLS_SHUT_RDWR);
+#endif
+
 #ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl)
+	if (sess->ssl != NULL)
 		SSL_shutdown(sess->ssl);
 #endif
 
@@ -977,6 +1077,18 @@ void gg_logoff(struct gg_session *sess)
 		close(sess->fd);
 		sess->fd = -1;
 	}
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		gg_session_gnutls_t *tmp;
+
+		tmp = (gg_session_gnutls_t*) sess->ssl;
+		gnutls_deinit(tmp->session);
+		gnutls_certificate_free_credentials(tmp->xcred);
+		gnutls_global_deinit();
+		free(sess->ssl);
+	}
+#endif
 
 	if (sess->send_buf) {
 		free(sess->send_buf);
