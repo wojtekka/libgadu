@@ -26,7 +26,7 @@ pre { margin: 0px; }
 
 <center>
 <h1>Protokół Gadu-Gadu</h1>
-<h3>&copy; Copyright 2001-2009 <a href="#ch4">Autorzy</a></h3>
+<h3>&copy; Copyright 2001-2010 <a href="#ch4">Autorzy</a></h3>
 </center>
 
 <hr />
@@ -44,13 +44,14 @@ pre { margin: 0px; }
 		1.5.&nbsp;&nbsp;<a href="#ch1.5">Ludzie przychodzą, ludzie odchodzą</a><br />
 		1.6.&nbsp;&nbsp;<a href="#ch1.6">Wysyłanie wiadomości</a><br />
 		1.7.&nbsp;&nbsp;<a href="#ch1.7">Otrzymywanie wiadomości</a><br />
-		1.8.&nbsp;&nbsp;<a href="#ch1.8">Ping, pong</a><br />
-		1.9.&nbsp;&nbsp;<a href="#ch1.9">Rozłączenie</a><br />
-		1.10.&nbsp;&nbsp;<a href="#ch1.10">Wiadomości systemowe</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.11">Wiadomości GG_XML_ACTION</a><br />
-		1.12.&nbsp;&nbsp;<a href="#ch1.12">Katalog publiczny</a><br />
-		1.13.&nbsp;&nbsp;<a href="#ch1.13">Lista kontaktów</a><br />
-		1.14.&nbsp;&nbsp;<a href="#ch1.14">Indeks pakietów</a><br />
+		1.8.&nbsp;&nbsp;<a href="#ch1.8">Powiadomienie o pisaniu ("pisak")</a><br />
+		1.9.&nbsp;&nbsp;<a href="#ch1.9">Ping, pong</a><br />
+		1.10.&nbsp;&nbsp;<a href="#ch1.10">Rozłączenie</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.12">Wiadomości systemowe</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.13">Wiadomości GG_XML_ACTION</a><br />
+		1.13.&nbsp;&nbsp;<a href="#ch1.14">Katalog publiczny</a><br />
+		1.14.&nbsp;&nbsp;<a href="#ch1.15">Lista kontaktów</a><br />
+		1.15.&nbsp;&nbsp;<a href="#ch1.16">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Usługi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
@@ -256,8 +257,11 @@ struct gg_login80 {
 Pola określające adresy i port są pozostałościami po poprzednich wersjach
 protokołów i w obecnej wersji zawierają zera.</p>
 
-
-<p>Pole opcji protokołu zawsze zawiera wartość <tt>0x00000367</tt> i jest mapą bitową:</p>
+<p>
+Pole features jest mapą bitową informującą serwer, które z funkcji protokołu
+obsługujemy. Do minimalnej zgodności z protokołem Nowego Gadu-Gadu niezbędna
+jest co najmniej wartość <tt>0x00000007</tt>.
+</p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
@@ -266,8 +270,9 @@ protokołów i w obecnej wersji zawierają zera.</p>
 <tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 0)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
 <tr class="tabf"><td>4</td><td><tt>0x00000010</tt></td><td>Klient obsługuje statusy "nie przeszkadzać" i "poGGadaj ze mną"</td></tr>
 <tr class="tabf"><td>5</td><td><tt>0x00000020</tt></td><td>Klient obsługuje statusy graficzne i <tt>GG_STATUS_DESCR_MASK</tt> (patrz <a href="#ch1.4">Zmiana stanu</a>)</td></tr>
-<tr class="tabf"><td>9</td><td><tt>0x00000200</tt></td><td>Klient obsługuje dodatkowe informacje o liście kontaktów (patrz <a href="#ch1.5.1">Dodatkowe informacje o kontaktach</a>)</td></tr>
-<tr class="tabf"><td>10</td><td><tt>0x00000400</tt></td><td>Klient wysyła potwierdzenia odebrania wiadomości (patrz <a href="#ch1.7.1">Potwierdzenie odebrania wiadomości</a>)</td></tr>
+<tr class="tabf"><td>9</td><td><tt>0x00000200</tt></td><td>Klient obsługuje <a href="#ch1.5.1">dodatkowe informacje o liście kontaktów</a></td></tr>
+<tr class="tabf"><td>10</td><td><tt>0x00000400</tt></td><td>Klient wysyła <a href="#ch1.7.1">potwierdzenia odebrania wiadomości</a></td></tr>
+<tr class="tabf"><td>13</td><td><tt>0x00002000</tt></td><td>Klient obsługuje <a href="#ch1.8">powiadomienia o pisaniu</a></td></tr>
 </table>
 
 <p>
@@ -985,7 +990,42 @@ struct gg_recv_msg_ack {
 <hr />
 
 <a name="ch1.8"></a>
-<h3>1.8. Ping, pong</h3>
+<h3>1.8. Powiadomienie o pisaniu (&quot;pisak&quot;)</h3>
+
+<p>
+Jeśli podczas logowania klient wyśle w polu <tt>features</tt> maskę bitową
+<tt>0x00002000</tt>, to może wtedy informować drugą stronę o tym czy piszemy
+wiadomość (oraz odbierać informacje czy druga strona coś pisze). Powiadomienia
+wysyłamy/otrzymujemy tym samym pakietem:
+</p>
+
+<div class="c">
+<pre>#define GG_TYPING_NOTIFY 0x0059
+
+struct gg_typing_notify {
+	short type;	<i>// typ powiadomienia</i>
+	int uin;	<i>// do/od kogo wysyłamy/odebraliśmy</i>
+};</pre>
+</div>
+
+<p>
+Gdzie pole typ może przyjmować następujące stałe wartości:
+</p>
+
+<div class="c">
+<pre>#define GG_TYPING_NOTIFY_TYPE_START	0x0001	<i>// rozpoczelismy pisanie</i>
+#define GG_TYPING_NOTIFY_TYPE_STOP	0x0000	<i>// pozbyliśmy się wiadomości</i></pre>
+</div>
+
+<p>
+Jeśli otrzymamy w polu type inną wartość, oznacza ona długość wpisanego przez
+drugą stronę w pole wysyłki tekstu.
+</p>
+
+<hr />
+
+<a name="ch1.9"></a>
+<h3>1.9. Ping, pong</h3>
 
 <p>
 Od czasu do czasu klient wysyła pakiet do serwera, by oznajmić, że połączenie
@@ -1002,8 +1042,8 @@ zmienia się z wersji na wersję, więc najlepiej nie polegać na tym.
 
 <hr />
 
-<a name="ch1.9"></a>
-<h3>1.9. Rozłączenie</h3>
+<a name="ch1.10"></a>
+<h3>1.10. Rozłączenie</h3>
 
 <p>
 Jeśli serwer zechce nas rozłączyć, wyśle wcześniej pusty pakiet:
@@ -1036,8 +1076,8 @@ zakończyć połączenie mając pewność, że zostanie ustawiony żądany opis.
 
 <hr />
 
-<a name="ch1.10"></a>
-<h3>1.10. Wiadomości systemowe</h3>
+<a name="ch1.11"></a>
+<h3>1.11. Wiadomości systemowe</h3>
 
 <p>
 Od wersji 7.7 serwer może wysyłać nam wiadomości systemowe przy pomocy pakietu:
@@ -1068,15 +1108,15 @@ Przykładowy kod:
 
 <hr />
 
-<a name="ch1.11"></a>
-<h3>1.11. Wiadomości GG_XML_ACTION</h3>
+<a name="ch1.12"></a>
+<h3>1.12. Wiadomości GG_XML_ACTION</h3>
 
 <div class="c">
 <pre>#define GG_XML_ACTION 0x002c</pre>
 </div>
 
-<a name="ch1.11.1"></a>
-<h4>1.11.1 Wiadomości GGLive</h4>
+<a name="ch1.12.1"></a>
+<h4>1.12.1 Wiadomości GGLive</h4>
 
 <div class="check">
 <p>Opisać usługi http://life.gadu-gadu.pl/<br/>
@@ -1107,8 +1147,8 @@ Przykładowa otrzymana wiadomość:
 </pre>
 </div>
 
-<a name="ch1.11.2"></a>
-<h4>1.11.2 Zmiana avatara przez znajomego</h4>
+<a name="ch1.12.2"></a>
+<h4>1.12.2 Zmiana avatara przez znajomego</h4>
 
 <p>Przykładowa informacja:</p>
 <div class="example">
@@ -1127,8 +1167,8 @@ Przykładowa otrzymana wiadomość:
 </pre>
 </div>
 
-<a name="ch1.11.3"></a>
-<h4>1.11.3 Nowy wpis na blogu znajomego</h4>
+<a name="ch1.12.3"></a>
+<h4>1.12.3 Nowy wpis na blogu znajomego</h4>
 
 <p>Przykładowa informacja:</p>
 <div class="example">
@@ -1149,8 +1189,9 @@ Przykładowa otrzymana wiadomość:
 </pre>
 </div>
 
-<a name="ch1.11.4"></a>
-<h4>1.11.4 Opisy graficzne</h4>
+<a name="ch1.12.4"></a>
+<h4>1.12.4 Opisy graficzne</h4>
+
 <div class="check">
 <p>Osobny rozdział XXX?</p>
 </div>
@@ -1198,8 +1239,8 @@ możemy pobrać ZIP-paczkę z http://www.gadudodatki.pl/userbar/get/id/
 
 <hr />
 
-<a name="ch1.12"></a>
-<h3>1.12. Katalog publiczny</h3>
+<a name="ch1.13"></a>
+<h3>1.13. Katalog publiczny</h3>
 
 <div class="check">
 <p>Nowe Gadu-Gadu korzysta z OAutha do odczytu oraz zmian danych w katalogu, API opisane jest na:
@@ -1321,8 +1362,8 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i płci znalezionych osób.
 
 <hr />
 
-<a name="ch1.13"></a>
-<h3>1.13. Lista kontaktów</h3>
+<a name="ch1.14"></a>
+<h3>1.14. Lista kontaktów</h3>
 
 <div class="check">
 <pre>Sprawdzić czy wszystkie #define dalej są potrzebne</pre>
@@ -1414,8 +1455,8 @@ listę kontaktów czego wynikiem jest pole <tt>request</tt> o zawartości:
 
 <hr />
 
-<a name="ch1.14"></a>
-<h3>1.14. Indeks pakietów</h3>
+<a name="ch1.15"></a>
+<h3>1.15. Indeks pakietów</h3>
 
 <p>
 Pakiety wysyłane:
@@ -1453,6 +1494,7 @@ Pakiety wysyłane:
 <tr class="tabf"><td><tt>0x0038</tt></td><td><tt>GG_NEW_STATUS80</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST_REQUEST100</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0046</tt></td><td><tt>GG_RECV_MSG_ACK</tt></td><td>Potwierdzenie odebrania wiadomości przez klienta</td></tr>
+<tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
 </table>
 
 <p>
@@ -1497,6 +1539,7 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0037</tt></td><td><tt>GG_NOTIFY_REPLY80</tt></td><td>Stan listy kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x0041</tt></td><td><tt>GG_USERLIST_REPLY100</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0044</tt></td><td><tt>GG_USER_DATA</tt></td><td>Dodatkowe informacje o liście kontaktów</td></tr>
+<tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
 </table>
 
 <hr />
@@ -2237,6 +2280,7 @@ napisz na listę dyskusyjną
 	GG_DISCONNECT_ACK.</li>
 	<li><b>Adrian Warecki</b> (bok%kokosoftware.pl): Przykładowe pakiety GG_XML_ACTION</li>
 	<li><b>Piotr Latosiński</b> (piotr.latosinski%gmail.com): Opis pakietów GG_USER_DATA i GG_RECV_MSG_ACK</li>
+	<li><b>Tomek Nagisa</b> (kaworu%k2t.eu): Opis pakietów &quot;pisaka&quot;, GG_TYPING_NOTIFY.</li>
 </ul>
 
 <hr />
