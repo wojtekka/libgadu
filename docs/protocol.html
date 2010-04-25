@@ -1,28 +1,29 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
+<tt><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Protokół Gadu-Gadu</title>
 <style type="text/css">
 body { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tab { background-color: #a0a0a0; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
 .tabf2 { background-color: white; color: silver; }
-.check { background-color: white; color: silver; font-size: 0.7em; }
-.warn { font-family: monospace; padding: 0.7em; background-color: red; border: 1px solid #80a0a0; }
+.check { background-color: white; color: silver; }
+.warn { font-family: monospace; padding: 0.7em; background-color: #ffe0e0; border: 1px solid #a08080; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
 .example { font-family: monospace; padding: 0.7em; background-color: #c0f0f0; border: 1px solid #80a0a0; }
 pre { margin: 0px; }
+.main { max-width: 800px; text-align: left; }
+.footer { font-family: monospace; color: silver; }
 </style>
-<title>Protokół Gadu-Gadu</title>
 </head>
 
 <body bgcolor="white" text="black">
 
 <center>
-<table width="600" border="0"><tr><td>
+<div class="main">
 
 <center>
 <h1>Protokół Gadu-Gadu</h1>
@@ -1095,7 +1096,7 @@ Przykładowy kod:
 
 <div class="example">
 <pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
-&lt;event xmlns:ev="www.gadu-gadu.pl/Event/1.0" id ="" type="realtime" creation_time="1194732873" ttl="60"&gt;
+&lt;event xmlns:ev="www.gadu-gadu.pl/Event/1.0" id="" type="realtime" creation_time="1194732873" ttl="60"&gt;
   &lt;ev:actions&gt;
     &lt;ev:showMessage&gt;
       &lt;ev:text&gt;Wejdź na stronę EKG&lt;/ev:text&gt;
@@ -1192,13 +1193,10 @@ Przykładowa otrzymana wiadomość:
 <a name="ch1.12.4"></a>
 <h4>1.12.4 Opisy graficzne</h4>
 
-<div class="check">
-<p>Osobny rozdział XXX?</p>
-</div>
-
 <p>
-Serwer Gadu-Gadu po kupnie opisu graficznego na stronie <a href="http://gadudodatki.pl/opisygraficzne">GaduDodatki</a>
-przesyła nam pakiet GG_XML_EVENT
+Serwer Gadu-Gadu po kupnie opisu graficznego na stronie
+<a href="http://gadudodatki.pl/opisygraficzne">GaduDodatki</a> przesyła nam
+pakiet <tt>GG_XML_EVENT</tt>:
 </p>
 
 <p>Przykładowy opis graficzny: Krol Popu</p>
@@ -1224,7 +1222,7 @@ Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, t
 <div class="example">
 <pre>
 struct gg_new_status80 krol_popu = { 
-	.status           = GG_STATUS_DESCR_MASK | GG_STATUS_IMAGE_MASK | docelowy_opisowy_status; <i>/* 0x4100 | status */</i>
+	.status           = GG_STATUS_DESCR_MASK | GG_STATUS_IMAGE_MASK | status;
 	.flags            = 0x03;
 	.description_size = 9;
 	.description      = "Krol Popu";
@@ -1232,10 +1230,13 @@ struct gg_new_status80 krol_popu = {
 </div>
 
 <p>
-Gdy użytkownik ma ustawiony opis graficzny (.status &amp; GG_STATUS_IMAGE_MASK)
-możemy pobrać ZIP-paczkę z http://www.gadudodatki.pl/userbar/get/id/
+Gdy użytkownik ma ustawiony opis graficzny (flaga <tt>GG_STATUS_IMAGE_MASK</tt>)
+możemy pobrać archiwum spod adresu <tt>http://www.gadudodatki.pl/userbar/get/id/</tt>
 </p>
-<p>Dla przykładowego Króla Popu jest to adres: <span class="example">http://www.gadudodatki.pl/userbar/get/id/Krol%20Popu</span></p>
+
+<p>
+Dla przykładowego Króla Popu jest to adres <tt>http://www.gadudodatki.pl/userbar/get/id/Krol%20Popu</tt>
+</p>
 
 <hr />
 
@@ -1933,9 +1934,11 @@ Dla pola <tt>reason</tt> znane są wartości:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* Połączenie bezpośrednie już trwa, nie umiem obsłużyć więcej */</i>
+<pre>#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* Połączenie bezpośrednie już trwa, nie umiem
+						   obsłużyć więcej */</i>
 #define GG_DCC7_REJECT_USER	0x00000002	<i>/* Użytkownik odrzucił połączenie */</i>
-#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu */</i>
+#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą
+						   połączeń bezpośrednich tego typu */</i>
 </pre>
 </div>
 
@@ -2285,11 +2288,11 @@ napisz na listę dyskusyjną
 
 <hr />
 
-<font color="silver">
+<p class="footer">
 $Id$
-</font>
+</p>
 
-</td></tr></table>
+</div>
 </center>
 
 </body>
