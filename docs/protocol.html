@@ -1004,8 +1004,8 @@ wysyłamy/otrzymujemy tym samym pakietem:
 <pre>#define GG_TYPING_NOTIFY 0x0059
 
 struct gg_typing_notify {
-	short type;	<i>// typ powiadomienia</i>
-	int uin;	<i>// do/od kogo wysyłamy/odebraliśmy</i>
+	short type;	<i>/* typ powiadomienia */</i>
+	int uin;	<i>/* do/od kogo wysyłamy/odebraliśmy */</i>
 };</pre>
 </div>
 
@@ -1014,8 +1014,8 @@ Gdzie pole typ może przyjmować następujące stałe wartości:
 </p>
 
 <div class="c">
-<pre>#define GG_TYPING_NOTIFY_TYPE_START	0x0001	<i>// rozpoczelismy pisanie</i>
-#define GG_TYPING_NOTIFY_TYPE_STOP	0x0000	<i>// pozbyliśmy się wiadomości</i></pre>
+<pre>#define GG_TYPING_NOTIFY_TYPE_START	0x0001	<i>/* rozpoczelismy pisanie */</i>
+#define GG_TYPING_NOTIFY_TYPE_STOP	0x0000	<i>/* pozbyliśmy się wiadomości */</i></pre>
 </div>
 
 <p>
