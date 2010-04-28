@@ -628,7 +628,7 @@ int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char
 enum gg_event_t {
 	GG_EVENT_NONE = 0,		/**< Nie wydarzyło się nic wartego uwagi */
 	GG_EVENT_MSG,			/**< \brief Otrzymano wiadomość. Przekazuje również wiadomości systemowe od numeru 0. */
-	GG_EVENT_NOTIFY,		/**< \brief Informacja o statusach osób z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
+	GG_EVENT_NOTIFY,		/**< \brief Informacja o statusach osób z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. Ostatni element tablicy zawiera uin równy 0, a pozostałe pola są niezainicjowane. */
 	GG_EVENT_NOTIFY_DESCR,		/**< \brief Informacja o statusie opisowym osoby z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
 	GG_EVENT_STATUS,		/**< \brief Zmiana statusu osoby z listy kontaktów (przed 6.0). Zdarzenie należy obsługiwać, jeśli planuje się używać protokołu w wersji starszej niż domyślna. */
 	GG_EVENT_ACK,			/**< Potwierdzenie doręczenia wiadomości */
@@ -652,9 +652,9 @@ enum gg_event_t {
 	GG_EVENT_PUBDIR50_WRITE,	/**< Zmieniono własne dane w katalogu publicznym */
 
 	GG_EVENT_STATUS60,		/**< Zmiana statusu osoby z listy kontaktów */
-	GG_EVENT_NOTIFY60,		/**< Informacja o statusach osób z listy kontaktów */
+	GG_EVENT_NOTIFY60,		/**< Informacja o statusach osób z listy kontaktów. Ostatni element tablicy zawiera uin równy 0, a pozostałe pola są niezainicjowane.  */
 	GG_EVENT_USERLIST,		/**< Wynik importu lub eksportu listy kontaktów */
-	GG_EVENT_IMAGE_REQUEST,		/**< Żądanie przesłania obrazka z wiadommości */
+	GG_EVENT_IMAGE_REQUEST,		/**< Żądanie przesłania obrazka z wiadomości */
 	GG_EVENT_IMAGE_REPLY,		/**< Przysłano obrazek z wiadomości */
 	GG_EVENT_DCC_ACK,		/**< Potwierdzenie transmisji w połączeniu bezpośrednim (6.x) */
 
@@ -800,7 +800,7 @@ struct gg_event_status60 {
  * Opis zdarzenia \c GG_EVENT_NOTIFY_REPLY60.
  */
 struct gg_event_notify60 {
-	uin_t uin;		/**< Numer Gadu-Gadu */
+	uin_t uin;		/**< Numer Gadu-Gadu. W ostatnim elemencie jest równy 0, a pozostałe pola są niezainicjowane. */
 	int status;		/**< Nowy status */
 	uint32_t remote_ip;	/**< Adres IP dla połączeń bezpośrednich */
 	uint16_t remote_port;	/**< Port dla połączeń bezpośrednich */
