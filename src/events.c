@@ -2330,7 +2330,7 @@ gnutls_handshake_repeat:
 				break;
 			}
 
-			if (h->type == GG_LOGIN_FAILED) {
+			if (h->type == GG_LOGIN_FAILED || h->type == GG_LOGIN80_FAILED) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login failed\n");
 				e->event.failure = GG_FAILURE_PASSWORD;
 				errno = EACCES;
