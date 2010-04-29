@@ -245,7 +245,7 @@ struct gg_login80 {
         int external_ip;      <i>/* zewnętrzny adres (nieużywany) */</i>
         short external_port;  <i>/* zewnętrzny port (nieużywany) */</i>
         char image_size;      <i>/* maksymalny rozmiar grafiki w KB */</i>
-        char unknown2;        <i>/* 0x64 */</i>
+        char unknown1;        <i>/* 0x64 */</i>
         int version_len;      <i>/* długość ciągu z wersją (0x23) */</i>
         char version[];       <i>/* "Gadu-Gadu Client build 10.0.0.10450" (bez \0) */</i>
         int description_size; <i>/* rozmiar opisu */</i>
@@ -259,9 +259,9 @@ Pola określające adresy i port są pozostałościami po poprzednich wersjach
 protokołów i w obecnej wersji zawierają zera.</p>
 
 <p>
-Pole features jest mapą bitową informującą serwer, które z funkcji protokołu
-obsługujemy. Do minimalnej zgodności z protokołem Nowego Gadu-Gadu niezbędna
-jest co najmniej wartość <tt>0x00000007</tt>.
+Pole <tt>features</tt> jest mapą bitową informującą serwer, które z funkcji
+protokołu obsługujemy. Do minimalnej zgodności z protokołem Nowego Gadu-Gadu
+niezbędna jest co najmniej wartość <tt>0x00000007</tt>.
 </p>
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
@@ -271,6 +271,8 @@ jest co najmniej wartość <tt>0x00000007</tt>.
 <tr class="tabf"><td>2</td><td><tt>0x00000004</tt></td><td>Rodzaj pakietu informującego o zmianie stanu kontaktów (patrz bit 0)<br /><tt>0</tt> &mdash; wybrany przez bit 0<br /><tt>1</tt> &mdash; <tt>GG_STATUS80</tt>, <tt>GG_NOTIFY_REPLY80</tt></td></tr>
 <tr class="tabf"><td>4</td><td><tt>0x00000010</tt></td><td>Klient obsługuje statusy "nie przeszkadzać" i "poGGadaj ze mną"</td></tr>
 <tr class="tabf"><td>5</td><td><tt>0x00000020</tt></td><td>Klient obsługuje statusy graficzne i <tt>GG_STATUS_DESCR_MASK</tt> (patrz <a href="#ch1.4">Zmiana stanu</a>)</td></tr>
+<tr class="tabf"><td>6</td><td><tt>0x00000040</tt></td><td>Znaczenie nie jest znane, ale klient otrzyma w przypadku błędnego hasła pakiet <tt>GG_LOGIN80_FAILED</tt> zamiast <tt>GG_LOGIN_FAILED</tt></td></tr>
+<tr class="tabf"><td>7</td><td><tt>0x00000100</tt></td><td>Znaczenie nie jest znane, ale jest używane przez nowe klienty</td></tr>
 <tr class="tabf"><td>9</td><td><tt>0x00000200</tt></td><td>Klient obsługuje <a href="#ch1.5.1">dodatkowe informacje o liście kontaktów</a></td></tr>
 <tr class="tabf"><td>10</td><td><tt>0x00000400</tt></td><td>Klient wysyła <a href="#ch1.7.1">potwierdzenia odebrania wiadomości</a></td></tr>
 <tr class="tabf"><td>13</td><td><tt>0x00002000</tt></td><td>Klient obsługuje <a href="#ch1.8">powiadomienia o pisaniu</a></td></tr>
@@ -355,7 +357,19 @@ struct gg_login80_ok {
 </div>
 
 <p>
-W przypadku błędu autoryzacji otrzymamy pusty pakiet:
+W przypadku błędu autoryzacji otrzymamy pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_LOGIN80_FAILED 0x0043
+
+struct gg_login80_failed {
+	int unknown1;	<i>/* 01 00 00 00 */</i>
+};</pre>
+</div>
+
+<p>
+Starsze wersje oraz klienty z otrzymywały pusty pakiet:
 </p>
 
 <div class="c">
@@ -496,17 +510,17 @@ zawierającym jedną lub więcej struktur <tt>gg_notify_reply80</tt>:
 </p>
 
 <div class="c">
-<pre>#define GG_NOTIFY_REPLY80 0x37
+<pre>#define GG_NOTIFY_REPLY80 0x0037
 	
 struct gg_notify_reply80 {
 	int uin;		<i>/* numer Gadu-Gadu kontaktu */</i>
 	int status;		<i>/* status */</i>
-	int flags;		<i>/* flagi (nieznane przeznaczenie) */</i>
+	int features;		<i>/* opcje protokołu (patrz GG_LOGIN80) */</i>
 	int remote_ip;		<i>/* adres IP bezpośrednich połączeń (nieużywane) */</i>
 	short remote_port;	<i>/* port bezpośrednich połączeń (nieużywane) */</i>
 	char image_size;	<i>/* maksymalny rozmiar obrazków w KB */</i>
-	char unknown2;		<i>/* 0x00 */</i>
-	int unknown3;		<i>/* 0x00000000 */</i>
+	char unknown1;		<i>/* 0x00 */</i>
+	int flags;		<i>/* flagi połączenia (patrz GG_LOGIN80) */</i>
 	int description_size;	<i>/* rozmiar opisu */</i>
 	char description[];	<i>/* opis (nie musi wystąpić, bez \0) */</i>
 };</pre>
@@ -1216,8 +1230,9 @@ pakiet <tt>GG_XML_EVENT</tt>:
 </div>
 
 <p>
-Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, to wysyłany jest pakiet GG_NEW_STATUS80
+Użytkownik powinien zostać zapytany czy chce ustawić ten opis i jeśli tak, to wysyłany jest pakiet GG_NEW_STATUS80.
 </p>
+
 <p>Przykładowe ustawienie opisu graficznego: Krol Popu</p>
 <div class="example">
 <pre>
