@@ -39,7 +39,7 @@
 #define GG_FEATURE_STATUS80 		0x05
 
 #define GG8_LANG	"pl"
-#define GG8_VERSION	"Gadu-Gadu Client Build 8.0.0.8731"
+#define GG8_VERSION	"Gadu-Gadu Client Build "
 
 struct gg_login80 {
 	uint32_t uin;			/* mój numerek */
@@ -130,6 +130,31 @@ struct gg_recv_msg80 {
 } GG_PACKED;
 
 #define GG_DISCONNECT_ACK 0x000d
+
+#define GG_RECV_MSG_ACK 0x0046
+
+struct gg_recv_msg_ack {
+	uint32_t count;
+} GG_PACKED;
+
+#define GG_USER_DATA 0x0044
+
+struct gg_user_data {
+	uint32_t type;
+	uint32_t users;
+} GG_PACKED;
+
+struct gg_user_data_user {
+	uint32_t uin;
+	uint32_t fields;
+} GG_PACKED;
+
+#define GG_TYPING_NOTIFICATION 0x0059
+
+struct gg_typing_notification {
+	uint16_t length;
+	uint32_t uin;
+} GG_PACKED;
 
 #define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
 

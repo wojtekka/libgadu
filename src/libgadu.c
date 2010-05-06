@@ -787,13 +787,17 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
 
-	sess->protocol_features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
+	if (p->protocol_features == 0) {
+		sess->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80 | GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR | GG_FEATURE_UNKNOWN_100 | GG_FEATURE_USER_DATA | GG_FEATURE_MSG_ACK | GG_FEATURE_TYPING_NOTIFICATION;
+	} else {
+		sess->protocol_features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
 
-	if (!(p->protocol_features & GG_FEATURE_STATUS77))
-		sess->protocol_features |= GG_FEATURE_STATUS80;
+		if (!(p->protocol_features & GG_FEATURE_STATUS77))
+			sess->protocol_features |= GG_FEATURE_STATUS80;
 
-	if (!(p->protocol_features & GG_FEATURE_MSG77))
-		sess->protocol_features |= GG_FEATURE_MSG80;
+		if (!(p->protocol_features & GG_FEATURE_MSG77))
+			sess->protocol_features |= GG_FEATURE_MSG80;
+	}
 
 	if (!(sess->status_flags = p->status_flags))
 		sess->status_flags = GG_STATUS_FLAG_UNKNOWN | GG_STATUS_FLAG_SPAM;
@@ -2303,6 +2307,28 @@ int gg_userlist_request(struct gg_session *sess, char type, const char *request)
 	sess->userlist_blocks++;
 
 	return gg_send_packet(sess, GG_USERLIST_REQUEST, &type, sizeof(type), request, len, NULL);
+}
+
+/**
+ * Informuje rozmówcę o pisaniu wiadomości.
+ *
+ * \param sess Struktura sesji
+ * \param recipient Numer adresata
+ * \param length Długość wiadomości lub 0 jeśli jest pusta
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup messages
+ */
+int gg_typing_notification(struct gg_session *sess, uin_t recipient, int length){
+	struct gg_typing_notification pkt;
+	uin_t uin;
+
+	pkt.length = gg_fix16(length);
+	uin = gg_fix32(recipient);
+	memcpy(&pkt.uin, &uin, sizeof(uin_t));
+
+	return gg_send_packet(sess, GG_TYPING_NOTIFICATION, &pkt, sizeof(pkt), NULL);
 }
 
 /* @} */

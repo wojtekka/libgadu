@@ -130,4 +130,16 @@ rozmówca. Obrazek wysyła się funkcją:
 gg_image_reply(sesja, odbiorca, nazwa_pliku, obrazek, długość_obrazka);
 \endcode
 
+\section messages-typing Powiadomienie o pisaniu
+
+Począwszy od Gadu-Gadu 10 rozmówca jest informowany o tym, że jesteśmy
+w trakcie pisania wiadomości:
+
+\code
+gg_typing_notification(sesja, odbiorca, długość_wiadomości);
+\endcode
+
+Informacje o pisaniu przesyłane są do aplikacji za pomocą zdarzenia
+\ref events-list "\c GG_EVENT_TYPING_NOTIFICATION".
+
 */
