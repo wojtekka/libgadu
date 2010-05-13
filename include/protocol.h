@@ -223,7 +223,7 @@ struct gg_dcc7_relay_reply {
 	uint32_t len;			/** długość całego pakietu **/
 	uint32_t rcount;		/** ilość serwerów **/
 	struct {
-		uint32_t ip;		/** adres ip serwera **/
+		uint32_t addr;		/** adres ip serwera **/
 		uint16_t port;		/** port serwera **/
 		uint8_t family;		/** rodzina adresów (na końcu?!) AF_INET=2 **/
 	} proxies[2] GG_PACKED;

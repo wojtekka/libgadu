@@ -52,6 +52,7 @@
 #include "libgadu.h"
 #include "protocol.h"
 #include "resolver.h"
+#include "internal.h"
 
 #define gg_debug_dcc(dcc, fmt...) \
 	gg_debug_session((dcc) ? (dcc)->sess : NULL, fmt)
@@ -392,7 +393,7 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_SERVER);
 	// take first proxy but if server does reply with 0 use this server
 	if (reply_pkt.magic != 0)
-		dcc->sess->relay_addr = reply_pkt.ip;//.proxies[0]
+		dcc->sess->relay_addr = reply_pkt.proxies[0].addr;
 
 	reply_pkt.magic = 0;
 	int relay_port = GG_RELAY_PORT;
@@ -426,12 +427,12 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 	if (reply_pkt.magic != gg_fix32(GG_DCC7_RELAY_REPLY))
 		return -1;
 
-	dcc->dcc_relays[0].relay_addr = reply_pkt.ip;
-	dcc->dcc_relays[0].relay_port = reply_pkt.port;
-	dcc->dcc_relays[0].relay_type = reply_pkt.type;
-	dcc->dcc_relays[1].relay_addr = reply_pkt.ip2;
-	dcc->dcc_relays[1].relay_port = reply_pkt.port2;
-	dcc->dcc_relays[1].relay_type = reply_pkt.type2;
+	dcc->dcc_relays[0].relay_addr = reply_pkt.proxies[0].addr;
+	dcc->dcc_relays[0].relay_port = reply_pkt.proxies[0].port;
+	dcc->dcc_relays[0].relay_type = reply_pkt.proxies[0].family;
+	dcc->dcc_relays[1].relay_addr = reply_pkt.proxies[1].addr;
+	dcc->dcc_relays[1].relay_port = reply_pkt.proxies[1].port;
+	dcc->dcc_relays[1].relay_type = reply_pkt.proxies[1].family;
 	
 	gg_debug_session(dcc->sess, GG_DEBUG_MISC, "// gg_dcc7_get_relay() found relay proxy: %s:%d,", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[0].relay_addr)), dcc->dcc_relays[0].relay_port);
 	gg_debug_session(dcc->sess, GG_DEBUG_MISC, " %s:%d\n", inet_ntoa(*((struct in_addr*) &dcc->dcc_relays[1].relay_addr)), dcc->dcc_relays[1].relay_port);
@@ -863,7 +864,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	}
 
 	if (p->type == GG_DCC7_TYPE_SERVER) {
-		if (!(tmp = strchr(p->info, 'GG'))) {
+		if (!(tmp = strstr(p->info, "GG"))) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unknown info packet\n");
 			e->type = GG_EVENT_DCC7_ERROR;
 			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
