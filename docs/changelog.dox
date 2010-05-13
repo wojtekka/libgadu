@@ -9,6 +9,12 @@ Poprawki dostarczające nową funkcjonalność w większości przypadków nie ma
 wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
 nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_10_0 libgadu 1.10.0
+
+- Przywrócenie obsługi SSL dzięki szyfrowanym połączeniom Gadu-Gadu 10.
+
+- Powiadomienie o pisaniu. \ref messages-typing "Szczegóły".
+
 \section changelog-1_9_0 libgadu 1.9.0
 
 - Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole \c encoding struktury \c gg_login_params pozwala zmienić kodowanie na UTF-8. Mimo że katalog publiczny ze strony serwera jest obsługiwany w CP1250, biblioteka dokonuje konwersji. \ref gg_login_params "Szczegóły."

@@ -245,6 +245,12 @@ i co minutę wywoływać funkcję \c gg_ping().
 <td>\copydoc gg_event_t::GG_EVENT_ACK</td>
 </tr>
 <tr>
+<td>\c GG_EVENT_TYPING_NOTIFICATION</td>
+<td>\c event.typing_notification</td>
+<td>\c gg_event_typing_notification</td>
+<td>\copydoc gg_event_t::GG_EVENT_TYPING_NOTIFICATION</td>
+</tr>
+<tr>
 <td>\c GG_EVENT_IMAGE_REQUEST</td>
 <td>\c event.image_request</td>
 <td>\c gg_event_image_request</td>

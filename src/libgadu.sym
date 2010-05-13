@@ -12,6 +12,7 @@ gg_change_passwd4
 gg_change_status
 gg_change_status_descr
 gg_change_status_descr_time
+gg_change_status_flags
 gg_chomp
 gg_connect
 gg_crc32

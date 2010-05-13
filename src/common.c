@@ -157,12 +157,11 @@ void gg_debug_dump_session(struct gg_session *sess, const char *buf, unsigned in
 
 	if ((gg_debug_level & GG_DEBUG_DUMP)) {
 		  unsigned int i;
-		  unsigned char *p = buf;
 
 		  va_start(ap, format);
 		  gg_debug_common(sess, GG_DEBUG_DUMP, format, ap);
 		  for (i = 0; i < buf_length; ++i)
-			  gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) *(p++));
+			  gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) buf[i]);
 		  gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
 		  va_end(ap);
 	  }

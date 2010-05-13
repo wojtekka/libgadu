@@ -23,6 +23,19 @@
 
 #include "libgadu.h"
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+
+#include <gnutls/gnutls.h>
+
+typedef struct {
+	gnutls_session_t session;
+	gnutls_certificate_credentials_t xcred;
+} gg_session_gnutls_t;
+
+#define GG_SESSION_GNUTLS(sess) ((gg_session_gnutls_t*) (sess)->ssl)->session
+
+#endif /* GG_CONFIG_HAVE_GNUTLS */
+
 char *gg_cp_to_utf8(const char *b);
 char *gg_utf8_to_cp(const char *b);
 int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
