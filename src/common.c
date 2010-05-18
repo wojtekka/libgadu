@@ -66,6 +66,7 @@
 #include <unistd.h>
 
 #include "libgadu.h"
+#include "internal.h"
 
 /**
  * Plik, do którego będą przekazywane informacje odpluskwiania.
@@ -93,7 +94,7 @@ FILE *gg_debug_file = NULL;
  * \param format Format wiadomości (zgodny z \c printf)
  * \param ap Lista argumentów (zgodna z \c printf)
  */
-void gg_debug_common(struct gg_session *sess, int level, const char *format, va_list ap)
+static void gg_debug_common(struct gg_session *sess, int level, const char *format, va_list ap)
 {
 	if (gg_debug_handler_session)
 		(*gg_debug_handler_session)(sess, level, format, ap);
