@@ -421,7 +421,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 {
 	struct gg_recv_msg *r = (struct gg_recv_msg*) ((char*) h + sizeof(struct gg_header));
 	char *p, *packet_end = (char*) r + h->length;
-	int ctcp;
+	int ctcp = 0;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %p);\n", h, e);
 
