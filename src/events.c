@@ -76,6 +76,7 @@ void gg_event_free(struct gg_event *e)
 			free(e->event.msg.message);
 			free(e->event.msg.formats);
 			free(e->event.msg.recipients);
+			free(e->event.msg.xhtml_message);
 			break;
 
 		case GG_EVENT_NOTIFY:
@@ -424,6 +425,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 {
 	struct gg_recv_msg *r = (struct gg_recv_msg*) ((char*) h + sizeof(struct gg_header));
 	char *p, *packet_end = (char*) r + h->length;
+	int ctcp = 0;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %p);\n", h, e);
 
@@ -442,6 +444,7 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 
 		if (*p == 0x02 && p == packet_end - 1) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
+			ctcp = 1;
 			break;
 		}
 
@@ -467,7 +470,11 @@ static int gg_handle_recv_msg(struct gg_header *h, struct gg_event *e, struct gg
 	e->event.msg.sender = gg_fix32(r->sender);
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
-	e->event.msg.message = (unsigned char*) strdup((char*) r + sizeof(*r));
+	if (ctcp)
+		e->event.msg.message = (unsigned char*) strdup("\x02");
+	else
+		e->event.msg.message = (unsigned char*) strdup((char*) r + sizeof(*r));
+
 
 	return 0;
 
