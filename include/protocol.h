@@ -222,11 +222,12 @@ struct gg_dcc7_relay_reply {
 	uint32_t magic;			/** 0x0b **/
 	uint32_t len;			/** długość całego pakietu **/
 	uint32_t rcount;		/** ilość serwerów **/
-	struct {
-		uint32_t addr;		/** adres ip serwera **/
-		uint16_t port;		/** port serwera **/
-		uint8_t family;		/** rodzina adresów (na końcu?!) AF_INET=2 **/
-	} proxies[2] GG_PACKED;
+} GG_PACKED;
+
+struct gg_dcc7_relay_reply_server {
+	uint32_t addr;		/** adres ip serwera **/
+	uint16_t port;		/** port serwera **/
+	uint8_t family;		/** rodzina adresów (na końcu?!) AF_INET=2 **/
 } GG_PACKED;
 
 #define GG_DCC7_WELCOME_SERVER 0xc0debabe

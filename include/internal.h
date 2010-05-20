@@ -36,6 +36,14 @@ typedef struct {
 
 #endif /* GG_CONFIG_HAVE_GNUTLS */
 
+typedef struct {
+	uint32_t addr;
+	uint16_t port;
+	uint8_t family;
+} gg_dcc7_relay_t;
+
+#define GG_DCC7_RELAY_LIST(dcc) ((gg_dcc7_relay_t*) (dcc)->relay_list)
+
 char *gg_cp_to_utf8(const char *b);
 char *gg_utf8_to_cp(const char *b);
 int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
