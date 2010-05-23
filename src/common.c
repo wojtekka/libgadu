@@ -152,7 +152,7 @@ void gg_debug_session(struct gg_session *sess, int level, const char *format, ..
  *
  * \ingroup debug
  */
-void gg_debug_dump_session(struct gg_session *sess, const char *buf, unsigned int buf_length, const char *format, ...)
+void gg_debug_dump_session(struct gg_session *sess, const void *buf, unsigned int buf_length, const char *format, ...)
 {
 	va_list ap;
 
@@ -162,7 +162,7 @@ void gg_debug_dump_session(struct gg_session *sess, const char *buf, unsigned in
 		  va_start(ap, format);
 		  gg_debug_common(sess, GG_DEBUG_DUMP, format, ap);
 		  for (i = 0; i < buf_length; ++i)
-			  gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", (unsigned char) buf[i]);
+			  gg_debug_session(sess, GG_DEBUG_DUMP, " %.2x", ((unsigned char*) buf)[i]);
 		  gg_debug_session(sess, GG_DEBUG_DUMP, "\n");
 		  va_end(ap);
 	  }
