@@ -302,7 +302,6 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 
 	if (gg_dcc7_listen(dcc, local_port) == -1)
 		return -1;
-
 	
 	if (!dcc->sess->external_port || dcc->local_port != local_port)
 		external_port = dcc->local_port;
@@ -318,7 +317,7 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.uin = gg_fix32(dcc->peer_uin);
-	pkt.type = GG_DCC7_TYPE_SERVER;
+	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
 	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
 	// TODO: implement hash count
@@ -598,9 +597,7 @@ int gg_dcc7_accept(struct gg_dcc7 *dcc, unsigned int offset)
 
 	dcc->offset = offset;
 
-	int ret = gg_dcc7_listen_and_send_info(dcc);
-
-	return ret;
+	return gg_dcc7_listen_and_send_info(dcc);
 }
 
 /**
