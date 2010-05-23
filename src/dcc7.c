@@ -1114,8 +1114,8 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 				if (dcc->relay) {
 					for (dcc->relay_index++; dcc->relay_index < dcc->relay_count; dcc->relay_index++) {
-						dcc->remote_addr = GG_DCC7_RELAY_LIST(dcc)[dcc->relay_index].addr;
-						dcc->remote_port = GG_DCC7_RELAY_LIST(dcc)[dcc->relay_index].port;
+						dcc->remote_addr = dcc->relay_list[dcc->relay_index].addr;
+						dcc->remote_port = dcc->relay_list[dcc->relay_index].port;
 
 						if (gg_dcc7_connect(dcc) == 0)
 							break;
@@ -1469,9 +1469,9 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				struct in_addr addr;
 
 				memcpy(&srv, buf + sizeof(*pkt) + i * sizeof(srv), sizeof(srv));
-				GG_DCC7_RELAY_LIST(dcc)[i].addr = srv.addr;
-				GG_DCC7_RELAY_LIST(dcc)[i].port = gg_fix16(srv.port);
-				GG_DCC7_RELAY_LIST(dcc)[i].family = srv.family;
+				dcc->relay_list[i].addr = srv.addr;
+				dcc->relay_list[i].port = gg_fix16(srv.port);
+				dcc->relay_list[i].family = srv.family;
 
 				addr.s_addr = srv.addr;
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "//    %s %d %d\n", inet_ntoa(addr), gg_fix16(srv.port), srv.family);
@@ -1480,8 +1480,8 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			dcc->relay = 1;
 
 			for (; dcc->relay_index < dcc->relay_count; dcc->relay_index++) {
-				dcc->remote_addr = GG_DCC7_RELAY_LIST(dcc)[dcc->relay_index].addr;
-				dcc->remote_port = GG_DCC7_RELAY_LIST(dcc)[dcc->relay_index].port;
+				dcc->remote_addr = dcc->relay_list[dcc->relay_index].addr;
+				dcc->remote_port = dcc->relay_list[dcc->relay_index].port;
 
 				if (gg_dcc7_connect(dcc) == 0)
 					break;

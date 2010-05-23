@@ -175,6 +175,8 @@ struct gg_image_queue;
 
 struct gg_dcc7;
 
+struct gg_dcc7_relay;
+
 /**
  * Sposób rozwiązywania nazw serwerów.
  */
@@ -441,7 +443,7 @@ struct gg_dcc7 {
 	int relay;		/**< Flaga mówiąca, że laczymy sie przez serwer */
 	int relay_index;	/**< Numer serwera pośredniczącego, do którego się łączymy */
 	int relay_count;	/**< Rozmiar listy serwerów pośredniczących */
-	void *relay_list;	/**< Lista serwerów pośredniczących */
+	struct gg_dcc7_relay *relay_list;	/**< Lista serwerów pośredniczących */
 };
 
 /**
