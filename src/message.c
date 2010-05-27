@@ -402,7 +402,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 
 			format_idx += 3;
 
-			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
+			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
 				if (char_pos != 0) {
 					if ((old_attr & GG_FONT_UNDERLINE) != 0)
 						gg_append(dst, &len, "</u>", 4);
@@ -413,7 +413,8 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 					if ((old_attr & GG_FONT_BOLD) != 0)
 						gg_append(dst, &len, "</b>", 4);
 
-					gg_append(dst, &len, "</span>", 7);
+					if (src[i] != 0)
+						gg_append(dst, &len, "</span>", 7);
 				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
@@ -423,9 +424,11 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 					color = (unsigned char*) "\x00\x00\x00";
 				}
 
-				if (dst != NULL)
-					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
-				len += span_len;
+				if (src[i] != 0) {
+					if (dst != NULL)
+						sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+					len += span_len;
+				}
 			} else if (char_pos == 0 && src[0] != 0) {
 				if (dst != NULL)
 					sprintf(&dst[len], span_fmt, 0, 0, 0);
