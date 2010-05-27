@@ -87,6 +87,9 @@ const struct test_data text_to_html[] =
 	/* Atrybut w środku znaku unikodowego */
 	{ "żółć", SPAN("<b>ż</b>") SPAN("<i>ółć</i>"), "\x00\x00\x01\x01\x00\x02", 6 },
 
+	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl> */
+	{ "testboldatest", SPAN("test") SPAN("<b>bolda</b>") SPAN("test"), "\x04\x00\x01\x09\x00\x00", 6 },
+
 	/* Pusty tekst. Oryginalny klient co prawda nie wysyła pustego tekstu,
 	 * ale przy wiadomości zawierającej jedynie obrazek, nie dokleja tagów
 	 * <span>, więc improwizujemy. */
@@ -141,7 +144,15 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 
 	gg_message_text_to_html(result, input, attr, attr_len);
 
-	printf("text: \"%s\"%s\n", input, (attr != NULL) ? " + attr" : "");
+	printf("text: \"%s\"", input);
+	if (attr != NULL) {
+		int i;
+
+		printf(" + attr:");
+		for (i = 0; i < attr_len; i++)
+			printf(" %02x", (unsigned char) attr[i]);
+	}
+	printf("\n");
 	printf("output: \"%s\"\n", result);
 
 	if (strcmp(result, output) != 0) {
