@@ -418,7 +418,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 		return NULL;
 	}
 
-	if (!port)
+	if (port == 0 || port == -1)
 		port = GG_DEFAULT_DCC_PORT;
 
 	while (!bound) {
