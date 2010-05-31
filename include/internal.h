@@ -53,5 +53,8 @@ int gg_resolve(int *fd, int *pid, const char *hostname);
 int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
 void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
+#ifdef HAVE_UINT64_T
+uint64_t gg_fix64(uint64_t x);
+#endif
 
 #endif /* LIBGADU_INTERNAL_H */
