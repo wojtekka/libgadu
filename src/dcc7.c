@@ -185,7 +185,6 @@ static int gg_dcc7_get_relay_addr(struct gg_dcc7 *dcc)
 /**
  * \internal Nawiązuje połączenie bezpośrednie
  *
- * \param sess Struktura sesji
  * \param dcc Struktura połączenia
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
@@ -672,8 +671,6 @@ int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload
 				tmp->state = GG_STATE_WAITING_FOR_ACCEPT;
 				tmp->timeout = GG_DCC7_TIMEOUT_FILE_ACK;
 
-				gg_dcc7_get_relay_addr(tmp);
-
 				return gg_send_packet(sess, GG_DCC7_NEW, &s, sizeof(s), NULL);
 			}
 		}
@@ -739,7 +736,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 	char *tmp;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_info(%p, %p, %p, %d)\n", sess, e, payload, len);
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "// gg_dcc7_handle_info() received adress: %s, hash: %s\n", p->info, p->hash);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "// gg_dcc7_handle_info() received address: %s, hash: %s\n", p->info, p->hash);
 
 	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unknown dcc session\n");
@@ -784,14 +781,24 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
 			return 0;
 		}
 
-		// XXX sprawdzać, czy id się zgadza?
+#if defined(HAVE_UINT64_T) && defined(HAVE_STRTOULL)
+		{
+			uint64_t cid;
 
-		/*if (dcc->cid != (gg_dcc7_)atoi(tmp + 1)) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid session id\n");
-			e->type = GG_EVENT_DCC7_ERROR;
-			e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
-			return 0;
-		}*/
+			cid = strtoull(tmp + 2, NULL, 0);
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() info.str=%s, info.id=%llu, sess.id=%llu\n", tmp + 2, cid, *((unsigned long long*) &dcc->cid));
+
+			cid = gg_fix64(cid);
+
+			if (memcmp(&dcc->cid, &cid, sizeof(cid)) != 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid session id\n");
+				e->type = GG_EVENT_DCC7_ERROR;
+				e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+				return 0;
+			}
+		}
+#endif
 
 		if (gg_dcc7_get_relay_addr(dcc) == -1) {
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unable to retrieve relay address\n");
