@@ -199,19 +199,19 @@ struct gg_dcc7_voice_init_confirm {
 	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
 } GG_PACKED;
 
-#define GG_DCC7_RELAY_TYPE_SERVER 0x01	/** adres serwera, na który spytać o proxy **/
-#define GG_DCC7_RELAY_TYPE_PROXY 0x08	/** adresy proxy, na które sie łączyć **/
+#define GG_DCC7_RELAY_TYPE_SERVER 0x01	/* adres serwera, na który spytać o proxy */
+#define GG_DCC7_RELAY_TYPE_PROXY 0x08	/* adresy proxy, na które sie łączyć */
 
 #define GG_DCC7_RELAY_DUNNO1 0x02
 
 #define GG_DCC7_RELAY_REQUEST 0x0a
 
 struct gg_dcc7_relay_req {
-	uint32_t magic;			/** 0x0a **/
-	uint32_t len;			/** długość całego pakietu **/
-	gg_dcc7_id_t id;   		/** identyfikator połączenia **/
-	uint16_t type;   		/** typ zapytania **/
-	uint16_t dunno1;		/** 0x02 **/
+	uint32_t magic;			/* 0x0a */
+	uint32_t len;			/* długość całego pakietu */
+	gg_dcc7_id_t id;   		/* identyfikator połączenia */
+	uint16_t type;   		/* typ zapytania */
+	uint16_t dunno1;		/* 0x02 */
 } GG_PACKED;
 
 #define GG_DCC7_RELAY_REPLY_RCOUNT 0x02
@@ -219,26 +219,26 @@ struct gg_dcc7_relay_req {
 #define GG_DCC7_RELAY_REPLY 0x0b
 
 struct gg_dcc7_relay_reply {
-	uint32_t magic;			/** 0x0b **/
-	uint32_t len;			/** długość całego pakietu **/
-	uint32_t rcount;		/** ilość serwerów **/
+	uint32_t magic;			/* 0x0b */
+	uint32_t len;			/* długość całego pakietu */
+	uint32_t rcount;		/* ilość serwerów */
 } GG_PACKED;
 
 struct gg_dcc7_relay_reply_server {
-	uint32_t addr;		/** adres ip serwera **/
-	uint16_t port;		/** port serwera **/
-	uint8_t family;		/** rodzina adresów (na końcu?!) AF_INET=2 **/
+	uint32_t addr;		/* adres ip serwera */
+	uint16_t port;		/* port serwera */
+	uint8_t family;		/* rodzina adresów (na końcu?!) AF_INET=2 */
 } GG_PACKED;
 
 #define GG_DCC7_WELCOME_SERVER 0xc0debabe
 
 struct gg_dcc7_welcome_server {
-	uint32_t magic;			/** 0xc0debabe **/
-	gg_dcc7_id_t id;		/** identyfikator połączenia **/
+	uint32_t magic;			/* 0xc0debabe */
+	gg_dcc7_id_t id;		/* identyfikator połączenia */
 } GG_PACKED;
 
 struct gg_dcc7_welcome_p2p {
-	gg_dcc7_id_t id;		/** identyfikator połączenia **/
+	gg_dcc7_id_t id;		/* identyfikator połączenia */
 } GG_PACKED;
 
 #ifdef _WIN32
