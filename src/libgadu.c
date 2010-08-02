@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 #include <unistd.h>
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
