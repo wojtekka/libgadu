@@ -20,6 +20,9 @@
  * \file pubdir50.c
  *
  * \brief Obsługa katalogu publicznego od wersji Gadu-Gadu 5.x
+ *
+ * \todo Zoptymalizować konwersję CP1250<->UTF8. Obecnie robiona jest
+ * testowa konwersja, żeby poznać długość tekstu wynikowego.
  */
 
 #include <errno.h>
@@ -223,7 +226,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		} else {
 			char *tmp;
 
-			// XXX zoptymalizować
+			// XXX \todo zoptymalizować
 			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL)
@@ -233,7 +236,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 
 			free(tmp);
 
-			// XXX zoptymalizować
+			// XXX \todo zoptymalizować
 			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL)
@@ -272,7 +275,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		} else {
 			char *tmp;
 
-			// XXX zoptymalizować
+			// XXX \todo zoptymalizować
 			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL) {
@@ -284,7 +287,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 			p += strlen(tmp) + 1;
 			free(tmp);
 
-			// XXX zoptymalizować
+			// XXX \todo zoptymalizować
 			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 

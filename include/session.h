@@ -19,6 +19,10 @@
 #ifndef LIBGADU_SESSION_H
 #define LIBGADU_SESSION_H
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+#  include <gnutls/gnutls.h>
+#endif
+
 #define GG_SESSION_CHECK(gs, result) \
 	do { \
 		if ((gs) == NULL) { \
@@ -43,6 +47,23 @@
 #define GG_SESSION_IS_IDLE(gs) ((gs)->state == GG_STATE_IDLE)
 #define GG_SESSION_IS_CONNECTING(gs) ((gs)->state != GG_STATE_IDLE && (gs)->state != GG_STATE_CONNECTED)
 #define GG_SESSION_IS_CONNECTED(gs) ((gs)->state == GG_STATE_CONNECTED)
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+
+typedef struct {
+	gnutls_session_t session;
+	gnutls_certificate_credentials_t xcred;
+} gg_session_gnutls_t;
+
+#define GG_SESSION_GNUTLS(gs) ((gg_session_gnutls_t*) (gs)->ssl)->session
+
+#endif /* GG_CONFIG_HAVE_GNUTLS */
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+
+#define GG_SESSION_OPENSSL(gs) ((SSL*) (gs)->ssl)
+
+#endif /* GG_CONFIG_HAVE_OPENSSL */
 
 int gg_session_contacts_request(struct gg_session *gs, uint8_t type, const char *request, size_t length);
 

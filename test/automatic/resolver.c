@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <unistd.h>
+#include <arpa/inet.h>
+#include <errno.h>
 #include <libgadu.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
+#include <unistd.h>
 
 #define LOCALHOST "127.0.0.1"
 

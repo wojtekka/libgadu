@@ -51,6 +51,7 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/rand.h>
@@ -75,7 +76,7 @@ struct gg_session *gg_session_new(void)
 	gs->pid = -1;
 	gs->encoding = GG_ENCODING_UTF8;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
-	gs->protocol_features = GG_PROTOCOL_FEATURE_MSG80 | GG_PROTOCOL_FEATURE_STATUS80;
+	gs->protocol_features = GG_FEATURE_ALL | GG_FEATURE_MSG80 | GG_FEATURE_STATUS80;
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
@@ -401,6 +402,7 @@ int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value
 			break;
 
 		case GG_SESSION_FLAG_CLEAR_PASSWORD:
+		case GG_SESSION_FLAG_SSL:
 			if (value)
 				gs->flags |= (1 << flag);
 			else
@@ -427,6 +429,7 @@ int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag)
 			return (gs->protocol_flags & GG_HAS_AUDIO_MASK) ? 1 : 0;
 
 		case GG_SESSION_FLAG_CLEAR_PASSWORD:
+		case GG_SESSION_FLAG_SSL:
 			return (gs->flags & (1 << flag)) ? 1 : 0;
 
 		default:
@@ -453,7 +456,7 @@ static int gg_session_set_status_8(struct gg_session *gs, int status, const char
 		struct gg_new_status80 p;
 
 		p.status = gg_fix32(status);
-		p.flags = gg_fix32(0x00800001);
+		p.flags = gg_fix32(gs->status_flags);
 		p.descr_len = gg_fix32((tmp != NULL) ? strlen(tmp) : 0);
 
 		gs->status = status;
@@ -523,6 +526,8 @@ int gg_session_set_status(struct gg_session *gs, int status, const char *descr, 
 {
 	GG_SESSION_CHECK(gs, -1);
 
+	// XXX \todo zamieniać dnd->busy, ffc->avail, jeśli jest potrzeba
+
 	if (GG_S(status) == GG_STATUS_AVAIL && descr != NULL)
 		status = GG_STATUS_AVAIL_DESCR | (status & GG_STATUS_FRIENDS_MASK);
 
@@ -555,6 +560,27 @@ int gg_session_get_status(struct gg_session *gs, int *status, const char **descr
 		*time = gs->status_time;
 
 	return 0;
+}
+
+int gg_session_set_status_flags(struct gg_session *gs, int status_flags)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	gs->status_flags = status_flags;
+
+	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
+		return gg_session_set_status_8(gs, gs->status, gs->status_descr);
+	} else {
+		errno = ENOSYS;
+		return -1;
+	}
+}
+
+int gg_session_get_status_flags(struct gg_session *gs)
+{
+	GG_SESSION_CHECK(gs, -1);
+
+	return gs->status_flags;
 }
 
 int gg_session_get_fd(struct gg_session *gs)
@@ -613,7 +639,7 @@ int gg_session_get_ping_period(struct gg_session *gs)
  * inaczej serwer uzna, że klient stracił łączność z siecią i zerwie
  * połączenie.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  * 
@@ -651,7 +677,9 @@ int gg_session_connect(struct gg_session *gs)
 			gs->state = (gs->async) ? GG_STATE_RESOLVE_HUB_ASYNC : GG_STATE_RESOLVE_HUB_SYNC;
 		}
 	} else {
-		gs->connect_addr = gs->server_addr;
+		gs->connect_host = strdup(inet_ntoa(*(struct in_addr*) &gs->server_addr));
+		if (gs->connect_host == NULL)
+			return -1;
 		gs->connect_index = 0;
 
 		if (gg_proxy_enabled) {
@@ -661,7 +689,7 @@ int gg_session_connect(struct gg_session *gs)
 			gs->connect_port[1] = 0;
 			gs->state = (gs->async) ? GG_STATE_RESOLVE_PROXY_GG_ASYNC : GG_STATE_RESOLVE_PROXY_GG_SYNC;
 		} else {
-			gs->resolver_host = NULL;
+			gs->resolver_host = gs->connect_host;
 			if (gs->port == 0) {
 				gs->connect_port[0] = GG_DEFAULT_PORT;
 				gs->connect_port[1] = GG_HTTPS_PORT;
@@ -669,8 +697,7 @@ int gg_session_connect(struct gg_session *gs)
 				gs->connect_port[0] = gs->port;
 				gs->connect_port[1] = 0;
 			}
-			gs->state = GG_STATE_CONNECT_GG;
-
+			gs->state = (gs->async) ? GG_STATE_RESOLVE_GG_ASYNC : GG_STATE_RESOLVE_GG_SYNC;
 		}
 	}
 
@@ -724,9 +751,17 @@ int gg_session_shutdown(struct gg_session *gs)
 {
 	GG_SESSION_CHECK(gs, -1);
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-	if (gs->ssl)
-		SSL_shutdown(gs->ssl);
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (gs->ssl != NULL) {
+		gnutls_bye(GG_SESSION_GNUTLS(gs), GNUTLS_SHUT_RDWR);
+		// XXX upewnić się, że deinit() będzie wołane wtedy i tylko
+		// wtedy gdy zawołano init().
+		gnutls_global_deinit();
+	}
+
+#elif defined(GG_CONFIG_HAVE_OPENSSL)
+	if (gs->ssl != NULL)
+		SSL_shutdown(GG_SESSION_OPENSSL(gs));
 #endif
 
 	gs->resolver_cleanup(&gs->resolver, 1);
@@ -736,6 +771,17 @@ int gg_session_shutdown(struct gg_session *gs)
 		close(gs->fd);
 		gs->fd = -1;
 	}
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (gs->ssl != NULL) {
+		gg_session_gnutls_t *tmp;
+
+		tmp = (gg_session_gnutls_t*) gs->ssl;
+		gnutls_deinit(tmp->session);
+		gnutls_certificate_free_credentials(tmp->xcred);
+		free(gs->ssl);
+	}
+#endif
 
 	free(gs->send_buf);
 	gs->send_buf = NULL;
@@ -1127,7 +1173,7 @@ uint32_t gg_session_send_message(struct gg_session *gs, gg_message_t *gm)
  * Program nie musi się przejmować fragmentacją listy kontaktów wynikającą
  * z protokołu -- wysyła i odbiera kompletną listę.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param type Rodzaj zapytania
  * \param request Treść zapytania (może być równe NULL)
  * \param length Długość zapytania
@@ -1266,6 +1312,7 @@ int gg_session_image_request(struct gg_session *gs, uin_t recipient, size_t size
  * \param recipient Numer odbiorcy
  * \param image Bufor z obrazkiem
  * \param size Rozmiar obrazka
+ * \param crc32 Suma kontrola obrazka
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
@@ -1396,7 +1443,7 @@ int gg_session_send_contacts(struct gg_session *gs, const gg_contact_t *contacts
  * rodzaj kontaktu (np. z normalnego na zablokowany), należy najpierw usunąć
  * poprzedni rodzaj, ponieważ serwer operuje na maskach bitowych.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param contact Informacje o kontakcie
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
@@ -1425,7 +1472,7 @@ int gg_session_add_contact(struct gg_session *gs, const gg_contact_t *contact)
  *
  * Usuwa z listy kontaktów dany numer w trakcie połączenia.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param contact Informacje o kontakcie
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
@@ -1447,6 +1494,31 @@ int gg_session_remove_contact(struct gg_session *gs, const gg_contact_t *contact
 	a.dunno1 = contact->type;
 
 	return gg_send_packet(gs, GG_ADD_NOTIFY, &a, sizeof(a), NULL);
+}
+
+/**
+ * Informuje rozmówcę o pisaniu wiadomości.
+ *
+ * \param gs Struktura sesji
+ * \param recipient Numer adresata
+ * \param length Długość wiadomości lub 0 jeśli jest pusta
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup messages
+ */
+int gg_session_typing_notification(struct gg_session *gs, uin_t recipient, int length)
+{
+	struct gg_typing_notification pkt;
+	uin_t uin;
+
+	GG_SESSION_CHECK_CONNECTED(gs, -1);
+
+	pkt.length = gg_fix16(length);
+	uin = gg_fix32(recipient);
+	memcpy(&pkt.uin, &uin, sizeof(uin_t));
+
+	return gg_send_packet(gs, GG_TYPING_NOTIFICATION, &pkt, sizeof(pkt), NULL);
 }
 
 int gg_session_handle_io(struct gg_session *gs, int condition)
@@ -1545,13 +1617,16 @@ void gg_session_free(struct gg_session *gs)
 	free(gs->header_buf);
 	free(gs->recv_buf);
 	free(gs->resolver_result);
+	free(gs->connect_host);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-	if (gs->ssl != NULL)
-		SSL_free(gs->ssl);
+	if (gs->ssl != NULL) {
+		SSL_CTX *ctx;
 
-	if (gs->ssl_ctx != NULL)
-		SSL_CTX_free(gs->ssl_ctx);
+		ctx = SSL_get_SSL_CTX(GG_SESSION_OPENSSL(gs));
+		SSL_CTX_free(ctx);
+		SSL_free(GG_SESSION_OPENSSL(gs));
+	}
 #endif
  
 	gs->resolver_cleanup(&gs->resolver, 1);

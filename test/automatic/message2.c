@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include "message.h"
 #include "config.h"
 #ifdef HAVE_LIBXML2

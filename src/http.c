@@ -20,6 +20,8 @@
  * \file http.c
  *
  * \brief Obsługa połączeń HTTP
+ *
+ * \todo Łączenie się z kolejnymi hostami z listy.
  */
 
 #include <sys/types.h>
@@ -196,7 +198,7 @@ int gg_http_watch_fd(struct gg_http *h)
 {
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_http_watch_fd(%p);\n", h);
 
-	if (!h) {
+	if (h == NULL) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_watch_fd() invalid arguments\n");
 		errno = EFAULT;
 		return -1;
@@ -285,19 +287,15 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading header failed (errno=%d)\n", errno);
-			if (h->header) {
-				free(h->header);
-				h->header = NULL;
-			}
+			free(h->header);
+			h->header = NULL;
 			gg_http_error(GG_ERROR_READING);
 		}
 
 		if (!res) {
 			gg_debug(GG_DEBUG_MISC, "=> http, connection reset by peer\n");
-			if (h->header) {
-				free(h->header);
-				h->header = NULL;
-			}
+			free(h->header);
+			h->header = NULL;
 			gg_http_error(GG_ERROR_READING);
 		}
 
@@ -393,10 +391,8 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading body failed (errno=%d)\n", errno);
-			if (h->body) {
-				free(h->body);
-				h->body = NULL;
-			}
+			free(h->body);
+			h->body = NULL;
 			gg_http_error(GG_ERROR_READING);
 		}
 
@@ -408,10 +404,8 @@ int gg_http_watch_fd(struct gg_http *h)
 				h->fd = -1;
 			} else {
 				gg_debug(GG_DEBUG_MISC, "=> http, connection closed while reading (have %d, need %d)\n", h->body_done, h->body_size);
-				if (h->body) {
-					free(h->body);
-					h->body = NULL;
-				}
+				free(h->body);
+				h->body = NULL;
 				gg_http_error(GG_ERROR_READING);
 			}
 
@@ -466,7 +460,7 @@ int gg_http_watch_fd(struct gg_http *h)
  */
 void gg_http_stop(struct gg_http *h)
 {
-	if (!h)
+	if (h == NULL)
 		return;
 
 	if (h->state == GG_STATE_ERROR || h->state == GG_STATE_DONE)
@@ -489,23 +483,17 @@ void gg_http_stop(struct gg_http *h)
  */
 void gg_http_free_fields(struct gg_http *h)
 {
-	if (!h)
+	if (h == NULL)
 		return;
 
-	if (h->body) {
-		free(h->body);
-		h->body = NULL;
-	}
+	free(h->body);
+	h->body = NULL;
 
-	if (h->query) {
-		free(h->query);
-		h->query = NULL;
-	}
+	free(h->query);
+	h->query = NULL;
 
-	if (h->header) {
-		free(h->header);
-		h->header = NULL;
-	}
+	free(h->header);
+	h->header = NULL;
 }
 
 /**
@@ -519,7 +507,7 @@ void gg_http_free_fields(struct gg_http *h)
  */
 void gg_http_free(struct gg_http *h)
 {
-	if (!h)
+	if (h == NULL)
 		return;
 
 	gg_http_stop(h);

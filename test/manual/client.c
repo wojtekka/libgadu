@@ -29,6 +29,7 @@ void usage(const char *argv0)
 		"  -D               disable debugging\n"
 		"  -S               synchronous connection\n"
 		"  -l NUMBER        last system message received\n"
+		"  -L               use SSL connection\n"
 		"  -y               hide system message\n"
 		"  -h               print this message\n"
 		"\n", argv0);
@@ -79,7 +80,7 @@ int main(int argc, char **argv)
 
 	config_read();
 
-	while ((ch = getopt(argc, argv, "DShHs:p:l:y")) != -1) {
+	while ((ch = getopt(argc, argv, "DShHLs:p:l:y")) != -1) {
 		switch (ch) {
 			case 'D':
 				gg_debug_level = 0;
@@ -87,6 +88,10 @@ int main(int argc, char **argv)
 
 			case 'S':
 				gg_session_set_async(gs, 0);
+				break;
+
+			case 'L':
+				gg_session_set_flag(gs, GG_SESSION_FLAG_SSL, 1);
 				break;
 
 			case 's':

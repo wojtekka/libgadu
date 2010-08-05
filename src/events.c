@@ -46,6 +46,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <ctype.h>
+#ifdef GG_CONFIG_HAVE_GNUTLS
+#  include <gnutls/gnutls.h>
+#  include <gnutls/x509.h>
+#endif
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/x509.h>
@@ -278,11 +283,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 	switch (sess->state) {
 		case GG_STATE_RESOLVE_HUB_SYNC:
+		case GG_STATE_RESOLVE_GG_SYNC:
 		case GG_STATE_RESOLVE_PROXY_HUB_SYNC:
 		case GG_STATE_RESOLVE_PROXY_GG_SYNC:
 		{
 			struct in_addr addr;
 
+goto_GG_STATE_RESOLVE_SYNC:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if ((addr.s_addr = inet_addr(sess->resolver_host)) == INADDR_NONE) {
@@ -310,20 +317,26 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				sess->resolver_index = 0;
 			}
 
+			sess->state = sess->next_state;
+
 			if (sess->state == GG_STATE_RESOLVE_HUB_SYNC)
 				sess->state = GG_STATE_CONNECT_HUB;
+			else if (sess->state == GG_STATE_RESOLVE_GG_SYNC)
+				sess->state = GG_STATE_CONNECT_GG;
 			else if (sess->state == GG_STATE_RESOLVE_PROXY_HUB_SYNC)
 				sess->state = GG_STATE_CONNECT_PROXY_HUB;
-			else
+			else if (sess->state == GG_STATE_RESOLVE_PROXY_GG_SYNC)
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
 
 			goto goto_GG_STATE_CONNECT_XXX;
 		}
 
 		case GG_STATE_RESOLVE_HUB_ASYNC:
+		case GG_STATE_RESOLVE_GG_ASYNC:
 		case GG_STATE_RESOLVE_PROXY_HUB_ASYNC:
 		case GG_STATE_RESOLVE_PROXY_GG_ASYNC:
 		{
+goto_GG_STATE_RESOLVE_ASYNC:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (sess->resolver_start(&sess->fd, &sess->resolver, sess->resolver_host) == -1) {
@@ -334,9 +347,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->state == GG_STATE_RESOLVE_HUB_ASYNC)
 				sess->state = GG_STATE_RESOLVING_HUB;
+			else if (sess->state == GG_STATE_RESOLVE_GG_ASYNC)
+				sess->state = GG_STATE_RESOLVING_GG;
 			else if (sess->state == GG_STATE_RESOLVE_PROXY_HUB_ASYNC)
 				sess->state = GG_STATE_RESOLVING_PROXY_HUB;
-			else
+			else if (sess->state == GG_STATE_RESOLVE_PROXY_GG_ASYNC)
 				sess->state = GG_STATE_RESOLVING_PROXY_GG;
 
 			sess->check = GG_CHECK_READ;
@@ -346,6 +361,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		}
 
 		case GG_STATE_RESOLVING_HUB:
+		case GG_STATE_RESOLVING_GG:
 		case GG_STATE_RESOLVING_PROXY_HUB:
 		case GG_STATE_RESOLVING_PROXY_GG:
 		{
@@ -454,9 +470,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (sess->state == GG_STATE_RESOLVING_HUB)
 				sess->state = GG_STATE_CONNECT_HUB;
+			if (sess->state == GG_STATE_RESOLVING_GG)
+				sess->state = GG_STATE_CONNECT_GG;
 			else if (sess->state == GG_STATE_RESOLVING_PROXY_HUB)
 				sess->state = GG_STATE_CONNECT_PROXY_HUB;
-			else
+			else if (sess->state == GG_STATE_RESOLVING_PROXY_GG)
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
 
 			sess->resolver_result = (struct in_addr*) sess->recv_buf;
@@ -465,7 +483,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			sess->recv_buf = NULL;
 			sess->recv_done = 0;
 			
-			/* fall through */
+			if (sess->state != GG_STATE_CONNECT_GG)
+				goto goto_GG_STATE_CONNECT_XXX;
+			else
+				goto goto_GG_STATE_CONNECT_GG;
+
+			break;
 		}
 
 		case GG_STATE_CONNECT_HUB:
@@ -503,6 +526,8 @@ goto_GG_STATE_CONNECT_XXX:
 
 			if (sess->state == GG_STATE_CONNECT_HUB) {
 				sess->state = GG_STATE_CONNECTING_HUB;
+			} else if (sess->state == GG_STATE_CONNECT_GG) {
+				sess->state = GG_STATE_CONNECTING_GG;
 			} else if (sess->state == GG_STATE_CONNECT_PROXY_HUB) {
 				sess->state = GG_STATE_CONNECTING_PROXY_HUB;
 				sess->soft_timeout = 1;
@@ -543,7 +568,7 @@ goto_GG_STATE_CONNECT_XXX:
 				goto goto_GG_STATE_SEND_PROXY_GG;
 			}
 
-			/* fall through */
+			goto goto_GG_STATE_SEND_HUB;
 		}
 
 		case GG_STATE_SEND_HUB:
@@ -553,6 +578,7 @@ goto_GG_STATE_CONNECT_XXX:
 			const char *host;
 			int res;
 
+goto_GG_STATE_SEND_HUB:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
@@ -567,18 +593,14 @@ goto_GG_STATE_CONNECT_XXX:
 
 			auth = gg_proxy_auth();
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-			if (sess->ssl) {
+			if (sess->flags & (1 << GG_SESSION_FLAG_SSL)) {
 				snprintf(buf, sizeof(buf) - 1,
-					"GET %s/appsvc/appmsg3.asp?fmnumber=%u&version=%s&lastmsg=%d HTTP/1.0\r\n"
+					"GET %s/appsvc/appmsg_ver10.asp?fmnumber=%u&fmt=2&lastmsg=%d&version=%s&age=2&gender=1 HTTP/1.0\r\n"
+					"Connection: close\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
-					"User-Agent: " GG_HTTP_USERAGENT "\r\n"
-					"Pragma: no-cache\r\n"
 					"%s"
-					"\r\n", host, sess->uin, client, sess->last_sysmsg, (auth) ? auth : "");
-			} else
-#endif
-			{
+					"\r\n", host, sess->uin, sess->last_sysmsg, client, (auth) ? auth : "");
+			} else {
 				snprintf(buf, sizeof(buf) - 1,
 					"GET %s/appsvc/appmsg_ver8.asp?fmnumber=%u&fmt=2&lastmsg=%d&version=%s HTTP/1.0\r\n"
 					"Host: " GG_APPMSG_HOST "\r\n"
@@ -647,7 +669,7 @@ goto_GG_STATE_CONNECT_XXX:
 		case GG_STATE_READING_HUB:
 		case GG_STATE_READING_PROXY_HUB:
 		{
-			char buf[1024], *tmp, host[32];
+			char buf[1024], *tmp, host[128];
 			int port = GG_DEFAULT_PORT;
 			int reply;
 			const char *body;
@@ -715,14 +737,8 @@ goto_GG_STATE_CONNECT_XXX:
 				goto fail;
 			}
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-			if (sess->ssl != NULL)
-				// 0 17591 0 91.197.13.71:443 91.197.13.71
-				res = sscanf(body, "%*d %d %*d %32s", &reply, host);
-			else
-#endif
-				// 17591 0 91.197.13.71:8074 91.197.13.71
-				res = sscanf(body, "%d %*d %32s", &reply, host);
+			// 17591 0 91.197.13.71:8074 91.197.13.71
+			res = sscanf(body, "%d %*d %128s", &reply, host);
 
 			if (res != 2) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid hub reply, connection failed\n");
@@ -773,8 +789,6 @@ goto_GG_STATE_CONNECT_XXX:
 			sess->recv_buf = NULL;
 			sess->recv_done = 0;
 
-			sess->connect_addr = addr.s_addr;
-
 			if (sess->port == 0) {
 				sess->connect_port[0] = port;
 				sess->connect_port[1] = (port != GG_HTTPS_PORT) ? GG_HTTPS_PORT : 0;
@@ -783,36 +797,61 @@ goto_GG_STATE_CONNECT_XXX:
 				sess->connect_port[1] = 0;
 			}
 
+			free(sess->connect_host);
+			sess->connect_host = strdup(host);
+
+			if (sess->connect_host == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory\n");
+				goto fail;
+			}
+
 			if (sess->state == GG_STATE_READING_PROXY_HUB) {
 				sess->state = GG_STATE_CONNECT_PROXY_GG;
 				goto goto_GG_STATE_CONNECT_XXX;
 			} else {
+				sess->resolver_host = sess->connect_host;
+				if (sess->async) {
+					sess->state = GG_STATE_RESOLVE_GG_ASYNC;
+					goto goto_GG_STATE_RESOLVE_ASYNC;
+				} else {
+					sess->state = GG_STATE_RESOLVE_GG_SYNC;
+					goto goto_GG_STATE_RESOLVE_SYNC;
+				}
 				sess->state = GG_STATE_CONNECT_GG;
+				goto goto_GG_STATE_CONNECT_GG;
 			}
 
-			/* fall through */
+			break;
 		}
 
 		case GG_STATE_CONNECT_GG:
 		{
+			struct in_addr addr;
 			uint16_t port;
 
 goto_GG_STATE_CONNECT_GG:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
 			if (sess->connect_index > 1 || sess->connect_port[sess->connect_index] == 0) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of connection candidates\n");
-				e->event.failure = GG_FAILURE_UNAVAILABLE;
-				goto fail;
+				sess->connect_index = 0;
+				sess->resolver_index++;
+				if (sess->resolver_index >= sess->resolver_count) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of addresses to connect to\n");
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
+				}
 			}
 
+			addr = sess->resolver_result[sess->resolver_index];
 			port = sess->connect_port[sess->connect_index];
-			sess->connect_index++;
-			
-			sess->fd = gg_connect(&sess->connect_addr, port, sess->async);
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connecting to %s:%d\n", inet_ntoa(addr), port);
+
+			sess->fd = gg_connect(&addr, port, sess->async);
 
 			if (sess->fd == -1) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
+				sess->connect_index++;
 				goto goto_GG_STATE_CONNECT_GG;
 			}
 
@@ -835,12 +874,25 @@ goto_GG_STATE_CONNECT_GG:
 			/* jeśli wystąpił błąd podczas łączenia się... */
 			if (gg_async_connect_failed(sess, &res)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
+				sess->connect_index++;
 				goto goto_GG_STATE_CONNECT_GG;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");
 
-			// XXX TLS
+			if (sess->flags & (1 << GG_SESSION_FLAG_SSL)) {
+				if (gg_session_init_ssl(sess) == -1) {
+					e->event.failure = GG_FAILURE_SSL;
+					goto fail;
+				}
+
+				sess->state = GG_STATE_TLS_NEGOTIATION;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+
+				break;
+			}
+
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
@@ -850,7 +902,6 @@ goto_GG_STATE_CONNECT_GG:
 		case GG_STATE_SEND_PROXY_GG:
 		{
 			char buf[128], *auth;
-			struct in_addr addr;
 			int port;
 			int res;
 
@@ -863,27 +914,16 @@ goto_GG_STATE_SEND_PROXY_GG:
 				goto fail;
 			}
 
-			addr.s_addr = sess->connect_addr;
 			port = sess->connect_port[sess->connect_index];
 			sess->connect_index++;
 	
 			auth = gg_proxy_auth();
 
-			snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n%s\r\n", inet_ntoa(addr), port, (auth) ? auth : "");
+			snprintf(buf, sizeof(buf), "CONNECT %s:%d HTTP/1.0\r\n%s\r\n", sess->connect_host, port, (auth) ? auth : "");
+
+			free(auth);
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n//   %s", buf);
-
-#ifdef GG_CONFIG_HAVE_OPENSSL
-			if (sess->ssl) {
-				SSL_set_fd(sess->ssl, sess->fd);
-
-				sess->state = GG_STATE_TLS_NEGOTIATION;
-				sess->check = GG_CHECK_WRITE;
-				sess->timeout = GG_DEFAULT_TIMEOUT;
-
-				break;
-			}
-#endif
 
 			res = gg_write(sess, buf, strlen(buf));
 
@@ -906,6 +946,83 @@ goto_GG_STATE_SEND_PROXY_GG:
 			break;
 		}
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+		case GG_STATE_TLS_NEGOTIATION:
+		{
+			int res;
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
+
+gnutls_handshake_repeat:
+			res = gnutls_handshake(GG_SESSION_GNUTLS(sess));
+
+			if (res == GNUTLS_E_AGAIN) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS handshake GNUTLS_E_AGAIN\n");
+
+				sess->state = GG_STATE_TLS_NEGOTIATION;
+				if (gnutls_record_get_direction(GG_SESSION_GNUTLS(sess)) == 0)
+					sess->check = GG_CHECK_READ;
+				else
+					sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+				break;
+			}
+
+			if (res == GNUTLS_E_INTERRUPTED) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS handshake GNUTLS_E_INTERRUPTED\n");
+				goto gnutls_handshake_repeat;
+			}
+
+			if (res != 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS handshake error %d\n", res);
+				e->type = GG_EVENT_CONN_FAILED;
+				e->event.failure = GG_FAILURE_TLS;
+				sess->state = GG_STATE_IDLE;
+				close(sess->fd);
+				sess->fd = -1;
+				break;
+			}
+
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeded:\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "//   cipher: VERS-%s:%s:%s:%s:COMP-%s\n",
+				gnutls_protocol_get_name(gnutls_protocol_get_version(GG_SESSION_GNUTLS(sess))),
+				gnutls_cipher_get_name(gnutls_cipher_get(GG_SESSION_GNUTLS(sess))),
+				gnutls_kx_get_name(gnutls_kx_get(GG_SESSION_GNUTLS(sess))),
+				gnutls_mac_get_name(gnutls_mac_get(GG_SESSION_GNUTLS(sess))),
+				gnutls_compression_get_name(gnutls_compression_get(GG_SESSION_GNUTLS(sess))));
+
+			if (gnutls_certificate_type_get(GG_SESSION_GNUTLS(sess)) == GNUTLS_CRT_X509) {
+				unsigned int peer_count;
+				const gnutls_datum_t *peers;
+				gnutls_x509_crt_t cert;
+
+				if (gnutls_x509_crt_init(&cert) >= 0) {
+					peers = gnutls_certificate_get_peers(GG_SESSION_GNUTLS(sess), &peer_count);
+
+					if (peers != NULL) {
+						char buf[256];
+						size_t size;
+
+						if (gnutls_x509_crt_import(cert, &peers[0], GNUTLS_X509_FMT_DER) >= 0) {
+							size = sizeof(buf);
+							gnutls_x509_crt_get_dn(cert, buf, &size);
+							gg_debug_session(sess, GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
+							size = sizeof(buf);
+							gnutls_x509_crt_get_issuer_dn(cert, buf, &size);
+							gg_debug_session(sess, GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
+						}
+					}
+				}
+			}
+
+			sess->state = GG_STATE_READING_KEY;
+			sess->check = GG_CHECK_READ;
+			sess->timeout = GG_DEFAULT_TIMEOUT;
+
+			break;
+		}
+#endif
+
 #ifdef GG_CONFIG_HAVE_OPENSSL
 		case GG_STATE_TLS_NEGOTIATION:
 		{
@@ -914,8 +1031,8 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
-			if ((res = SSL_connect(sess->ssl)) <= 0) {
-				int err = SSL_get_error(sess->ssl, res);
+			if ((res = SSL_connect(GG_SESSION_OPENSSL(sess))) <= 0) {
+				int err = SSL_get_error(GG_SESSION_OPENSSL(sess), res);
 
 				if (res == 0) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() disconnected during TLS negotiation\n");
@@ -945,7 +1062,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 					break;
 				} else {
-					char buf[1024];
+					char buf[256];
 
 					ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
 
@@ -960,9 +1077,9 @@ goto_GG_STATE_SEND_PROXY_GG:
 				}
 			}
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeded:\n//   cipher: %s\n", SSL_get_cipher_name(sess->ssl));
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeded:\n//   cipher: %s\n", SSL_get_cipher_name(GG_SESSION_OPENSSL(sess)));
 
-			peer = SSL_get_peer_certificate(sess->ssl);
+			peer = SSL_get_peer_certificate(GG_SESSION_OPENSSL(sess));
 
 			if (!peer)
 				gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING! unable to get peer certificate!\n");
@@ -1062,6 +1179,21 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
 
+			if (sess->flags & (1 << GG_SESSION_FLAG_SSL)) {
+				if (gg_session_init_ssl(sess) == -1) {
+					e->event.failure = GG_FAILURE_SSL;
+					goto fail;
+				}
+
+				// XXX a co ze zbuforowanymi danymi w sess->recv_buf + sess->recv_done?
+
+				sess->state = GG_STATE_TLS_NEGOTIATION;
+				sess->check = GG_CHECK_WRITE;
+				sess->timeout = GG_DEFAULT_TIMEOUT;
+
+				break;
+			}
+
 			sess->state = GG_STATE_READING_KEY;
 			sess->check = GG_CHECK_READ;
 			sess->timeout = GG_DEFAULT_TIMEOUT;
@@ -1106,7 +1238,7 @@ goto_GG_STATE_SEND_PROXY_GG:
 			if (gg_send_queued_data(sess) == -1)
 				goto fail;
 
-			res = read(sess->fd, buf, sizeof(buf));
+			res = gg_read(sess, buf, sizeof(buf));
 
 			if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
@@ -1132,6 +1264,8 @@ goto_GG_STATE_SEND_PROXY_GG:
 
 				break;
 			}
+
+			gg_debug_dump(sess, GG_DEBUG_DUMP, buf, res);
 
 			if (gg_session_handle_data(sess, buf, res, e) == -1)
 				goto fail;
@@ -1164,6 +1298,76 @@ fail:
 		free(e);
 		return NULL;
 	}
+}
+
+int gg_session_init_ssl(struct gg_session *gs)
+{
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	gg_session_gnutls_t *tmp;
+
+	tmp = malloc(sizeof(gg_session_gnutls_t));
+
+	if (tmp == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() out of memory for GnuTLS session\n");
+		return -1;
+	}
+
+	gs->ssl = tmp;
+
+	gnutls_global_init();
+	gnutls_certificate_allocate_credentials(&tmp->xcred);
+	gnutls_init(&tmp->session, GNUTLS_CLIENT);
+	gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
+//	gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
+	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) gs->fd);
+#endif
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+	char buf[1024];
+	SSL_CTX *ctx;
+	SSL *ssl;
+
+	OpenSSL_add_ssl_algorithms();
+
+	if (!RAND_status()) {
+		char rdata[1024];
+		struct {
+			time_t time;
+			void *ptr;
+		} rstruct;
+
+		time(&rstruct.time);
+		rstruct.ptr = (void *) &rstruct;
+
+		RAND_seed((void *) rdata, sizeof(rdata));
+		RAND_seed((void *) &rstruct, sizeof(rstruct));
+	}
+
+	ctx = SSL_CTX_new(SSLv3_client_method());
+
+	if (ctx == NULL) {
+		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+		return -1;
+	}
+
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+
+	ssl = SSL_new(ctx);
+
+	if (ssl == NULL) {
+		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+		return -1;
+	}
+
+	SSL_set_fd(ssl, gs->fd);
+
+	gs->ssl = ssl;
+#endif
+
+	return 0;
 }
 
 /*

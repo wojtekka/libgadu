@@ -1,5 +1,5 @@
 AC_INIT(src/libgadu.c)
-AM_INIT_AUTOMAKE(libgadu, 1.10.0-pre)
+AM_INIT_AUTOMAKE(libgadu, 1.11.0-pre)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
@@ -181,86 +181,132 @@ if test "x$with_pthread" = "xyes"; then
 fi
 
 dnl
-dnl  Sprawdzamy OpenSSL
+dnl  Sprawdzamy GnuTLS
 dnl
 
-AC_CHECK_OPENSSL
+AC_ARG_WITH(gnutls,
+  [  --without-gnutls        do not use GnuTLS even if found])
+
+have_gnutls=""
+
+if test "x$with_gnutls" != "xno"; then
+	AC_CHECK_PROG([PKGCONFIG], [pkg-config], [pkg-config], [no])
+	if test "x$PKGCONFIG" != "xno"; then
+		AC_MSG_CHECKING([for GnuTLS])
+		GNUTLS_LIBS=$($PKGCONFIG --libs gnutls)
+		GNUTLS_CFLAGS=$($PKGCONFIG --cflags gnutls)
+		if test "x$GNUTLS_LIBS" != "x" -o "x$GNUTLS_CFLAGS" != "x"; then
+			AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
+			AC_MSG_RESULT([yes])
+			AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
+			REQUIRES="$REQUIRES gnutls"
+			CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
+			INCLUDES="$INCLUDES $GNUTLS_CFLAGS"
+			LIBS="$LIBS $GNUTLS_LIBS"
+			have_gnutls="yes"
+		else
+			AC_MSG_RESULT([no])
+		fi
+	fi
+fi
+
+dnl
+dnl  Sprawdzamy OpenSSL, jeśli nie ma GnuTLS
+dnl
+
+if test "x$have_gnutls" != "xyes"; then
+	AC_CHECK_OPENSSL
+fi
 
 if test "x$have_openssl" = "xyes"; then
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
 	REQUIRES="$REQUIRES openssl"
-	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with TLS support.])
+	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
 
 dnl
-dnl  Sprawdź, czy można korzystać z __funkcji w libc.
-dnl 
-
-AC_SUBST([OPTIONAL_TESTS])
-AC_CHECK_LIB(c, __connect, [
-	OPTIONAL_TESTS="connect resolver packet"
-],
-[
-	OPTIONAL_TESTS=""
-])
-
-dnl
-dnl  Biblioteki do testów
+dnl  Testy
 dnl
 
-AC_SUBST([OPTIONAL_TESTS_VOICE7])
-
-tmp=x
-AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
-AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
-AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
-AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
-
-if test "x$tmp" = "xxxxxx"; then
-	OPTIONAL_TESTS_VOICE7="voice7"
-else
-	OPTIONAL_TESTS_VOICE7=""
-fi
-
-AC_SUBST([OPTIONAL_TESTS_SEARCH])
-
-tmp=x
-AC_CHECK_LIB(curl, curl_easy_init, [tmp="x$tmp"])
-AC_CHECK_HEADERS(curl/curl.h, [tmp="x$tmp"])
-AC_CHECK_LIB(expat, XML_ParserCreate, [tmp="x$tmp"])
-AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
-
-if test "x$tmp" = "xxxxxx"; then
-	if test "x$have_openssl" = "xyes"; then
-		OPTIONAL_TESTS_SEARCH="search"
-	fi
-fi
-
+AC_SUBST([SUBDIRS_TEST])
+AC_SUBST([OPTIONAL_TESTS_GLIBC])
 AC_SUBST([OPTIONAL_TESTS_PERL])
+AC_SUBST([OPTIONAL_TESTS_VOICE7])
+AC_SUBST([OPTIONAL_TESTS_SEARCH])
+SUBDIRS_TEST=""
+OPTIONAL_TESTS_GLIBC=""
+OPTIONAL_TESTS_PERL=""
+OPTIONAL_TESTS_VOICE7=""
+OPTIONAL_TESTS_SEARCH=""
 
-AC_CHECK_PROG([PERL], [perl], [perl], [:])
-if test "x$PERL" != "x:"; then
-	OPTIONAL_TESTS_PERL="protocol"
-else
-	OPTIONAL_TESTS_PERL=""
-fi
+AC_ARG_ENABLE(tests,
+        [  --disable-tests         do not compile tests])
 
-dnl
-dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
-dnl
+if test "x$enable_tests" != "xno"; then
+	SUBDIRS_TEST="test"
 
-export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
+	dnl
+	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
+	dnl 
 
-PKG_PROG_PKG_CONFIG
+	AC_CHECK_LIB(c, __connect, [OPTIONAL_TESTS_GLIBC="connect resolver packet"])
 
-if test "x$PKG_CONFIG" != "x"; then
-	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
-	AC_SUBST([LIBXML2_CFLAGS])
-	AC_SUBST([LIBXML2_LIBS])
-	if test "x$LIBXML2_LIBS" != "x"; then
-		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
+	dnl
+	dnl  libgsm i libspeex dla voice7
+	dnl
+
+	tmp=x
+	AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
+	AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
+
+	if test "x$tmp" = "xxxxxx"; then
+		OPTIONAL_TESTS_VOICE7="voice7"
+	fi
+
+	dnl
+	dnl  curl, expat i OpenSSL dla search
+	dnl
+
+	tmp=x
+	AC_CHECK_LIB(curl, curl_easy_init, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(curl/curl.h, [tmp="x$tmp"])
+	AC_CHECK_LIB(expat, XML_ParserCreate, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
+
+	if test "x$tmp" = "xxxxxx"; then
+		if test "x$have_openssl" = "xyes"; then
+			OPTIONAL_TESTS_SEARCH="search"
+		fi
+	fi
+
+	dnl
+	dnl  Perl dla protocol
+	dnl
+
+	AC_CHECK_PROG([PERL], [perl], [perl], [:])
+	if test "x$PERL" != "x:"; then
+		OPTIONAL_TESTS_PERL="protocol"
+	fi
+
+	dnl
+	dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
+	dnl
+
+	export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
+
+	PKG_PROG_PKG_CONFIG
+
+	if test "x$PKG_CONFIG" != "x"; then
+		PKG_CHECK_MODULES([LIBXML2], [libxml-2.0])
+		AC_SUBST([LIBXML2_CFLAGS])
+		AC_SUBST([LIBXML2_LIBS])
+		if test "x$LIBXML2_LIBS" != "x"; then
+			AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
+		fi
 	fi
 fi
 

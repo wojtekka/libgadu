@@ -546,7 +546,7 @@ char *gg_base64_decode(const char *buf)
  * \return Zaalokowany bufor z tekstem lub NULL, jeśli serwer pośredniczący
  *         nie jest używany lub nie wymaga autoryzacji.
  */
-char *gg_proxy_auth()
+char *gg_proxy_auth(void)
 {
 	char *tmp, *enc, *out;
 	unsigned int tmp_size;

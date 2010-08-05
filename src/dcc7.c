@@ -730,6 +730,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 		e->event.dcc7_accept.remote_port = dcc->remote_port;
 	} else {
 		e->type = GG_EVENT_DCC7_PENDING;
+		e->event.dcc7_pending.dcc7 = dcc;
 	}
 
 	if (gg_dcc7_connect(sess, dcc) == -1) {
@@ -1006,6 +1007,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 				if (gg_dcc7_reverse_connect(dcc) != -1) {
 					e->type = GG_EVENT_DCC7_PENDING;
+					e->event.dcc7_pending.dcc7 = dcc;
 				} else {
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc7_error = GG_ERROR_DCC7_NET;
@@ -1096,6 +1098,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() offset >= size, finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1131,6 +1134,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1151,6 +1155,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1177,6 +1182,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 

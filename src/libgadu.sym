@@ -210,9 +210,11 @@ gg_session_set_server
 gg_session_set_status
 gg_session_set_uin
 gg_session_shutdown
+gg_session_typing_notification
 gg_token
 gg_token_free
 gg_token_watch_fd
+gg_typing_notification
 gg_unregister
 gg_unregister2
 gg_unregister3

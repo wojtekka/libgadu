@@ -286,7 +286,9 @@ int gg_resolver_run(int fd, const char *hostname)
  * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
  *
  * Jeśli dany system dostarcza \c gethostbyname_r, używa się tej wersji, jeśli
- * nie, to zwykłej \c gethostbyname.
+ * nie, to zwykłej \c gethostbyname. Funkcja służy do zachowania zgodności
+ * ABI i służy do pobierania tylko pierwszego adresu -- pozostałe mogą
+ * zostać zignorowane przez aplikację.
  *
  * \param hostname Nazwa serwera
  *
@@ -549,10 +551,10 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 	return 0;
 
 cleanup:
-	if (data) {
+	if (data != NULL)
 		free(data->hostname);
-		free(data);
-	}
+
+	free(data);
 
 	close(pipes[0]);
 	close(pipes[1]);

@@ -40,6 +40,7 @@
 #include "message.h"
 #include "session.h"
 #include "protocol.h"
+#include "debug.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -49,6 +50,9 @@
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#ifdef GG_CONFIG_HAVE_GNUTLS
+#  include <gnutls/gnutls.h>
+#endif
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/rand.h>
@@ -225,7 +229,9 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
 /**
  * \internal Odbiera od serwera dane binarne.
  *
- * Funkcja odbiera dane od serwera zajmując się TLS w razie konieczności.
+ * Funkcja odbiera dane od serwera zajmując się SSL/TLS w razie konieczności.
+ * Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi
+ * wywołaniami systemowymi.
  *
  * \param sess Struktura sesji
  * \param buf Bufor na danymi
@@ -235,27 +241,128 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
  */
 int gg_read(struct gg_session *sess, char *buf, int length)
 {
-	int res;
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res;
+
+			res = gnutls_record_recv(GG_SESSION_GNUTLS(sess), buf, length);
+
+			if (res < 0) {
+				if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
+					continue;
+
+				if (res == GNUTLS_E_AGAIN)
+					errno = EAGAIN;
+				else
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl) {
-		int err;
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res, err;
 
-		res = SSL_read(sess->ssl, buf, length);
+			res = SSL_read(GG_SESSION_OPENSSL(sess), buf, length);
 
-		if (res < 0) {
-			err = SSL_get_error(sess->ssl, res);
+			if (res < 0) {
+				err = SSL_get_error(GG_SESSION_OPENSSL(sess), res);
 
-			if (err == SSL_ERROR_WANT_READ)
-				errno = EAGAIN;
+				if (err == SSL_ERROR_SYSCALL && errno == EINTR)
+					continue;
 
-			return -1;
+				if (err == SSL_ERROR_WANT_READ)
+					errno = EAGAIN;
+				else if (err != SSL_ERROR_SYSCALL)
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
 		}
-	} else
+	}
 #endif
-		res = read(sess->fd, buf, length);
 
-	return res;
+	return read(sess->fd, buf, length);
+}
+
+/**
+ * \internal Wysyła do serwera dane binarne.
+ *
+ * Funkcja wysyła dane do serwera zajmując się SSL/TLS w razie konieczności.
+ * Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi
+ * wywołaniami systemowymi.
+ *
+ * \note Funkcja nie zajmuje się buforowaniem wysyłanych danych (patrz
+ * gg_write()).
+ *
+ * \param sess Struktura sesji
+ * \param buf Bufor z danymi
+ * \param length Długość bufora
+ *
+ * \return To samo co funkcja systemowa \c write
+ */
+static int gg_write_common(struct gg_session *sess, const char *buf, int length)
+{
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res;
+
+			res = gnutls_record_send(GG_SESSION_GNUTLS(sess), buf, length);
+
+			if (res < 0) {
+				if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
+					continue;
+
+				if (res == GNUTLS_E_AGAIN)
+					errno = EAGAIN;
+				else
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+	if (sess->ssl != NULL) {
+		for (;;) {
+			int res, err;
+
+			res = SSL_write(GG_SESSION_OPENSSL(sess), buf, length);
+
+			if (res < 0) {
+				err = SSL_get_error(GG_SESSION_OPENSSL(sess), res);
+
+				if (err == SSL_ERROR_SYSCALL && errno == EINTR)
+					continue;
+
+				if (err == SSL_ERROR_WANT_WRITE)
+					errno = EAGAIN;
+				else if (err != SSL_ERROR_SYSCALL)
+					errno = EINVAL;
+
+				return -1;
+			}
+
+			return res;
+		}
+	}
+#endif
+
+	return write(sess->fd, buf, length);
 }
 
 /**
@@ -273,216 +380,46 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 {
 	int res = 0;
 
-#ifdef GG_CONFIG_HAVE_OPENSSL
-	if (sess->ssl) {
-		int err;
+	if (!sess->async) {
+		int written = 0;
 
-		res = SSL_write(sess->ssl, buf, length);
+		while (written < length) {
+			res = gg_write_common(sess, buf + written, length - written);
 
-		if (res < 0) {
-			err = SSL_get_error(sess->ssl, res);
+			if (res == -1)
+				return -1;
 
-			if (err == SSL_ERROR_WANT_WRITE)
-				errno = EAGAIN;
-
-			return -1;
+			written += res;
+			res = written;
 		}
-	} else
-#endif
-	{
-		if (!sess->async) {
-			int written = 0;
+	} else {
+		res = 0;
 
-			while (written < length) {
-				res = write(sess->fd, buf + written, length - written);
+		if (sess->send_buf == NULL) {
+			res = gg_write_common(sess, buf, length);
 
-				if (res == -1) {
-					if (errno != EINTR)
-						break;
+			if (res == -1)
+				return -1;
+		}
 
-					continue;
-				}
+		if (res < length) {
+			char *tmp;
 
-				written += res;
-				res = written;
-			}
-		} else {
-			if (!sess->send_buf)
-				res = write(sess->fd, buf, length);
-			else
-				res = 0;
-
-			if (res == -1) {
-				if (errno != EAGAIN)
-					return res;
-
-				res = 0;
+			if (!(tmp = realloc(sess->send_buf, sess->send_left + length - res))) {
+				errno = ENOMEM;
+				return -1;
 			}
 
-			if (res < length) {
-				char *tmp;
+			sess->send_buf = tmp;
 
-				if (!(tmp = realloc(sess->send_buf, sess->send_left + length - res))) {
-					errno = ENOMEM;
-					return -1;
-				}
+			memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
 
-				sess->send_buf = tmp;
-
-				memcpy(sess->send_buf + sess->send_left, buf + res, length - res);
-
-				sess->send_left += length - res;
-			}
+			sess->send_left += length - res;
 		}
 	}
 
 	return res;
 }
-
-#if 0
-/**
- * \internal Odbiera pakiet od serwera.
- *
- * Funkcja odczytuje nagłówek pakietu, a następnie jego zawartość i zwraca
- * w zaalokowanym buforze.
- *
- * Przy połączeniach asynchronicznych, funkcja może nie być w stanie
- * skompletować całego pakietu -- w takim przypadku zwróci -1, a kodem błędu
- * będzie \c EAGAIN.
- *
- * \param sess Struktura sesji
- *
- * \return Wskaźnik do zaalokowanego bufora
- */
-void *gg_recv_packet(struct gg_session *sess)
-{
-	char header_buf[8];
-	char *tmp;
-	struct gg_header *head;
-
-	// XXX w trybie synchronicznym, gdy sess->timeout != -1, wypadałoby
-	// zrobić timeout za pomocą select() albo setsockopt(SO_RCVTIMEO)
-
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
-
-	if (sess == NULL) {
-		errno = EFAULT;
-		return NULL;
-	}
-
-	for (;;) {
-		char *chunk_ptr;
-		size_t chunk_len;
-		int ret;
-
-		/* Sprawdź, czy czytamy nagłówek pakietu */
-		if (sess->recv_done < sizeof(struct gg_header)) {
-			if (sess->recv_buf != NULL)
-				chunk_ptr = sess->recv_buf;
-			else
-				chunk_ptr = header_buf;
-			head = (struct gg_header *) chunk_ptr;
-			chunk_len = sizeof(struct gg_header);
-		} else {
-			chunk_ptr = sess->recv_buf;
-			head = (struct gg_header *) chunk_ptr;
-			chunk_len = sizeof(struct gg_header) + gg_fix32(head->length);
-		}
-
-		ret = gg_read(sess, chunk_ptr + sess->recv_done, chunk_len - sess->recv_done);
-
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() recv(%d,%p,%d) = %d\n", sess->fd, chunk_ptr + sess->recv_done, chunk_len - sess->recv_done, ret);
-
-		if (ret == 0) {
-			errno = ECONNRESET;
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: connection broken\n");
-			goto failure;
-		}
-
-		if (ret == -1) {
-			if (errno == EINTR) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() interrupted system call, resuming\n");
-				continue;
-			}
-
-			if (errno == EAGAIN) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() incomplete header received\n");
-				return NULL;
-			}
-
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() header recv() failed: errno=%d, %s\n", errno, strerror(errno));
-			goto failure;
-		}
-
-		sess->recv_done += ret;
-
-		if (sess->recv_done < sizeof(struct gg_header)) {
-			if (chunk_ptr == header_buf) {
-				sess->recv_buf = malloc(sizeof(struct gg_header));
-				
-				if (sess->recv_buf == NULL) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() out of memory\n");
-					goto failure;
-				}
-
-				memcpy(sess->recv_buf, header_buf, sess->recv_done);
-			} else {
-				// Bufor jest już zaalokowany i wczytaliśmy do niego
-			}
-		} else if (sess->recv_done == sizeof(struct gg_header)) {
-			/* Limit na rozmiar pakietu */
-			if (gg_fix32(head->length) > 0x0000ffff) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() invalid packet length (0x%08x)\n", gg_fix32(head->length));
-				errno = ERANGE;
-				goto failure;
-			}
-
-			tmp = realloc(sess->recv_buf, sizeof(struct gg_header) + gg_fix32(head->length));
-
-			if (tmp == NULL) {
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() out of memory\n");
-				goto failure;
-			}
-
-			sess->recv_buf = tmp;
-
-			if (chunk_ptr == header_buf)
-				memcpy(sess->recv_buf, header_buf, sizeof(struct gg_header));
-
-			head = (struct gg_header *) sess->recv_buf;
-
-			if (gg_fix32(head->length) == 0)
-				break;
-
-		} else if (sess->recv_done >= sizeof(struct gg_header) + gg_fix32(head->length)) {
-			break;
-		}
-	}
-
-	if ((gg_debug_level & GG_DEBUG_DUMP)) {
-		gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet() packet dump:\n");
-		gg_debug_dump(sess, GG_DEBUG_DUMP, sess->recv_buf, sizeof(struct gg_header) + gg_fix32(head->length));
-	}
-
-	// Poprawiamy kolejność bajtów
-	head = (struct gg_header *) sess->recv_buf;
-	head->type = gg_fix32(head->type);
-	head->length = gg_fix32(head->length);
-
-	tmp = sess->recv_buf;
-	sess->recv_buf = NULL;
-	sess->recv_done = 0;
-
-	return tmp;
-
-failure:
-	free(sess->recv_buf);
-	sess->recv_buf = NULL;
-	sess->recv_done = 0;
-
-	return NULL;
-}
-#endif
 
 /**
  * \internal Wysyła pakiet do serwera.
@@ -664,6 +601,33 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, time);
 
 	return gg_session_set_status(sess, status, descr, time);
+}
+
+/**
+ * Funkcja zmieniająca flagi statusu.
+ *
+ * \param sess Struktura sesji
+ * \param flags Nowe flagi statusu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \note Aby zmiany weszły w życie, należy ponownie ustawić status za pomocą
+ * funkcji z rodziny \c gg_change_status().
+ *
+ * \ingroup status
+ */
+int gg_change_status_flags(struct gg_session *sess, int flags)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_flags(%p, 0x%08x);\n", sess, flags);
+
+	if (sess == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	sess->status_flags = flags;
+
+	return 0;
 }
 
 /**
@@ -1185,54 +1149,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 	gg_session_set_flag(gs, GG_SESSION_FLAG_AUDIO, p->has_audio);
 
+	gg_session_set_flag(gs, GG_SESSION_FLAG_SSL, p->tls);
+
 	gg_session_set_encoding(gs, p->encoding);
 
 	if (gg_session_set_resolver(gs, p->resolver) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. unsupported resolver type (%d)\n", p->resolver);
 		errno = EFAULT;
 		goto fail;
-	}
-
-	if (p->tls == 1) {
-#ifdef GG_CONFIG_HAVE_OPENSSL
-		char buf[1024];
-
-		OpenSSL_add_ssl_algorithms();
-
-		if (!RAND_status()) {
-			char rdata[1024];
-			struct {
-				time_t time;
-				void *ptr;
-			} rstruct;
-
-			time(&rstruct.time);
-			rstruct.ptr = (void *) &rstruct;
-
-			RAND_seed((void *) rdata, sizeof(rdata));
-			RAND_seed((void *) &rstruct, sizeof(rstruct));
-		}
-
-		gs->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
-
-		if (!gs->ssl_ctx) {
-			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_CTX_new() failed: %s\n", buf);
-			goto fail;
-		}
-
-		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
-
-		gs->ssl = SSL_new(gs->ssl_ctx);
-
-		if (gs->ssl == NULL) {
-			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-			gg_debug(GG_DEBUG_MISC, "// gg_login() SSL_new() failed: %s\n", buf);
-			goto fail;
-		}
-#else
-		gg_debug(GG_DEBUG_MISC, "// gg_login() client requested TLS but no support compiled in\n");
-#endif
 	}
 
 	if (gg_session_connect(gs) == -1)
@@ -1258,11 +1182,26 @@ void gg_logoff(struct gg_session *gs)
 /**
  * \internal Stub funkcji \c gg_session_free() dla zachowania ABI. 
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  */
 void gg_free_session(struct gg_session *gs)
 {
 	return gg_session_free(gs);
+}
+
+/**
+ * Informuje rozmówcę o pisaniu wiadomości.
+ *
+ * \param sess Struktura sesji
+ * \param recipient Numer adresata
+ * \param length Długość wiadomości lub 0 jeśli jest pusta
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup messages
+ */
+int gg_typing_notification(struct gg_session *sess, uin_t recipient, int length){
+	return gg_session_typing_notification(sess, recipient, length);
 }
 
 /* @} */

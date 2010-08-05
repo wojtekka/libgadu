@@ -99,7 +99,7 @@ FILE *gg_debug_file = NULL;
  * \param format Format wiadomości (zgodny z \c printf)
  * \param ap Lista argumentów (zgodna z \c printf)
  */
-void gg_debug_common(struct gg_session *sess, int level, const char *format, va_list ap)
+static void gg_debug_common(struct gg_session *sess, int level, const char *format, va_list ap)
 {
 	if (gg_debug_handler_session != NULL)
 		(*gg_debug_handler_session)(sess, level, format, ap);
@@ -132,7 +132,7 @@ void gg_debug(int level, const char *format, ...)
 /**
  * \internal Przekazuje informację odpluskwiania związaną z sesją.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param level Poziom wiadomości
  * \param format Format wiadomości (zgodny z \c printf)
  *
@@ -152,7 +152,7 @@ void gg_debug_session(struct gg_session *gs, int level, const char *format, ...)
 /**
  * \internal Przekazuje zrzut bufora do odpluskwiania.
  *
- * \param sess Struktura sesji
+ * \param gs Struktura sesji
  * \param level Poziom wiadomości
  * \param buf Bufor danych
  * \param len Długość bufora danych
@@ -265,12 +265,15 @@ const char *gg_debug_state(enum gg_state_t state)
 	GG_DEBUG_STATE(GG_STATE_CONNECT_PROXY_HUB)
 	GG_DEBUG_STATE(GG_STATE_CONNECT_GG)
 	GG_DEBUG_STATE(GG_STATE_CONNECT_PROXY_GG)
+	GG_DEBUG_STATE(GG_STATE_RESOLVE_GG_SYNC)
+	GG_DEBUG_STATE(GG_STATE_RESOLVE_GG_ASYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_HUB_SYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_HUB_ASYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_PROXY_HUB_SYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_PROXY_HUB_ASYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_PROXY_GG_SYNC)
 	GG_DEBUG_STATE(GG_STATE_RESOLVE_PROXY_GG_ASYNC)
+	GG_DEBUG_STATE(GG_STATE_RESOLVING_GG)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_HUB)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_PROXY_HUB)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_PROXY_GG)
