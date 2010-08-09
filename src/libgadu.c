@@ -1125,15 +1125,20 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (p->protocol_version != 0)
 		gg_session_set_protocol_version(gs, p->protocol_version);
 
-	features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
+	if (p->protocol_features != 0) {
+		features = (p->protocol_features & ~(GG_FEATURE_STATUS77 | GG_FEATURE_MSG77));
 
-	if (!(p->protocol_features & GG_FEATURE_STATUS77))
-		features |= GG_PROTOCOL_FEATURE_STATUS80;
-	
-	if (!(p->protocol_features & GG_FEATURE_MSG77))
-		features |= GG_PROTOCOL_FEATURE_MSG80;
+		if (!(p->protocol_features & GG_FEATURE_STATUS77))
+			features |= GG_PROTOCOL_FEATURE_STATUS80;
+		
+		if (!(p->protocol_features & GG_FEATURE_MSG77))
+			features |= GG_PROTOCOL_FEATURE_MSG80;
 
-	gg_session_set_protocol_features(gs, features);
+		gg_session_set_protocol_features(gs, features);
+	}
+
+	if (p->status_flags != 0)
+		gg_session_set_status_flags(gs, p->status_flags);
 
 	if (p->client_version != NULL)
 		gg_session_set_client_version(gs, p->client_version);

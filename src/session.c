@@ -76,7 +76,8 @@ struct gg_session *gg_session_new(void)
 	gs->pid = -1;
 	gs->encoding = GG_ENCODING_UTF8;
 	gs->hash_type = GG_LOGIN_HASH_SHA1;
-	gs->protocol_features = GG_FEATURE_ALL | GG_FEATURE_MSG80 | GG_FEATURE_STATUS80;
+	gs->protocol_features = GG_FEATURE_ALL | GG_PROTOCOL_FEATURE_MSG80 | GG_PROTOCOL_FEATURE_STATUS80;
+	gs->status_flags = GG_STATUS_FLAG_UNKNOWN | GG_STATUS_FLAG_SPAM;
 
 	gg_session_set_protocol_version(gs, GG_DEFAULT_PROTOCOL_VERSION);
 
@@ -569,6 +570,9 @@ int gg_session_set_status_flags(struct gg_session *gs, int status_flags)
 	gs->status_flags = status_flags;
 
 	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
+	        if (!GG_SESSION_IS_CONNECTED(gs))
+			return 0;
+
 		return gg_session_set_status_8(gs, gs->status, gs->status_descr);
 	} else {
 		errno = ENOSYS;

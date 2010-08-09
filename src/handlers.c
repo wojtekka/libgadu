@@ -157,13 +157,13 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		l80.hash_type = gs->hash_type;
 		memcpy(l80.hash, hash_buf, sizeof(l80.hash));
 		l80.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
-		l80.flags = gg_fix32(0x00800001);
+		l80.flags = gg_fix32(gs->status_flags);
 		l80.features = gg_fix32(gs->protocol_features);
 		l80.image_size = gs->image_size;
 		l80.dunno2 = 0x64;
 
-		version = GG8_VERSION;
-		version_len = gg_fix32(strlen(version));
+		version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION;
+		version_len = gg_fix32(strlen(GG8_VERSION) + strlen(version));
 
 		descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
 		descr_len = (gs->initial_descr != NULL) ? gg_fix32(strlen(gs->initial_descr)) : 0;
@@ -172,6 +172,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 				GG_LOGIN80,
 				&l80, sizeof(l80),
 				&version_len, sizeof(version_len),
+				GG8_VERSION, strlen(GG8_VERSION),
 				version, strlen(version),
 				&descr_len, sizeof(descr_len),
 				descr, strlen(descr),

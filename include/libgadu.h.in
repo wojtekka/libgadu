@@ -713,6 +713,8 @@ int gg_session_set_flag(struct gg_session *gs, gg_session_flag_t flag, int value
 int gg_session_get_flag(struct gg_session *gs, gg_session_flag_t flag);
 int gg_session_set_status(struct gg_session *gs, int status, const char *descr, time_t time);
 int gg_session_get_status(struct gg_session *gs, int *status, const char **descr, time_t *time);
+int gg_session_set_status_flags(struct gg_session *gs, int status_flags);
+int gg_session_get_status_flags(struct gg_session *gs);
 int gg_session_get_fd(struct gg_session *gs);
 int gg_session_get_check(struct gg_session *gs);
 int gg_session_get_timeout(struct gg_session *gs);
