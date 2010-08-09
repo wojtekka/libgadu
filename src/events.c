@@ -245,6 +245,83 @@ static int gg_send_queued_data(struct gg_session *sess)
 }
 
 /**
+ * \internal Inicjalizuje struktury SSL.
+ *
+ * \param gs Struktura sesji
+ *
+ * \return 0 jeśli się powiodło, -1 jeśli wystąpił błąd
+ */
+int gg_session_init_ssl(struct gg_session *gs)
+{
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	gg_session_gnutls_t *tmp;
+
+	tmp = malloc(sizeof(gg_session_gnutls_t));
+
+	if (tmp == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() out of memory for GnuTLS session\n");
+		return -1;
+	}
+
+	gs->ssl = tmp;
+
+	gnutls_global_init();
+	gnutls_certificate_allocate_credentials(&tmp->xcred);
+	gnutls_init(&tmp->session, GNUTLS_CLIENT);
+	gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
+//	gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
+	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) gs->fd);
+#endif
+
+#ifdef GG_CONFIG_HAVE_OPENSSL
+	char buf[1024];
+	SSL_CTX *ctx;
+	SSL *ssl;
+
+	OpenSSL_add_ssl_algorithms();
+
+	if (!RAND_status()) {
+		char rdata[1024];
+		struct {
+			time_t time;
+			void *ptr;
+		} rstruct;
+
+		time(&rstruct.time);
+		rstruct.ptr = (void *) &rstruct;
+
+		RAND_seed((void *) rdata, sizeof(rdata));
+		RAND_seed((void *) &rstruct, sizeof(rstruct));
+	}
+
+	ctx = SSL_CTX_new(SSLv3_client_method());
+
+	if (ctx == NULL) {
+		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+		return -1;
+	}
+
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+
+	ssl = SSL_new(ctx);
+
+	if (ssl == NULL) {
+		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+		return -1;
+	}
+
+	SSL_set_fd(ssl, gs->fd);
+
+	gs->ssl = ssl;
+#endif
+
+	return 0;
+}
+
+/**
  * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.
  *
  * Funkcja zwraca strukturę zdarzenia \c gg_event. Jeśli rodzaj zdarzenia
@@ -1298,76 +1375,6 @@ fail:
 		free(e);
 		return NULL;
 	}
-}
-
-int gg_session_init_ssl(struct gg_session *gs)
-{
-#ifdef GG_CONFIG_HAVE_GNUTLS
-	gg_session_gnutls_t *tmp;
-
-	tmp = malloc(sizeof(gg_session_gnutls_t));
-
-	if (tmp == NULL) {
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() out of memory for GnuTLS session\n");
-		return -1;
-	}
-
-	gs->ssl = tmp;
-
-	gnutls_global_init();
-	gnutls_certificate_allocate_credentials(&tmp->xcred);
-	gnutls_init(&tmp->session, GNUTLS_CLIENT);
-	gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
-//	gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
-	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
-	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) gs->fd);
-#endif
-
-#ifdef GG_CONFIG_HAVE_OPENSSL
-	char buf[1024];
-	SSL_CTX *ctx;
-	SSL *ssl;
-
-	OpenSSL_add_ssl_algorithms();
-
-	if (!RAND_status()) {
-		char rdata[1024];
-		struct {
-			time_t time;
-			void *ptr;
-		} rstruct;
-
-		time(&rstruct.time);
-		rstruct.ptr = (void *) &rstruct;
-
-		RAND_seed((void *) rdata, sizeof(rdata));
-		RAND_seed((void *) &rstruct, sizeof(rstruct));
-	}
-
-	ctx = SSL_CTX_new(SSLv3_client_method());
-
-	if (ctx == NULL) {
-		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
-		return -1;
-	}
-
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
-
-	ssl = SSL_new(ctx);
-
-	if (ssl == NULL) {
-		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
-		return -1;
-	}
-
-	SSL_set_fd(ssl, gs->fd);
-
-	gs->ssl = ssl;
-#endif
-
-	return 0;
 }
 
 /*
