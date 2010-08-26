@@ -733,6 +733,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (!(p->protocol_features & GG_FEATURE_MSG77))
 		sess->protocol_features |= GG_FEATURE_MSG80;
 
+	if (!(sess->status_flags = p->status_flags))
+		sess->status_flags = GG_STATUS_FLAG_UNKNOWN | GG_STATUS_FLAG_SPAM;
+
 	sess->protocol_version = (p->protocol_version) ? p->protocol_version : GG_DEFAULT_PROTOCOL_VERSION;
 
 	if (p->era_omnix)
@@ -961,7 +964,10 @@ int gg_ping(struct gg_session *sess)
  *
  * \note Jeśli w buforze nadawczym połączenia z serwerem znajdują się jeszcze
  * dane (np. z powodu strat pakietów na łączu), prawdopodobnie zostaną one
- * utracone przy zrywaniu połączenia.
+ * utracone przy zrywaniu połączenia. Aby mieć pewność, że opis statusu
+ * zostanie zachowany, należy ustawić stan \c GG_STATUS_NOT_AVAIL_DESCR
+ * za pomocą funkcji \c gg_change_status_descr() i poczekać na zdarzenie
+ * \c GG_EVENT_DISCONNECT_ACK.
  *
  * \param sess Struktura sesji
  *
@@ -973,9 +979,6 @@ void gg_logoff(struct gg_session *sess)
 		return;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_logoff(%p);\n", sess);
-
-	if (GG_S_NA(sess->status))
-		gg_change_status(sess, GG_STATUS_NOT_AVAIL);
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
@@ -1125,7 +1128,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		struct gg_new_status80 p;
 
 		p.status		= gg_fix32(status);
-		p.flags			= gg_fix32(0x00800001);
+		p.flags			= gg_fix32(sess->status_flags);
 		p.description_size	= gg_fix32(descr_len);
 		res = gg_send_packet(sess,
 				packet_type,
@@ -1210,6 +1213,33 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, time);
 
 	return gg_change_status_common(sess, status, descr, time);
+}
+
+/**
+ * Funkcja zmieniająca flagi statusu.
+ *
+ * \param sess Struktura sesji
+ * \param flags Nowe flagi statusu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \note Aby zmiany weszły w życie, należy ponownie ustawić status za pomocą
+ * funkcji z rodziny \c gg_change_status().
+ *
+ * \ingroup status
+ */
+int gg_change_status_flags(struct gg_session *sess, int flags)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_flags(%p, 0x%08x);\n", sess, flags);
+
+	if (sess == NULL) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	sess->status_flags = flags;
+
+	return 0;
 }
 
 /**
@@ -1363,7 +1393,7 @@ static int gg_convert_to_html(char *dst, const char *src, const unsigned char *f
 
 			format_idx += 3;
 
-			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
+			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
 				if (char_pos != 0) {
 					if ((old_attr & GG_FONT_UNDERLINE) != 0)
 						gg_append(dst, &len, "</u>", 4);
@@ -1374,7 +1404,8 @@ static int gg_convert_to_html(char *dst, const char *src, const unsigned char *f
 					if ((old_attr & GG_FONT_BOLD) != 0)
 						gg_append(dst, &len, "</b>", 4);
 
-					gg_append(dst, &len, "</span>", 7);
+					if (src[i] != 0)
+						gg_append(dst, &len, "</span>", 7);
 				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
@@ -1384,9 +1415,11 @@ static int gg_convert_to_html(char *dst, const char *src, const unsigned char *f
 					color = (unsigned char*) "\x00\x00\x00";
 				}
 
-				if (dst != NULL)
-					sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
-				len += span_len;
+				if (src[i] != 0) {
+					if (dst != NULL)
+						sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+					len += span_len;
+				}
 			} else if (char_pos == 0 && src[0] != 0) {
 				if (dst != NULL)
 					sprintf(&dst[len], span_fmt, 0, 0, 0);

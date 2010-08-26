@@ -27,4 +27,9 @@ char *gg_cp_to_utf8(const char *b);
 char *gg_utf8_to_cp(const char *b);
 int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
 
+int gg_resolve(int *fd, int *pid, const char *hostname);
+int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
+void gg_resolve_pthread_cleanup(void *resolver, int kill);
+
+
 #endif /* LIBGADU_INTERNAL_H */

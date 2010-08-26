@@ -1,7 +1,7 @@
 dnl $Id$
 
 AC_INIT(src/libgadu.c)
-AM_INIT_AUTOMAKE(libgadu, 1.9.0)
+AM_INIT_AUTOMAKE(libgadu, 1.9.1)
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
@@ -67,6 +67,10 @@ fi
 
 if test "x$with_c99_vsnprintf" = "x"; then
 	AC_MSG_CHECKING([for C99-compatible vsnprintf()])
+	if test "x$cross_compiling" = "xyes"; then
+		AC_MSG_ERROR([cannot determine vsnprintf() behaviour when cross-compiling. You need to provide --with-c99-vsnprintf or --without-c99-vsnprintf option instead. It is safe to assume that the former is valid on most modern operating systems.])
+	fi
+
 	AC_TRY_RUN(
 	[
 		#include <stdio.h>
@@ -152,7 +156,7 @@ dnl  Resolver libgadu oparty na pthread
 dnl
 
 AC_ARG_WITH(pthread,
-  [  --without-pthread       do not use pthread resolver even if possible])
+  [  --without-pthread       do not use pthread resolver even if found])
 
 if test "x$with_pthread" != "xno"; then
 	ACX_PTHREAD(

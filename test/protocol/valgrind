@@ -1,5 +1,2 @@
 #!/bin/sh
-valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 ./protocol "$@" 3> valgrind.log.tmp
-pid=$(head -n 1 valgrind.log.tmp | cut -d' ' -f1)
-grep "^$pid" valgrind.log.tmp > valgrind.log
-rm -f valgrind.log.tmp
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 .libs/lt-protocol "$@" 3> valgrind.log

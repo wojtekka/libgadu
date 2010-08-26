@@ -61,6 +61,22 @@ struct gg_login80 {
 
 #define GG_LOGIN80_OK 0x0035
 
+/**
+ * Logowanie powiodło się (pakiet \c GG_LOGIN80_OK)
+ */
+struct gg_login80_ok {
+	uint32_t unknown1;		/* 0x00000001 */
+} GG_PACKED;
+
+/**
+ * Logowanie nie powiodło się (pakiet \c GG_LOGIN80_FAILED)
+ */
+#define GG_LOGIN80_FAILED 0x0043
+
+struct gg_login80_failed {
+	uint32_t unknown1;		/* 0x00000001 */
+} GG_PACKED;
+
 #define GG_NEW_STATUS80BETA 0x0028
 
 #define GG_NEW_STATUS80 0x0038
@@ -83,12 +99,12 @@ struct gg_new_status80 {
 struct gg_notify_reply80 {
 	uint32_t uin;		/* numerek plus flagi w najstarszym bajcie */
 	uint32_t status;	/* status danej osoby */
-	uint32_t flags;		/* flagi (przeznaczenie nieznane) */
+	uint32_t features;	/* opcje protokołu */
 	uint32_t remote_ip;	/* adres IP bezpośrednich połączeń */
 	uint16_t remote_port;	/* port bezpośrednich połączeń */
 	uint8_t image_size;	/* maksymalny rozmiar obrazków w KB */
-	uint8_t unknown2;	/* 0x00 */
-	uint32_t unknown3;	/* 0x00000000 */
+	uint8_t unknown1;	/* 0x00 */
+	uint32_t flags;		/* flagi połączenia */
 	uint32_t descr_len;	/* rozmiar opisu */
 } GG_PACKED;
 

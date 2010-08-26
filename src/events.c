@@ -1919,7 +1919,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 					break;
 				} else {
-					char buf[1024];
+					char buf[256];
 
 					ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
 
@@ -1941,7 +1941,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (!peer)
 				gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING! unable to get peer certificate!\n");
 			else {
-				char buf[1024];
+				char buf[256];
 
 				X509_NAME_oneline(X509_get_subject_name(peer), buf, sizeof(buf));
 				gg_debug_session(sess, GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
@@ -2087,7 +2087,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				l.hash_type     = sess->hash_type;
 				memcpy(l.hash, login_hash, sizeof(login_hash));
 				l.status        = gg_fix32(sess->initial_status ? sess->initial_status : GG_STATUS_AVAIL);
-				l.flags		= gg_fix32(0x00800001);
+				l.flags		= gg_fix32(sess->status_flags);
 				l.features	= gg_fix32(sess->protocol_features);
 				l.image_size    = sess->image_size;
 				l.dunno2        = 0x64;
@@ -2195,7 +2195,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				break;
 			}
 
-			if (h->type == GG_LOGIN_FAILED) {
+			if (h->type == GG_LOGIN_FAILED || h->type == GG_LOGIN80_FAILED) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() login failed\n");
 				e->event.failure = GG_FAILURE_PASSWORD;
 				errno = EACCES;

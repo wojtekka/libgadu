@@ -1087,6 +1087,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() offset >= size, finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1119,6 +1120,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1139,6 +1141,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
@@ -1163,6 +1166,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if (dcc->offset >= dcc->size) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() finished\n");
 				e->type = GG_EVENT_DCC7_DONE;
+				e->event.dcc7_done.dcc7 = dcc;
 				return e;
 			}
 
