@@ -133,6 +133,7 @@ gg_session_set_resolver
 gg_token
 gg_token_free
 gg_token_watch_fd
+gg_typing_notification
 gg_unregister
 gg_unregister2
 gg_unregister3

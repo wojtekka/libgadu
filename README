@@ -41,8 +41,8 @@ niezbędny jest kompilator obsługujący 64-bitowy typ long long.
 Do wygenerowania dokumentacji używany jest Doxygen. Jeśli nie jest 
 dostępny, dokumentacja nie jest generowana.
 
-Do testów automatycznych używany jest Perl. Jeśli nie jest dostępny,
-część testów nie jest dostępna.
+Do niektórych testów automatycznych wymagane są glibc i Perl. Jeśli nie
+są dostępne, niektóre testy nie będą uruchamiane.
 
 Podczas kompilacji wykrywana jest wersja biblioteki standardowej,
 ponieważ zachowanie używanych funkcji rodziny printf() zostało
