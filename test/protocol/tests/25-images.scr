@@ -22,6 +22,8 @@ expect event GG_EVENT_IMAGE_REPLY {
 		(memcmp(event->image_reply.image, "Test", 4) == 0);
 }
 
+expect data (46 00 00 00, auto, xx xx xx xx)
+
 #-----------------------------------------------------------------------------
 # Receiving unsolicited image reply
 #-----------------------------------------------------------------------------
@@ -29,6 +31,8 @@ expect event GG_EVENT_IMAGE_REPLY {
 send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 05, 04 00 00 00, 12 34 56 78, "junk.txt" 00, "Junk")
 
 expect event GG_EVENT_NONE
+
+expect data (46 00 00 00, auto, xx xx xx xx)
 
 #-----------------------------------------------------------------------------
 # Receiving multipart image reply
@@ -44,6 +48,8 @@ expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 04 00 00 00, 00, 04, 0
 
 send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 05, 08 00 00 00, c8 47 83 56, "test.txt" 00, "Test")
 
+expect data (46 00 00 00, auto, xx xx xx xx)
+
 send (0a 00 00 00, auto, 56 34 12 00, 00 00 00 00, 00 00 00 00, 04 00 00 00, 00, 06, 08 00 00 00, c8 47 83 56, "1234")
 
 expect event GG_EVENT_IMAGE_REPLY {
@@ -53,6 +59,8 @@ expect event GG_EVENT_IMAGE_REPLY {
 		(strcmp(event->image_reply.filename, "test.txt") == 0) &&
 		(memcmp(event->image_reply.image, "Test1234", 8) == 0);
 }
+
+expect data (46 00 00 00, auto, xx xx xx xx)
 
 #-----------------------------------------------------------------------------
 # Receiving image request
@@ -65,6 +73,8 @@ expect event GG_EVENT_IMAGE_REQUEST (
 	image_request.size == 4
 	image_request.crc32 == 0x784dd132
 )
+
+expect data (46 00 00 00, auto, xx xx xx xx)
 
 #-----------------------------------------------------------------------------
 # Sending image reply

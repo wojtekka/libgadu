@@ -24,7 +24,7 @@ obsługiwać \ref events-list "zdarzenia" związane ze zmianami statusu.
 
 Jeśli pole \ref gg_login_params::protocol_features "\c protocol_features"
 struktury \c gg_login_params zawiera \c GG_FEATURE_IMAGE_DESCR, informacja
-o tym, że status zawiera opis jest dodatkowo przekazywana za pomocą flagi
+o tym, że status zawiera opis, jest dodatkowo przekazywana za pomocą flagi
 \c GG_STATUS_DESCR_MASK. To samo dotyczy zmiany statusów osób z listy
 kontaktów.
 

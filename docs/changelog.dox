@@ -15,6 +15,14 @@ nie zmieniają dotychczasowego zachowania.
 
 - Powiadomienie o pisaniu. \ref messages-typing "Szczegóły".
 
+\section changelog-1_9_1 libgadu 1.9.1
+
+- Opis zdarzenia \c GG_EVENT_DCC7_DONE zawiera wskaźnik do struktury połączenia, którego dotyczy.
+
+- Możliwość zmian flag statusu (blokowanie odnośników od nieznajomych itd.) za
+pomocą pola \c status_flags struktury \c gg_login_params lub funkcji
+\c gg_change_status_flags.
+
 \section changelog-1_9_0 libgadu 1.9.0
 
 - Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole \c encoding struktury \c gg_login_params pozwala zmienić kodowanie na UTF-8. Mimo że katalog publiczny ze strony serwera jest obsługiwany w CP1250, biblioteka dokonuje konwersji. \ref gg_login_params "Szczegóły."
@@ -25,7 +33,7 @@ nie zmieniają dotychczasowego zachowania.
 
 - Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola \c resolver_type struktury \c gg_login_params dla procesów i wątków, lub globalnie za pomocą funkcji \ref gg_global_set_resolver czy \ref gg_global_set_custom_resolver. \ref build-resolver "Szczegóły."
 
-- Opisy zdarzenia \c GG_EVENT_DCC7_PENDING i \c GG_EVENT_DCC7_DONE zawiera wskaźniki do struktur połączeń, których dotyczą.
+- Opis zdarzenia \c GG_EVENT_DCC7_PENDING zawiera wskaźnik do struktury połączenia, którego dotyczy.
 
 \section changelog-1_8_0 libgadu 1.8.0
 

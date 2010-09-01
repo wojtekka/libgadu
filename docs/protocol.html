@@ -9,7 +9,7 @@ body { font-family: tahoma, verdana, arial, helvetica, sans-serif; }
 .tabh { background-color: #d0d0d0; }
 .tabf { background-color: white; }
 .tabf2 { background-color: white; color: silver; }
-.check { background-color: white; color: silver; }
+.check { background-color: white; color: silver; padding: 0.7em; border: 1px dashed silver; }
 .warn { font-family: monospace; padding: 0.7em; background-color: #ffe0e0; border: 1px solid #a08080; }
 .c { font-family: monospace; padding: 0.7em; background-color: #e0e0e0; border: 1px solid #a0a0a0; }
 .http { font-family: monospace; padding: 0.7em; background-color: #c0f0c0; border: 1px solid #80a080; }
@@ -62,10 +62,12 @@ pre { margin: 0px; }
 		2.5.&nbsp;&nbsp;<a href="#ch2.5">Zmiana hasła</a><br />
 		2.6.&nbsp;&nbsp;<a href="#ch2.6">Przypomnienie hasła pocztą</a><br />
 	</li>
-	<li><a href="#ch3">Połączenia bezpośrednie</a><br />
-		3.1.&nbsp;&nbsp;<a href="#ch3.1">Nawiązanie połączenia</a><br />
+	<li><a href="#ch3">Połączenia między klientami</a><br />
+		3.1.&nbsp;&nbsp;<a href="#ch3.1">Identyfikator połączenia</a><br />
 		3.2.&nbsp;&nbsp;<a href="#ch3.2">Przesyłanie plików</a><br />
-		3.3.&nbsp;&nbsp;<a href="#ch3.3">Rozmowy głosowe</a><br />
+		3.3.&nbsp;&nbsp;<a href="#ch3.3">Połączenie bezpośrednie</a><br />
+		3.4.&nbsp;&nbsp;<a href="#ch3.4">Połączenie przez serwer</a><br />
+		3.5.&nbsp;&nbsp;<a href="#ch3.5">Rozmowy głosowe</a><br />
 	</li>
 	<li><a href="#ch4">Autorzy</a></li>
 </ol>
@@ -251,12 +253,12 @@ struct gg_login80 {
         int description_size; <i>/* rozmiar opisu */</i>
         char description[];   <i>/* opis (nie musi wystąpić, bez \0) */</i>
 };</pre>
-
 </div>
 
 <p>
 Pola określające adresy i port są pozostałościami po poprzednich wersjach
-protokołów i w obecnej wersji zawierają zera.</p>
+protokołów i w obecnej wersji zawierają zera.
+</p>
 
 <p>
 Pole <tt>features</tt> jest mapą bitową informującą serwer, które z funkcji
@@ -1134,19 +1136,17 @@ Przykładowy kod:
 <h4>1.12.1 Wiadomości GGLive</h4>
 
 <div class="check">
-<p>Opisać usługi http://life.gadu-gadu.pl/<br/>
+Opisać usługi http://life.gadu-gadu.pl/<br/>
 Logowanie OAuth: /login?oauth_consumer_key=UIN&amp;oauth_nonce=....&amp;oauth_signature=...&amp;oauth_signature_method=HMAC-SHA1&amp;oauth_timestamp=...&amp;oauth_token=....&amp;oauth_version=1.0<br/>
 Wysyłanie: POST /send/message/?USER_IS_AUTHENTICATED=1&amp;uin=UIN&amp;token=TOKEN<br/>
 message=Testowa+wiadomo%C5%9B%C4%87&amp;send=Wy%C5%9Blij<br/>
-</p>
 </div>
 
 <p>
 Przykładowa otrzymana wiadomość:
 </p>
 <div class="example">
-<pre>
-&lt;events&gt;
+<pre>&lt;events&gt;
   &lt;event id="13106118792229117994"&gt;
   &lt;type&gt;1&lt;/type&gt;
   &lt;sender&gt;7496195&lt;/sender&gt;
@@ -1167,8 +1167,7 @@ Przykładowa otrzymana wiadomość:
 
 <p>Przykładowa informacja:</p>
 <div class="example">
-<pre>
-&lt;events&gt;
+<pre>&lt;events&gt;
   &lt;event id="13095886332244853765"&gt;
     &lt;type&gt;28&lt;/type&gt;
     &lt;sender&gt;3732&lt;/sender&gt;
@@ -1187,8 +1186,7 @@ Przykładowa otrzymana wiadomość:
 
 <p>Przykładowa informacja:</p>
 <div class="example">
-<pre>
-&lt;events&gt;
+<pre>&lt;events&gt;
   &lt;event id="13095868082578904423"&gt;
     &lt;type&gt;7&lt;/type&gt;
     &lt;sender&gt;3732&lt;/sender&gt;
@@ -1259,12 +1257,15 @@ Dla przykładowego Króla Popu jest to adres <tt>http://www.gadudodatki.pl/userb
 <h3>1.13. Katalog publiczny</h3>
 
 <div class="check">
-<p>Nowe Gadu-Gadu korzysta z OAutha do odczytu oraz zmian danych w katalogu, API opisane jest na:
+Nowe Gadu-Gadu korzysta z OAutha do odczytu oraz zmian danych w katalogu, API opisane jest na:
 <a href="http://dev.gadu-gadu.pl/api/pages/gaduapi.html">http://dev.gadu-gadu.pl/api/pages/gaduapi.html</a>
-</p>
-<p>Nowe Gadu-Gadu korzysta z wyszukiwarki dostępnej na: <a href="http://ipubdir.gadu-gadu.pl/ngg/">http://ipubdir.gadu-gadu.pl/ngg/</a><br />
-Starsza wersja: <a href="http://ipubdir.gadu-gadu.pl">http://ipubdir.gadu-gadu.pl</a>
-</p>
+</div>
+
+<p></p>
+
+<div class="check">
+Nowe Gadu-Gadu korzysta z wyszukiwarki dostępnej na: <a href="http://ipubdir.gadu-gadu.pl/ngg/">http://ipubdir.gadu-gadu.pl/ngg/</a><br />
+Starsza wersja: <a href="http://ipubdir.gadu-gadu.pl/">http://ipubdir.gadu-gadu.pl</a>
 </div>
 
 <p>
@@ -1382,7 +1383,7 @@ Wyszukiwanie <b>nie zwraca</b> nazwisk i płci znalezionych osób.
 <h3>1.14. Lista kontaktów</h3>
 
 <div class="check">
-<pre>Sprawdzić czy wszystkie #define dalej są potrzebne</pre>
+Sprawdzić czy wszystkie #define dalej są potrzebne
 </div>
 
 <p>
@@ -1833,10 +1834,10 @@ Jeśli się udało, serwer odpowie:
 <hr />
 
 <a name="ch3"></a>
-<h2>3. Połączenia bezpośrednie</h2>
+<h2>3. Połączenia między klientami</h2>
 
 <a name="ch3.1"></a>
-<h3>3.1. Nawiązanie połączenia</h3>
+<h3>3.1. Identyfikator połączenia</h3>
 
 <p>
 Połączenia bezpośrednie pozwalają przesyłać pliki lub prowadzić rozmowy
@@ -1863,8 +1864,8 @@ Pole <tt>type</tt> oznacza rodzaj transmisji:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC7_TYPE_VOICE 0x00000001	<i>/* Rozmowa głosowa (już nieużywane) */</i>
-#define GG_DCC7_TYPE_FILE 0x00000004	<i>/* Przesyłanie plików */</i>
+<pre>#define GG_DCC7_TYPE_VOICE 0x00000001	<i>/* rozmowa głosowa (już nieużywane) */</i>
+#define GG_DCC7_TYPE_FILE 0x00000004	<i>/* przesyłanie plików */</i>
 </pre>
 </div>
 
@@ -1876,7 +1877,7 @@ Na co serwer odpowie:
 <pre>#define GG_DCC7_ID_REPLY 0x0023
 
 struct gg_dcc7_id_reply {
-	int type;	<i>/* Rodzaj transmisji */</i>
+	int type;	<i>/* rodzaj transmisji */</i>
 	long long id;	<i>/* przyznany identyfikator */</i>
 };</pre>
 </div>
@@ -1886,12 +1887,9 @@ struct gg_dcc7_id_reply {
 <a name="ch3.2"></a>
 <h3>3.2. Przesyłanie plików</h3>
 
-<div class="check">W rodzaju transmisji (type) GG_DCC7_TYPE_FILE</div>
-
-<h4>3.2.1 GG_DCC7_TYPE_FILE - Jak powiadamiać, jak akceptować oraz jak odrzucać</h4>
-
 <p>
-Aby powiadomić o chęci przesłania pliku, należy wysłać następujący pakiet.
+Aby powiadomić odbiorcę o chęci przesłania pliku, należy wysłać do serwera
+następujący pakiet:
 </p>
 
 <div class="c">
@@ -1909,18 +1907,17 @@ struct gg_dcc7_new {
 </div>
 
 <p>
-Strona wywoływana po otrzymaniu pakietu GG_DCC7_NEW, może zaakceptować pobieranie pliku,
-wysyła pakiet:
+Odbiorca po otrzymaniu tego samego pakietu <tt>GG_DCC7_NEW</tt>, może
+zaakceptować plik wysyłając pakiet:
 </p>
 
 <div class="c">
 <pre>#define GG_DCC7_ACCEPT 0x0021
 
 struct gg_dcc7_accept {
-	int uin;	<i>/* numer przyjmującego połączenie */</i>
-	long long id;	<i>/* identyfikator połączenia */</i>
-	int offset;	<i>/* offset przy wznawianiu transmisji */</i>
-	int dunno1;	<i>/* 0x00000000 (na 99% kontynuacja offsetu) */</i>
+	int uin;		<i>/* numer przyjmującego połączenie */</i>
+	long long id;		<i>/* identyfikator połączenia */</i>
+	long long offset;	<i>/* offset przy wznawianiu transmisji */</i>
 };</pre>
 </div>
 
@@ -1931,16 +1928,16 @@ dane dopisać na końcu pliku.
 </p>
 
 <p>
-Jeśli strona wywołana chce odrzucić plik wysyła pakiet:
+Jeśli odbiorca chce odrzucić plik, wysyła pakiet:
 </p>
 
 <div class="c">
 <pre>#define GG_DCC7_REJECT 0x0022
 
 struct gg_dcc7_reject {
-	int uin;	<i>/* Numer odrzucającego połączenie */</i>
-	long long id;	<i>/* Identyfikator połączenia */</i>
-	int reason;	<i>/* Powód rozłączenia */</i>
+	int uin;	<i>/* numer odrzucającego połączenie */</i>
+	long long id;	<i>/* identyfikator połączenia */</i>
+	int reason;	<i>/* powód rozłączenia */</i>
 };</pre>
 </div>
 
@@ -1949,21 +1946,24 @@ Dla pola <tt>reason</tt> znane są wartości:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* Połączenie bezpośrednie już trwa, nie umiem
+<pre>#define GG_DCC7_REJECT_BUSY	0x00000001	<i>/* połączenie bezpośrednie już trwa, nie umiem
 						   obsłużyć więcej */</i>
-#define GG_DCC7_REJECT_USER	0x00000002	<i>/* Użytkownik odrzucił połączenie */</i>
-#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* Druga strona ma wersję klienta nieobsługującą
+#define GG_DCC7_REJECT_USER	0x00000002	<i>/* użytkownik odrzucił połączenie */</i>
+#define GG_DCC7_REJECT_HIDDEN	0x00000003	<i>/* użytkownik ojest ukryty i nie możesz  
+						   mu wysłać pliku*/</i>
+#define GG_DCC7_REJECT_VERSION	0x00000006	<i>/* druga strona ma wersję klienta nieobsługującą
 						   połączeń bezpośrednich tego typu */</i>
 </pre>
 </div>
 
 <p>
-Przed akceptacją pliku przez stronę wywoływaną, użytkownik może przerwać
-żądanie wysyłając pakiet:
+Przed akceptacją pliku przez odbiorcę, nadawca może przerwać żądanie
+wysyłając pakiet:
 </p>
 
 <div class="c">
 <pre>#define GG_DCC7_ABORT 0x0025
+
 struct gg_dcc7_abort {
 	long long id;		<i>/* identyfikator połączenia */</i>
 	int uin_from;		<i>/* numer nadawcy */</i>
@@ -1972,141 +1972,83 @@ struct gg_dcc7_abort {
 </div>
 
 <p>
-Strona wywoływana w takim przypadku powinna otrzymać pakiet:
+Odbiorca w takim przypadku otrzyma pakiet:
 </p>
 
 <div class="c">
 <pre>#define GG_DCC7_ABORTED 0x0025
+
 struct gg_dcc7_aborted {
 	long long id;		<i>/* identyfikator połączenia */</i>
 };</pre>
 </div>
 
+<hr />
+
+<a name="ch3.3"></a>
+<h3>3.3. Połączenie bezpośrednie</h3>
 
 <p>
-Po zaakceptowaniu pliku, obie strony zaczynają nasłuchiwać na losowo wybranym porcie i
-wysyłają pakiet GG_DCC7_INFO z informacjami potrzebnymi do połączenia.
+Po zaakceptowaniu pliku, obie strony zaczynają nasłuchiwać na losowo wybranym
+porcie z zakresu 4096..32767 i wysyłają pakiet <tt>GG_DCC7_INFO</tt>
+z informacjami potrzebnymi do połączenia.
 </p>
-
-<h4>3.2.2 relay.gadu-gadu.pl - 91.197.13.102 albo tajemniczy host w podsieci 91.197.12.0/22</h4>
-
-<p>
-Oba hosty łączą się również z relay.gadu-gadu.pl:80 aby uzyskać listę serwerów które mogą pośredniczyć
-w wymianie plików.
-</p>
-
-<div class="c">
-<pre>#define GG_DCC7_RELAY_REQUEST 0x0a
-struct gg_dcc7_relay_req {
-	int magic;	<i>/* 0x0a */</i>
-	int len;	<i>/* długość całego pakietu */</i>
-	long long id;	<i>/* identyfikator połączenia */</i>
-	short dunno1;	<i>/* 0x01 0x00 */</i>
-	short dunno2;	<i>/* 0x02 0x00 */</i>
-};</pre>
-</div>
-
-<div class="check">
-Czy wysyła zapytania DNS o relay.gadu-gadu.pl U mnie łączy się z 91.197.13.102, zapytań nie widziałem (cache?)
-</div>
-
-<div class="check">
-Tak naprawdę z relay.gadu-gadu.pl łączą się dwa razy.
-Za pierwszym razem łączą się wysyłając w dunno1: 08 00.
-Odpowiada też dwoma rekordami, ale w port jest 00 00
-</div>
-
-<p>
-Przykładowe pytanie o serwery dla połączenia 0x160600000bd4
-</p>
-
-<div class="example">
-<pre>
-0000  0a 00 00 00 14 00 00 00 d4 0b 00 00 06 16 00 00
-0010  01 00 02 00
-</pre>
-</div>
-
-<p>
-Serwer odpowiada:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC7_RELAY_REPLY 0x0b
-struct gg_dcc7_relay_reply {
-	int magic;	<i>/* 0x0b */</i>
-	int len;	<i>/* długość całego pakietu */</i>
-	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
-	struct {
-		int ip;		<i>/* adres ip serwera */</i>
-		short port;	<i>/* port serwera */</i>
-		char family;	<i>/* rodzina adresów (na końcu?!) AF_INET=2 */</i>
-	} proxies[rcount];
-};</pre>
-
-</div>
-
-<p>Przykładowa odpowiedź serwera zawierająca 2 rekordy:</p>
-<ol>
-  <li>91.197.13.104:80</li>
-  <li>91.197.13.104:443</li>
-</ol>
-
-<div class="example">
-<pre>
-0000  0b 00 00 00 1a 00 00 00 02 00 00 00 5b c5 0d 68
-0010  50 00 02 5b c5 0d 68 bb 01 02
-</pre>
-</div>
-
-<p></p>
-
-<h4>3.2.3 GG_DCC7_INFO - Jak się odnaleźć w mroku</h4>
 
 <div class="c">
 <pre>#define GG_DCC7_INFO 0x001f
 
 struct gg_dcc7_info {
-	int uin;	<i>/* numer nadawcy */</i>
-	int type;	<i>/* sposób połączenia */</i>
-	long long id;	<i>/* identyfikator połączenia */</i>
-	char info[64];	<i>/* informacje o połączeniu */</i>
+	int uin;		<i>/* numer nadawcy */</i>
+	int type;		<i>/* sposób połączenia */</i>
+	long long id;		<i>/* identyfikator połączenia */</i>
+	char info[32];		<i>/* informacje o połączeniu */</i>
+	char cookie[32];	<i>/* losowa informacja */</i>
 };</pre>
 </div>
 
-<div class="check">Rodzielić info na info1, info2</div>
-
 <p>
-W polu <tt>type</tt> sposób połączenia:
+Pole <tt>type</tt> określa sposób połączenia:
 </p>
 
 <div class="c">
-<pre>#define GG_DCC7_TYPE_P2P 0x00000001	<i>/* Połączenie bezpośrednie */</i>
-#define GG_DCC7_TYPE_SERVER 0x00000002	<i>/* Połączenie przez serwer */</i>
+<pre>#define GG_DCC7_TYPE_P2P    0x00000001	<i>/* połączenie bezpośrednie */</i>
+#define GG_DCC7_TYPE_SERVER 0x00000002	<i>/* połączenie przez serwer */</i>
 </pre>
 </div>
 
-<p>Dla połączeń bezpośrednich:</p>
-<ul>
- <li>pierwsze 32bajty pola <tt>info</tt> to <i>IP &lt;SPACJA&gt; PORT</i></li>
- <li>drugie 32bajty pola <tt>info</tt> to ip oraz port w innej postaci, niestety nie mamy informacji o algorytmie :)</li>
-</ul>
-
 <p>
-Przykładowa zawartość pola <tt>info</tt> dla 10.0.0.2:22563
+Pole <tt>info</tt> zawiera tekstową reprezentację adresu IP, spację i numer
+portu. Pole <tt>cookie</tt> jest tekstową reprezentacją liczby wyznaczanej
+w następujący sposób:
 </p>
 
-<div class="example">
-<pre>
-0000   31 30 2e 30 2e 30 2e 32 20 32 32 35 36 33 00 00  10.0.0.2 22563..
-0010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-0020   31 37 36 34 36 38 34 38 34 00 00 00 00 00 00 00  176468484.......
-0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+<div class="c">
+<pre>// Gadu-Gadu 8.x i późniejsze
+int cookie = <b>adres</b> + <b>port</b> * rand();
+
+// Gadu-Gadu 7.x
+int cookie = 0x7FFF * rand() + rand();
 </pre>
 </div>
 
 <p>
-Po udanym połączeniu na podany adres w GG_DCC7_INFO wysyłamy pakiet powitalny:
+Adres do obliczeń jest zapisany w sieciowej kolejności bajtów (np. wynik
+funkcji <tt>inet_addr()</tt>), port w lokalnej.
+</p>
+
+<p>
+Przykładowa zawartość pól <tt>info</tt> i <tt>cookie</tt>:
+</p>
+
+<div class="c">
+<pre>0000   31 30 2e 30 2e 30 2e 32 20 32 32 35 36 33 00 00  10.0.0.2 22563..
+0010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0020   31 37 36 34 36 38 34 38 34 00 00 00 00 00 00 00  176468484.......
+0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</pre>
+</div>
+
+<p>
+Po udanym połączeniu na podany adres, wysyłamy pakiet powitalny:
 </p>
 
 <div class="c">
@@ -2116,42 +2058,110 @@ Po udanym połączeniu na podany adres w GG_DCC7_INFO wysyłamy pakiet powitalny
 </div>
 
 <p>
-Druga strona powinna odpowiedzieć tym samym. Teraz już możemy albo wysyłać albo odbierać plik.
-</p>
-<div class="check">
-Z powodu tego że obie strony łączą się w tym samym momencie możliwy jest wyścig.
-Z tego co zauważyłem gdy jednak ze stron zorientuje się że na innym połączeniu dostaliśmy już ten id,
-to połączenie jest zrywane - ale czy taki sposób rozwiązywania nie powoduje możliwych wyścigów?
-</div>
-
-<p>Dla połączeń przez serwer:<br/>
-- pierwsze 32bajty pola <tt>info</tt> to GG<i>id</i>CH<i>numerek</i><br/><br/>
-Gdzie: <br/>
-<tt>id</tt> to identyfikator połączenia zapisany w cyferkach ASCII<br/>
-<tt>numerek</tt> TBD
+Druga strona powinna odpowiedzieć tym samym. Teraz już możemy albo wysyłać
+albo odbierać plik.
 </p>
 
-<div class="warn">
-<pre>
-GG7.7 wysyła: GG<i>id</i><b>SH</b><i>numerek</i>
-Protokół jest inny, i raczej nie będzie działać.
-</pre>
+<hr />
+
+<a name="ch3.4"></a>
+<h3>3.4. Połączenie przez serwer</h3>
+
+<p>
+Obie strony połączenia łączą się również z <tt>relay.gadu-gadu.pl:80</tt> aby
+uzyskać listę serwerów które mogą pośredniczyć w wymianie plików. Struktura
+żądania:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_RELAY_REQUEST 0x0a
+
+struct gg_dcc7_relay_req {
+	int type;	<i>/* 0x0a */</i>
+	int len;	<i>/* długość całego pakietu */</i>
+	long long id;	<i>/* identyfikator połączenia */</i>
+	short req_type;	<i>/* typ żądania (patrz niżej) */</i>
+	char family	<i>/* 0x02, prawdopodobnie rodzina adresów (AF_INET=2) */</i>
+	char unknown;   <i>/* 0x00 */</i>
+};</pre>
 </div>
 
 <p>
-Przykładowa zawartość pola <tt>info</tt> dla połączenia 0x00000a0600000b27<br/>
-<br/>
-$ echo 'ibase=16; 00000A0600000B27' | bc <br/>
-11020886084391
+Gdzie <tt>req_type</tt> może przyjąć wartości:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_RELAY_TYPE_PROXY    0x01 <i>/* adresy proxy, na które sie łączyć */</i>
+#define GG_DCC7_RELAY_TYPE_SERVER   0x08 <i>/* adres serwera, na który spytać o proxy */</i></pre>
+</div>
+
+<p>
+Serwer odpowiada:
+</p>
+
+<div class="c">
+<pre>#define GG_DCC7_RELAY_REPLY 0x0b
+
+struct gg_dcc7_relay_reply {
+	int type;	<i>/* 0x0b */</i>
+	int len;	<i>/* długość całego pakietu */</i>
+	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
+	struct {
+		int ip;		<i>/* adres ip serwera */</i>
+		short port;	<i>/* port serwera */</i>
+		char family;	<i>/* prawdopodobnie rodzina adresów (AF_INET=2) */</i>
+	} proxies[rcount];
+};</pre>
+</div>
+
+<p>
+Pobieranie IP serwera(ów) pośredniczących w Gadu-Gadu 10.x następuje przed
+i po wysłaniu <tt>GG_DCC7_INFO</tt> wg schematu:
+</p>
+
+<ul>
+<li>wysłanie <tt>GG_DCC7_RELAY_REQUEST</tt> z <tt>req_type</tt> równym <tt>GG_DCC7_RELAY_TYPE_SERVER</tt> na <tt>relay.gadu-gadu.pl:80</tt></li>
+<li>opcjonalnie: wysłanie <tt>GG_DCC7_RELAY_REQUEST</tt> z <tt>req_type</tt> równym <tt>GG_DCC7_RELAY_TYPE_SERVER</tt> na <tt>relay.gadu-gadu.pl:443</tt></li>
+<li>wysłanie <tt>GG_DCC_INFO</tt> z typem <tt>GG_DCC7_TYPE_P2P</tt> (patrz dalej)</li>
+<li>wysłanie <tt>GG_DCC7_RELAY_REQUEST</tt> z <tt>req_type</tt> równym <tt>GG_DCC7_RELAY_TYPE_PROXY</tt> na adres serwera otrzymany w pierwszym <tt>GG_DCC7_RELAY_REQUEST</tt></li>
+<li>opcjonalnie: jw tylko na port 443</li>
+</ul>
+
+<p>
+Może się zdarzyć, że żaden z serwerów nie odpowie na pierwsze żądanie, wtedy
+jako adres drugiego żądania bierzemy znowu <tt>relay.gadu-gadu.pl</tt>.
+</p>
+
+<p>
+Po uzyskaniu adresu serwera pośredniczącego należy wysłać pakiet
+<tt>GG_DCC7_INFO</tt> (<a href="#ch3.3">opisany wcześniej</a>) z polem
+<tt>type</tt> równym <tt>GG_DCC7_TYPE_SERVER</tt> i polem <tt>info</tt>
+w postaci:
+</p>
+
+<div class="http">
+<pre>GG<b>id</b>CH<b>rand</b></pre>
+</div>
+
+<p>
+Gdzie <b><tt>id</tt></b> to tekstowa reprezentacja identyfikatora połączenia,
+a <b><tt>rand</tt></b> to losowa wartość z zakresu 0..9999. Gadu-Gadu 7.x
+zamiast <tt>CH</tt> mogło wysłać również <tt>SH</tt>.
+</p>
+
+<p>
+Pole <tt>cookie</tt> pozostaje puste.
+</p>
+
+<p>
+Przykładowa zawartość pól <tt>info</tt> i <tt>cookie</tt>:
 </p>
 
 <div class="example">
-<pre>
-0000   47 47 31 31 30 32 30 38 38 36 30 38 34 33 39 31  GG11020886084391
+<pre>0000   47 47 31 31 30 32 30 38 38 36 30 38 34 33 39 31  GG11020886084391
 0010   43 48 36 39 36 32 00 00 00 00 00 00 00 00 00 00  CH6962..........
 0020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-</pre>
+0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</pre>
 </div>
 
 <p>
@@ -2160,91 +2170,22 @@ Po połączeniu do serwera pośredniczącego wysyłamy pakiet powitalny:
 
 <div class="c">
 <pre>struct gg_dcc7_welcome_server {
-	int dunno1;	<i>/* 0xc0debabe */</i>
+	int welcome;	<i>/* 0xc0debabe */</i>
 	long long id;	<i>/* identyfikator połączenia */</i>
 };</pre>
 </div>
 
 <p>
-Serwer powinien odpowiedzieć tym samym. Teraz już możemy albo wysyłać albo odbierać plik.
+Serwer powinien odpowiedzieć tym samym. Teraz już możemy albo wysyłać albo
+odbierać plik.
 </p>
 
 <hr />
 
-<a name="ch3.3"></a>
-<h3>3.3. Rozmowy głosowe</h3>
+<a name="ch3.4"></a>
+<h3>3.4. Rozmowy głosowe</h3>
 
-<div class="check">
-ZTCP to leci po SIP
-</div>
-
-<div class="check">
-<p>
-Aby powiadomić o chęci rozmowy głosowej należy wysłać pakiet:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC_REQUEST_VOICE 0x0002
-
-struct gg_dcc_request {
-	int type;	<i>/* GG_DCC_REQUEST_VOICE */</i>
-};</pre>
-</div>
-
-<p>
-Strona wywołana może potwierdzić chęć przeprowadzenia rozmowy za pomocą
-pakietu:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC_VOICE_ACK 0x01
-
-struct gg_dcc_voice_ack {
-	char type;	<i>/* GG_DCC_VOICE_ACK */</i>
-};</pre>
-</div>
-
-<p>
-Jeśli strona wywołana chce odrzucić rozmowę głosową, zrywa połączenie.
-Mimo tego, strona wywołująca nie powinna ignorować wartości potwierdzenia.
-</p>
-
-<p>
-Następnie przesyłane są próbki dźwiękowe kodowane microsoftowym wariantem
-GSM. Pod systemem Windows wystarczy użyć standardowego kodeka, pod innymi
-można skorzystać z biblioteki
-<a href="http://kbs.cs.tu-berlin.de/~jutta/toast.html">libgsm</a> z opcją
-WAV49. Pakiet danych wygląda następująco:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC_VOICE_DATA 0x03
-
-struct gg_dcc_voice_data {
-	char type;	<i>/* GG_DCC_VOICE_DATA */</i>
-	int length;	<i>/* długość pakietu */</i>
-	char data[];	<i>/* dane */</i>
-};</pre>
-</div>
-
-<p>
-W celu zakończenia rozmowy głosowej, zamiast powyższej ramki wysyła się:
-</p>
-
-<div class="c">
-<pre>#define GG_DCC_VOICE_TERMINATE 0x04
-
-struct gg_dcc_voice_terminate {
-	char type;	<i>/* GG_DCC_VOICE_TERMINATE */</i>
-};</pre>
-</div>
-
-<p>
-Do wersji 5.0.5 w jednym pakiecie było umieszczone 6 ramek GSM (<i>6 * 32,5 =
-195 bajtów</i>), a począwszy od tej wersji przesyła się po 10 ramek GSM,
-poprzedzając je bajtem zerowym (<i>1 + 10 * 32,5 = 326 bajtów</i>).
-</p>
-</div>
+<p>Połączenia głosowe są realizowane za pomocą protokołu SIP.</p>
 
 <hr />
 
@@ -2298,7 +2239,8 @@ napisz na listę dyskusyjną
 	GG_DISCONNECT_ACK, nowy pakiet GG_LOGIN80_FAILED</li>
 	<li><b>Adrian Warecki</b> (bok%kokosoftware.pl): Przykładowe pakiety GG_XML_ACTION</li>
 	<li><b>Piotr Latosiński</b> (piotr.latosinski%gmail.com): Opis pakietów GG_USER_DATA i GG_RECV_MSG_ACK</li>
-	<li><b>Tomek Nagisa</b> (kaworu%k2t.eu): Opis pakietów &quot;pisaka&quot;, GG_TYPING_NOTIFY.</li>
+	<li><b>Tomek Nagisa</b> (kaworu%k2t.eu): Opis pakietów "pisaka", GG_TYPING_NOTIFY.</li>
+	<li><b>Maciej Muszkowski</b> (maciek.muszkowski%gmail.com): Poprawiony opis połączeń bezpośrednich/relay w GG 8.x/10.x</li>
 </ul>
 
 <hr />
