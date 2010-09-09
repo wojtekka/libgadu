@@ -608,7 +608,7 @@ struct gg_user_data_user {
 struct gg_user_data_attr {
 	int name_size;	<i>/* długość nazwy atrybutu */</i>
 	char name[];	<i>/* nazwa atrybutu (bez znaku \0) */</i>
-	int type;		<i>/* typ atrybutu */</i>
+	int type;	<i>/* typ atrybutu */</i>
 	int value_size;	<i>/* długość wartości atrybutu */</i>
 	char value[];	<i>/* wartość atrybutu (bez znaku \0) */</i>
 };</pre>
@@ -1087,19 +1087,19 @@ a inny klient jest już zalogowany to dostaniemy pakiet:
 <pre>#define GG_MULTILOGON_INFO 0x005B
 
 struct gg_multilogon_info {
-	int count;	/* ilość zalogowanych klientów / struktur gg_multilogon_item w tym pakiecie */
-	struct gg_multilogon_item items[count];
+	int count;	<i>/* ilość zalogowanych klientów / struktur gg_multilogon_item w tym pakiecie */</i>
+	struct gg_multilogon_item items[];
 };
 
 struct gg_multilogon_item {
-	int login_ip;		/* IP z jakiego zalogowany jest dany klient */
-	int flags;		/* to co podał w &quot;flags&quot; przy logowaniu */
-	int features;		/* to co podał w &quot;features&quot; przy logowaniu */
-	int logon_time;		/* kiedy zdalny klient się zalogował na nasz numerek */
-	long long conn_id;	/* identyfikator polaczenia */
-	int unknown;		/* nie wiemy co to, zawsze zero */
-	int client_name_size;	/* rozmiar nazwy klieta uzytego po drugiej stronie */
-	char client_name[client_name_size]; /* nazwa klienta uzywanego w tym polaczeniu */
+	int login_ip;		<i>/* IP z jakiego zalogowany jest dany klient */</i>
+	int flags;		<i>/* to co podał w &quot;flags&quot; przy logowaniu */</i>
+	int features;		<i>/* to co podał w &quot;features&quot; przy logowaniu */</i>
+	int logon_time;		<i>/* kiedy zdalny klient się zalogował na nasz numerek */</i>
+	long long conn_id;	<i>/* identyfikator polaczenia */</i>
+	int unknown;		<i>/* nie wiemy co to, zawsze zero */</i>
+	int client_name_size;	<i>/* rozmiar nazwy klieta uzytego po drugiej stronie */</i>
+	char client_name[];	<i>/* nazwa klienta uzywanego w tym polaczeniu */</i>
 };</pre>
 </div>
 
@@ -1135,7 +1135,7 @@ w <tt>GG_MULTILOGON_INFO</tt>), wysyłamy pakiet:
 <pre>#define GG_MULTILOGON_DISCONNECT 0x0062
 
 struct gg_multilogon_disconnect {
-	long long conn_id; /* id połączenia dostarczone w gg_multilogon_info */
+	long long conn_id; <i>/* id połączenia dostarczone w gg_multilogon_info */</i>
 };</pre>
 </div>
 
@@ -2143,7 +2143,7 @@ funkcji <tt>inet_addr()</tt>), port w lokalnej.
 Przykładowa zawartość pól <tt>info</tt> i <tt>cookie</tt>:
 </p>
 
-<div class="c">
+<div class="example">
 <pre>0000   31 30 2e 30 2e 30 2e 32 20 32 32 35 36 33 00 00  10.0.0.2 22563..
 0010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 0020   31 37 36 34 36 38 34 38 34 00 00 00 00 00 00 00  176468484.......
@@ -2208,12 +2208,12 @@ Serwer odpowiada:
 struct gg_dcc7_relay_reply {
 	int type;	<i>/* 0x0b */</i>
 	int len;	<i>/* długość całego pakietu */</i>
-	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
+	int count;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
 	struct {
 		int ip;		<i>/* adres ip serwera */</i>
 		short port;	<i>/* port serwera */</i>
 		char family;	<i>/* prawdopodobnie rodzina adresów (AF_INET=2) */</i>
-	} proxies[rcount];
+	} proxies[];
 };</pre>
 </div>
 
