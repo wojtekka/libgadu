@@ -397,7 +397,7 @@ void test_stats(void)
 	printf("------------------------------------------------------------------------------\n");
 }
 
-void serve(void)
+void serve(int ready_fd)
 {
 	int sfds[4];
 	int cfds[2] = { -1, -1 };
@@ -432,6 +432,13 @@ void serve(void)
 			failure();
 		}
 	}
+
+	// Notify client that all sockets are listening
+	if (write(ready_fd, "A", 1) != 1) {
+		perror("write");
+		failure();
+	}
+	close(ready_fd);
 
 	for (;;) {
 		struct timeval tv;
@@ -633,6 +640,8 @@ int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0, result[TEST_MAX][2] = { { 0, } };
 	int exit_code = 0;
+	int ready_pipe[2];
+	char tmp;
 
 	if (argc == 3) {
 		test_from = atoi(argv[1]);
@@ -646,6 +655,11 @@ int main(int argc, char **argv)
 
 	if (!(log_file = fopen("report.html", "w"))) {
 		perror("fopen");
+		failure();
+	}
+
+	if (pipe(ready_pipe) == -1) {
+		perror("pipe");
 		failure();
 	}
 
@@ -664,7 +678,8 @@ int main(int argc, char **argv)
 	signal(SIGALRM, sigalrm);
 
 	if (!server_pid) {
-		serve();
+		close(ready_pipe[0]);
+		serve(ready_pipe[1]);
 		exit(0);
 	}
 
@@ -706,6 +721,14 @@ int main(int argc, char **argv)
 "<tr><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n", test_from, test_to);
 
 	fflush(log_file);
+
+	// Wait until server process is ready
+	if (read(ready_pipe[0], &tmp, 1) != 1) {
+		perror("read");
+		failure();
+	}
+	close(ready_pipe[0]);
+	close(ready_pipe[1]);
 
 	for (i = test_from - 1; i < test_to; i++) {
 		int j = i, server, expect = 0;
