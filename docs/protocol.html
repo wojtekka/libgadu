@@ -1178,8 +1178,9 @@ ma wyższy priorytet).
 </p>
 
 <p>
-W nowych wersjach protokołu (prawdopodobnie od <tt>0x29</tt>), po wysłaniu
-pakietu zmieniającego status na niedostępny, serwer przysyła pakiet:
+W pewnych wersjach protokołu (prawdopodobnie od <tt>0x29</tt> do okolic
+Nowego Gadu-Gadu), po wysłaniu pakietu zmieniającego status na niedostępny,
+serwer przysyła pakiet:
 </p>
 
 <div class="c">
@@ -1188,7 +1189,9 @@ pakietu zmieniającego status na niedostępny, serwer przysyła pakiet:
 
 <p>
 Jest to potwierdzenie, że serwer odebrał pakiet zmiany stanu i klient może
-zakończyć połączenie mając pewność, że zostanie ustawiony żądany opis.
+zakończyć połączenie mając pewność, że zostanie ustawiony żądany opis. Klient
+przedstawiający się jako Gadu-Gadu 10 takiego pakietu już nie dostaje &mdash;
+serwer sam zrywa połączenie po zmianie stanu na niedostępny.
 </p>
 
 <hr />
