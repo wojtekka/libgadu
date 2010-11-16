@@ -21,7 +21,7 @@ nie zmieniają dotychczasowego zachowania.
 
 - Możliwość zmian flag statusu (blokowanie odnośników od nieznajomych itd.) za
 pomocą pola \c status_flags struktury \c gg_login_params lub funkcji
-\c gg_change_status_flags.
+\c gg_change_status_flags().
 
 \section changelog-1_9_0 libgadu 1.9.0
 

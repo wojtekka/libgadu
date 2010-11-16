@@ -31,7 +31,8 @@ char *config_file;
 char *config_dir;
 unsigned int config_size = 1048576;
 unsigned long config_ip = 0xffffffff;
-unsigned int config_port;
+unsigned int config_port = 0;
+unsigned int config_localport = 0;
 
 int test_mode;
 int connected;
@@ -39,8 +40,10 @@ int connected;
 enum {
 	TEST_MODE_SEND = 0,
 	TEST_MODE_SEND_NAT,
+	TEST_MODE_SEND_PROXY,
 	TEST_MODE_RECEIVE,
 	TEST_MODE_RECEIVE_NAT,
+	TEST_MODE_RECEIVE_PROXY,
 	TEST_MODE_RECEIVE_RESUME,
 	TEST_MODE_LAST
 };
@@ -51,7 +54,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 {
 	struct sockaddr_in sin;
 
-	if (connected && test_mode == TEST_MODE_SEND_NAT) {
+	if (connected && (test_mode == TEST_MODE_SEND_NAT || test_mode == TEST_MODE_SEND_PROXY || test_mode == TEST_MODE_RECEIVE_PROXY)) {
 		memcpy(&sin, address, address_len);
 		sin.sin_addr.s_addr = INADDR_NONE;
 		address = (struct sockaddr*) &sin;
@@ -97,6 +100,9 @@ int config_read(void)
 
 		if (!strncmp(buf, "port ", 5))
 			config_port = atoi(buf + 5);
+
+		if (!strncmp(buf, "localport ", 10))
+			config_localport = atoi(buf + 10);
 	}
 
 	fclose(f);
@@ -126,9 +132,11 @@ int main(int argc, char **argv)
 				"\n"
 				"mode: 0 - send file\n"
 				"      1 - send file, simulate NAT\n"
-				"      2 - receive file\n"
-				"      3 - receive file, simulate NAT\n"
-				"      4 - receive file, resume at the end\n"
+				"      2 - send file, force server\n"
+				"      3 - receive file\n"
+				"      4 - receive file, simulate NAT\n"
+				"      5 - receive file, force server\n"
+				"      6 - receive file, resume at the end\n"
 				"\n", argv[0]);
 		exit(1);
 	}
@@ -149,22 +157,23 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	memset(&glp, 0, sizeof(glp));
-	glp.uin = config_uin;
-	glp.password = config_password;
-	glp.async = 1;
-//	glp.client_addr = config_ip;
-//	glp.client_port = config_port;
-	glp.protocol_version = 0x2a;
-
 	gg_dcc_ip = config_ip;
 
-	if (config_dir && (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME)) {
+	if (config_dir && (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_PROXY || test_mode == TEST_MODE_RECEIVE_RESUME)) {
 		if (chdir(config_dir) == -1) {
 			perror("chdir");
 			exit(1);
 		}
 	}
+
+	memset(&glp, 0, sizeof(glp));
+	glp.uin = config_uin;
+	glp.password = config_password;
+	glp.async = 1;
+	glp.external_addr = config_ip;
+	glp.external_port = config_port;
+	glp.client_port = config_localport;
+	glp.protocol_version = 0x2e;
 
 	debug("Connecting...\n");
 
@@ -185,15 +194,20 @@ int main(int argc, char **argv)
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 
-		maxfd = gs->fd;
+		maxfd = -1;
 
-		if ((gs->check & GG_CHECK_READ))
-			FD_SET(gs->fd, &rds);
+		if (gs != NULL && gs->fd != -1) {
+			if (gs->fd > maxfd)
+				maxfd = gs->fd;
 
-		if ((gs->check & GG_CHECK_WRITE))
-			FD_SET(gs->fd, &wds);
+			if ((gs->check & GG_CHECK_READ))
+				FD_SET(gs->fd, &rds);
 
-		if (gd && gd->fd != -1) {
+			if ((gs->check & GG_CHECK_WRITE))
+				FD_SET(gs->fd, &wds);
+		}
+
+		if (gd != NULL && gd->fd != -1) {
 			if (gd->fd > maxfd)
 				maxfd = gd->fd;
 
@@ -222,12 +236,12 @@ int main(int argc, char **argv)
 		now = time(NULL);
 
 		if (last != now) {
-			if (gs->timeout != -1 && gs->timeout-- == 0 && !gs->soft_timeout) {
+			if (gs != NULL && gs->timeout != -1 && gs->timeout-- == 0 && !gs->soft_timeout) {
 				debug("Timeout\n");
 				exit(1);
 			}
 
-			if (gd && gd->timeout != -1 && gd->timeout-- == 0 && !gd->soft_timeout) {
+			if (gd != NULL && gd->timeout != -1 && gd->timeout-- == 0 && !gd->soft_timeout) {
 				debug("Timeout\n");
 				exit(1);
 			}
@@ -235,12 +249,12 @@ int main(int argc, char **argv)
 			last = now;
 		}
 
-		if (gs->state == GG_STATE_CONNECTED && ping && now - ping > 60) {
+		if (gs != NULL && gs->state == GG_STATE_CONNECTED && ping && now - ping > 60) {
 			ping = now;
 			gg_ping(gs);
 		}
 
-		if (FD_ISSET(gs->fd, &rds) || FD_ISSET(gs->fd, &wds) || (gs->timeout == 0 && gs->soft_timeout)) {
+		if (gs != NULL && gs->fd != -1 && (FD_ISSET(gs->fd, &rds) || FD_ISSET(gs->fd, &wds) || (gs->timeout == 0 && gs->soft_timeout))) {
 			struct gg_event *ge;
 			uin_t uin;
 			int status;
@@ -256,7 +270,7 @@ int main(int argc, char **argv)
 					connected = 1;
 					gg_notify(gs, &config_peer, 1);
 
-					if (test_mode == TEST_MODE_RECEIVE_NAT)
+					if (test_mode == TEST_MODE_RECEIVE_NAT || (test_mode == TEST_MODE_SEND_PROXY || test_mode == TEST_MODE_RECEIVE_PROXY))
 						gs->client_addr = INADDR_NONE;
 
 					ping = time(NULL);
@@ -355,7 +369,7 @@ int main(int argc, char **argv)
 			gg_event_free(ge);
 		}
 
-		if (gd && gd->fd != -1 && (FD_ISSET(gd->fd, &rds) || FD_ISSET(gd->fd, &wds) || (gd->timeout == 0 && gd->soft_timeout))) {
+		if (gd != NULL && gd->fd != -1 && (FD_ISSET(gd->fd, &rds) || FD_ISSET(gd->fd, &wds) || (gd->timeout == 0 && gd->soft_timeout))) {
 			struct gg_event *ge;
 
 			if (!(ge = gg_dcc7_watch_fd(gd))) {

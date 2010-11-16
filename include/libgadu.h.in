@@ -175,6 +175,8 @@ struct gg_image_queue;
 
 struct gg_dcc7;
 
+struct gg_dcc7_relay;
+
 /**
  * Sposób rozwiązywania nazw serwerów.
  */
@@ -390,7 +392,8 @@ struct gg_dcc {
 
 #define GG_DCC7_HASH_LEN	20	/**< Maksymalny rozmiar skrótu pliku w połączeniach bezpośrenich */
 #define GG_DCC7_FILENAME_LEN	255	/**< Maksymalny rozmiar nazwy pliku w połączeniach bezpośrednich */
-#define GG_DCC7_INFO_LEN	64	/**< Maksymalny rozmiar informacji o połączeniach bezpośrednich */
+#define GG_DCC7_INFO_LEN	32	/**< Maksymalny rozmiar informacji o połączeniach bezpośrednich */
+#define GG_DCC7_INFO_HASH_LEN	32	/**< Maksymalny rozmiar skrótu ip informacji o połączeniach bezpośrednich */
 
 /**
  * Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.
@@ -432,6 +435,13 @@ struct gg_dcc7 {
 
 	int soft_timeout;	/**< Flaga mówiąca, że po przekroczeniu \c timeout należy wywołać \c gg_dcc7_watch_fd() */
 	int seek;		/**< Flaga mówiąca, że można zmieniać położenie w wysyłanym pliku */
+
+	void *resolver;		/**< Dane prywatne procesu lub wątku rozwiązującego nazwę serwera */
+
+	int relay;		/**< Flaga mówiąca, że laczymy sie przez serwer */
+	int relay_index;	/**< Numer serwera pośredniczącego, do którego się łączymy */
+	int relay_count;	/**< Rozmiar listy serwerów pośredniczących */
+	struct gg_dcc7_relay *relay_list;	/**< Lista serwerów pośredniczących */
 };
 
 /**
@@ -527,8 +537,12 @@ enum gg_state_t {
 	GG_STATE_WAITING_FOR_INFO,	/**< Oczekiwanie na informacje o połączeniu bezpośrednim */
 
 	GG_STATE_READING_ID,		/**< Odebranie identyfikatora połączenia bezpośredniego */
-	GG_STATE_SENDING_ID,		/**< Wysłano identyfikatora połączenia bezpośredniego */
+	GG_STATE_SENDING_ID,		/**< Wysłano identyfikator połączenia bezpośredniego */
 	GG_STATE_RESOLVING_GG,		/**< Oczekiwanie na rozwiązanie nazwy serwera Gadu-Gadu */
+
+	GG_STATE_RESOLVING_RELAY,	/**< Oczekiwanie na rozwiązanie nazwy serwera pośredniczącego */
+	GG_STATE_CONNECTING_RELAY,	/**< Oczekiwanie na połączenie z serwerem pośredniczącym */
+	GG_STATE_READING_RELAY,		/**< Odbieranie danych */
 };
 
 /**
@@ -715,7 +729,8 @@ enum gg_error_t {
 	GG_ERROR_DCC7_FILE,		/**< Błąd odczytu/zapisu pliku */
 	GG_ERROR_DCC7_EOF,		/**< Przedwczesny koniec pliku */
 	GG_ERROR_DCC7_NET,		/**< Błąd wysyłania/odbierania */
-	GG_ERROR_DCC7_REFUSED 		/**< Połączenie odrzucone */
+	GG_ERROR_DCC7_REFUSED, 		/**< Połączenie odrzucone */
+	GG_ERROR_DCC7_RELAY,		/**< Problem z serwerem pośredniczącym */
 };
 
 /**
@@ -1375,6 +1390,8 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
 #define GG_REGISTER_PORT 80
 #define GG_REMIND_HOST "retr.gadu-gadu.pl"
 #define GG_REMIND_PORT 80
+#define GG_RELAY_HOST "relay.gadu-gadu.pl"
+#define GG_RELAY_PORT 80
 
 #define GG_DEFAULT_PORT 8074
 #define GG_HTTPS_PORT 443
@@ -2033,6 +2050,7 @@ struct gg_dcc7_info {
 	uint32_t type;			/* sposób połączenia */
 	gg_dcc7_id_t id;		/* identyfikator połączenia */
 	char info[GG_DCC7_INFO_LEN];	/* informacje o połączeniu "ip port" */
+	char hash[GG_DCC7_INFO_HASH_LEN];/* skrót "ip" */
 } GG_PACKED;
 
 #define GG_DCC7_NEW 0x20

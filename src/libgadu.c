@@ -185,6 +185,37 @@ const char *gg_libgadu_version()
 	return GG_LIBGADU_VERSION;
 }
 
+#ifdef GG_CONFIG_HAVE_UINT64_T
+/**
+ * \internal Zamienia kolejność bajtów w 64-bitowym słowie.
+ *
+ * Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach
+ * big-endianowych odwraca kolejność bajtów w słowie.
+ *
+ * \param x Liczba do zamiany
+ *
+ * \return Liczba z odpowiednią kolejnością bajtów
+ *
+ * \ingroup helper
+ */
+uint64_t gg_fix64(uint64_t x)
+{
+#ifndef GG_CONFIG_BIGENDIAN
+	return x;
+#else
+	return (uint64_t)
+		(((x & (uint64_t) 0x00000000000000ffULL) << 56) |
+		((x & (uint64_t) 0x000000000000ff00ULL) << 40) |
+		((x & (uint64_t) 0x0000000000ff0000ULL) << 24) |
+		((x & (uint64_t) 0x00000000ff000000ULL) << 8) |
+		((x & (uint64_t) 0x000000ff00000000ULL) >> 8) |
+		((x & (uint64_t) 0x0000ff0000000000ULL) >> 24) |
+		((x & (uint64_t) 0x00ff000000000000ULL) >> 40) |
+		((x & (uint64_t) 0xff00000000000000ULL) >> 56));
+#endif
+}
+#endif /* GG_CONFIG_HAVE_UINT64_T */
+
 /**
  * \internal Zamienia kolejność bajtów w 32-bitowym słowie.
  *
@@ -787,6 +818,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
+	sess->client_port = p->client_port;
 
 	if (p->protocol_features == 0) {
 		sess->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80 | GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR | GG_FEATURE_UNKNOWN_100 | GG_FEATURE_USER_DATA | GG_FEATURE_MSG_ACK | GG_FEATURE_TYPING_NOTIFICATION;

@@ -89,7 +89,8 @@ if test "x$with_c99_vsnprintf" = "x"; then
 fi
 
 dnl
-dnl  Sprawdzamy, czy jest ,,long long'' na potrzeby obliczeń czasów DCC
+dnl  Sprawdzamy, czy jest system obsługuje 64-bitowe zmienne potrzebne dla
+dnl  połączeń bezpośrednich.
 dnl
 
 AC_MSG_CHECKING([for long long])
@@ -102,6 +103,14 @@ AC_TRY_COMPILE([],
 	AC_MSG_RESULT([yes])
 	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
 ])
+
+AC_CHECK_FUNCS([strtoull], [AC_DEFINE([HAVE_STRTOULL], [], [Defined if this machine has strtoull().])])
+
+AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
+AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
+    AC_DEFINE([HAVE_UINT64_T], [], [Defined if this machine has uint64_t .])
+    AC_MSG_RESULT([yes]),
+    AC_MSG_RESULT([no]))
 
 dnl
 dnl  SunOS
