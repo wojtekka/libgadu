@@ -685,6 +685,7 @@ enum gg_event_t {
 	GG_EVENT_XML_EVENT,		/**< Otrzymano komunikat systemowy (7.7) */
 	GG_EVENT_DISCONNECT_ACK,	/**< \brief Potwierdzenie zakończenia sesji. Informuje o tym, że zmiana stanu na niedostępny z opisem dotarła do serwera i można zakończyć połączenie TCP. */
 	GG_EVENT_TYPING_NOTIFICATION,	/**< Powiadomienie o pisaniu */
+	GG_EVENT_USER_DATA,		/**< Informacja o kontaktach */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -928,6 +929,33 @@ struct gg_event_typing_notification {
 };
 
 /**
+ * Atrybut użytkownika.
+ */
+struct gg_event_user_data_attr {
+	int type;		/**< Typ atrybutu */
+	char *key;		/**< Klucz */
+	char *value;		/**< Wartość */
+};
+
+/**
+ * Struktura opisująca kontakt w zdarzeniu GG_EVENT_USER_DATA.
+ */
+struct gg_event_user_data_user {
+	uin_t uin;		/**< Numer kontaktu */
+	size_t attr_count;	/**< Liczba atrybutów */
+	struct gg_event_user_data_attr *attrs;	/**< Lista atrybutów */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_USER_DATA.
+ */
+struct gg_event_user_data {
+	int type;		/**< Rodzaj informacji o kontaktach */
+	size_t user_count;	/**< Liczba kontaktów */
+	struct gg_event_user_data_user *users;	/**< Lista kontaktów */
+};
+
+/**
  * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
  * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
  *
@@ -958,6 +986,7 @@ union gg_event_union {
 	struct gg_event_dcc7_accept dcc7_accept;	/**< Zaakceptowano połączenie bezpośrednie (\c GG_EVENT_DCC7_ACCEPT) */
 	struct gg_event_dcc7_done dcc7_done;	/**< Zakończono połączenie bezpośrednie (\c GG_EVENT_DCC7_DONE) */
 	struct gg_event_typing_notification typing_notification;	/**< Powiadomienie o pisaniu */
+	struct gg_event_user_data user_data;	/**< Informacje o kontaktach */
 };
 
 /**

@@ -30,4 +30,8 @@ Przykład wysłania pustej listy kontaktów, by móc odbierać wiadomości:
 gg_notify(sesja, NULL, 0);
 \endcode
 
+Po wysłaniu listy kontaktów otrzymamy informacje o statusie znajomych
+(za pomocą \c GG_EVENT_NOTIFY, \c GG_EVENT_NOTIFY60 lub \c GG_EVENT_NOTIFY77)
+oraz informacje dodatkowe o kontaktach (za pomocą \c GG_EVENT_USER_DATA).
+
 */

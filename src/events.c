@@ -130,6 +130,24 @@ void gg_event_free(struct gg_event *e)
 		case GG_EVENT_XML_EVENT:
 			free(e->event.xml_event.data);
 			break;
+
+		case GG_EVENT_USER_DATA:
+		{
+			int i, j;
+
+			for (i = 0; i < e->event.user_data.user_count; i++) {
+				for (j = 0; j < e->event.user_data.users[i].attr_count; j++) {
+					free(e->event.user_data.users[i].attrs[j].key);
+					free(e->event.user_data.users[i].attrs[j].value);
+				}
+
+				free(e->event.user_data.users[i].attrs);
+			}
+
+			free(e->event.user_data.users);
+
+			break;
+		}
 	}
 
 	free(e);
@@ -720,6 +738,171 @@ static int gg_handle_recv_msg_ack(struct gg_session *sess)
 }
 
 /**
+ * \internal Analizuje przychodzący pakiet z danymi kontaktów.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_handle_user_data(struct gg_session *sess, struct gg_event *e, void *packet, size_t len)
+{
+	struct gg_user_data d;
+	char *p = (char*) packet;
+	char *packet_end = (char*) packet + len;
+	struct gg_event_user_data_user *users;
+	int i, j;
+	int res = 0;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_user_data(%p, %p, %p, %d);\n", sess, e, packet, len);
+
+	e->event.user_data.user_count = 0;
+	e->event.user_data.users = NULL;
+
+	if (p + sizeof(d) > packet_end)
+		goto malformed;
+
+	memcpy(&d, p, sizeof(d));
+	printf("%p %p %d\n",packet, p, sizeof(d));
+	p += sizeof(d);
+	printf("%p\n", p);
+
+	d.type = gg_fix32(d.type);
+	d.user_count = gg_fix32(d.user_count);
+
+	if (d.user_count > 0) {
+		users = calloc(d.user_count, sizeof(struct gg_event_user_data_user));
+
+		if (users == NULL)
+			goto fail;
+	} else {
+		users = NULL;
+	}
+
+	e->type = GG_EVENT_USER_DATA;
+	e->event.user_data.type = d.type;
+	e->event.user_data.user_count = d.user_count;
+	e->event.user_data.users = users;
+	
+	gg_debug_session(sess, GG_DEBUG_DUMP, "type=%d, count=%d\n", d.type, d.user_count);
+
+	for (i = 0; i < d.user_count; i++) {
+		struct gg_user_data_user u;
+		struct gg_event_user_data_attr *attrs;
+
+		printf("i=%d, p=%p\n", i, p);
+		if (p + sizeof(u) > packet_end) {
+			printf("fruuu %p %p %p\n", packet, p, packet_end);
+			goto malformed;
+		}
+
+		memcpy(&u, p, sizeof(u));
+		p += sizeof(u);
+
+		u.uin = gg_fix32(u.uin);
+		u.attr_count = gg_fix32(u.attr_count);
+
+		if (u.attr_count > 0) {
+			attrs = calloc(u.attr_count, sizeof(struct gg_event_user_data_attr));
+
+			if (attrs == NULL)
+				goto malformed;
+		} else {
+			attrs = NULL;
+		}
+
+		users[i].uin = u.uin;
+		users[i].attr_count = u.attr_count;
+		users[i].attrs = attrs;
+
+		gg_debug_session(sess, GG_DEBUG_DUMP, "    uin=%d, count=%d\n", u.uin, u.attr_count);
+
+		for (j = 0; j < u.attr_count; j++) {
+			uint32_t key_size;
+			uint32_t attr_type;
+			uint32_t value_size;
+			char *key;
+			char *value;
+
+			if (p + sizeof(key_size) > packet_end)
+				goto malformed;
+
+			memcpy(&key_size, p, sizeof(key_size));
+			p += sizeof(key_size);
+
+			key_size = gg_fix32(key_size);
+
+			if (p + key_size > packet_end)
+				goto malformed;
+
+			key = malloc(key_size + 1);
+
+			if (key == NULL)
+				goto fail;
+
+			memcpy(key, p, key_size);
+			p += key_size;
+
+			key[key_size] = 0;
+
+			attrs[j].key = key;
+
+			if (p + sizeof(attr_type) + sizeof(value_size) > packet_end)
+				goto malformed;
+
+			memcpy(&attr_type, p, sizeof(attr_type));
+			p += sizeof(attr_type);
+			memcpy(&value_size, p, sizeof(value_size));
+			p += sizeof(value_size);
+
+			attrs[j].type = gg_fix32(attr_type);
+			value_size = gg_fix32(value_size);
+
+			if (p + value_size > packet_end)
+				goto malformed;
+
+			value = malloc(value_size + 1);
+
+			if (value == NULL)
+				goto fail;
+
+			memcpy(value, p, value_size);
+			p += value_size;
+
+			value[value_size] = 0;
+
+			attrs[j].value = value;
+
+			gg_debug_session(sess, GG_DEBUG_DUMP, "        key=\"%s\", type=%d, value=\"%s\"\n", key, attr_type, value);
+		}
+	}
+
+	return 0;
+
+fail:
+	res = -1;
+
+malformed:
+	e->type = GG_EVENT_NONE;
+
+	for (i = 0; i < e->event.user_data.user_count; i++) {
+		for (j = 0; j < e->event.user_data.users[i].attr_count; j++) {
+			free(e->event.user_data.users[i].attrs[j].key);
+			free(e->event.user_data.users[i].attrs[j].value);
+		}
+
+		free(e->event.user_data.users[i].attrs);
+	}
+
+	free(e->event.user_data.users);
+
+	return res;
+}
+
+
+/**
  * \internal Odbiera pakiet od serwera.
  *
  * Analizuje pakiet i wypełnia strukturę zdarzenia.
@@ -1297,6 +1480,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		}
 
 		case GG_XML_EVENT:
+		case GG_XML_ACTION:
 		{
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received XML event\n");
 			e->type = GG_EVENT_XML_EVENT;
@@ -1436,7 +1620,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			if (h->length < sizeof(*d))
 				break;
 
-			// XXX
+			if (gg_handle_user_data(sess, e, p, h->length) == -1)
+				goto fail;
 
 			break;
 		}

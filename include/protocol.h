@@ -143,12 +143,12 @@ struct gg_recv_msg_ack {
 
 struct gg_user_data {
 	uint32_t type;
-	uint32_t users;
+	uint32_t user_count;
 } GG_PACKED;
 
 struct gg_user_data_user {
 	uint32_t uin;
-	uint32_t fields;
+	uint32_t attr_count;
 } GG_PACKED;
 
 #define GG_TYPING_NOTIFICATION 0x0059
@@ -157,6 +157,8 @@ struct gg_typing_notification {
 	uint16_t length;
 	uint32_t uin;
 } GG_PACKED;
+
+#define GG_XML_ACTION 0x002c
 
 #define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
 

@@ -8,3 +8,9 @@ expect event GG_EVENT_XML_EVENT (
 	xml_event.data == "<?xml version='1.0'?>\r\n"
 )
 
+send (2c 00 00 00, auto, "<events></events>" 0d 0a)
+
+expect event GG_EVENT_XML_EVENT (
+	xml_event.data == "<events></events>\r\n"
+)
+

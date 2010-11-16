@@ -15,6 +15,11 @@ nie zmieniają dotychczasowego zachowania.
 
 - Powiadomienie o pisaniu. \ref messages-typing "Szczegóły".
 
+- Obsługa dodatkowych informacji o kontaktach za pomocą \c GG_EVENT_USER_DATA.
+
+- Obsługa dodatkowych zdarzeń XML (pakiet \c GG_XML_ACTION) za pomocą
+\c GG_EVENT_XML_EVENT.
+
 \section changelog-1_9_1 libgadu 1.9.1
 
 - Opis zdarzenia \c GG_EVENT_DCC7_DONE zawiera wskaźnik do struktury połączenia, którego dotyczy.
