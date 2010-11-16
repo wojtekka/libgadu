@@ -46,13 +46,14 @@ pre { margin: 0px; }
 		1.6.&nbsp;&nbsp;<a href="#ch1.6">Wysyłanie wiadomości</a><br />
 		1.7.&nbsp;&nbsp;<a href="#ch1.7">Otrzymywanie wiadomości</a><br />
 		1.8.&nbsp;&nbsp;<a href="#ch1.8">Powiadomienie o pisaniu ("pisak")</a><br />
-		1.9.&nbsp;&nbsp;<a href="#ch1.9">Ping, pong</a><br />
-		1.10.&nbsp;&nbsp;<a href="#ch1.10">Rozłączenie</a><br />
-		1.11.&nbsp;&nbsp;<a href="#ch1.12">Wiadomości systemowe</a><br />
-		1.12.&nbsp;&nbsp;<a href="#ch1.13">Wiadomości GG_XML_ACTION</a><br />
-		1.13.&nbsp;&nbsp;<a href="#ch1.14">Katalog publiczny</a><br />
-		1.14.&nbsp;&nbsp;<a href="#ch1.15">Lista kontaktów</a><br />
-		1.15.&nbsp;&nbsp;<a href="#ch1.16">Indeks pakietów</a><br />
+		1.9.&nbsp;&nbsp;<a href="#ch1.9">Multilogowanie</a><br />
+		1.10.&nbsp;&nbsp;<a href="#ch1.10">Ping, pong</a><br />
+		1.11.&nbsp;&nbsp;<a href="#ch1.11">Rozłączenie</a><br />
+		1.12.&nbsp;&nbsp;<a href="#ch1.12">Wiadomości systemowe</a><br />
+		1.13.&nbsp;&nbsp;<a href="#ch1.13">Wiadomości GG_XML_ACTION</a><br />
+		1.14.&nbsp;&nbsp;<a href="#ch1.14">Katalog publiczny</a><br />
+		1.15.&nbsp;&nbsp;<a href="#ch1.15">Lista kontaktów</a><br />
+		1.16.&nbsp;&nbsp;<a href="#ch1.16">Indeks pakietów</a><br />
 	</li>
 	<li><a href="#ch2">Usługi HTTP</a><br />
 		2.1.&nbsp;&nbsp;<a href="#ch2.1">Format danych</a><br />
@@ -278,6 +279,7 @@ niezbędna jest co najmniej wartość <tt>0x00000007</tt>.
 <tr class="tabf"><td>9</td><td><tt>0x00000200</tt></td><td>Klient obsługuje <a href="#ch1.5.1">dodatkowe informacje o liście kontaktów</a></td></tr>
 <tr class="tabf"><td>10</td><td><tt>0x00000400</tt></td><td>Klient wysyła <a href="#ch1.7.1">potwierdzenia odebrania wiadomości</a></td></tr>
 <tr class="tabf"><td>13</td><td><tt>0x00002000</tt></td><td>Klient obsługuje <a href="#ch1.8">powiadomienia o pisaniu</a></td></tr>
+<tr class="tabf"><td>13</td><td><tt>0x00004000</tt></td><td>Klient obsługuje <a href="#ch1.9">multilogowanie</a></td></tr>
 </table>
 
 <p>
@@ -417,7 +419,9 @@ Możliwe stany to:
 <tr class="tabf"><td><tt>GG_STATUS_INVISIBLE</tt></td><td><tt>0x0014</tt></td><td>Niewidoczny</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_INVISIBLE_DESCR</tt></td><td><tt>0x0016</tt></td><td>Niewidoczny (z opisem)</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_BLOCKED</tt></td><td><tt>0x0006</tt></td><td>Zablokowany</td></tr>
-<tr class="tabf"><td><tt>GG_STATUS_IMAGE_MASK</tt></td><td><tt>0x0100</tt></td><td>Maska bitowa oznaczająca ustawiony opis graficzny (tylko </td></tr>
+<tr class="tabf"><td><tt>GG_STATUS_IMAGE_MASK</tt></td><td><tt>0x0100</tt></td><td>Maska bitowa oznaczająca ustawiony opis graficzny (tylko odbierane)</td></tr>
+<tr class="tabf"><td><tt>GG_STATUS_ADAPT_STATUS_MASK</tt></td><td><tt>0x0400</tt></td>
+<td>Maska bitowa informująca serwer, że jeśli istnieje już inne połączenie na tym numerze to nasze ma przyjać jego stan (podany przez nas zostanie zignorowany). Jeśli połączenia innego nie ma, to ustawiany jest stan podany przez nas.</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_DESCR_MASK</tt></td><td><tt>0x4000</tt></td><td>Maska bitowa oznaczająca ustawiony opis</td></tr>
 <tr class="tabf"><td><tt>GG_STATUS_FRIENDS_MASK</tt></td><td><tt>0x8000</tt></td><td>Maska bitowa oznaczająca tryb tylko dla przyjaciół</td></tr>
 </table>
@@ -428,7 +432,8 @@ Możliwe flagi to:
 
 <table class="tab" border="0" cellspacing="1" cellpadding="2" width="100%">
 <tr class="tabh"><td><b>Bit</b></td><td><b>Wartość</b></td><td><b>Znaczenie</b></td></tr>
-<tr class="tabf"><td>0</td><td><tt>0x00000001</tt></td><td>Nieznane, zawsze występuje</td></tr>
+<tr class="tabf"><td>0</td><td><tt>0x00000001</tt></td>
+<td>Prawdopodobnie połączenia audio</td></tr>
 <tr class="tabf"><td>1</td><td><tt>0x00000002</tt></td><td>Klient obsługuje wideorozmowy</td></tr>
 <tr class="tabf"><td>20</td><td><tt>0x00100000</tt></td><td>Klient mobilny (ikona telefonu komórkowego)</td></tr>
 <tr class="tabf"><td>23</td><td><tt>0x00800000</tt></td><td>Klient chce otrzymywać linki od nieznajomych</td></tr>
@@ -603,7 +608,7 @@ struct gg_user_data_user {
 struct gg_user_data_attr {
 	int name_size;	<i>/* długość nazwy atrybutu */</i>
 	char name[];	<i>/* nazwa atrybutu (bez znaku \0) */</i>
-	int type;		<i>/* typ atrybutu */</i>
+	int type;	<i>/* typ atrybutu */</i>
 	int value_size;	<i>/* długość wartości atrybutu */</i>
 	char value[];	<i>/* wartość atrybutu (bez znaku \0) */</i>
 };</pre>
@@ -1041,8 +1046,103 @@ drugą stronę w pole wysyłki tekstu.
 
 <hr />
 
-<a name="ch1.9"></a>
-<h3>1.9. Ping, pong</h3>
+<a name="ch1.9" id="ch1.9"></a>
+<h3>1.9. Multilogowanie</h3>
+
+<p>
+Czyli wiele klientów, z różnych miejsc &mdash; na jednym numerze. Co prawda
+do samego zalogowania się na dany numer wiele razy, wcale nie są potrzebne
+specjalne modyfikacje. To jeśli chcemy obsługiwać synchronziację wysyłanych
+wiadomości &mdash; obsługa dodatkowych pakietów będzie nam potrzebna. Aby
+otrzymywać pakiety związane z tą funkcją w polu features przy logowaniu
+dodajemy flagę <tt>0x00004000</tt>.
+</p>
+
+<a name="ch1.9.1" id="ch1.9.1"></a>
+<h4>1.9.1. Synchronizacja wiadomości</h4>
+
+<p>
+Jeśli z innego klienta zostanie wysłana wiadomośc (z naszego numeru) to
+otrzymamy pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_RECV_OWN_MSG 0x005A
+</pre>
+</div>
+
+<p>
+O takiej strukturze jak <tt>gg_recv_msg80</tt>.
+</p>
+
+<a name="ch1.9.2" id="ch1.9.2"></a>
+<h4>1.9.2. Informacje o innych połączeniach</h4>
+
+<p>
+Jeśli na nasz numer zaloguje się inny klient, lub kiedy my się logujemy,
+a inny klient jest już zalogowany to dostaniemy pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_MULTILOGON_INFO 0x005B
+
+struct gg_multilogon_info {
+	int count;	<i>/* ilość zalogowanych klientów / struktur gg_multilogon_item w tym pakiecie */</i>
+	struct gg_multilogon_item items[];
+};
+
+struct gg_multilogon_item {
+	int login_ip;		<i>/* IP z jakiego zalogowany jest dany klient */</i>
+	int flags;		<i>/* to co podał w &quot;flags&quot; przy logowaniu */</i>
+	int features;		<i>/* to co podał w &quot;features&quot; przy logowaniu */</i>
+	int logon_time;		<i>/* kiedy zdalny klient się zalogował na nasz numerek */</i>
+	long long conn_id;	<i>/* identyfikator polaczenia */</i>
+	int unknown;		<i>/* nie wiemy co to, zawsze zero */</i>
+	int client_name_size;	<i>/* rozmiar nazwy klieta uzytego po drugiej stronie */</i>
+	char client_name[];	<i>/* nazwa klienta uzywanego w tym polaczeniu */</i>
+};</pre>
+</div>
+
+<a name="ch1.9.3" id="ch1.9.3"></a>
+<h4>1.9.3. Dostosowanie stanu</h4>
+
+<p>
+Protokół GG udostępnia możliwość dostosowania stanu
+&bdquo;nowo-połaczonego&rdquo; klienta do tego jaki mają ustawione już
+zalogowane na naszym numerze komunikatory. W tym celu w pakiecie
+<tt>gg_login80</tt> w polu &bdquo;status&rdquo; dodajemy flagę <tt>0x0400</tt>.
+Jeśli to zrobimy, w momencie gdy łączymy się na numer na którym jest już
+obecny inny klient, stan który podajemy w pakiecie logowania zostanie przez
+serwer zignorowany. W takiej sytuacji powinnismy zaprezentować użytkownikowi
+stan przysłany do nas pakietem <tt>GG_NOTIFY_REPLY80</tt> gdzie
+&bdquo;uin&rdquo; będzie zawierał nasz numer.
+</p>
+
+<p>
+W wypadku kiedy &bdquo;inny&rdquo; klient zmieni stan naszego numeru także
+dostaniemy <tt>GG_NOTIFY_REPLY80</tt> z naszym nowym stanem.
+</p>
+
+<a name="ch1.9.3" id="ch1.9.4"></a>
+<h4>1.9.4. Rozłączenie zdalnego klienta</h4>
+
+<p>
+W razie kiedy chcemy rozłączyć którąś z sesji (podanych
+w <tt>GG_MULTILOGON_INFO</tt>), wysyłamy pakiet:
+</p>
+
+<div class="c">
+<pre>#define GG_MULTILOGON_DISCONNECT 0x0062
+
+struct gg_multilogon_disconnect {
+	long long conn_id; <i>/* id połączenia dostarczone w gg_multilogon_info */</i>
+};</pre>
+</div>
+
+<hr />
+
+<a name="ch1.10" id="ch1.10"></a>
+<h3>1.10. Ping, pong</h3>
 
 <p>
 Od czasu do czasu klient wysyła pakiet do serwera, by oznajmić, że połączenie
@@ -1059,8 +1159,8 @@ zmienia się z wersji na wersję, więc najlepiej nie polegać na tym.
 
 <hr />
 
-<a name="ch1.10"></a>
-<h3>1.10. Rozłączenie</h3>
+<a name="ch1.11" id="ch1.11"></a>
+<h3>1.11. Rozłączenie</h3>
 
 <p>
 Jeśli serwer zechce nas rozłączyć, wyśle wcześniej pusty pakiet:
@@ -1512,6 +1612,7 @@ Pakiety wysyłane:
 <tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST_REQUEST100</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0046</tt></td><td><tt>GG_RECV_MSG_ACK</tt></td><td>Potwierdzenie odebrania wiadomości przez klienta</td></tr>
 <tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
+<tr class="tabf"><td><tt>0x0062</tt></td><td><tt>GG_OWN_DISCONNECT</tt></td><td>Rozłączenie zdalnego klienta</td></tr>
 </table>
 
 <p>
@@ -1557,6 +1658,8 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0041</tt></td><td><tt>GG_USERLIST_REPLY100</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0044</tt></td><td><tt>GG_USER_DATA</tt></td><td>Dodatkowe informacje o liście kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
+<tr class="tabf"><td><tt>0x005A</tt></td><td><tt>GG_OWN_MESSAGE</tt></td><td>Własne wiadomości z innych klientów</td></tr>
+<tr class="tabf"><td><tt>0x005B</tt></td><td><tt>GG_OWN_RESOURCE_INFO</tt></td><td>Informacje o innych połączeniach na naszym numerze</td></tr>
 </table>
 
 <hr />
@@ -2040,7 +2143,7 @@ funkcji <tt>inet_addr()</tt>), port w lokalnej.
 Przykładowa zawartość pól <tt>info</tt> i <tt>cookie</tt>:
 </p>
 
-<div class="c">
+<div class="example">
 <pre>0000   31 30 2e 30 2e 30 2e 32 20 32 32 35 36 33 00 00  10.0.0.2 22563..
 0010   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
 0020   31 37 36 34 36 38 34 38 34 00 00 00 00 00 00 00  176468484.......
@@ -2105,12 +2208,12 @@ Serwer odpowiada:
 struct gg_dcc7_relay_reply {
 	int type;	<i>/* 0x0b */</i>
 	int len;	<i>/* długość całego pakietu */</i>
-	int rcount;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
+	int count;	<i>/* prawdopodobnie ilość pośredniczących serwerów */</i>
 	struct {
 		int ip;		<i>/* adres ip serwera */</i>
 		short port;	<i>/* port serwera */</i>
 		char family;	<i>/* prawdopodobnie rodzina adresów (AF_INET=2) */</i>
-	} proxies[rcount];
+	} proxies[];
 };</pre>
 </div>
 
@@ -2239,7 +2342,7 @@ napisz na listę dyskusyjną
 	GG_DISCONNECT_ACK, nowy pakiet GG_LOGIN80_FAILED</li>
 	<li><b>Adrian Warecki</b> (bok%kokosoftware.pl): Przykładowe pakiety GG_XML_ACTION</li>
 	<li><b>Piotr Latosiński</b> (piotr.latosinski%gmail.com): Opis pakietów GG_USER_DATA i GG_RECV_MSG_ACK</li>
-	<li><b>Tomek Nagisa</b> (kaworu%k2t.eu): Opis pakietów "pisaka", GG_TYPING_NOTIFY.</li>
+	<li><b>Tomek Nagisa</b> (kaworu%k2t.eu): Opis pakietów &quot;pisaka&quot;, GG_TYPING_NOTIFY oraz multilogowania.</li>
 	<li><b>Maciej Muszkowski</b> (maciek.muszkowski%gmail.com): Poprawiony opis połączeń bezpośrednich/relay w GG 8.x/10.x</li>
 </ul>
 
