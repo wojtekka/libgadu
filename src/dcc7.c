@@ -351,15 +351,6 @@ static int gg_dcc7_reverse_connect(struct gg_dcc7 *dcc)
 	return gg_dcc7_listen_and_send_info(dcc);
 }
 
-/*
-laczymy sie na relay.gadu-gadu.pl:80 z pakietem GG_DCC7_RELAY_REQUEST i typem 
-ustawionym na GG_DCC7_RELAY_TYPE_SERVER w odpowiedzi dostaniemy adres serwera 
-na ktory pytac o serwery (dlatego port = 0x0000) pewnie to jest w razie czego.
-Nastepnie wysylamy pakiet na ten adres i port 80 z pakietem GG_DCC7_RELAY_REQUEST
-oraz typem ustawionym na GG_DCC7_RELAY_TYPE_PROXY dopiero teraz dostajemy faktyczne
-adresy na ktore bedziemy sie autoryzowac z pakietem GG_DCC7_WELCOME_SERVER i wysylac plik.
-*/
-
 /**
  * \internal Wysyła do serwera żądanie nadania identyfikatora sesji
  *
