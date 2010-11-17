@@ -186,7 +186,6 @@ void gg_debug_dump_session(struct gg_session *sess, const void *buf, unsigned in
 char *gg_vsaprintf(const char *format, va_list ap)
 {
 	int size = 0;
-	const char *start;
 	char *buf = NULL;
 
 #ifdef GG_CONFIG_HAVE_VA_COPY
@@ -200,8 +199,6 @@ char *gg_vsaprintf(const char *format, va_list ap)
 	__va_copy(aq, ap);
 #  endif
 #endif
-
-	start = format;
 
 #ifndef GG_CONFIG_HAVE_C99_VSNPRINTF
 	{
@@ -230,8 +227,6 @@ char *gg_vsaprintf(const char *format, va_list ap)
 			return NULL;
 	}
 #endif
-
-	format = start;
 
 #ifdef GG_CONFIG_HAVE_VA_COPY
 	vsnprintf(buf, size + 1, format, aq);

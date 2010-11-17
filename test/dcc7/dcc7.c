@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 		fd_set rds, wds;
 		struct timeval tv;
 		time_t now;
-		int res, maxfd = -1;
+		int maxfd;
 
 		FD_ZERO(&rds);
 		FD_ZERO(&wds);
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 			FD_SET(fds[1], &wds);
 		}
 
-		if ((res = select(maxfd + 1, &rds, &wds, NULL, &tv)) == -1) {
+		if (select(maxfd + 1, &rds, &wds, NULL, &tv) == -1) {
 			if (errno == EINTR)
 				continue;
 
