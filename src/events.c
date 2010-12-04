@@ -307,6 +307,11 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 					goto malformed;
 				}
 
+				if (e->event.msg.recipients) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() e->event.msg.recipients already exist\n");
+					goto fail;
+				}
+
 				if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() not enough memory for recipients data\n");
 					goto fail;
@@ -335,6 +340,11 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 				memcpy(&len, p + 1, sizeof(uint16_t));
 				len = gg_fix16(len);
+
+				if (e->event.msg.formats) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() e->event.msg.formats already exist\n");
+					goto fail;
+				}
 
 				if (!(buf = malloc(len))) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() not enough memory for richtext data\n");
@@ -656,6 +666,19 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 
+	if (offset_attr != 0) {
+		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + h->length)) {
+			case -1:	// handled
+				return 0;
+
+			case -2:	// failed
+				goto fail;
+
+			case -3:	// malformed
+				goto malformed;
+		}
+	}
+
 	if (sess->encoding == GG_ENCODING_CP1250) {
 		e->event.msg.message = (unsigned char*) strdup(packet + offset_plain);
 	} else {
@@ -682,19 +705,6 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 			e->event.msg.xhtml_message = gg_utf8_to_cp(packet + sizeof(struct gg_recv_msg80));
 	} else {
 		e->event.msg.xhtml_message = NULL;
-	}
-
-	if (offset_attr != 0) {
-		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + h->length)) {
-			case -1:	// handled
-				return 0;
-
-			case -2:	// failed
-				goto fail;
-
-			case -3:	// malformed
-				goto malformed;
-		}
 	}
 
 	return 0;
