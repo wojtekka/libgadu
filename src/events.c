@@ -296,19 +296,19 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 				p += sizeof(*m);
 
 				if (p > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (1)\n");
 					goto malformed;
 				}
 
 				count = gg_fix32(m->count);
 
 				if (p + count * sizeof(uin_t) > packet_end || p + count * sizeof(uin_t) < p || count > 0xffff) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (1.5)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (1.5)\n");
 					goto malformed;
 				}
 
 				if (!(e->event.msg.recipients = (void*) malloc(count * sizeof(uin_t)))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for recipients data\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() not enough memory for recipients data\n");
 					goto fail;
 				}
 
@@ -329,7 +329,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 				char *buf;
 
 				if (p + 3 > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (2)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (2)\n");
 					goto malformed;
 				}
 
@@ -337,14 +337,14 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 				len = gg_fix16(len);
 
 				if (!(buf = malloc(len))) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() not enough memory for richtext data\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() not enough memory for richtext data\n");
 					goto fail;
 				}
 
 				p += 3;
 
 				if (p + len > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (3)\n");
 					free(buf);
 					goto malformed;
 				}
@@ -364,7 +364,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 				struct gg_msg_image_request *i = (void*) p;
 
 				if (p + sizeof(*i) > packet_end) {
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (3)\n");
 					goto malformed;
 				}
 
@@ -396,7 +396,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 				} else if (p + sizeof(struct gg_msg_image_reply) + 1 > packet_end) {
 
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (4)\n");
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() packet out of bounds (4)\n");
 					goto malformed;
 				}
 
@@ -409,7 +409,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 			default:
 			{
-				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() unknown payload 0x%.2x\n", *p);
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() unknown payload 0x%.2x\n", *p);
 				p = packet_end;
 			}
 		}

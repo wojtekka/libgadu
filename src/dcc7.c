@@ -74,7 +74,7 @@ static int gg_dcc7_session_add(struct gg_session *sess, struct gg_dcc7 *dcc)
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_session_add(%p, %p)\n", sess, dcc);
 
 	if (!sess || !dcc || dcc->next) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_session_remove() invalid parameters\n");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_session_add() invalid parameters\n");
 		errno = EINVAL;
 		return -1;
 	}
