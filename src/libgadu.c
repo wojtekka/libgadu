@@ -2367,6 +2367,25 @@ int gg_typing_notification(struct gg_session *sess, uin_t recipient, int length)
 	return gg_send_packet(sess, GG_TYPING_NOTIFICATION, &pkt, sizeof(pkt), NULL);
 }
 
+/**
+ * Rozłącza inną sesję multilogowania.
+ *
+ * \param gs Struktura sesji
+ * \param conn_id Sesja do rozłączenia
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup multilogon
+ */
+int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id)
+{
+	struct gg_multilogon_disconnect pkt;
+
+	pkt.conn_id = conn_id;
+
+	return gg_send_packet(gs, GG_MULTILOGON_DISCONNECT, &pkt, sizeof(pkt), NULL);
+}
+
 /* @} */
 
 /*

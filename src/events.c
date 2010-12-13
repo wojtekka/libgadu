@@ -148,6 +148,18 @@ void gg_event_free(struct gg_event *e)
 
 			break;
 		}
+	
+		case GG_EVENT_MULTILOGON_INFO:
+		{
+			int i;
+
+			for (i = 0; i < e->event.multilogon_info.count; i++)
+				free(e->event.multilogon_info.sessions[i].name);
+
+			free(e->event.multilogon_info.sessions);
+
+			break;
+		}
 	}
 
 	free(e);
@@ -639,10 +651,11 @@ static int gg_convert_from_html(char *dst, const char *html)
  * \param h Wskaźnik do odebranego pakietu
  * \param e Struktura zdarzenia
  * \param sess Struktura sesji
+ * \param event Typ zdarzenia
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct gg_session *sess)
+static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct gg_session *sess, int event)
 {
 	char *packet = (char*) h + sizeof(struct gg_header);
 	struct gg_recv_msg80 *r = (struct gg_recv_msg80*) packet;
@@ -684,7 +697,7 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 		goto malformed;
 	}
 
-	e->type = GG_EVENT_MSG;
+	e->type = event;
 	e->event.msg.msgclass = gg_fix32(r->msgclass);
 	e->event.msg.sender = gg_fix32(r->sender);
 	e->event.msg.time = gg_fix32(r->time);
@@ -930,6 +943,95 @@ malformed:
 	return res;
 }
 
+/**
+ * \internal Analizuje przychodzący pakiet z listą sesji multilogowania.
+ *
+ * \param sess Struktura sesji
+ * \param e Struktura zdarzenia
+ * \param payload Treść pakietu
+ * \param len Długość pakietu
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_handle_multilogon_info(struct gg_session *sess, struct gg_event *e, void *packet, size_t len)
+{
+	char *packet_end = (char*) packet + len;
+	struct gg_multilogon_info *info = (struct gg_multilogon_info*) packet;
+	char *p = (char*) packet + sizeof(*info);
+	struct gg_multilogon_session *sessions;
+	int count;
+	int i;
+	int res = 0;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_multilogon_info(%p, %p, %p, %d);\n", sess, e, packet, len);
+
+	count = gg_fix32(info->count);
+
+	sessions = calloc(count, sizeof(struct gg_multilogon_session));
+
+	if (sessions == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_multilogon_info() out of memory (%d*%d)\n", count, sizeof(struct gg_multilogon_session));
+		return -1;
+	}
+	
+	e->type = GG_EVENT_MULTILOGON_INFO;
+	e->event.multilogon_info.count = count;
+	e->event.multilogon_info.sessions = sessions;
+
+	for (i = 0; i < count; i++) {
+		struct gg_multilogon_info_item item;
+		size_t name_size;
+
+		if (p + sizeof(item) > packet_end) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (1)\n");
+			goto malformed;
+		}
+
+		memcpy(&item, p, sizeof(item));
+
+		sessions[i].id = item.conn_id;
+		sessions[i].ip = item.addr;
+		sessions[i].status_flags = gg_fix32(item.flags);
+		sessions[i].protocol_features = gg_fix32(item.features);
+		sessions[i].logon_time = gg_fix32(item.logon_time);
+
+		p += sizeof(item);
+
+		name_size = gg_fix32(item.name_size);
+
+		if (name_size > 0xffff || p + name_size > packet_end) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (2)\n");
+			goto malformed;
+		}
+
+		sessions[i].name = malloc(name_size + 1);
+
+		if (sessions[i].name == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_multilogon_info() out of memory (%d)\n", name_size);
+			goto fail;
+		}
+
+		memcpy(sessions[i].name, p, name_size);
+		sessions[i].name[name_size] = 0;
+
+		p += name_size;
+	}
+
+	return 0;
+
+fail:
+	res = -1;
+
+malformed:
+	e->type = GG_EVENT_NONE;
+
+	for (i = 0; i < e->event.multilogon_info.count; i++)
+		free(e->event.multilogon_info.sessions[i].name);
+
+	free(e->event.multilogon_info.sessions);
+
+	return res;
+}
 
 /**
  * \internal Odbiera pakiet od serwera.
@@ -976,7 +1078,7 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 		case GG_RECV_MSG80:
 		{
 			if (h->length >= sizeof(struct gg_recv_msg80)) {
-				if (gg_handle_recv_msg80(h, e, sess) != -1)
+				if (gg_handle_recv_msg80(h, e, sess, GG_EVENT_MSG) != -1)
 					gg_handle_recv_msg_ack(sess);
 				else
 					goto fail;
@@ -985,6 +1087,15 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			break;
 		}
 
+		case GG_RECV_OWN_MSG:
+		{
+			if (h->length >= sizeof(struct gg_recv_msg80)) {
+				if (gg_handle_recv_msg80(h, e, sess, GG_EVENT_MULTILOGON_MSG) == -1)
+					goto fail;
+			}
+
+			break;
+		}
 
 		case GG_NOTIFY_REPLY:
 		{
@@ -1642,11 +1753,9 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 
 		case GG_USER_DATA:
 		{
-			struct gg_user_data *d = (void*) p;
-
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received user data\n");
 
-			if (h->length < sizeof(*d))
+			if (h->length < sizeof(struct gg_user_data))
 				break;
 
 			if (gg_handle_user_data(sess, e, p, h->length) == -1)
@@ -1660,6 +1769,8 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			struct gg_typing_notification *n = (void*) p;
 			uin_t uin;
 
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received typing notification\n");
+
 			if (h->length < sizeof(*n))
 				break;
 
@@ -1668,6 +1779,19 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			e->type = GG_EVENT_TYPING_NOTIFICATION;
 			e->event.typing_notification.uin = gg_fix32(uin);
 			e->event.typing_notification.length = gg_fix16(n->length);
+
+			break;
+		}
+
+		case GG_MULTILOGON_INFO:
+		{
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() received multilogon info\n");
+
+			if (h->length < sizeof(struct gg_multilogon_info))
+				break;
+
+			if (gg_handle_multilogon_info(sess, e, p, h->length) == -1)
+				goto fail;
 
 			break;
 		}

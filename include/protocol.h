@@ -160,6 +160,30 @@ struct gg_typing_notification {
 
 #define GG_XML_ACTION 0x002c
 
+#define GG_RECV_OWN_MSG 0x005a
+
+#define GG_MULTILOGON_INFO 0x005b
+
+struct gg_multilogon_info {
+	uint32_t count;
+} GG_PACKED;
+
+struct gg_multilogon_info_item {
+	uint32_t addr;
+	uint32_t flags;
+	uint32_t features;
+	uint32_t logon_time;
+	gg_multilogon_id_t conn_id;
+	uint32_t unknown1;
+	uint32_t name_size;
+} GG_PACKED;
+
+#define GG_MULTILOGON_DISCONNECT 0x0062
+
+struct gg_multilogon_disconnect {
+	gg_multilogon_id_t conn_id;
+} GG_PACKED;
+
 #define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
 
 #define GG_DCC7_RESERVED1		0xdeadc0de
