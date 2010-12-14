@@ -224,6 +224,21 @@ i co minutę wywoływać funkcję \c gg_ping().
 <td>\copydoc gg_event_t::GG_EVENT_DISCONNECT_ACK</td>
 </tr>
 <tr>
+<th colspan="4">Multilogowanie</th>
+</tr>
+<tr>
+<td>\c GG_EVENT_MULTILOGON_INFO</td>
+<td>\c event.multilogon_info</td>
+<td>\c gg_event_multilogon_info</td>
+<td>\copydoc gg_event_t::GG_EVENT_MULTILOGON_INFO</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_MULTILOGON_MSG</td>
+<td>\c event.multilogon_msg</td>
+<td>\c gg_event_msg</td>
+<td>\copydoc gg_event_t::GG_EVENT_MULTILOGON_MSG</td>
+</tr>
+<tr>
 <th colspan="4">Wiadomości</th>
 </tr>
 <tr>

@@ -20,6 +20,8 @@ nie zmieniają dotychczasowego zachowania.
 - Obsługa dodatkowych zdarzeń XML (pakiet \c GG_XML_ACTION) za pomocą
 \c GG_EVENT_XML_EVENT.
 
+- Obsługa multilogowania. \ref login-multi "Szczegóły".
+
 \section changelog-1_9_1 libgadu 1.9.1
 
 - Opis zdarzenia \c GG_EVENT_DCC7_DONE zawiera wskaźnik do struktury połączenia, którego dotyczy.

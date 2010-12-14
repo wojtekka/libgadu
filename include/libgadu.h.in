@@ -971,11 +971,11 @@ struct gg_event_user_data {
  */
 struct gg_multilogon_session {
 	gg_multilogon_id_t id;		/**< Identyfikator sesji */
-	char *name;			/**< Nazwa sesji */
-	uint32_t ip;			/**< Adres sesji */
-	uint32_t status_flags;		/**< Flagi statusu sesji */
-	uint32_t protocol_features;	/**< Opcje protokolu sesji */
-	uint32_t logon_time;		/**< Czas zalogowania */
+	char *name;			/**< Nazwa sesji (podana w \c gg_login_params.client_version) */
+	uint32_t remote_addr;		/**< Adres sesji */
+	int status_flags;		/**< Flagi statusu sesji */
+	int protocol_features;		/**< Opcje protokolu sesji */
+	time_t logon_time;		/**< Czas zalogowania */
 };
 
 /**

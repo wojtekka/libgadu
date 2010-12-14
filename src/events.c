@@ -73,6 +73,7 @@ void gg_event_free(struct gg_event *e)
 
 	switch (e->type) {
 		case GG_EVENT_MSG:
+		case GG_EVENT_MULTILOGON_MSG:
 			free(e->event.msg.message);
 			free(e->event.msg.formats);
 			free(e->event.msg.recipients);
@@ -990,7 +991,7 @@ static int gg_handle_multilogon_info(struct gg_session *sess, struct gg_event *e
 		memcpy(&item, p, sizeof(item));
 
 		sessions[i].id = item.conn_id;
-		sessions[i].ip = item.addr;
+		sessions[i].remote_addr = item.addr;
 		sessions[i].status_flags = gg_fix32(item.flags);
 		sessions[i].protocol_features = gg_fix32(item.features);
 		sessions[i].logon_time = gg_fix32(item.logon_time);
