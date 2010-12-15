@@ -37,6 +37,8 @@
 #include "libgadu.h"
 #include "protocol.h"
 #include "internal.h"
+#include "encoding.h"
+#include "debug.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -732,15 +734,12 @@ static int gg_handle_recv_msg80(struct gg_header *h, struct gg_event *e, struct 
 
 			gg_convert_from_html((char*) e->event.msg.message, packet + sizeof(struct gg_recv_msg80));
 		} else {
-			e->event.msg.message = (unsigned char*) gg_cp_to_utf8(packet + offset_plain);
+			e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1);
 		}
 	}
 
 	if (offset_plain > sizeof(struct gg_recv_msg80)) {
-		if (sess->encoding == GG_ENCODING_UTF8)
-			e->event.msg.xhtml_message = strdup(packet + sizeof(struct gg_recv_msg80));
-		else
-			e->event.msg.xhtml_message = gg_utf8_to_cp(packet + sizeof(struct gg_recv_msg80));
+		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
 	} else {
 		e->event.msg.xhtml_message = NULL;
 	}
@@ -1169,16 +1168,16 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				memcpy(&e->event.status, p, sizeof(*s));
 				e->event.status.uin = gg_fix32(e->event.status.uin);
 				e->event.status.status = gg_fix32(e->event.status.status);
+				e->event.status.descr = NULL;
+
 				if (h->length > sizeof(*s)) {
-					int len = h->length - sizeof(*s);
-					char *buf = malloc(len + 1);
-					if (buf) {
-						memcpy(buf, p + sizeof(*s), len);
-						buf[len] = 0;
+					e->event.status.descr = gg_encoding_convert(p + sizeof(*s), GG_ENCODING_CP1250, sess->encoding, h->length - sizeof(*s), -1);
+
+					if (e->event.status.descr == NULL) {
+						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
+						goto fail;
 					}
-					e->event.status.descr = buf;
-				} else
-					e->event.status.descr = NULL;
+				}
 			}
 
 			break;
@@ -1226,30 +1225,12 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply77));
 
 					if (sizeof(struct gg_notify_reply77) + descr_len <= length) {
-						char *descr;
+						e->event.notify60[i].descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply77) + 1, (h->type == GG_NOTIFY_REPLY80BETA) ? GG_ENCODING_UTF8 : GG_ENCODING_CP1250, sess->encoding, descr_len, -1);
 
-						if (!(descr = malloc(descr_len + 1))) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+						if (e->event.notify60[i].descr == NULL) {
+							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
 							goto fail;
 						}
-
-						memcpy(descr, (char*) n + sizeof(struct gg_notify_reply77) + 1, descr_len);
-						descr[descr_len] = 0;
-
-						if (h->type == GG_NOTIFY_REPLY80BETA && sess->encoding != GG_ENCODING_UTF8) {
-							char *cp_descr = gg_utf8_to_cp(descr);
-
-							if (!cp_descr) {
-								gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-								free(descr);
-								goto fail;
-							}
-
-							free(descr);
-							descr = cp_descr;
-						}
-
-						e->event.notify60[i].descr = descr;
 
 						/* XXX czas */
 							
@@ -1308,24 +1289,14 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.status60.version |= GG_ERA_OMNIX_MASK;
 
 			if (h->length > sizeof(*s)) {
-				int len = h->length - sizeof(*s);
-				char *buf = malloc(len + 1);
+				size_t len = h->length - sizeof(*s);
 
-				/* XXX, jesli malloc() sie nie uda to robic tak samo jak przy GG_NOTIFY_REPLY* ?
-				 * 	- goto fail; (?)
-				 */
-				if (buf) {
-					memcpy(buf, (char*) p + sizeof(*s), len);
-					buf[len] = 0;
+				e->event.status60.descr = gg_encoding_convert((char*) p + sizeof(*s), (h->type == GG_STATUS80BETA) ? GG_ENCODING_UTF8 : GG_ENCODING_CP1250, sess->encoding, len, -1);
 
-					if (h->type == GG_STATUS80BETA && sess->encoding != GG_ENCODING_UTF8) {
-						char *cp_buf = gg_utf8_to_cp(buf);
-						free(buf);
-						buf = cp_buf;
-					}
+				if (e->event.status60.descr == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
+					goto fail;
 				}
-
-				e->event.status60.descr = buf;
 
 				if (len > 4 && p[h->length - 5] == 0) {
 					uint32_t t;
@@ -1376,13 +1347,12 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 					unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
 
 					if (sizeof(struct gg_notify_reply60) + descr_len <= length) {
-						if (!(e->event.notify60[i].descr = malloc(descr_len + 1))) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+						e->event.notify60[i].descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply60) + 1, GG_ENCODING_CP1250, sess->encoding, descr_len, -1);
+
+						if (e->event.notify60[i].descr == NULL) {
+							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
 							goto fail;
 						}
-
-						memcpy(e->event.notify60[i].descr, (char*) n + sizeof(struct gg_notify_reply60) + 1, descr_len);
-						e->event.notify60[i].descr[descr_len] = 0;
 
 						/* XXX czas */
 							
@@ -1438,15 +1408,9 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				e->event.status60.version |= GG_ERA_OMNIX_MASK;
 
 			if (h->length > sizeof(*s)) {
-				int len = h->length - sizeof(*s);
-				char *buf = malloc(len + 1);
+				size_t len = h->length - sizeof(*s);
 
-				if (buf) {
-					memcpy(buf, (char*) p + sizeof(*s), len);
-					buf[len] = 0;
-				}
-
-				e->event.status60.descr = buf;
+				e->event.status60.descr = gg_encoding_convert((char*) p + sizeof(*s), GG_ENCODING_CP1250, sess->encoding, len, -1);
 
 				if (len > 4 && p[h->length - 5] == 0) {
 					uint32_t t;
@@ -1481,20 +1445,12 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 			descr_len = gg_fix32(s->descr_len);
 
 			if (descr_len > 0 && h->length-sizeof(*s) >= descr_len) {
-				char *buf = malloc(descr_len + 1);
+				e->event.status60.descr = gg_encoding_convert((char*) p + sizeof(*s), GG_ENCODING_UTF8, sess->encoding, descr_len, -1);
 
-				if (buf) {
-					memcpy(buf, (char*) p + sizeof(*s), descr_len);
-					buf[descr_len] = 0;
-
-					if (sess->encoding != GG_ENCODING_UTF8) {
-						char *cp_buf = gg_utf8_to_cp(buf);
-						free(buf);
-						buf = cp_buf;
-					}
+				if (e->event.status60.descr == NULL) {
+					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
+					goto fail;
 				}
-
-				e->event.status60.descr = buf;
 			}
 			break;
 		}
@@ -1537,29 +1493,13 @@ static int gg_watch_fd_connected(struct gg_session *sess, struct gg_event *e)
 				if (descr_len) {
 					if (length >= descr_len) {
 						/* XXX, GG_S_D(n->status) */
-						char *descr;
 
-						if (!(descr = malloc(descr_len + 1))) {
-							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
+						e->event.notify60[i].descr = gg_encoding_convert((const char*) n, GG_ENCODING_UTF8, sess->encoding, descr_len, -1);
+
+						if (e->event.notify60[i].descr == NULL) {
+							gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
 							goto fail;
 						}
-
-						memcpy(descr, n, descr_len);
-						descr[descr_len] = 0;
-
-						if (sess->encoding != GG_ENCODING_UTF8) {
-							char *cp_descr = gg_utf8_to_cp(descr);
-
-							if (!cp_descr) {
-								gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() not enough memory for notify data\n");
-								free(descr);
-								goto fail;
-							}
-
-							free(descr);
-							descr = cp_descr;
-						}
-						e->event.notify60[i].descr = descr;
 
 						length -= descr_len;
 						n = (void*) ((char*) n + descr_len);

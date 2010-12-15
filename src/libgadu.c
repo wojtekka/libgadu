@@ -41,6 +41,8 @@
 #include "protocol.h"
 #include "resolver.h"
 #include "internal.h"
+#include "encoding.h"
+#include "debug.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -58,45 +60,6 @@
 #  include <openssl/err.h>
 #  include <openssl/rand.h>
 #endif
-
-/**
- * Poziom rejestracji informacji odpluskwiających. Zmienna jest maską bitową
- * składającą się ze stałych \c GG_DEBUG_...
- *
- * \ingroup debug
- */
-int gg_debug_level = 0;
-
-/**
- * Funkcja, do której są przekazywane informacje odpluskwiające. Jeśli zarówno
- * ten \c gg_debug_handler, jak i \c gg_debug_handler_session, są równe
- * \c NULL, informacje są wysyłane do standardowego wyjścia błędu (\c stderr).
- *
- * \param level Poziom rejestracji
- * \param format Format wiadomości (zgodny z \c printf)
- * \param ap Lista argumentów (zgodna z \c printf)
- *
- * \note Funkcja jest przesłaniana przez \c gg_debug_handler_session.
- *
- * \ingroup debug
- */
-void (*gg_debug_handler)(int level, const char *format, va_list ap) = NULL;
-
-/**
- * Funkcja, do której są przekazywane informacje odpluskwiające. Jeśli zarówno
- * ten \c gg_debug_handler, jak i \c gg_debug_handler_session, są równe
- * \c NULL, informacje są wysyłane do standardowego wyjścia błędu.
- *
- * \param sess Sesja której dotyczy informacja lub \c NULL
- * \param level Poziom rejestracji
- * \param format Format wiadomości (zgodny z \c printf)
- * \param ap Lista argumentów (zgodna z \c printf)
- *
- * \note Funkcja przesłania przez \c gg_debug_handler_session.
- *
- * \ingroup debug
- */
-void (*gg_debug_handler_session)(struct gg_session *sess, int level, const char *format, va_list ap) = NULL;
 
 /**
  * Port gniazda nasłuchującego dla połączeń bezpośrednich.
@@ -627,7 +590,8 @@ void *gg_recv_packet(struct gg_session *sess)
 
 	sess->recv_left = 0;
 
-	gg_debug_dump_session(sess, buf, sizeof(h) + h.length, "// gg_recv_packet(0x%.2x)", h.type);
+	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet(0x%.2x)", h.type);
+	gg_debug_dump(sess, GG_DEBUG_DUMP, buf, sizeof(h) + h.length);
 
 	return buf;
 }
@@ -695,7 +659,8 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->type = gg_fix32(type);
 	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
-	gg_debug_dump_session(sess, tmp, tmp_length, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
+	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
+	gg_debug_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
 
 	res = gg_write(sess, tmp, tmp_length);
 
@@ -861,8 +826,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		else
 			max_length = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
 
-		if (sess->protocol_version >= 0x2d && p->encoding != GG_ENCODING_UTF8)
-			sess->initial_descr = gg_cp_to_utf8(p->status_descr);
+		if (sess->protocol_version >= 0x2d)
+			sess->initial_descr = gg_encoding_convert(p->status_descr, p->encoding, GG_ENCODING_UTF8, -1, -1);
 		else
 			sess->initial_descr = strdup(p->status_descr);
 
@@ -955,10 +920,18 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 
 		if (!sess->server_addr) {
 			if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
-				if (gg_gethostbyname_real(hostname, &addr, 0) == -1) {
+				struct in_addr *addr_list = NULL;
+				int addr_count;
+
+				if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 0) == -1 || addr_count == 0) {
 					gg_debug(GG_DEBUG_MISC, "// gg_login() host \"%s\" not found\n", hostname);
+					free(addr_list);
 					goto fail;
 				}
+
+				addr = addr_list[0];
+
+				free(addr_list);
 			}
 		} else {
 			addr.s_addr = sess->server_addr;
@@ -1225,7 +1198,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 
 	if (sess->protocol_version >= 0x2d) {
 		if (descr != NULL && sess->encoding != GG_ENCODING_UTF8) {
-			new_descr = gg_cp_to_utf8(descr);
+			new_descr = gg_encoding_convert(descr, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1);
 
 			if (!new_descr)
 				return -1;
@@ -1696,13 +1669,13 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	}
 
 	if (sess->encoding == GG_ENCODING_UTF8) {
-		if (!(cp_msg = gg_utf8_to_cp((const char *) message)))
+		if (!(cp_msg = gg_encoding_convert((const char *) message, GG_ENCODING_UTF8, GG_ENCODING_CP1250, -1, -1)))
 			return -1;
 
 		utf_msg = (char*) message;
 	} else {
 		if (sess->protocol_version >= 0x2d) {
-			if (!(utf_msg = gg_cp_to_utf8((const char *) message)))
+			if (!(utf_msg = gg_encoding_convert((const char *) message, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1)))
 				return -1;
 		}
 

@@ -55,11 +55,11 @@
 #include "resolver.h"
 #include "internal.h"
 
-#define gg_debug_dcc(dcc, fmt...) \
-	gg_debug_session(((dcc) != NULL) ? (dcc)->sess : NULL, fmt)
+#define gg_debug_dcc(dcc, level, fmt...) \
+	gg_debug_session(((dcc) != NULL) ? (dcc)->sess : NULL, level, fmt)
 
-#define gg_debug_dump_dcc(dcc, buf, len, fmt...) \
-	gg_debug_dump_session(((dcc) != NULL) ? (dcc)->sess : NULL, buf, len, fmt)
+#define gg_debug_dump_dcc(dcc, level, buf, len) \
+	gg_debug_dump(((dcc) != NULL) ? (dcc)->sess : NULL, level, buf, len)
 
 /**
  * \internal Dodaje połączenie bezpośrednie do sesji.
@@ -1401,7 +1401,8 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			pkt.type = gg_fix16(GG_DCC7_RELAY_TYPE_SERVER);
 			pkt.dunno1 = gg_fix16(GG_DCC7_RELAY_DUNNO1);
 
-			gg_debug_dump_dcc(dcc, &pkt, sizeof(pkt), "// gg_dcc7_watch_fd() send pkt(0x%.2x)\n", gg_fix32(pkt.magic));
+			gg_debug_dcc(dcc, GG_DEBUG_DUMP, "// gg_dcc7_watch_fd() send pkt(0x%.2x)\n", gg_fix32(pkt.magic));
+			gg_debug_dump_dcc(dcc, GG_DEBUG_DUMP, &pkt, sizeof(pkt));
 
 			if ((res = write(dcc->fd, &pkt, sizeof(pkt))) != sizeof(pkt)) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() sending failed\n");
@@ -1446,7 +1447,8 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-		        gg_debug_dump_dcc(dcc, buf, res, "// gg_dcc7_get_relay() read pkt(0x%.2x)\n", gg_fix32(pkt->magic));
+			gg_debug_dcc(dcc, GG_DEBUG_DUMP, "// gg_dcc7_get_relay() read pkt(0x%.2x)\n", gg_fix32(pkt->magic));
+			gg_debug_dump_dcc(dcc, GG_DEBUG_DUMP, buf, res);
 
 			free(dcc->relay_list);
 
