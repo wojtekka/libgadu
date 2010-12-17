@@ -43,6 +43,7 @@
 #include "internal.h"
 #include "encoding.h"
 #include "debug.h"
+#include "session.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -590,7 +591,7 @@ void *gg_recv_packet(struct gg_session *sess)
 
 	sess->recv_left = 0;
 
-	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet(0x%.2x)", h.type);
+	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_recv_packet(type=0x%.2x, length=%d)\n", h.type, h.length);
 	gg_debug_dump(sess, GG_DEBUG_DUMP, buf, sizeof(h) + h.length);
 
 	return buf;
@@ -659,7 +660,7 @@ int gg_send_packet(struct gg_session *sess, int type, ...)
 	h->type = gg_fix32(type);
 	h->length = gg_fix32(tmp_length - sizeof(struct gg_header));
 
-	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet(0x%.2x)", gg_fix32(h->type));
+	gg_debug_session(sess, GG_DEBUG_DUMP, "// gg_send_packet(type=0x%.2x, length=%d)\n", gg_fix32(h->type), gg_fix32(h->length));
 	gg_debug_dump(sess, GG_DEBUG_DUMP, tmp, tmp_length);
 
 	res = gg_write(sess, tmp, tmp_length);
@@ -1263,6 +1264,10 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 	}
 
 	free(new_descr);
+
+	if (GG_S_NA(status))
+		sess->state = GG_STATE_DISCONNECTING;
+
 	return res;
 }
 

@@ -54,6 +54,7 @@
 #include "protocol.h"
 #include "resolver.h"
 #include "internal.h"
+#include "debug.h"
 
 #define gg_debug_dcc(dcc, level, fmt...) \
 	gg_debug_session(((dcc) != NULL) ? (dcc)->sess : NULL, level, fmt)
@@ -631,9 +632,9 @@ int gg_dcc7_reject(struct gg_dcc7 *dcc, int reason)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload, int len)
+int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, const void *payload, int len)
 {
-	struct gg_dcc7_id_reply *p = payload;
+	const struct gg_dcc7_id_reply *p = payload;
 	struct gg_dcc7 *tmp;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_id(%p, %p, %p, %d)\n", sess, e, payload, len);
@@ -681,9 +682,9 @@ int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, void *payload
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *payload, int len)
+int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, const void *payload, int len)
 {
-	struct gg_dcc7_accept *p = payload;
+	const struct gg_dcc7_accept *p = payload;
 	struct gg_dcc7 *dcc;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_accept(%p, %p, %p, %d)\n", sess, e, payload, len);
@@ -721,9 +722,9 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, void *pay
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *payload, int len)
+int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void *payload, int len)
 {
-	struct gg_dcc7_info *p = payload;
+	const struct gg_dcc7_info *p = payload;
 	struct gg_dcc7 *dcc;
 	char *tmp;
 
@@ -860,9 +861,9 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, void *paylo
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *payload, int len)
+int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const void *payload, int len)
 {
-	struct gg_dcc7_reject *p = payload;
+	const struct gg_dcc7_reject *p = payload;
 	struct gg_dcc7 *dcc;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_reject(%p, %p, %p, %d)\n", sess, e, payload, len);
@@ -898,9 +899,9 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, void *pay
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, void *payload, int len)
+int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, const void *payload, int len)
 {
-	struct gg_dcc7_new *p = payload;
+	const struct gg_dcc7_new *p = payload;
 	struct gg_dcc7 *dcc;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_handle_new(%p, %p, %p, %d)\n", sess, e, payload, len);
@@ -1402,7 +1403,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			pkt.dunno1 = gg_fix16(GG_DCC7_RELAY_DUNNO1);
 
 			gg_debug_dcc(dcc, GG_DEBUG_DUMP, "// gg_dcc7_watch_fd() send pkt(0x%.2x)\n", gg_fix32(pkt.magic));
-			gg_debug_dump_dcc(dcc, GG_DEBUG_DUMP, &pkt, sizeof(pkt));
+			gg_debug_dump_dcc(dcc, GG_DEBUG_DUMP, (const char*) &pkt, sizeof(pkt));
 
 			if ((res = write(dcc->fd, &pkt, sizeof(pkt))) != sizeof(pkt)) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() sending failed\n");

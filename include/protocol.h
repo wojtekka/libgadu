@@ -184,6 +184,14 @@ struct gg_multilogon_disconnect {
 	gg_multilogon_id_t conn_id;
 } GG_PACKED;
 
+#define GG_MSG_CALLBACK 0x02	/**< Żądanie zwrotnego połączenia bezpośredniego */
+
+#define GG_MSG_OPTION_CONFERENCE 0x01
+#define GG_MSG_OPTION_ATTRIBUTES 0x02
+#define GG_MSG_OPTION_IMAGE_REQUEST 0x04
+#define GG_MSG_OPTION_IMAGE_REPLY 0x05
+#define GG_MSG_OPTION_IMAGE_REPLY_MORE 0x06
+
 #define GG_DCC7_VOICE_RETRIES 0x11	/* 17 powtorzen */
 
 #define GG_DCC7_RESERVED1		0xdeadc0de

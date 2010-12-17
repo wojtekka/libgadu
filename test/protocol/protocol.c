@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 		}
 
 		if (time(NULL) - last >= 5) {
-			debug("state %d: timeout\n", state);
+			error(state, "Timeout\n");
 			exit(1);
 		}
 

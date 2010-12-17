@@ -264,6 +264,7 @@ const char *gg_debug_state(enum gg_state_t state)
 	GG_DEBUG_STATE(GG_STATE_RESOLVING_RELAY)
 	GG_DEBUG_STATE(GG_STATE_CONNECTING_RELAY)
 	GG_DEBUG_STATE(GG_STATE_READING_RELAY)
+	GG_DEBUG_STATE(GG_STATE_DISCONNECTING)
 
 	// Celowo nie ma default, żeby kompilator wyłapał brakujące stany
 	

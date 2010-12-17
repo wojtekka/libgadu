@@ -23,19 +23,6 @@
 
 #include "libgadu.h"
 
-#ifdef GG_CONFIG_HAVE_GNUTLS
-
-#include <gnutls/gnutls.h>
-
-typedef struct {
-	gnutls_session_t session;
-	gnutls_certificate_credentials_t xcred;
-} gg_session_gnutls_t;
-
-#define GG_SESSION_GNUTLS(sess) ((gg_session_gnutls_t*) (sess)->ssl)->session
-
-#endif /* GG_CONFIG_HAVE_GNUTLS */
-
 struct gg_dcc7_relay {
 	uint32_t addr;
 	uint16_t port;

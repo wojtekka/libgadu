@@ -510,16 +510,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 send (11 00 00 00, auto, 00*13)
 
-expect event GG_EVENT_NOTIFY60 (
-	notify60[0].uin == 0
-#	notify60[0].status == 0
-#	notify60[0].remote_ip == 0.0.0.0
-#	notify60[0].remote_port == 0
-#	notify60[0].version == 0
-#	notify60[0].image_size == 0
-
-#	notify60[1].uin == 0
-)
+expect event GG_EVENT_NONE
 
 #-----------------------------------------------------------------------------
 # Notify reply (post-7.0)
@@ -627,16 +618,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 send (18 00 00 00, auto, 00*17)
 
-expect event GG_EVENT_NOTIFY60 (
-	notify60[0].uin == 0
-#	notify60[0].status == 0
-#	notify60[0].remote_ip == 0.0.0.0
-#	notify60[0].remote_port == 0
-#	notify60[0].version == 0
-#	notify60[0].image_size == 0
-
-#	notify60[1].uin == 0
-)
+expect event GG_EVENT_NONE
 
 #-----------------------------------------------------------------------------
 # Notify reply (8.0)
@@ -744,16 +726,7 @@ expect event GG_EVENT_NOTIFY60 (
 
 send (37 00 00 00, auto, 00*27)
 
-expect event GG_EVENT_NOTIFY60 (
-	notify60[0].uin == 0
-#	notify60[0].status == 0
-#	notify60[0].remote_ip == 0.0.0.0
-#	notify60[0].remote_port == 0
-#	notify60[0].version == 0
-#	notify60[0].image_size == 0
-
-#	notify60[1].uin == 0
-)
+expect event GG_EVENT_NONE
 
 #-----------------------------------------------------------------------------
 # Trigger segfault found by Jakub Zawadzki (pre-1.8.2)

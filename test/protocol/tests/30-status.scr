@@ -24,6 +24,11 @@ call {
 
 expect data (38 00 00 00, auto, 01 00 00 00, 01 00 80 00, 00 00 00 00)
 
+call {
+	// Revert state change
+	session->state = GG_STATE_CONNECTED;
+}
+
 #-----------------------------------------------------------------------------
 
 call {
@@ -31,6 +36,11 @@ call {
 }
 
 expect data (38 00 00 00, auto, 15 00 00 00, 01 00 80 00, 04 00 00 00, "Test")
+
+call {
+	// Revert state change
+	session->state = GG_STATE_CONNECTED;
+}
 
 #-----------------------------------------------------------------------------
 

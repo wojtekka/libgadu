@@ -39,8 +39,7 @@
 #include "libgadu.h"
 #include "resolver.h"
 #include "compat.h"
-
-#define GG_SESSION_CHECK(gs, res) if ((gs) == NULL) return res
+#include "session.h"
 
 /** Sposób rozwiązywania nazw serwerów */
 static gg_resolver_t gg_global_resolver_type = GG_RESOLVER_DEFAULT;
