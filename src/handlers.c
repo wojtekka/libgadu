@@ -1674,7 +1674,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_TYPING_NOTIFICATION, GG_STATE_CONNECTED, sizeof(struct gg_typing_notification), gg_session_handle_typing_notification },
 	{ GG_MULTILOGON_INFO, GG_STATE_CONNECTED, sizeof(struct gg_multilogon_info), gg_session_handle_multilogon_info },
 	{ GG_XML_ACTION, GG_STATE_CONNECTED, 0, gg_session_handle_xml_event },
-	{ GG_RECV_OWN_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg), gg_session_handle_recv_msg },
+	{ GG_RECV_OWN_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
 };
 
 /**
