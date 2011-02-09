@@ -76,6 +76,7 @@ gg_login
 gg_login_hash
 gg_login_hash_sha1
 gg_logoff
+gg_multilogon_disconnect
 gg_notify
 gg_notify_ex
 gg_ping
