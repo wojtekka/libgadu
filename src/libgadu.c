@@ -2353,7 +2353,7 @@ int gg_typing_notification(struct gg_session *sess, uin_t recipient, int length)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
- * \ingroup multilogon
+ * \ingroup login
  */
 int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id)
 {
