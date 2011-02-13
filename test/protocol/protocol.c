@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 			glp.server_addr = inet_addr(LOCALHOST);
 			glp.server_port = LOCALPORT;
 			glp.async = 1;
+			glp.resolver = GG_RESOLVER_PTHREAD;
 
 			if (!(gs = gg_login(&glp))) {
 				perror("gg_login");
