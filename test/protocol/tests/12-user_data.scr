@@ -55,6 +55,10 @@ send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00)
 
 expect event GG_EVENT_NONE
 
+send (44 00 00 00, auto, 44 33 22 11, ff ff ff ff)
+
+expect event GG_EVENT_NONE
+
 send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00)
 
 expect event GG_EVENT_NONE
@@ -64,6 +68,10 @@ send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, 00 
 expect event GG_EVENT_NONE
 
 send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, 03 00 00 00)
+
+expect event GG_EVENT_NONE
+
+send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, ff ff ff ff)
 
 expect event GG_EVENT_NONE
 
@@ -80,6 +88,10 @@ send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, 03 
 expect event GG_EVENT_NONE
 
 send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, 03 00 00 00, "key", 66 55 44 33, 05 00 00 00)
+
+expect event GG_EVENT_NONE
+
+send (44 00 00 00, auto, 44 33 22 11, 01 00 00 00, 55 44 33 22, 01 00 00 00, 03 00 00 00, "key", 66 55 44 33, ff ff ff ff)
 
 expect event GG_EVENT_NONE
 
