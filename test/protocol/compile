@@ -99,6 +99,7 @@ sub parse
 			if (defined($2) && ($2 eq "{")) {
 				print "static int script_check_event_$state(int type, union gg_event_union *event)\n";
 				print "{\n";
+				print "#line $line \"$filename\"\n";
 				while (<FILE>) {
 					$line++;
 					last if (/^}/);
@@ -111,6 +112,7 @@ sub parse
 			if (defined($2) && ($2 eq "(")) {
 				print "static int script_check_event_$state(int type, union gg_event_union *event)\n";
 				print "{\n";
+				print "#line $line \"$filename\"\n";
 
 				@rules = ();
 
@@ -327,6 +329,7 @@ sub parse
 		if (/^call\s+{/) {
 			print "static void script_call_$state(struct gg_session *session)\n";
 			print "{\n";
+			print "#line $line \"$filename\"\n";
 			while (<FILE>) {
 				$line++;
 				last if (/^}/);
