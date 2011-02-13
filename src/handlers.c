@@ -164,7 +164,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		uint32_t version_len, descr_len;
 
 		memset(&l80, 0, sizeof(l80));
-		gg_debug_session(gs, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
 		l80.uin = gg_fix32(gs->uin);
 		memcpy(l80.language, GG8_LANG, sizeof(l80.language));
 		l80.hash_type = gs->hash_type;
@@ -210,14 +210,14 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		l70.image_size = gs->image_size;
 		l70.dunno2 = 0xbe;
 
-		gg_debug_session(gs, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
 		ret = gg_send_packet(gs, GG_LOGIN70, &l70, sizeof(l70), gs->initial_descr, (gs->initial_descr) ? strlen(gs->initial_descr) : 0, NULL);
 	}
 
 	if (ret == -1) {
 		int errno_copy;
 
-		gg_debug_session(gs, GG_DEBUG_TRAFFIC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
 		errno_copy = errno;
 		close(gs->fd);
 		errno = errno_copy;
@@ -1404,11 +1404,18 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 	d.type = gg_fix32(d.type);
 	d.user_count = gg_fix32(d.user_count);
 
+	if (d.user_count > 0xffff) {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (1)\n");
+		goto malformed;
+	}
+
 	if (d.user_count > 0) {
 		users = calloc(d.user_count, sizeof(struct gg_event_user_data_user));
 
-		if (users == NULL)
+		if (users == NULL) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() out of memory (%d*%d)\n", d.user_count, sizeof(struct gg_event_user_data_user));
 			goto fail;
+		}
 	} else {
 		users = NULL;
 	}
@@ -1424,8 +1431,10 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 		struct gg_user_data_user u;
 		struct gg_event_user_data_attr *attrs;
 
-		if (p + sizeof(u) > packet_end)
+		if (p + sizeof(u) > packet_end) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (2)\n");
 			goto malformed;
+		}
 
 		memcpy(&u, p, sizeof(u));
 		p += sizeof(u);
@@ -1433,11 +1442,18 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 		u.uin = gg_fix32(u.uin);
 		u.attr_count = gg_fix32(u.attr_count);
 
+		if (u.attr_count > 0xffff) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (2)\n");
+			goto malformed;
+		}
+
 		if (u.attr_count > 0) {
 			attrs = calloc(u.attr_count, sizeof(struct gg_event_user_data_attr));
 
-			if (attrs == NULL)
-				goto malformed;
+			if (attrs == NULL) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() out of memory (%d*%d)\n", u.attr_count, sizeof(struct gg_event_user_data_attr));
+				goto fail;
+			}
 		} else {
 			attrs = NULL;
 		}
@@ -1455,21 +1471,27 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 			char *key;
 			char *value;
 
-			if (p + sizeof(key_size) > packet_end)
+			if (p + sizeof(key_size) > packet_end) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (3)\n");
 				goto malformed;
+			}
 
 			memcpy(&key_size, p, sizeof(key_size));
 			p += sizeof(key_size);
 
 			key_size = gg_fix32(key_size);
 
-			if (p + key_size > packet_end)
+			if (key_size > 0xffff || p + key_size > packet_end) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (3)\n");
 				goto malformed;
+			}
 
 			key = malloc(key_size + 1);
 
-			if (key == NULL)
+			if (key == NULL) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() out of memory (%d)\n", key_size + 1);
 				goto fail;
+			}
 
 			memcpy(key, p, key_size);
 			p += key_size;
@@ -1478,8 +1500,10 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 
 			attrs[j].key = key;
 
-			if (p + sizeof(attr_type) + sizeof(value_size) > packet_end)
+			if (p + sizeof(attr_type) + sizeof(value_size) > packet_end) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (4)\n");
 				goto malformed;
+			}
 
 			memcpy(&attr_type, p, sizeof(attr_type));
 			p += sizeof(attr_type);
@@ -1489,13 +1513,17 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 			attrs[j].type = gg_fix32(attr_type);
 			value_size = gg_fix32(value_size);
 
-			if (p + value_size > packet_end)
+			if (value_size > 0xffff || p + value_size > packet_end) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() malformed packet (5)\n");
 				goto malformed;
+			}
 
 			value = malloc(value_size + 1);
 
-			if (value == NULL)
+			if (value == NULL) {
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_user_data() out of memory (%d)\n", value_size + 1);
 				goto fail;
+			}
 
 			memcpy(value, p, value_size);
 			p += value_size;
@@ -1561,14 +1589,19 @@ static int gg_session_handle_multilogon_info(struct gg_session *gs, uint32_t typ
 	char *packet_end = (char*) ptr + len;
 	struct gg_multilogon_info *info = (struct gg_multilogon_info*) ptr;
 	char *p = (char*) ptr + sizeof(*info);
-	struct gg_multilogon_session *sessions;
-	int count;
-	int i;
+	struct gg_multilogon_session *sessions = NULL;
+	size_t count;
+	size_t i;
 	int res = 0;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received multilogon info\n");
 
 	count = gg_fix32(info->count);
+
+	if (count > 0xffff) {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (1)\n");
+		goto malformed;
+	}
 
 	sessions = calloc(count, sizeof(struct gg_multilogon_session));
 
@@ -1586,7 +1619,7 @@ static int gg_session_handle_multilogon_info(struct gg_session *gs, uint32_t typ
 		size_t name_size;
 
 		if (p + sizeof(item) > packet_end) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (1)\n");
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (2)\n");
 			goto malformed;
 		}
 
@@ -1603,7 +1636,7 @@ static int gg_session_handle_multilogon_info(struct gg_session *gs, uint32_t typ
 		name_size = gg_fix32(item.name_size);
 
 		if (name_size > 0xffff || p + name_size > packet_end) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (2)\n");
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_multilogon_info() malformed packet (3)\n");
 			goto malformed;
 		}
 
