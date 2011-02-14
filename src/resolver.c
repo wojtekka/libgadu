@@ -234,7 +234,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *co
 	/* Kopiuj */
 
 	for (i = 0; he->h_addr_list[i] != NULL; i++)
-		memcpy(&(*result[i]), he->h_addr_list[0], sizeof(struct in_addr));
+		memcpy(&((*result)[i]), he->h_addr_list[0], sizeof(struct in_addr));
 
 	(*result)[i].s_addr = INADDR_NONE;
 
