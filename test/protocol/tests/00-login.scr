@@ -39,10 +39,10 @@ expect disconnect
 #-----------------------------------------------------------------------------
 # Login with parameters
 #-----------------------------------------------------------------------------
-login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "Test", has_audio = 1, image_size = 255, hash_type = GG_LOGIN_HASH_GG32, external_addr = 127.0.0.1, external_port = 0x1234, status_flags = 0x11223344)
+login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "Test", has_audio = 1, image_size = 255, hash_type = GG_LOGIN_HASH_GG32, external_addr = 127.0.0.1, external_port = 0x1234, status_flags = 0x11223344, client_version = "1.2.3.4")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, 56 34 12 00, "pl", 01, 09 ad 7d 58 00*60, 16 00 00 00, 44 33 22 11, 37 27 00 00, 00 00 00 00, 00 00, 00 00 00 00, 00 00, ff, 64, 23 00 00 00, "Gadu-Gadu", 20, "Client", 20, "Build", 20, "10.1.0.11070", 04 00 00 00, "Test")
+expect data (31 00 00 00, auto, 56 34 12 00, "pl", 01, 09 ad 7d 58 00*60, 16 00 00 00, 44 33 22 11, 37 27 00 00, 00 00 00 00, 00 00, 00 00 00 00, 00 00, ff, 64, 1e 00 00 00, "Gadu-Gadu", 20, "Client", 20, "Build", 20, "1.2.3.4", 04 00 00 00, "Test")
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
