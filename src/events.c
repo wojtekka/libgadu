@@ -394,12 +394,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			free(auth);
 			free(client);
 
-			/* zwolnij pamięć po wersji klienta. */
-			if (sess->client_version) {
-				free(sess->client_version);
-				sess->client_version = NULL;
-			}
-
 			gg_debug_session(sess, GG_DEBUG_MISC, "=> -----BEGIN-HTTP-QUERY-----\n%s\n=> -----END-HTTP-QUERY-----\n", buf);
 
 			/* zapytanie jest krótkie, więc zawsze zmieści się

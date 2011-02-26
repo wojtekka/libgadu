@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2001-2009 Wojtek Kaniewski <wojtekka@irc.pl>
+ *  (C) Copyright 2001-2011 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
  *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
  *                          Tomasz Chiliński <chilek@chilan.com>
@@ -475,6 +475,18 @@ static int gg_session_handle_dcc7_reject(struct gg_session *gs, uint32_t type, c
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 reject\n");
 
 	return gg_dcc7_handle_reject(gs, ge, ptr, len);
+}
+
+/**
+ * \internal Obsługuje pakiet GG_DCC7_INFO.
+ * 
+ * Patrz gg_packet_handler_t
+ */
+static int gg_session_handle_dcc7_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received dcc7 info\n");
+
+	return gg_dcc7_handle_info(gs, ge, ptr, len);
 }
 
 /**
@@ -1691,6 +1703,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_DCC7_ACCEPT, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_accept), gg_session_handle_dcc7_accept },
 	{ GG_DCC7_NEW, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_new), gg_session_handle_dcc7_new },
 	{ GG_DCC7_REJECT, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_reject), gg_session_handle_dcc7_reject },
+	{ GG_DCC7_INFO, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_info), gg_session_handle_dcc7_info },
 	{ GG_RECV_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg), gg_session_handle_recv_msg },
 	{ GG_RECV_MSG80, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
 	{ GG_STATUS, GG_STATE_CONNECTED, sizeof(struct gg_status), gg_session_handle_status },
