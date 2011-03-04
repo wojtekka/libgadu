@@ -900,6 +900,30 @@ gnutls_handshake_repeat:
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
 
+			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
+			 * się tekstu wrzucanego przez proxy. */
+			if (sess->state == GG_STATE_READING_KEY && sess->proxy_addr && sess->proxy_port) {
+				char buf[100];
+
+				strcpy(buf, "");
+				gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+				gg_chomp(buf);
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy response:\n//   %s\n", buf);
+
+				while (strcmp(buf, "")) {
+					gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+					gg_chomp(buf);
+					if (strcmp(buf, ""))
+						gg_debug_session(sess, GG_DEBUG_MISC, "//   %s\n", buf);
+				}
+
+				/* XXX niech czeka jeszcze raz w tej samej
+				 * fazie. głupio, ale działa. */
+				sess->proxy_port = 0;
+
+				break;
+			}
+
 			sess->last_event = time(NULL);
 
 			gh = gg_recv_packet(sess);
