@@ -571,10 +571,7 @@ void *gg_recv_packet(struct gg_session *sess)
 			offset += ret;
 			size -= ret;
 		} else if (ret == -1) {
-			int errno2 = errno;
-
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() body recv() failed (errno=%d, %s)\n", errno, strerror(errno));
-			errno = errno2;
 
 			if (errno == EAGAIN) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() %d bytes received, %d left\n", offset, size);
