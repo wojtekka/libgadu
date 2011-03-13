@@ -9,6 +9,10 @@ Poprawki dostarczające nową funkcjonalność w większości przypadków nie ma
 wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
 nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_10_1 libgadu 1.10.1
+
+- Brak zmian API/ABI
+
 \section changelog-1_10_0 libgadu 1.10.0
 
 - Przywrócenie obsługi SSL dzięki szyfrowanym połączeniom Gadu-Gadu 10.
