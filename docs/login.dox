@@ -59,6 +59,13 @@ Do korzystania z połączeń bezpośrednich wersji 6.x, konieczne jest przed
 połączeniem ustawienie zmiennych globalnych \ref ip "\c gg_dcc_ip"
 i \ref ip "\c gg_dcc_port."
 
+Począwszy od Gadu-Gadu 10 możliwe są połączenia szyfrowane. Aby je włączyć,
+należy ustawić pole \c tls struktury \c gg_login_params:
+
+\code
+parametry.tls = 1;
+\endcode
+
 \section login-details Procedura łączenia z serwerem
 
 Procedura łączenia się z serwerem składa się z kilku etapów:

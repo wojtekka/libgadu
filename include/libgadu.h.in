@@ -592,9 +592,7 @@ struct gg_login_params {
 	int last_sysmsg;		/**< Numer ostatnio odebranej wiadomości systemowej */
 	uint32_t external_addr;		/**< Adres publiczny dla połączeń bezpośrednich (6.x) */
 	uint16_t external_port;		/**< Port publiczny dla połączeń bezpośrednich (6.x) */
-#ifndef DOXYGEN
-	int tls;			/**< Flaga połączenia szyfrowanego (nieaktualna) */
-#endif
+	int tls;			/**< Flaga połączenia szyfrowanego */
 	int image_size;			/**< Maksymalny rozmiar obsługiwanych obrazków w kilobajtach */
 #ifndef DOXYGEN
 	int era_omnix;			/**< Flaga udawania klienta Era Omnix (nieaktualna) */
