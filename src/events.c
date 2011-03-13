@@ -270,6 +270,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			memmove(sess->send_buf, sess->send_buf + res, sess->send_left - res);
 			sess->send_left -= res;
 		}
+
+		res = 0;
 	}
 
 	switch (sess->state) {
