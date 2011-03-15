@@ -23,7 +23,7 @@
 /**
  * \file sha1.c
  *
- * \brief Funkcje wyznaczania skrĂłtu SHA1
+ * \brief Funkcje wyznaczania skrótu SHA1
  */
 
 #include <string.h>
