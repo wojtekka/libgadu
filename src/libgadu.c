@@ -1282,8 +1282,10 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 
 	free(new_descr);
 
-	if (GG_S_NA(status))
+	if (GG_S_NA(status)) {
 		sess->state = GG_STATE_DISCONNECTING;
+		sess->timeout = GG_TIMEOUT_DISCONNECT;
+	}
 
 	return res;
 }

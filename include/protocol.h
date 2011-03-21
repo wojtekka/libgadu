@@ -277,6 +277,8 @@ struct gg_dcc7_welcome_p2p {
 	gg_dcc7_id_t id;		/* identyfikator połączenia */
 } GG_PACKED;
 
+#define GG_TIMEOUT_DISCONNECT 5	/**< Maksymalny czas oczekiwania na rozłączenie */
+
 #ifdef _WIN32
 #pragma pack(pop)
 #endif
