@@ -94,7 +94,6 @@ int main(int argc, char **argv)
 	glp.async = 1;
 //	glp.client_addr = config_ip;
 //	glp.client_port = config_port;
-	glp.protocol_version = 0x2a;
 
 	gg_dcc_ip = config_ip;
 
@@ -206,9 +205,6 @@ int main(int argc, char **argv)
 					debug("Connection failed\n");
 					exit(1);
 
-				case GG_EVENT_NONE:
-					break;
-
 				case GG_EVENT_MSG:
 					debug("Message from %d: %s\n", ge->event.msg.sender, ge->event.msg.message);
 					break;
@@ -216,6 +212,10 @@ int main(int argc, char **argv)
 				case GG_EVENT_DISCONNECT:
 					debug("Forced to disconnect\n");
 					exit(1);
+
+				case GG_EVENT_USER_DATA:
+					debug("User data\n");
+					break;
 
 				case GG_EVENT_NOTIFY60:
 					uin = ge->event.notify60[0].uin;
@@ -277,6 +277,13 @@ int main(int argc, char **argv)
 				case GG_EVENT_DCC7_REJECT:
 					debug("Rejected\n");
 					exit(1);
+
+				case GG_EVENT_DCC7_PENDING:
+					debug("Pending\n");
+					break;
+
+				case GG_EVENT_NONE:
+					break;
 
 				default:
 					debug("Unsupported event %d\n", ge->type);
