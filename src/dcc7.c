@@ -225,6 +225,8 @@ static int gg_dcc7_connect(struct gg_dcc7 *dcc)
 static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 {
 	struct sockaddr_in sin;
+	unsigned int sin_len = sizeof(sin);
+	int errsv;
 	int fd;
 
 	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen(%p, %d)\n", dcc, port);
@@ -240,45 +242,39 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 		return -1;
 	}
 
-	// XXX losować porty?
-	
-	if (!port)
-		port = GG_DEFAULT_DCC_PORT;
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_port = htons(port);
 
-	while (1) {
-		sin.sin_family = AF_INET;
-		sin.sin_addr.s_addr = INADDR_ANY;
-		sin.sin_port = htons(port);
+	if (bind(fd, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to bind to port %d\n", port);
+		goto fail;
+	}
 
-		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() trying port %d\n", port);
-
-		if (!bind(fd, (struct sockaddr*) &sin, sizeof(sin)))
-			break;
-
-		if (port++ == 65535) {
-			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() no free port found\n");
-			close(fd);
-			errno = ENOENT;
-			return -1;
-		}
+	if (port == 0 && getsockname(fd, (struct sockaddr*) &sin, &sin_len) == -1) {
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to bind to port %d\n", port);
+		goto fail;
 	}
 
 	if (listen(fd, 1)) {
-		int errsv = errno;
 		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to listen (%s)\n", strerror(errno));
-		close(fd);
-		errno = errsv;
-		return -1;
+		goto fail;
 	}
 
 	dcc->fd = fd;
-	dcc->local_port = port;
+	dcc->local_port = ntohs(sin.sin_port);
 	
 	dcc->state = GG_STATE_LISTENING;
 	dcc->check = GG_CHECK_READ;
 	dcc->timeout = GG_DCC7_TIMEOUT_FILE_ACK;
 
 	return 0;
+
+fail:
+	errsv = errno;
+	close(fd);
+	errno = errsv;
+	return -1;
 }
 
 /**
@@ -321,9 +317,7 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
 	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
-	// TODO: implement hash count
-	// we MUST fill hash to recive from server request for server connection
-	snprintf((char*) pkt.hash, sizeof(pkt.hash), "0");
+	snprintf((char*) pkt.hash, sizeof(pkt.hash), "%u", dcc->local_addr + external_port * rand());
 
 	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
 }
@@ -759,7 +753,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 		}
 
 		if (dcc->state == GG_STATE_WAITING_FOR_INFO) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() wainting for info so send one\n");
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() waiting for info so send one\n");
 			gg_dcc7_listen_and_send_info(dcc);
 			return 0;
 		}
@@ -804,7 +798,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 
 		gg_send_packet(dcc->sess, GG_DCC7_INFO, payload, len, NULL);
 
-		break;
+		return 0;
 
 	default:
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() unhandled transfer type (%d)\n", p->type);
