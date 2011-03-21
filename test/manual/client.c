@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 		char *host;
 		int port;
 
-		parse_address(optarg, &host, &port);
+		parse_address(config_proxy, &host, &port);
 		gg_proxy_enabled = 1;
 		gg_proxy_host = host;
 		gg_proxy_port = port;
@@ -180,6 +180,11 @@ int main(int argc, char **argv)
 		fd_set rd, wd;
 		int ret, fd, check;
 		time_t now;
+
+		if (disconnect_flag) {
+			gg_session_disconnect(gs, 1);
+			disconnect_flag = 0;
+		}
 
 		FD_ZERO(&rd);
 		FD_ZERO(&wd);
@@ -246,11 +251,6 @@ int main(int argc, char **argv)
 			}
 
 			gg_event_free(ge);
-		}
-
-		if (disconnect_flag) {
-			gg_session_disconnect(gs, 1);
-			disconnect_flag = 1;
 		}
 	}
 

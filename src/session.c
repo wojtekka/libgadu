@@ -828,7 +828,7 @@ int gg_session_disconnect(struct gg_session *gs, int linger)
 		res = gg_session_set_status(gs, GG_STATUS_NOT_AVAIL, NULL, gs->status_time);
 	}
 
-	gs->timeout = 5;	// XXX czy 5 sekund wystarczy?
+	gs->timeout = GG_TIMEOUT_DISCONNECT;
 
 	if (!linger) {
 		gg_session_shutdown(gs);

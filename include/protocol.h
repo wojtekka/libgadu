@@ -214,6 +214,8 @@ struct gg_dcc7_voice_init_confirm {
 	uint32_t id;			/* id tego co potwierdzamy [0x1 - 0x5] */
 } GG_PACKED;
 
+#define GG_TIMEOUT_DISCONNECT 5	/**< Maksymalny czas oczekiwania na rozłączenie */
+
 #ifdef _WIN32
 #pragma pack(pop)
 #endif

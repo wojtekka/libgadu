@@ -30,6 +30,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 
 #include "compat.h"
 #include "libgadu.h"
@@ -658,7 +659,12 @@ goto_GG_STATE_CONNECT_XXX:
 goto_GG_STATE_SEND_HUB:
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 
-			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
+			if (sess->client_version != NULL && isdigit(sess->client_version[0]))
+				client = gg_urlencode(sess->client_version);
+			else
+				client = gg_urlencode(GG_DEFAULT_CLIENT_VERSION);
+
+			if (client == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
 				goto fail;
 			}
