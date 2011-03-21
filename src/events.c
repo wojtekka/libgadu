@@ -900,7 +900,14 @@ gnutls_handshake_repeat:
 		{
 			struct gg_header *gh;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
+			if (sess->state == GG_STATE_READING_KEY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
+			else if (sess->state == GG_STATE_READING_REPLY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
+			else if (sess->state == GG_STATE_CONNECTED)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
+			else if (sess->state == GG_STATE_DISCONNECTING)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_DISCONNECTING\n");
 
 			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
 			 * się tekstu wrzucanego przez proxy. */
