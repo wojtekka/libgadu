@@ -1,0 +1,7 @@
+#!/bin/sh
+NAME=$(echo "$0" | sed -e 's/.*\///' -e 's/-\?valgrind$//')
+if [ -z "$NAME" ]; then
+	echo "Not to be run directly"
+	exit 1
+fi
+LD_LIBRARY_PATH=../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 "./.libs/$NAME" "$@" 3> "$NAME.log"

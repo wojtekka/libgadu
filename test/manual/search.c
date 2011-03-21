@@ -22,10 +22,10 @@
 #include <ctype.h>
 #include <curl/curl.h>
 
-#include "oauth.h"
-#include "http.h"
-#include "xml.h"
-#include "urlencode.h"
+#include "lib/oauth.h"
+#include "lib/http.h"
+#include "lib/xml.h"
+#include "lib/urlencode.h"
 
 char *token, *token_secret;
 

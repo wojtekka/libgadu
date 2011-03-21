@@ -22,6 +22,8 @@
 #include <unistd.h>
 #include <inttypes.h>
 
+#include "../../config.h"
+
 #ifndef HAVE_OPENSSL
 
 /*

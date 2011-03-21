@@ -241,20 +241,85 @@ if test "x$have_openssl" = "xyes"; then
 fi
 
 dnl
-dnl  Sprawdź, czy możemy kompilować testy.
-dnl 
+dnl  Testy
+dnl
 
-AC_SUBST([OPTIONAL_TESTS])
-OPTIONAL_TESTS=""
+AC_SUBST([SUBDIRS_TEST])
+AC_SUBST([OPTIONAL_TESTS_GLIBC])
+AC_SUBST([OPTIONAL_TESTS_PERL])
+AC_SUBST([OPTIONAL_TESTS_VOICE7])
+AC_SUBST([OPTIONAL_TESTS_SEARCH])
+SUBDIRS_TEST=""
+OPTIONAL_TESTS_GLIBC=""
+OPTIONAL_TESTS_PERL=""
+OPTIONAL_TESTS_VOICE7=""
+OPTIONAL_TESTS_SEARCH=""
 
-AC_ARG_ENABLE(tests, 
-	[  --disable-tests         do not compile tests])
+AC_ARG_ENABLE(tests,
+        [  --disable-tests         do not compile tests])
 
-if test "x$enable_tests" != "xno"; then 
-	AC_CHECK_LIB(c, __connect, [OPTIONAL_TESTS="$OPTIONAL_TESTS dcc7 connect resolver"])
-	AC_CHECK_PROG(PERL, [perl], [perl])
-	if test "x$PERL" != "x"; then
-		OPTIONAL_TESTS="$OPTIONAL_TESTS protocol"
+if test "x$enable_tests" != "xno"; then
+	SUBDIRS_TEST="test"
+
+	dnl
+	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
+	dnl 
+
+	AC_CHECK_LIB(c, __connect, [OPTIONAL_TESTS_GLIBC="connect resolver packet"])
+
+	dnl
+	dnl  libgsm i libspeex dla voice7
+	dnl
+
+	tmp=x
+	AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
+	AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
+
+	if test "x$tmp" = "xxxxxx"; then
+		OPTIONAL_TESTS_VOICE7="voice7"
+	fi
+
+	dnl
+	dnl  curl, expat i OpenSSL dla search
+	dnl
+
+	tmp=x
+	AC_CHECK_LIB(curl, curl_easy_init, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(curl/curl.h, [tmp="x$tmp"])
+	AC_CHECK_LIB(expat, XML_ParserCreate, [tmp="x$tmp"])
+	AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
+
+	if test "x$tmp" = "xxxxxx"; then
+		if test "x$have_openssl" = "xyes"; then
+			OPTIONAL_TESTS_SEARCH="search"
+		fi
+	fi
+
+	dnl
+	dnl  Perl dla protocol
+	dnl
+
+	AC_CHECK_PROG([PERL], [perl], [perl], [:])
+	if test "x$PERL" != "x:"; then
+		OPTIONAL_TESTS_PERL="protocol"
+	fi
+
+	dnl
+	dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
+	dnl
+
+	export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
+
+	PKG_PROG_PKG_CONFIG
+
+	if test "x$PKG_CONFIG" != "x"; then
+		AC_SUBST([LIBXML2_CFLAGS])
+		AC_SUBST([LIBXML2_LIBS])
+		PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
+			AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
+		], [:])
 	fi
 fi
 
@@ -271,6 +336,6 @@ else
 	SUBDIRS_DOXYGEN=""
 fi
 
-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/protocol/Makefile test/protocol/tests/Makefile test/dcc7/Makefile test/connect/Makefile test/gg8oauth/Makefile test/resolver/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/automatic/Makefile test/automatic/script/Makefile test/manual/Makefile test/manual/lib/Makefile])
 
 AC_OUTPUT

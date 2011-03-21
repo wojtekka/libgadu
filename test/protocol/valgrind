@@ -1,2 +1,0 @@
-#!/bin/sh
-valgrind --trace-children=yes --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 ./.libs/lt-protocol "$@" 3> valgrind.log
