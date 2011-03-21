@@ -22,6 +22,7 @@
 #include "libgadu.h"
 
 const char *gg_debug_state(enum gg_state_t state);
+const char *gg_debug_event(enum gg_event_t event);
 void gg_debug_dump(struct gg_session *sess, int level, const char *buf, size_t len);
 
 #endif /* LIBGADU_DEBUG_H */
