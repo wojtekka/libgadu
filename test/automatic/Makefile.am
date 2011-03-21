@@ -32,5 +32,5 @@ script/script.c:       $(wildcard script/*.scr) script/compile
 clean-local:
 	rm -f *.html *.log *-valgrind
 
-check-local:	$(noinst_PROGRAMS)
-	for i in $(noinst_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
+check-local:	$(check_PROGRAMS)
+	for i in $(check_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
