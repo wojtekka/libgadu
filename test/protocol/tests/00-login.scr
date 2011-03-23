@@ -49,6 +49,18 @@ logoff
 expect disconnect
 
 #-----------------------------------------------------------------------------
+# Login with custom client_version
+#-----------------------------------------------------------------------------
+login (uin = 1, password = "", client_version = "Foobar 1.2.3.4")
+expect connect
+send (01 00 00 00, auto, 12 34 56 78)
+expect data (31 00 00 00, auto, xx*97, 0e 00 00 00, "Foobar", 20, "1.2.3.4", 00 00 00 00)
+send (03 00 00 00, auto)
+expect event GG_EVENT_CONN_SUCCESS
+logoff
+expect disconnect
+
+#-----------------------------------------------------------------------------
 # Simple login before further tests
 #-----------------------------------------------------------------------------
 login (uin = 0x123456, password = "", encoding = GG_ENCODING_UTF8)

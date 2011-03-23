@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 
 #include "compat.h"
 #include "libgadu.h"
@@ -363,7 +364,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
 
-			if (!(client = gg_urlencode((sess->client_version) ? sess->client_version : GG_DEFAULT_CLIENT_VERSION))) {
+			if (sess->client_version != NULL && isdigit(sess->client_version[0]))
+				client = gg_urlencode(sess->client_version);
+			else
+				client = gg_urlencode(GG_DEFAULT_CLIENT_VERSION);
+
+			if (client == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
 				goto fail_connecting;
 			}
@@ -900,7 +906,14 @@ gnutls_handshake_repeat:
 		{
 			struct gg_header *gh;
 
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
+			if (sess->state == GG_STATE_READING_KEY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_KEY\n");
+			else if (sess->state == GG_STATE_READING_REPLY)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_REPLY\n");
+			else if (sess->state == GG_STATE_CONNECTED)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTED\n");
+			else if (sess->state == GG_STATE_DISCONNECTING)
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_DISCONNECTING\n");
 
 			/* XXX bardzo, bardzo, bardzo głupi pomysł na pozbycie
 			 * się tekstu wrzucanego przez proxy. */

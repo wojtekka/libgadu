@@ -30,6 +30,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif
@@ -160,8 +161,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 
 	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
 		struct gg_login80 l80;
-		const char *version, *descr;
-		uint32_t version_len, descr_len;
+		const char *client_name, *version, *descr;
+		uint32_t client_name_len, version_len, descr_len;
 
 		memset(&l80, 0, sizeof(l80));
 		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
@@ -175,8 +176,16 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		l80.image_size = gs->image_size;
 		l80.dunno2 = 0x64;
 
+		if (gs->client_version != NULL && !isdigit(gs->client_version[0])) {
+			client_name = "";
+			client_name_len = 0;
+		} else {
+			client_name = GG8_VERSION;
+			client_name_len = strlen(GG8_VERSION);
+		}
+
 		version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION;
-		version_len = gg_fix32(strlen(GG8_VERSION) + strlen(version));
+		version_len = gg_fix32(client_name_len + strlen(version));
 
 		descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
 		descr_len = (gs->initial_descr != NULL) ? gg_fix32(strlen(gs->initial_descr)) : 0;
@@ -185,7 +194,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 				GG_LOGIN80,
 				&l80, sizeof(l80),
 				&version_len, sizeof(version_len),
-				GG8_VERSION, strlen(GG8_VERSION),
+				client_name, client_name_len,
 				version, strlen(version),
 				&descr_len, sizeof(descr_len),
 				descr, strlen(descr),
