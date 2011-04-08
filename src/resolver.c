@@ -252,7 +252,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *co
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_resolver_run(int fd, const char *hostname)
+static int gg_resolver_run(int fd, const char *hostname)
 {
 	struct in_addr addr_ip[2], *addr_list;
 	int addr_count;
@@ -400,7 +400,7 @@ cleanup:
  *                  danych
  * \param force Flaga usuwania zasobów przed zakończeniem działania
  */
-void gg_resolver_fork_cleanup(void **priv_data, int force)
+static void gg_resolver_fork_cleanup(void **priv_data, int force)
 {
 	struct gg_resolver_fork_data *data;
 

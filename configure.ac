@@ -21,7 +21,7 @@ AC_SUBST(REQUIRES)
 AC_SUBST(INCLUDES)
 
 if test "$GCC"; then
-	CFLAGS="$CFLAGS -Wall"
+	CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
 fi
 
 AC_C_BIGENDIAN

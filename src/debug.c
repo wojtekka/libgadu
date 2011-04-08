@@ -1,3 +1,6 @@
+#define GG_DEBUG_DISABLE
+#define GG_DISABLE_DEBUG
+
 /*
  *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
@@ -355,7 +358,7 @@ void gg_debug_session(struct gg_session *gs, int level, const char *format, ...)
 }
 
 #undef gg_debug_dump
-void gg_debug_dump(struct gg_session *gs, int level, const char *buf, int len)
+void gg_debug_dump(struct gg_session *gs, int level, const char *buf, size_t len)
 {
 }
 
