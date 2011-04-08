@@ -1,6 +1,3 @@
-#define GG_DEBUG_DISABLE
-#define GG_DISABLE_DEBUG
-
 /*
  *  (C) Copyright 2001-2006 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
