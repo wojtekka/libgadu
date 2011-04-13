@@ -229,11 +229,11 @@ struct gg_session {
 	uint32_t hub_addr;	/**< Adres huba po rozwiązaniu nazwy */
 	uint32_t server_addr;	/**< Adres serwera otrzymany od huba */
 
-	uint32_t client_addr;	/**< Adres gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
-	uint16_t client_port;	/**< Port gniazda dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
+	uint32_t client_addr;	/**< Adres gniazda dla połączeń bezpośrednich */
+	uint16_t client_port;	/**< Port gniazda dla połączeń bezpośrednich */
 
-	uint32_t external_addr;	/**< Publiczny adres dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
-	uint16_t external_port;	/**< Publiczny port dla połączeń bezpośrednich do wersji Gadu-Gadu 6.x */
+	uint32_t external_addr;	/**< Publiczny adres dla połączeń bezpośrednich */
+	uint16_t external_port;	/**< Publiczny port dla połączeń bezpośrednich */
 
 	uin_t uin;		/**< Własny numer Gadu-Gadu */
 	char *password;		/**< Hasło (zwalniane po użyciu) */
@@ -582,16 +582,14 @@ struct gg_login_params {
 	char *status_descr;		/**< Początkowy opis użytkownika (domyślnie brak) */
 	uint32_t server_addr;		/**< Adres serwera Gadu-Gadu (domyślnie pobierany automatycznie) */
 	uint16_t server_port;		/**< Port serwera Gadu-Gadu (domyślnie pobierany automatycznie) */
-#ifndef DOXYGEN
-	uint32_t client_addr;		/**< Adres połączeń bezpośrednich (nieaktualne) */
-	uint16_t client_port;		/**< Port połączeń bezpośrednich (nieaktualne) */
-#endif
+	uint32_t client_addr;		/**< Adres połączeń bezpośrednich (domyślnie dobierany automatycznie) */
+	uint16_t client_port;		/**< Port połączeń bezpośrednich (domyślnie dobierany automatycznie) */
 	int protocol_version;		/**< Wersja protokołu wysyłana do serwera (domyślnie najnowsza obsługiwana) */
 	char *client_version;		/**< Wersja klienta wysyłana do serwera (domyślnie najnowsza znana) */
 	int has_audio;			/**< Flaga obsługi połączeń głosowych */
 	int last_sysmsg;		/**< Numer ostatnio odebranej wiadomości systemowej */
-	uint32_t external_addr;		/**< Adres publiczny dla połączeń bezpośrednich (6.x) */
-	uint16_t external_port;		/**< Port publiczny dla połączeń bezpośrednich (6.x) */
+	uint32_t external_addr;		/**< Adres publiczny dla połączeń bezpośrednich (domyślnie dobierany automatycznie) */
+	uint16_t external_port;		/**< Port publiczny dla połączeń bezpośrednich (domyślnie dobierany automatycznie) */
 	int tls;			/**< Flaga połączenia szyfrowanego */
 	int image_size;			/**< Maksymalny rozmiar obsługiwanych obrazków w kilobajtach */
 #ifndef DOXYGEN
