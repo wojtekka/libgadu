@@ -1005,7 +1005,7 @@ wiadomości. Wysyła je w postaci pakietu:
 <pre>#define GG_RECV_MSG_ACK 0x0046
 	
 struct gg_recv_msg_ack {
-	int num;	<i>/* liczba odebranych wiadomości podczas tego połączenia */</i>
+	int seq;	<i>/* numer sekwencyjny ostatnio odebranej wiadomości */</i>
 };</pre>
 </div>
 

@@ -63,7 +63,7 @@ expect event GG_EVENT_MSG (
 	msg.formats == NULL
 )
 
-expect data (46 00 00 00, auto, 01 00 00 00)
+expect data (46 00 00 00, auto, 22 22 22 22)
 
 #-----------------------------------------------------------------------------
 # Receiving rich-text message
@@ -89,7 +89,7 @@ expect event GG_EVENT_MSG (
 	msg.formats[3] == (char) 0x78
 )
 
-expect data (46 00 00 00, auto, 02 00 00 00)
+expect data (46 00 00 00, auto, 22 22 00 22)
 
 #-----------------------------------------------------------------------------
 # Receiving conference message

@@ -760,10 +760,11 @@ malformed:
  * \internal Wysyła potwierdzenie odebrania wiadomości.
  *
  * \param gs Struktura sesji
+ * \param seq Numer sekwencyjny odebranej wiadomości
  *
  * \return 0 jeśli się powiodło, -1 jeśli wystąpił błąd
  */
-static int gg_session_send_msg_ack(struct gg_session *gs)
+static int gg_session_send_msg_ack(struct gg_session *gs, uint32_t seq)
 {
 	struct gg_recv_msg_ack pkt;
 
@@ -772,8 +773,11 @@ static int gg_session_send_msg_ack(struct gg_session *gs)
 	if ((gs->protocol_features & GG_FEATURE_MSG_ACK) == 0)
 		return 0;
 
+	/* Kiedyś zdawało nam się, że mamy wysyłać liczbę odebranych
+	 * wiadomości, ale okazało się, że numer sekwencyjny. */
 	gs->recv_msg_count++;
-	pkt.count = gg_fix32(gs->recv_msg_count);
+
+	pkt.seq = gg_fix32(seq);
 
 	return gg_send_packet(gs, GG_RECV_MSG_ACK, &pkt, sizeof(pkt), NULL);
 }
@@ -815,7 +819,7 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end)) {
 			case -1:	// handled
-				gg_session_send_msg_ack(sess);
+				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
 
 			case -2:	// failed
@@ -837,7 +841,7 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 		goto fail;
 	e->event.msg.message = (unsigned char*) tmp;
 
-	gg_session_send_msg_ack(sess);
+	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
 
 fail:
@@ -852,7 +856,7 @@ malformed:
 	free(e->event.msg.xhtml_message);
 	free(e->event.msg.recipients);
 	free(e->event.msg.formats);
-	gg_session_send_msg_ack(sess);
+	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
 }
 
@@ -910,7 +914,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	if (offset_attr != 0) {
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + length)) {
 			case -1:	// handled
-				gg_session_send_msg_ack(sess);
+				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
 
 			case -2:	// failed
@@ -944,7 +948,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	else
 		e->event.msg.xhtml_message = NULL;
 
-	gg_session_send_msg_ack(sess);
+	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
 
 fail:
@@ -960,7 +964,7 @@ malformed:
 	free(e->event.msg.xhtml_message);
 	free(e->event.msg.recipients);
 	free(e->event.msg.formats);
-	gg_session_send_msg_ack(sess);
+	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
 }
 

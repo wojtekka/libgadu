@@ -136,7 +136,7 @@ struct gg_recv_msg80 {
 #define GG_RECV_MSG_ACK 0x0046
 
 struct gg_recv_msg_ack {
-	uint32_t count;
+	uint32_t seq;
 } GG_PACKED;
 
 #define GG_USER_DATA 0x0044
