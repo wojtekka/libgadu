@@ -83,6 +83,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 	int ret;
 	uint8_t hash_buf[64];
 	uint32_t local_ip;
+	struct sockaddr_in sin;
+	unsigned int sin_len = sizeof(sin);
 
 	if (len < sizeof(struct gg_welcome)) {
 		ge->type = GG_EVENT_CONN_FAILED;
@@ -141,28 +143,21 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 	}
 #endif
 
-	if (gg_dcc_ip == (unsigned long) inet_addr("255.255.255.255")) {
-		struct sockaddr_in sin;
-		unsigned int sin_len = sizeof(sin);
-
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() detecting address\n");
-
-		if (!getsockname(gs->fd, (struct sockaddr*) &sin, &sin_len)) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() detected address to %s\n", inet_ntoa(sin.sin_addr));
-			local_ip = sin.sin_addr.s_addr;
-		} else {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() unable to detect address\n");
-			local_ip = 0;
-		}
-	} else
-		local_ip = gg_dcc_ip;
-
-	gs->client_addr = local_ip;
+	if (!getsockname(gs->fd, (struct sockaddr*) &sin, &sin_len)) {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() detected address to %s\n", inet_ntoa(sin.sin_addr));
+		local_ip = sin.sin_addr.s_addr;
+	} else {
+		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() unable to detect address\n");
+		local_ip = 0;
+	}
 
 	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
 		struct gg_login80 l80;
 		const char *client_name, *version, *descr;
 		uint32_t client_name_len, version_len, descr_len;
+
+		if (gs->external_addr == 0)
+			gs->external_addr = local_ip;
 
 		memset(&l80, 0, sizeof(l80));
 		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
@@ -201,6 +196,11 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 				NULL);
 	} else {
 		struct gg_login70 l70;
+
+		if (gg_dcc_ip != (unsigned long) inet_addr("255.255.255.255"))
+			local_ip = gg_dcc_ip;
+
+		gs->client_addr = local_ip;
 
 		memset(&l70, 0, sizeof(l70));
 		l70.uin = gg_fix32(gs->uin);

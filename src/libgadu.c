@@ -800,6 +800,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->server_addr = p->server_addr;
 	sess->external_port = p->external_port;
 	sess->external_addr = p->external_addr;
+	sess->client_addr = p->client_addr;
 	sess->client_port = p->client_port;
 
 	if (p->protocol_features == 0) {

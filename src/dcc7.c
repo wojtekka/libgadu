@@ -218,11 +218,12 @@ static int gg_dcc7_connect(struct gg_dcc7 *dcc)
  * \internal Tworzy gniazdo nasłuchujące dla połączenia bezpośredniego
  *
  * \param dcc Struktura połączenia
- * \param port Preferowany port (jeśli równy 0 lub -1, próbuje się domyślnego)
+ * \param addr Preferowany adres (jeśli równy 0, nasłuchujemy na wszystkich interfejsach)
+ * \param port Preferowany port (jeśli równy 0, nasłuchujemy na losowym)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
+static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint32_t addr, uint16_t port)
 {
 	struct sockaddr_in sin;
 	unsigned int sin_len = sizeof(sin);
@@ -243,11 +244,11 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 	}
 
 	sin.sin_family = AF_INET;
-	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_addr.s_addr = addr;
 	sin.sin_port = htons(port);
 
 	if (bind(fd, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
-		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to bind to port %d\n", port);
+		gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_listen() unable to bind to %s:%d\n", inet_ntoa(sin.sin_addr), port);
 		goto fail;
 	}
 
@@ -262,6 +263,7 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint16_t port)
 	}
 
 	dcc->fd = fd;
+	dcc->local_addr = sin.sin_addr.s_addr;
 	dcc->local_port = ntohs(sin.sin_port);
 	
 	dcc->state = GG_STATE_LISTENING;
@@ -288,36 +290,34 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 {
 	struct gg_dcc7_info pkt;
 	uint16_t external_port;
-	uint16_t local_port;
+	uint32_t external_addr;
+	struct in_addr addr;
 
 	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen_and_send_info(%p)\n", dcc);
 
-	if (!dcc->sess->client_port)
-		local_port = dcc->sess->external_port;
-	else
-		local_port = dcc->sess->client_port;
-
-	if (gg_dcc7_listen(dcc, local_port) == -1)
+	if (gg_dcc7_listen(dcc, dcc->sess->client_addr, dcc->sess->client_port) == -1)
 		return -1;
 	
-	if (!dcc->sess->external_port || dcc->local_port != local_port)
-		external_port = dcc->local_port;
-	else
+	if (dcc->sess->external_port != 0)
 		external_port = dcc->sess->external_port;
-
-	if (!dcc->sess->external_addr || dcc->local_port != local_port)
-		dcc->local_addr = dcc->sess->client_addr;
 	else
-		dcc->local_addr = dcc->sess->external_addr;
+		external_port = dcc->local_port;
 
-	gg_debug_dcc(dcc, GG_DEBUG_MISC, "// dcc7_listen_and_send_info() sending IP address %s and port %d\n", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
+	if (dcc->sess->external_addr != 0)
+		external_addr = dcc->sess->external_addr;
+	else 
+		external_addr = dcc->local_addr;
+
+	addr.s_addr = external_addr;
+
+	gg_debug_dcc(dcc, GG_DEBUG_MISC, "// dcc7_listen_and_send_info() sending IP address %s and port %d\n", inet_ntoa(addr), external_port);
 
 	memset(&pkt, 0, sizeof(pkt));
 	pkt.uin = gg_fix32(dcc->peer_uin);
 	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
-	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(*((struct in_addr*) &dcc->local_addr)), external_port);
-	snprintf((char*) pkt.hash, sizeof(pkt.hash), "%u", dcc->local_addr + external_port * rand());
+	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(addr), external_port);
+	snprintf((char*) pkt.hash, sizeof(pkt.hash), "%u", external_addr + external_port * rand());
 
 	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
 }
