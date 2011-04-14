@@ -755,6 +755,8 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 		if (dcc->state == GG_STATE_WAITING_FOR_INFO) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() waiting for info so send one\n");
 			gg_dcc7_listen_and_send_info(dcc);
+			e->type = GG_EVENT_DCC7_PENDING;
+			e->event.dcc7_pending.dcc7 = dcc;
 			return 0;
 		}
 
@@ -1370,6 +1372,9 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			dcc->state = GG_STATE_CONNECTING_RELAY;
 			dcc->check = GG_CHECK_WRITE;
 			dcc->timeout = GG_DEFAULT_TIMEOUT;
+
+			e->type = GG_EVENT_DCC7_PENDING;
+			e->event.dcc7_pending.dcc7 = dcc;
 
 			return e;
 		}
