@@ -293,6 +293,12 @@ struct gg_dcc7_welcome_p2p {
 
 #define GG_TIMEOUT_DISCONNECT 5	/**< Maksymalny czas oczekiwania na rozłączenie */
 
+#define GG_USERLIST100_VERSION 0x5c
+
+struct gg_userlist100_version {
+	uint32_t version;
+} GG_PACKED;
+
 #ifdef _WIN32
 #pragma pack(pop)
 #endif

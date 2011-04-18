@@ -1695,6 +1695,23 @@ malformed:
 }
 
 /**
+ * \internal Obsługuje pakiet GG_USERLIST100_VERSION.
+ *
+ * Patrz gg_packet_handler_t
+ */
+static int gg_session_handle_userlist_100_version(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	struct gg_userlist100_version *version = (struct gg_userlist100_version*) ptr;
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist 100 version\n");
+
+	ge->type = GG_EVENT_USERLIST100_VERSION;
+	ge->event.userlist100_version.version = gg_fix32(version->version);
+
+	return 0;
+}
+
+/**
  * \internal Tablica obsługiwanych pakietów
  */
 static const gg_packet_handler_t handlers[] =
@@ -1734,6 +1751,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_MULTILOGON_INFO, GG_STATE_CONNECTED, sizeof(struct gg_multilogon_info), gg_session_handle_multilogon_info },
 	{ GG_XML_ACTION, GG_STATE_CONNECTED, 0, gg_session_handle_xml_event },
 	{ GG_RECV_OWN_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
+	{ GG_USERLIST100_VERSION, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_version), gg_session_handle_userlist_100_version },
 };
 
 /**

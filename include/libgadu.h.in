@@ -695,6 +695,8 @@ enum gg_event_t {
 	GG_EVENT_USER_DATA,		/**< Informacja o kontaktach */
 	GG_EVENT_MULTILOGON_MSG,	/**< Wiadomość wysłana z innej sesji multilogowania */
 	GG_EVENT_MULTILOGON_INFO,	/**< Informacja o innych sesjach multilogowania */
+
+	GG_EVENT_USERLIST100_VERSION,	/**< Otrzymano numer wersji listy kontaktów na serwerze */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -985,6 +987,13 @@ struct gg_event_multilogon_info {
 };
 
 /**
+ * Opis zdarzenia \c GG_EVENT_USERLIST100_VERSION.
+ */
+struct gg_event_userlist100_version {
+	int version;		/**< numer wersji listy kontaktów na serwerze */
+};
+
+/**
  * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
  * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
  *
@@ -1018,6 +1027,7 @@ union gg_event_union {
 	struct gg_event_user_data user_data;	/**< Informacje o kontaktach */
 	struct gg_event_msg multilogon_msg;	/**< Inna sesja wysłała wiadomość (\c GG_EVENT_MULTILOGON_MSG) */
 	struct gg_event_multilogon_info multilogon_info;	/**< Informacja o innych sesjach multilogowania (\c GG_EVENT_MULTILOGON_INFO) */
+	struct gg_event_userlist100_version userlist100_version;	/**< Informacja o numerze wersji listy kontaktów na serwerze (\c GG_EVENT_USERLIST100_VERSION) */
 };
 
 /**
