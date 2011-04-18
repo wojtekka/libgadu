@@ -990,7 +990,7 @@ struct gg_event_multilogon_info {
  * Opis zdarzenia \c GG_EVENT_USERLIST100_VERSION.
  */
 struct gg_event_userlist100_version {
-	int version;		/**< numer wersji listy kontaktów na serwerze */
+	uint32_t version;		/**< numer wersji listy kontaktów na serwerze */
 };
 
 /**
