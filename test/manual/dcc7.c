@@ -92,10 +92,8 @@ int main(int argc, char **argv)
 	glp.uin = config_uin;
 	glp.password = config_password;
 	glp.async = 1;
-//	glp.client_addr = config_ip;
-//	glp.client_port = config_port;
-
-	gg_dcc_ip = config_ip;
+	glp.client_addr = config_ip;
+	glp.client_port = config_port;
 
 	if (config_dir && (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME)) {
 		if (chdir(config_dir) == -1) {
