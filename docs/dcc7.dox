@@ -32,11 +32,35 @@ Deskryptor połączenia (pole \c fd struktury \c gg_dcc7) może zmienić się
 po wywołaniu funkcji \c gg_dcc7_accept() lub otrzymaniu jednego ze zdarzeń:
 \c GG_EVENT_DCC7_CONNECTED, \c GG_EVENT_DCC7_ACCEPT, \c GG_EVENT_DCC7_PENDING.
 
-Do zrobienia:
+\section dcc7-settings Opcje połączeń
 
-- rozmowy głosowe,
+Ponieważ jedna ze stron odbiera połączenie bezpośrednie, konieczne jest
+nasłuchiwanie na porcie TCP. Domyślne ustawienia pozwalają na poprawną
+pracę jeśli co najmniej jedna ze stron połączenia ma bezpośredni dostęp
+do sieci, bez translacji adresów i/lub portów. Pole
+\ref gg_login_params::client_addr "\c client_addr"
+struktury \c gg_login_params
+mówi na jakim adresie należy nasłuchiwać. Domyślna wartość \c 0.0.0.0 powoduje
+nasłuchiwanie na wszystkich dostępnych interfejsach komputera. Pole
+\ref gg_login_params::client_port "\c client_port"
+mówi na którym porcie
+należy nasłuchiwać. Domyślna wartość \c 0 powoduje nasłuchiwanie na losowym
+dostępnym porcie. Należy zwrócić uwagę, że jeśli jedno połączenie będzie
+nasłuchiwać na danym porcie, inne już nie będzie w stanie, co spowoduje błąd.
 
-- połączenia przez serwer -- enigmatyczne informacje o rodzaju połączenia
-  niestety niewiele mówią.
+Druga para ustawień dotyczy publicznego adresu i portu. Ta strona połączenia,
+która nasłuchuje na porcie TCP wysyła do drugiej strony swój adres i numer
+portu. Pole \ref gg_login_params::external_addr "\c external_addr"
+mówi jaki adres zostanie wysłany. Domyślna wartość \c 0.0.0.0 powoduje
+wysłanie adresu IP, z którego sesja łączy się z serwerem. Pole
+\ref gg_login_params::external_port "\c external_port"
+mówi jaki port zostanie wysłany. Domyślna wartość \c 0 powoduje wysłane portu,
+na którym połączenie nasłuchuje.
+
+\section dcc7-todo Do zrobienia
+
+- Rozmowy głosowe.
+
+- Nawiązywanie połączeń przez serwer.
 
 */
