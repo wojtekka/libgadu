@@ -121,6 +121,9 @@ const struct test_data html_to_text[] =
 	/* Niepoprawne tagi */
 	{ "<foo&bar;baz><foo\"bar><foo<bar>", "" },
 
+	/* Niedokończona encja */
+	{ "http://test/foo?ala=1&ma=2&kota=3", "http://test/foo?ala=1&ma=2&kota=3" },
+
 	/* Pusty tekst */
 	{ "", "" },
 };

@@ -44,6 +44,7 @@
 #include "encoding.h"
 #include "debug.h"
 #include "session.h"
+#include "message.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -1444,209 +1445,6 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 }
 
 /**
- * \internal Dodaje tekst na koniec bufora.
- * 
- * \param dst Wskaźnik na bufor roboczy
- * \param pos Wskaźnik na aktualne położenie w buforze roboczym
- * \param src Dodawany tekst
- * \param len Długość dodawanego tekstu
- */
-static void gg_append(char *dst, int *pos, const void *src, int len)
-{
-	if (dst != NULL)
-		memcpy(&dst[*pos], src, len);
-
-	*pos += len;
-}
-
-/**
- * \internal Zamienia tekst z formatowaniem Gadu-Gadu na HTML.
- *
- * \param dst Bufor wynikowy (może być \c NULL)
- * \param src Tekst źródłowy w UTF-8
- * \param format Atrybuty tekstu źródłowego
- * \param format_len Długość bloku atrybutów tekstu źródłowego
- *
- * \note Wynikowy tekst nie jest idealnym kodem HTML, ponieważ ma jak
- * dokładniej odzwierciedlać to, co wygenerowałby oryginalny klient.
- *
- * \note Dokleja \c \\0 na końcu bufora wynikowego.
- *
- * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
- */
-static int gg_convert_to_html(char *dst, const char *src, const unsigned char *format, int format_len)
-{
-	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
-	const int span_len = 75;
-	const char img_fmt[] = "<img name=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
-	const int img_len = 29;
-	int char_pos = 0;
-	int format_idx = 0;
-	unsigned char old_attr = 0;
-	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
-	int len, i;
-	const unsigned char *format_ = (const unsigned char*) format;
-
-	len = 0;
-
-	/* Nie mamy atrybutów dla pierwsze znaku, a tekst nie jest pusty, więc
-	 * tak czy inaczej trzeba otworzyć <span>. */
-
-	if (src[0] != 0 && (format_idx + 3 > format_len || (format_[format_idx] | (format_[format_idx + 1] << 8)) != 0)) {
-		if (dst != NULL)
-			sprintf(&dst[len], span_fmt, 0, 0, 0);
-
-		len += span_len;
-	}
-
-	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
-	 * na końcu tekstu. */
-
-	for (i = 0; ; i++) {
-		/* Analizuj atrybuty tak długo jak dotyczą aktualnego znaku. */
-		for (;;) {
-			unsigned char attr;
-			int attr_pos;
-
-			if (format_idx + 3 > format_len)
-				break;
-
-			attr_pos = format_[format_idx] | (format_[format_idx + 1] << 8);
-
-			if (attr_pos != char_pos)
-				break;
-
-			attr = format_[format_idx + 2];
-
-			/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
-
-			if (src[i] == 0)
-				attr &= ~(GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR);
-
-			format_idx += 3;
-
-			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
-				if (char_pos != 0) {
-					if ((old_attr & GG_FONT_UNDERLINE) != 0)
-						gg_append(dst, &len, "</u>", 4);
-
-					if ((old_attr & GG_FONT_ITALIC) != 0)
-						gg_append(dst, &len, "</i>", 4);
-
-					if ((old_attr & GG_FONT_BOLD) != 0)
-						gg_append(dst, &len, "</b>", 4);
-
-					if (src[i] != 0)
-						gg_append(dst, &len, "</span>", 7);
-				}
-
-				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
-					color = &format_[format_idx];
-					format_idx += 3;
-				} else {
-					color = (unsigned char*) "\x00\x00\x00";
-				}
-
-				if (src[i] != 0) {
-					if (dst != NULL)
-						sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
-					len += span_len;
-				}
-			} else if (char_pos == 0 && src[0] != 0) {
-				if (dst != NULL)
-					sprintf(&dst[len], span_fmt, 0, 0, 0);
-				len += span_len;
-			}
-
-			if ((attr & GG_FONT_BOLD) != 0)
-				gg_append(dst, &len, "<b>", 3);
-
-			if ((attr & GG_FONT_ITALIC) != 0)
-				gg_append(dst, &len, "<i>", 3);
-
-			if ((attr & GG_FONT_UNDERLINE) != 0)
-				gg_append(dst, &len, "<u>", 3);
-
-			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
-				if (dst != NULL) {
-					sprintf(&dst[len], img_fmt,
-						format_[format_idx + 9],
-						format_[format_idx + 8], 
-						format_[format_idx + 7],
-						format_[format_idx + 6], 
-						format_[format_idx + 5],
-						format_[format_idx + 4],
-						format_[format_idx + 3],
-						format_[format_idx + 2]);
-				}
-
-				len += img_len;
-				format_idx += 10;
-			}
-
-			old_attr = attr;
-		}
-
-		/* Doklej znak zachowując htmlowe escapowanie. */
-
-		switch (src[i]) {
-			case '&':
-				gg_append(dst, &len, "&amp;", 5);
-				break;
-			case '<':
-				gg_append(dst, &len, "&lt;", 4);
-				break;
-			case '>':
-				gg_append(dst, &len, "&gt;", 4);
-				break;
-			case '\'':
-				gg_append(dst, &len, "&apos;", 6);
-				break;
-			case '\"':
-				gg_append(dst, &len, "&quot;", 6);
-				break;
-			case '\n':
-				gg_append(dst, &len, "<br>", 4);
-				break;
-			case '\r':
-			case 0:
-				break;
-			default:
-				if (dst != NULL)
-					dst[len] = src[i];
-				len++;
-		}
-
-		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
-
-		if ((src[i] & 0xc0) != 0xc0)
-			char_pos++;
-
-		if (src[i] == 0)
-			break;
-	}
-
-	/* Zamknij tagi. */
-
-	if ((old_attr & GG_FONT_UNDERLINE) != 0)
-		gg_append(dst, &len, "</u>", 4);
-
-	if ((old_attr & GG_FONT_ITALIC) != 0)
-		gg_append(dst, &len, "</i>", 4);
-
-	if ((old_attr & GG_FONT_BOLD) != 0)
-		gg_append(dst, &len, "</b>", 4);
-
-	if (src[0] != 0)
-		gg_append(dst, &len, "</span>", 7);
-
-	if (dst != NULL)
-		dst[len] = 0;
-
-	return len;
-}
-
-/**
  * Wysyła wiadomość formatowaną w ramach konferencji.
  *
  * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
@@ -1734,7 +1532,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			formatlen = 9;
 		}
 
-		len = gg_convert_to_html(NULL, utf_msg, format + 3, formatlen - 3);
+		len = gg_message_text_to_html(NULL, utf_msg, (char*) format + 3, formatlen - 3);
 
 		html_msg = malloc(len + 1);
 
@@ -1743,7 +1541,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-		gg_convert_to_html(html_msg, utf_msg, format + 3, formatlen - 3);
+		gg_message_text_to_html(html_msg, utf_msg, (char*) format + 3, formatlen - 3);
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);
