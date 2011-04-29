@@ -740,7 +740,10 @@ static int gg_session_callback(struct gg_session *sess)
  * serwera -- z tego powodu program musi poprawnie obsłużyć sygnał SIGCHLD.
  *
  * \note Po nawiązaniu połączenia z serwerem należy wysłać listę kontaktów
- * za pomocą funkcji \c gg_notify() lub \c gg_notify_ex().
+ *       za pomocą funkcji \c gg_notify() lub \c gg_notify_ex().
+ *
+ * \note Funkcja zwróci błąd ENOSYS jeśli połączenie SSL było wymagane, ale
+ *       obsługa SSL nie jest wkompilowana.
  *
  * \param p Struktura opisująca parametry połączenia. Wymagane pola: uin,
  *          password, async.
@@ -861,7 +864,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			sess->initial_descr[max_length] = 0;
 	}
 
-	if (p->tls == 1) {
+	if (p->tls != GG_SSL_DISABLED) {
 #ifdef GG_CONFIG_HAVE_GNUTLS
 		gg_session_gnutls_t *tmp;
 
@@ -918,6 +921,11 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		}
 #else
 		gg_debug(GG_DEBUG_MISC, "// gg_login() client requested TLS but no support compiled in\n");
+
+		if (p->tls == GG_SSL_REQUIRED) {
+			errno = ENOSYS;
+			goto fail;
+		}
 #endif
 	}
 
