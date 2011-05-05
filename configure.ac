@@ -194,9 +194,18 @@ if test "x$with_pthread" = "xyes"; then
 	AC_DEFINE([GG_CONFIG_PTHREAD_DEFAULT], [], [Defined if pthread resolver is the default one.])
 fi
 
-dnl  zlib (TODO!)
+dnl
+dnl  Sprawdzamy zlib
+dnl
 
-LIBS="$LIBS -lz"
+AC_CHECK_LIB(z, inflateEnd, [have_zlib=yes], [have_zlib=no])
+AC_CHECK_HEADER(zlib.h, [have_zlib_h=yes], [have_zlib_h=no])
+
+if test "x$have_zlib" = "xyes" -a "x$have_zlib_h" = "xyes"; then
+	LIBS="$LIBS -lz"
+	AC_DEFINE(HAVE_ZLIB, 1, [define if you have zlib])
+	AC_DEFINE([GG_CONFIG_HAVE_ZLIB], [], [Defined if libgadu was compiled and linked with zlib support.])
+fi
 
 dnl
 dnl  Sprawdzamy GnuTLS
