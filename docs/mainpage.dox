@@ -51,6 +51,7 @@ Dokumentację podzielono na następujące działy:
 	- \ref dcc7 <br>
 
 - Pozostałe funkcje
+	- \ref version
 	- \ref proxy
 	- \ref ip
 	- \ref debug

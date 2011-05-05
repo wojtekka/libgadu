@@ -76,6 +76,9 @@ extern "C" {
 /* Defined if libgadu was compiled and linked with OpenSSL support. */
 #undef GG_CONFIG_HAVE_OPENSSL
 
+/* Defined if libgadu was compiled and linked with zlib support. */
+#undef GG_CONFIG_HAVE_ZLIB
+
 /* Defined if uintX_t types are defined in <stdint.h>. */
 #undef GG_CONFIG_HAVE_STDINT_H
 
@@ -1280,6 +1283,19 @@ void gg_debug_session(struct gg_session *sess, int level, const char *format, ..
 #endif
 
 const char *gg_libgadu_version(void);
+
+/**
+ * Lista funkcji biblioteki, które zależą od zewnętrznych bibliotek.
+ *
+ * \ingroup version
+ */
+typedef enum {
+	GG_LIBGADU_FEATURE_SSL,		/**< Biblioteka obsługuje połączenia szyfrowane */
+	GG_LIBGADU_FEATURE_PTHREAD,	/**< Biblioteka obsługuje rozwiązywanie nazw za pomocą wątków */
+	GG_LIBGADU_FEATURE_USERLIST100,	/**< Biblioteka obsługuje listę kontaktów zgodną z Gadu-Gadu 10 */
+} gg_libgadu_feature_t;
+
+int gg_libgadu_check_feature(gg_libgadu_feature_t feature);
 
 extern int gg_proxy_enabled;
 extern char *gg_proxy_host;

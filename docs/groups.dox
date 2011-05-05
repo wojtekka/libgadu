@@ -18,4 +18,7 @@
 \ingroup misc
 \bug Ustawienia są globalne dla wszystkich połączeń.
 
+\defgroup version Informacje o bibliotece
+\ingroup misc
+
 */

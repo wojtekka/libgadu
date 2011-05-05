@@ -45,6 +45,7 @@
 #include "debug.h"
 #include "session.h"
 #include "message.h"
+#include "deflate.h"
 
 #include <errno.h>
 #include <netdb.h>
@@ -2255,6 +2256,47 @@ int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id)
 }
 
 /* @} */
+
+/**
+ * Sprawdza czy biblioteka obsługuje daną funkcję.
+ *
+ * \param feature Identyfikator funkcji.
+ *
+ * \return Wartość niezerowa jeśli funkcja jest obsłgiwana.
+ *
+ * \ingroup version
+ */
+int gg_libgadu_check_feature(gg_libgadu_feature_t feature)
+{
+	switch (feature)
+	{
+	case GG_LIBGADU_FEATURE_SSL:
+#if defined(GG_CONFIG_HAVE_OPENSSL) || defined(GG_CONFIG_HAVE_GNUTLS)
+		return 1;
+#else
+		return 0;
+#endif
+
+	case GG_LIBGADU_FEATURE_PTHREAD:
+#ifdef GG_CONFIG_HAVE_PTHREAD
+		return 1;
+#else
+		return 0;
+#endif
+
+	case GG_LIBGADU_FEATURE_USERLIST100:
+#ifdef GG_CONFIG_HAVE_ZLIB
+		return 1;
+#else
+		return 0;
+#endif
+
+	/* Celowo nie ma default, żeby kompilator wyłapał brakujące funkcje */
+
+	}
+
+	return 0;
+}
 
 /*
  * Local variables:

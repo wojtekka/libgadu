@@ -267,7 +267,7 @@ const char *gg_debug_state(enum gg_state_t state)
 	GG_DEBUG_STATE(GG_STATE_DISCONNECTING)
 #undef GG_DEBUG_STATE
 
-	// Celowo nie ma default, żeby kompilator wyłapał brakujące stany
+	/* Celowo nie ma default, żeby kompilator wyłapał brakujące stany */
 	
 	}
 
@@ -332,7 +332,7 @@ const char *gg_debug_event(enum gg_event_t event)
 	GG_DEBUG_EVENT(GG_EVENT_USERLIST100_REPLY)
 #undef GG_DEBUG_EVENT
 
-	// Celowo nie ma default, żeby kompilator wyłapał brakujące stany
+	/* Celowo nie ma default, żeby kompilator wyłapał brakujące zdarzenia */
 	
 	}
 
