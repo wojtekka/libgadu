@@ -18,27 +18,12 @@
  *  USA.
  */
 
-#ifndef LIBGADU_INTERNAL_H
-#define LIBGADU_INTERNAL_H
+#ifndef LIBGADU_DEFLATE_H
+#define LIBGADU_DEFLATE_H
 
 #include "libgadu.h"
 
-struct gg_dcc7_relay {
-	uint32_t addr;
-	uint16_t port;
-	uint8_t family;
-};
+unsigned char *gg_deflate(const char *in, size_t *out_lenp);
+char *gg_inflate(const unsigned char *in, size_t length);
 
-typedef struct gg_dcc7_relay gg_dcc7_relay_t;
-
-int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
-
-int gg_resolve(int *fd, int *pid, const char *hostname);
-int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
-void gg_resolve_pthread_cleanup(void *resolver, int kill);
-
-#ifdef HAVE_UINT64_T
-uint64_t gg_fix64(uint64_t x);
-#endif
-
-#endif /* LIBGADU_INTERNAL_H */
+#endif /* LIBGADU_DEFLATE_H */

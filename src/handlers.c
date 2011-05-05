@@ -43,6 +43,7 @@
 #include "encoding.h"
 #include "message.h"
 #include "internal.h"
+#include "deflate.h"
 
 #include <errno.h>
 #include <netdb.h>
