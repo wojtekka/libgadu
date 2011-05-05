@@ -2150,6 +2150,70 @@ int gg_userlist_request(struct gg_session *sess, char type, const char *request)
 }
 
 /**
+ * Wysyła do serwera zapytanie dotyczące listy kontaktów (10.0).
+ *
+ * Funkcja służy do importu lub eksportu listy kontaktów do serwera.
+ * W odróżnieniu od funkcji \c gg_notify(), ta lista kontaktów jest przez
+ * serwer jedynie przechowywana i nie ma wpływu na połączenie. Format
+ * listy kontaktów jest jednak weryfikowany przez serwer, który stara się
+ * synchronizować listę kontaktów zapisaną w formatach GG 7.0 oraz GG 10.0.
+ * Serwer przyjmuje listy kontaktów przysłane w formacie niezgodnym z podanym
+ * jako \c format_type, ale nie zachowuje ich, a przesłanie takiej listy jest
+ * równoznaczne z usunięciem listy kontaktów.
+ *
+ * Program nie musi się przejmować kompresją listy kontaktów zgodną
+ * z protokołem -- wysyła i odbiera kompletną listę zapisaną czystym tekstem.
+ *
+ * \param sess Struktura sesji
+ * \param type Rodzaj zapytania
+ * \param version Numer ostatniej znanej programowi wersji listy kontaktów lub 0
+ * \param format_type Typ formatu listy kontaktów
+ * \param request Treść zapytania (może być równe NULL)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup importexport
+ */
+int gg_userlist100_request(struct gg_session *sess, char type, unsigned int version, char format_type, const char *request)
+{
+	struct gg_userlist100_request pkt;
+	unsigned char *zrequest;
+	size_t zrequest_len;
+	int ret;
+
+	if (!sess) {
+		errno = EFAULT;
+		return -1;
+	}
+
+	if (sess->state != GG_STATE_CONNECTED) {
+		errno = ENOTCONN;
+		return -1;
+	}
+
+	pkt.type = type;
+	pkt.version = gg_fix32(version);
+	pkt.format_type = format_type;
+	pkt.unknown1 = 0x01;
+
+	if (request == NULL)
+		return gg_send_packet(sess, GG_USERLIST100_REQUEST, &pkt, sizeof(pkt), NULL);
+
+	zrequest = gg_deflate(request, &zrequest_len);
+
+	if (zrequest == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_userlist100_request() gg_deflate() failed");
+		return -1;
+	}
+
+	ret = gg_send_packet(sess, GG_USERLIST100_REQUEST, &pkt, sizeof(pkt), zrequest, zrequest_len, NULL);
+
+	free(zrequest);
+
+	return ret;
+}
+
+/**
  * Informuje rozmówcę o pisaniu wiadomości.
  *
  * \param sess Struktura sesji

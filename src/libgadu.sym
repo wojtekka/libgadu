@@ -149,6 +149,7 @@ gg_userlist_remove
 gg_userlist_remove_free
 gg_userlist_remove_watch_fd
 gg_userlist_request
+gg_userlist100_request
 gg_vsaprintf
 gg_watch_fd
 gg_write

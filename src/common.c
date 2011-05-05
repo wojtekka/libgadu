@@ -42,6 +42,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <zlib.h>
+
+#include "internal.h"
 #include "libgadu.h"
 
 /**
@@ -573,6 +576,98 @@ char *gg_proxy_auth(void)
 	free(enc);
 
 	return out;
+}
+
+/**
+ * \internal Kompresuje dane wejściowe algorytmem Deflate z najwyższym
+ * stopniem kompresji, tak samo jak oryginalny klient.
+ * 
+ * Wynik funkcji należy zwolnić za pomocą \c free.
+ *
+ * \param in Ciąg znaków do skompresowania, zakończony \c \\0
+ * \param out_lenp Wskaźnik na zmienną, do której zostanie zapisana
+ *                 długość bufora wynikowego
+ *
+ * \return Skompresowany ciąg znaków lub \c NULL w przypadku niepowodzenia.
+ */
+unsigned char *gg_deflate(const char *in, size_t *out_lenp)
+{
+	int ret;
+	z_stream strm;
+	unsigned char *out, *out2;
+	size_t out_len;
+
+	if (in == NULL || out_lenp == NULL)
+		return NULL;
+
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.avail_in = strlen(in);
+	strm.next_in = (unsigned char*) in;
+
+	ret = deflateInit(&strm, Z_BEST_COMPRESSION);
+	if (ret != Z_OK) {
+		gg_debug(GG_DEBUG_MISC, "// gg_deflate() deflateInit() failed (%d)\n", ret);
+		return NULL;
+	}
+
+	out_len = deflateBound(&strm, strm.avail_in);
+	out = malloc(out_len);
+
+	if (out == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_deflate() not enough memory for output data (%d)\n", out_len);
+		goto fail;
+	}
+
+	strm.avail_out = out_len;
+	strm.next_out = out;
+
+	for (;;) {
+		ret = deflate(&strm, Z_FINISH);
+		
+		if (ret == Z_STREAM_END)
+			break;
+		
+		/* raczej nie powinno się zdarzyć przy Z_FINISH i out_len == deflateBound(),
+		 * ale dokumentacja zlib nie wyklucza takiej możliwości */
+		if (ret == Z_OK) {
+			out_len *= 2;
+			out2 = realloc(out, out_len);
+			
+			if (out2 == NULL) {
+				gg_debug(GG_DEBUG_MISC, "// gg_deflate() not enough memory for output data (%d)\n", out_len);
+				goto fail;
+			}
+			
+			out = out2;
+			
+			strm.avail_out = out_len / 2;
+			strm.next_out = out + out_len / 2;
+		} else {
+			gg_debug(GG_DEBUG_MISC, "// gg_deflate() deflate() failed (ret=%d, msg=%s)\n", ret, strm.msg != NULL ? strm.msg : "no error message provided");
+			goto fail;
+		}
+	}
+
+	out_len = strm.total_out;
+	out2 = realloc(out, out_len);
+
+	if (out2 == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_deflate() not enough memory for output data (%d)\n", out_len);
+		goto fail;
+	}
+
+	*out_lenp = out_len;
+	deflateEnd(&strm);
+
+	return out2;
+
+fail:
+	*out_lenp = 0;
+	deflateEnd(&strm);
+	free(out);
+	return NULL;
 }
 
 /**

@@ -634,6 +634,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 int gg_send_message_ctcp(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, int message_len);
 int gg_ping(struct gg_session *sess);
 int gg_userlist_request(struct gg_session *sess, char type, const char *request);
+int gg_userlist100_request(struct gg_session *sess, char type, unsigned int version, char format_type, const char *request);
 int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_t crc32);
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size);
 int gg_typing_notification(struct gg_session *sess, uin_t recipient, int length);
@@ -2093,6 +2094,46 @@ enum {
 struct gg_userlist_reply {
 	uint8_t type;
 } GG_PACKED;
+
+#ifndef DOXYGEN
+
+#define GG_USERLIST100_PUT 0x00
+#define GG_USERLIST100_GET 0x02
+
+#else
+
+/**
+ * \ingroup importexport
+ *
+ * Rodzaj zapytania (10.0).
+ */
+enum {
+	GG_USERLIST100_PUT,	/**< Eksport listy kontaktów. */
+	GG_USERLIST100_GET,	/**< Import listy kontaktów. */
+};
+
+#endif	/* DOXYGEN */
+
+#ifndef DOXYGEN
+
+#define GG_USERLIST100_FORMAT_TYPE_NONE 0x00
+#define GG_USERLIST100_FORMAT_TYPE_GG70 0x01
+#define GG_USERLIST100_FORMAT_TYPE_GG100 0x02
+
+#else
+
+/**
+ * \ingroup importexport
+ *
+ * Typ formatu listy kontaktów (10.0).
+ */
+enum {
+	GG_USERLIST100_FORMAT_TYPE_NONE,	/**< Brak treści listy kontaktów. */
+	GG_USERLIST100_FORMAT_TYPE_GG70,	/**< Format listy kontaktów zgodny z Gadu-Gadu 7.0. */
+	GG_USERLIST100_FORMAT_TYPE_GG100,	/**< Format listy kontaktów zgodny z Gadu-Gadu 10.0. */
+};
+
+#endif	/* DOXYGEN */
 
 struct gg_dcc_tiny_packet {
 	uint8_t type;		/* rodzaj pakietu */

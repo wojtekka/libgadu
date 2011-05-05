@@ -194,6 +194,10 @@ if test "x$with_pthread" = "xyes"; then
 	AC_DEFINE([GG_CONFIG_PTHREAD_DEFAULT], [], [Defined if pthread resolver is the default one.])
 fi
 
+dnl  zlib (TODO!)
+
+LIBS="$LIBS -lz"
+
 dnl
 dnl  Sprawdzamy GnuTLS
 dnl

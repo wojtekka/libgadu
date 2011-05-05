@@ -299,6 +299,16 @@ struct gg_userlist100_version {
 	uint32_t version;		/* numer wersji listy kontaktów */
 } GG_PACKED;
 
+#define GG_USERLIST100_REQUEST 0x0040
+
+struct gg_userlist100_request {
+	uint8_t type;			/* rodzaj żądania */
+	uint32_t version;		/* numer ostatniej znanej wersji listy kontaktów bądź 0 */
+	uint8_t format_type;		/* rodzaj żądanego typu formatu listy kontaktów */
+	uint8_t unknown1;		/* 0x01 */
+	/* char request[]; */
+} GG_PACKED;
+
 #ifdef _WIN32
 #pragma pack(pop)
 #endif
