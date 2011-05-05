@@ -70,6 +70,7 @@ gg_http_watch_fd
 gg_image_queue_remove
 gg_image_reply
 gg_image_request
+gg_libgadu_check_feature
 gg_libgadu_version
 gg_local_ip
 gg_login
