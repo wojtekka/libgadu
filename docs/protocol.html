@@ -1496,10 +1496,13 @@ użyć pakietu:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_REQUEST80 0x002f
+<pre>#define GG_USERLIST100_REQUEST 0x0040
 	
-struct gg_userlist_request {
+struct gg_userlist100_request {
 	char type;		<i>/* rodzaj zapytania */</i>
+	int version;		<i>/* numer ostatniej znanej wersji listy kontaktów bądź 0 */</i>
+	char format_type;	<i>/* rodzaj formatu listy kontaktów */</i>
+	char unknown1;		<i>/* zawsze 0x01 */</i>
 	char request[];		<i>/* treść (nie musi wystąpić) */</i>
 };</pre>
 </div>
@@ -1509,25 +1512,34 @@ Pole <tt>type</tt> oznacza rodzaj zapytania:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_PUT 0x00            <i>/* początek eksportu listy */</i>
-#define GG_USERLIST_PUT_MORE 0x01       <i>/* dalsza część eksportu listy */</i>
-#define GG_USERLIST_GET 0x02            <i>/* import listy */</i></pre>
+<pre>#define GG_USERLIST100_PUT 0x00		<i>/* eksport listy */</i>
+#define GG_USERLIST100_GET 0x02		<i>/* import listy */</i></pre>
 </div>
 
 <p>
-W przypadku eksportu listy kontaktów, pole <tt>request</tt> zawiera dokument
-XML opisany na stronie
-<a href="http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html">http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html</a> skompresowany algorytmem 
-<a href="http://pl.wikipedia.org/wiki/Deflate">Deflate</a>. Wolnodostępna
-implementacja algorytmu, używana również przez oryginalnego klienta, znajduje
-się w biblotece <a href="http://www.zlib.net/">zlib</a>. 
+Pole <tt>format_type</tt> oznacza typ formatu listy kontaktów:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST100_FORMAT_TYPE_NONE 0x00        <i>/* brak treści listy kontaktów */</i>
+#define GG_USERLIST100_FORMAT_TYPE_GG70 0x01        <i>/* format listy kontaktów zgodny z Gadu-Gadu 7.0 */</i>
+#define GG_USERLIST100_FORMAT_TYPE_GG100 0x02       <i>/* format listy kontaktów zgodny z Gadu-Gadu 10.0 */</i>
+</div>
+
+<p>
+Typ <tt>GG_USERLIST100_FORMAT_TYPE_NONE</tt> ma sens wyłącznie w przypadku
+importu listy kontaktów. Po jego użyciu serwer wysyła odpowiedź zawierającą
+numer wersji listy kontaktów, ale bez samej listy kontaktów. Oryginalny klient
+jednak w ogóle nie wykorzystuje tego sposobu.
 </p>
 
 <p>
-Podczas przesyłania lista kontaktów jest dzielona na pakiety po 2048 bajtów.
-Pierwszy jest wysyłany pakietem typu <tt>GG_USERLIST_PUT</tt>, żeby uaktualnić
-plik na serwerze, pozostałe typu <tt>GG_USERLIST_PUT_MORE</tt>, żeby dopisać
-do pliku.
+W przypadku eksportu listy kontaktów, pole <tt>request</tt>, o ile zdefiniowano typ jako <tt>GG_USERLIST100_FORMAT_TYPE_GG100</tt>, zawiera dokument
+XML opisany na stronie
+<a href="http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html">http://dev.gadu-gadu.pl/api/pages/formaty_plikow.html</a>. Zawartość tego pola musi być skompresowana algorytmem 
+<a href="http://pl.wikipedia.org/wiki/Deflate">Deflate</a>. Wolnodostępna
+implementacja algorytmu, używana również przez oryginalnego klienta, znajduje
+się w biblotece <a href="http://www.zlib.net/">zlib</a>. Oryginalny klient używa najwyższego stopnia kompresji.
 </p>
 
 <p>
@@ -1535,10 +1547,13 @@ Na zapytania dotyczące listy kontaktów serwer odpowiada pakietem:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_REPLY80 0x0030
+<pre>#define GG_USERLIST100_REPLY 0x0041
 	
-struct gg_userlist_reply {
-	char type;		<i>/* rodzaj zapytania */</i>
+struct gg_userlist100_reply {
+	char type;		<i>/* rodzaj odpowiedzi */</i>
+	int version;		<i>/* numer wersji listy kontaktów aktualnie przechowywanej przez serwer */</i>
+	char format_type;	<i>/* rodzaj przesyłanego typu formatu listy kontaktów */</i>
+	char unknown1;		<i>/* zawsze 0x01 */</i>
 	char reply[];		<i>/* treść (nie musi wystąpić) */</i>
 };</pre>
 </div>
@@ -1548,20 +1563,21 @@ Pole <tt>type</tt> oznacza rodzaj odpowiedzi:
 </p>
 
 <div class="c">
-<pre>#define GG_USERLIST_PUT_REPLY 0x00         <i>/* początek eksportu listy */</i>
-#define GG_USERLIST_PUT_MORE_REPLY 0x02    <i>/* kontynuacja */</i>
-#define GG_USERLIST_GET_MORE_REPLY 0x04    <i>/* początek importu listy */</i>
-#define GG_USERLIST_GET_REPLY 0x06         <i>/* ostatnia część importu */</i></pre>
+<pre>#define GG_USERLIST100_REPLY_LIST 0x00       <i>/* w odpowiedzi znajduje się aktualna lista kontaktów na serwerze */</i>
+#define GG_USERLIST100_REPLY_ACK 0x10        <i>/* potwierdzenie odebrania nowej wersji listy kontaktów */</i>
+#define GG_USERLIST100_REPLY_REJECT 0x12     <i>/* odmowa przyjęcia nowej wersji listy kontaktów z powodu
+                                                niezgodności numeru wersji listy kontaktów */</i></pre>
 </div>
 
 <p>
-W przypadku importu w polu <tt>request</tt> znajdzie się lista kontaktów
-w takiej samej postaci, w jakiej ją umieszczono. Serwer nie ingeruje w jej
-treść. Podobnie jak przy wysyłaniu, przychodzi podzielona na mniejsze pakiety.
-Pobieranie krótkiej listy kontaktów zwykle powoduje wysłanie pojedynczego
-pakietu <tt>GG_USERLIST_GET_REPLY</tt>, a gdy lista jest długa, serwer może
-przysłać dowolną ilość pakietów <tt>GG_USERLIST_GET_MORE_REPLY</tt> przed
-pakietem <tt>GG_USERLIST_GET_REPLY</tt>.
+W przypadku importu w polu <tt>request</tt> niekoniecznie musi znajdować się
+lista kontaktów w takiej samej postaci, w jakiej ją umieszczono. Serwer stara się
+utrzymywać obie wersje listy kontaktów (tzn. <tt>GG_USERLIST100_FORMAT_TYPE_GG70</tt>
+oraz <tt>GG_USERLIST100_FORMAT_TYPE_GG100</tt>) w zgodności, dlatego po wysłaniu
+jednej z nich serwer automatycznie modyfikuje drugą. W przypadku wysłania listy
+kontaktów w formacie niezgodnym z zadeklarowanym w polu <tt>format_type</tt>,
+serwer usunie istniejącą listę kontaktów, ale nie zachowa przesyłanej i zostanie
+na nim pusta lista.
 </p>
 
 <p>
@@ -1572,6 +1588,37 @@ listę kontaktów czego wynikiem jest pole <tt>request</tt> o zawartości:
 <div class="example">
 <pre>78 da 53 00 00 00 21 00 21</pre>
 </div>
+
+<p>
+W celu sprawnej synchronizacji listy kontaktów między różnymi instalacjami klienta sieci,
+serwer wersjonuje listę kontaktów i pozwala ją nadpisać tylko w przypadku, gdy zadeklarujemy
+znajomość jej ostatniej wersji. Serwer w pakiecie <tt>GG_USERLIST100_REPLY</tt> w polu
+<tt>version</tt> zawsze przesyła numer ostatniej znanej mu wersji listy kontaktów, przy czym
+w przypadku <tt>GG_USERLIST100_REPLY_ACK</tt> jest to nowo zaakceptowana przed chwilą wysłana
+wersja. Wysyłając listę kontaktów, należy w polu <tt>version</tt> umieścić numer ostatniej
+znanej wersji listy kontaktów. Zostanie ona zaakceptowana tylko jeśli jest to również ostatnia
+znana serwerowi wersja. W przypadku importu listy przesyłany numer wersji nie ma znaczenia,
+a oryginalny klient wysyła tu 0.
+</p>
+
+<p>
+W czasie istnienia sesji po każdej zmianie listy kontaktów na serwerze, również jeśli została
+ona dokonana w obrębie innej sesji mulilogowania, serwer wysyła informacje o nowej wersji za
+pomocą pakietu:
+</p>
+
+<div class="c">
+<pre>#define GG_USERLIST100_VERSION 0x005c
+	
+struct gg_userlist100_version {
+	int version;		<i>/* numer wersji listy kontaktów */</i>
+};</pre>
+</div>
+
+<p>
+Należy zwrócić uwagę na fakt, że pakiet z informacją o nowej wersji listy kontaktów może przyjść
+przed pakietem <tt>GG_USERLIST100_REPLY</tt> z informacją o akceptacji listy kontaktów.
+</p>
 
 <hr />
 
@@ -1612,7 +1659,7 @@ Pakiety wysyłane:
 <tr class="tabf2"><td><tt>0x002f</tt></td><td><tt>GG_USERLIST_REQUEST80</tt></td><td>Zapytanie listy kontaktów na serwerze przed Gadu-Gadu 10</td></tr>
 <tr class="tabf"><td><tt>0x0031</tt></td><td><tt>GG_LOGIN80</tt></td><td>Logowanie</td></tr>
 <tr class="tabf"><td><tt>0x0038</tt></td><td><tt>GG_NEW_STATUS80</tt></td><td>Zmiana stanu</td></tr>
-<tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST_REQUEST100</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0040</tt></td><td><tt>GG_USERLIST100_REQUEST</tt></td><td>Zapytanie listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0046</tt></td><td><tt>GG_RECV_MSG_ACK</tt></td><td>Potwierdzenie odebrania wiadomości przez klienta</td></tr>
 <tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
 <tr class="tabf"><td><tt>0x0062</tt></td><td><tt>GG_OWN_DISCONNECT</tt></td><td>Rozłączenie zdalnego klienta</td></tr>
@@ -1658,11 +1705,12 @@ Pakiety odbierane:
 <tr class="tabf"><td><tt>0x0035</tt></td><td><tt>GG_LOGIN_OK80</tt></td><td>Logowanie powiodło się</td></tr>
 <tr class="tabf"><td><tt>0x0036</tt></td><td><tt>GG_STATUS80</tt></td><td>Zmiana stanu</td></tr>
 <tr class="tabf"><td><tt>0x0037</tt></td><td><tt>GG_NOTIFY_REPLY80</tt></td><td>Stan listy kontaktów</td></tr>
-<tr class="tabf"><td><tt>0x0041</tt></td><td><tt>GG_USERLIST_REPLY100</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
+<tr class="tabf"><td><tt>0x0041</tt></td><td><tt>GG_USERLIST100_REPLY</tt></td><td>Odpowiedź listy kontaktów na serwerze</td></tr>
 <tr class="tabf"><td><tt>0x0044</tt></td><td><tt>GG_USER_DATA</tt></td><td>Dodatkowe informacje o liście kontaktów</td></tr>
 <tr class="tabf"><td><tt>0x0059</tt></td><td><tt>GG_TYPING_NOTIFY</tt></td><td>Powiadomienie o pisaniu</td></tr>
 <tr class="tabf"><td><tt>0x005A</tt></td><td><tt>GG_OWN_MESSAGE</tt></td><td>Własne wiadomości z innych klientów</td></tr>
 <tr class="tabf"><td><tt>0x005B</tt></td><td><tt>GG_OWN_RESOURCE_INFO</tt></td><td>Informacje o innych połączeniach na naszym numerze</td></tr>
+<tr class="tabf"><td><tt>0x005C</tt></td><td><tt>GG_USERLIST100_VERSION</tt></td><td>Informacje o nowej wersji listy kontaktów</td></tr>
 </table>
 
 <hr />
