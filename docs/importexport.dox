@@ -7,27 +7,36 @@
 
 Serwer pozwala przechowywać kompletną listę kontaktów w postaci tekstowej,
 by móc z niej korzystać na dowolnym komputerze bez konieczności ręcznego
-przenoszenia. Standardowo format listy kontaktów jest narzucony przez
-oryginalnego klienta (pola oddzielone średnikami), lecz serwer nie zwraca
-uwagi na treść i można przechowywać dowolne dane, dopóki nie będą one pobierane
-oryginalnym klientem.
+przenoszenia. Format listy kontaktów jest narzucony przez oryginalnego klienta
+(obecnie istnieją dwa wspierane formaty: pola oddzielone średnikami oraz dokument
+XML). W celu sprawnej synchronizacji listy kontaktów między różnymi instalacjami
+klienta sieci, serwer wersjonuje listę kontaktów i pozwala ją nadpisać tylko
+w przypadku, gdy zadeklarujemy znajomość jej ostatniej wersji.
 
-Aby wysłać wyeksportować kontaktów, wywołujemy:
+Aby wysłać listę kontaktów, wywołujemy:
 
 \code
-gg_userlist_request(sesja, GG_USERLIST_PUT, lista_kontatów);
+gg_userlist100_request(sesja, GG_USERLIST100_PUT, wersja_listy_kontaktów, typ_formatu_listy_kontaktów, lista_kontatów);
 \endcode
 
-W odpowiedzi dostaniemy od serwera zdarzenie \c GG_EVENT_USERLIST z polem
-\c type równym \c GG_USERLIST_PUT_REPLY.
+W odpowiedzi dostaniemy od serwera zdarzenie \c GG_EVENT_USERLIST100_REPLY z polem
+\c type równym \c GG_USERLIST100_REPLY_ACK w przypadku akceptacji wysłanej listy
+kontaktów lub \c GG_USERLIST100_REPLY_REJECT w przypadku jej odrzucenia. Pole
+\c version zawiera numer aktualnie przechowywanej przez serwer listy kontaktów
+(w przypadku przyjęcia nowej, jest to numer tej nowej wersji).
 
 Jeśli chcemy pobrać listę kontaktów z serwera, wywołujemy:
 
 \code
-gg_userlist_request(sesja, GG_USERLIST_GET, NULL);
+gg_userlist100_request(sesja, GG_USERLIST100_GET, 0, typ_formatu_listy_kontaktów, NULL);
 \endcode
 
-Oczekujemy zdarzenia \c GG_EVENT_USERLIST z \c type równym
-\c GG_USERLIST_GET_REPLY. Zawartość listy kontaktów znajdziemy w polu \c reply.
+Oczekujemy zdarzenia \c GG_EVENT_USERLIST100_REPLY z \c type równym
+\c GG_USERLIST100_REPLY_LIST. Zawartość listy kontaktów znajdziemy w polu \c reply,
+a jej wersję w polu \c version.
+
+Ponadto możemy dostać od serwera informację o nowej wersji listy kontaktów. Wówczas
+dostaniemy zdarzenie \c GG_EVENT_USERLIST100_VERSION z polem \c version równym numerowi
+nowej wersji listy konktaktów.
 
 */
