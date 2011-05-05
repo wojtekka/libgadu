@@ -309,6 +309,16 @@ struct gg_userlist100_request {
 	/* char request[]; */
 } GG_PACKED;
 
+#define GG_USERLIST100_REPLY 0x41
+
+struct gg_userlist100_reply {
+	uint8_t type;			/* rodzaj odpowiedzi */
+	uint32_t version;		/* numer wersji listy kontaktów aktualnie przechowywanej przez serwer */
+	uint8_t format_type;		/* rodzaj przesyłanego typu formatu listy kontaktów */
+	uint8_t unknown1;		/* 0x01 */
+	/* char reply[]; */
+} GG_PACKED;
+
 #ifdef _WIN32
 #pragma pack(pop)
 #endif

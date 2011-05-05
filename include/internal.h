@@ -38,6 +38,7 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
 void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
 unsigned char *gg_deflate(const char *in, size_t *out_lenp);
+char *gg_inflate(const unsigned char *in, size_t length);
 
 #ifdef HAVE_UINT64_T
 uint64_t gg_fix64(uint64_t x);

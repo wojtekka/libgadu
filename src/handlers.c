@@ -1712,6 +1712,36 @@ static int gg_session_handle_userlist_100_version(struct gg_session *gs, uint32_
 }
 
 /**
+ * \internal Obsługuje pakiet GG_USERLIST100_REPLY.
+ *
+ * Patrz gg_packet_handler_t
+ */
+static int gg_session_handle_userlist_100_reply(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	struct gg_userlist100_reply *reply = (struct gg_userlist100_reply*) ptr;
+	char *data = NULL;
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist 100 reply\n");
+
+	if (len > sizeof(*reply)) {
+		data = gg_inflate((const unsigned char*) ptr + sizeof(*reply), len - sizeof(*reply));
+		
+		if (data == NULL) {
+			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_handle_userlist_100_reply() gg_inflate() failed\n");
+			return -1;
+		}
+	}
+
+	ge->type = GG_EVENT_USERLIST100_REPLY;
+	ge->event.userlist100_reply.type = reply->type;
+	ge->event.userlist100_reply.version = gg_fix32(reply->version);
+	ge->event.userlist100_reply.format_type = reply->format_type;
+	ge->event.userlist100_reply.reply = data;
+
+	return 0;
+}
+
+/**
  * \internal Tablica obsługiwanych pakietów
  */
 static const gg_packet_handler_t handlers[] =
@@ -1752,6 +1782,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_XML_ACTION, GG_STATE_CONNECTED, 0, gg_session_handle_xml_event },
 	{ GG_RECV_OWN_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
 	{ GG_USERLIST100_VERSION, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_version), gg_session_handle_userlist_100_version },
+	{ GG_USERLIST100_REPLY, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_reply), gg_session_handle_userlist_100_reply },
 };
 
 /**

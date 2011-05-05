@@ -329,6 +329,7 @@ const char *gg_debug_event(enum gg_event_t event)
 	GG_DEBUG_EVENT(GG_EVENT_MULTILOGON_MSG)
 	GG_DEBUG_EVENT(GG_EVENT_MULTILOGON_INFO)
 	GG_DEBUG_EVENT(GG_EVENT_USERLIST100_VERSION)
+	GG_DEBUG_EVENT(GG_EVENT_USERLIST100_REPLY)
 #undef GG_DEBUG_EVENT
 
 	// Celowo nie ma default, żeby kompilator wyłapał brakujące stany

@@ -671,6 +671,93 @@ fail:
 }
 
 /**
+ * \internal Dekompresuje dane wejściowe w formacie Deflate.
+ *
+ * Wynik funkcji należy zwolnić za pomocą \c free.
+ *
+ * \param in Bufor danych skompresowanych algorytmem Deflate
+ * \param length Długość bufora wejściowego
+ *
+ * \note Dokleja \c \\0 na końcu bufora wynikowego.
+ *
+ * \return Zdekompresowany ciąg znaków, zakończony \c \\0,
+ *         lub \c NULL w przypadku niepowodzenia.
+ */
+char *gg_inflate(const unsigned char *in, size_t length)
+{
+	int ret;
+	z_stream strm;
+	char *out = NULL, *out2;
+	size_t out_len = 1024;
+	int first = 1;
+
+	if (in == NULL)
+		return NULL;
+
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.avail_in = length;
+	strm.next_in = (unsigned char*) in;
+
+	ret = inflateInit(&strm);
+	if (ret != Z_OK) {
+		gg_debug(GG_DEBUG_MISC, "// gg_inflate() inflateInit() failed (%d)\n", ret);
+		return NULL;
+	}
+
+	do {
+		out_len *= 2;
+		out2 = realloc(out, out_len);
+		
+		if (out2 == NULL) {
+			gg_debug(GG_DEBUG_MISC, "// gg_inflate() not enough memory for output data (%d)\n", out_len);
+			goto fail;
+		}
+		
+		out = out2;
+		
+		if (first) {
+			strm.avail_out = out_len;
+			strm.next_out = (unsigned char*) out;
+		} else {
+			strm.avail_out = out_len / 2;
+			strm.next_out = (unsigned char*) out + out_len / 2;
+		}
+		
+		ret = inflate(&strm, Z_NO_FLUSH);
+		
+		if (ret != Z_OK && ret != Z_STREAM_END) {
+			gg_debug(GG_DEBUG_MISC, "// gg_inflate() inflate() failed (ret=%d, msg=%s)\n", ret, strm.msg != NULL ? strm.msg : "no error message provided");
+			goto fail;
+		}
+		
+		first = 0;
+	} while (ret != Z_STREAM_END);
+
+	/* rezerwujemy ostatni znak na NULL-a */
+	out_len = strm.total_out + 1;
+	out2 = realloc(out, out_len);
+
+	if (out2 == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_inflate() not enough memory for output data (%d)\n", out_len);
+		goto fail;
+	}
+
+	out = out2;
+	out[out_len - 1] = '\0';
+
+	inflateEnd(&strm);
+
+	return out;
+
+fail:
+	inflateEnd(&strm);
+	free(out);
+	return NULL;
+}
+
+/**
  * \internal Tablica pomocnicza do wyznaczania sumy kontrolnej.
  */
 static const uint32_t gg_crc32_table[256] =

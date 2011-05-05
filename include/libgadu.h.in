@@ -709,6 +709,7 @@ enum gg_event_t {
 	GG_EVENT_MULTILOGON_INFO,	/**< Informacja o innych sesjach multilogowania */
 
 	GG_EVENT_USERLIST100_VERSION,	/**< Otrzymano numer wersji listy kontaktów na serwerze (10.0) */
+	GG_EVENT_USERLIST100_REPLY,	/**< Wynik importu lub eksportu listy kontaktów (10.0) */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -1006,6 +1007,16 @@ struct gg_event_userlist100_version {
 };
 
 /**
+ * Opis zdarzenia \c GG_EVENT_USERLIST100_REPLY.
+ */
+struct gg_event_userlist100_reply {
+	char type;			/**< Rodzaj odpowiedzi */
+	uint32_t version;		/**< Aktualna wersja listy kontaktów na serwerze */
+	char format_type;		/**< Typ formatu listy kontaktów (żądany w \c gg_userlist100_request.format_type) */
+	char *reply;			/**< Treść listy kontaktów w przesyłanej wersji i formacie */
+};
+
+/**
  * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
  * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
  *
@@ -1040,6 +1051,7 @@ union gg_event_union {
 	struct gg_event_msg multilogon_msg;	/**< Inna sesja wysłała wiadomość (\c GG_EVENT_MULTILOGON_MSG) */
 	struct gg_event_multilogon_info multilogon_info;	/**< Informacja o innych sesjach multilogowania (\c GG_EVENT_MULTILOGON_INFO) */
 	struct gg_event_userlist100_version userlist100_version;	/**< Informacja o numerze wersji listy kontaktów na serwerze (\c GG_EVENT_USERLIST100_VERSION) */
+	struct gg_event_userlist100_reply userlist100_reply;	/**< Odpowiedź listy kontaktów (10.0) (\c GG_EVENT_USERLIST100_REPLY) */
 };
 
 /**
@@ -2134,6 +2146,27 @@ enum {
 };
 
 #endif	/* DOXYGEN */
+
+#ifndef DOXYGEN
+
+#define GG_USERLIST100_REPLY_LIST 0x00
+#define GG_USERLIST100_REPLY_ACK 0x10
+#define GG_USERLIST100_REPLY_REJECT 0x12
+
+#else
+
+/**
+ * \ingroup importexport
+ *
+ * Typ odpowiedzi listy kontaktów (10.0).
+ */
+enum {
+	GG_USERLIST100_REPLY_LIST,	/**< W odpowiedzi znajduje się aktualna lista kontaktów na serwerze. */
+	GG_USERLIST100_REPLY_ACK,	/**< Potwierdzenie odebrania nowej wersji listy kontaktów. W polu \c gg_userlist100_reply.version znajduje się numer nowej wersji listy kontaktów. */
+	GG_USERLIST100_REPLY_REJECT,	/**< Odmowa przyjęcia nowej wersji listy kontaktów. W polu \c gg_userlist100_reply.version znajduje się numer wersji listy kontaktów aktualnie przechowywanej przez serwer. */
+};
+
+#endif /* DOXYGEN */
 
 struct gg_dcc_tiny_packet {
 	uint8_t type;		/* rodzaj pakietu */

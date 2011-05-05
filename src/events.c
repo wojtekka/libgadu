@@ -165,6 +165,10 @@ void gg_event_free(struct gg_event *e)
 
 			break;
 		}
+
+		case GG_EVENT_USERLIST100_REPLY:
+			free(e->event.userlist100_reply.reply);
+			break;
 	}
 
 	free(e);
