@@ -296,7 +296,7 @@ struct gg_dcc7_welcome_p2p {
 #define GG_USERLIST100_VERSION 0x5c
 
 struct gg_userlist100_version {
-	uint32_t version;
+	uint32_t version;		/* numer wersji listy kontaktów */
 } GG_PACKED;
 
 #ifdef _WIN32

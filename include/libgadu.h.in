@@ -707,7 +707,7 @@ enum gg_event_t {
 	GG_EVENT_MULTILOGON_MSG,	/**< Wiadomość wysłana z innej sesji multilogowania */
 	GG_EVENT_MULTILOGON_INFO,	/**< Informacja o innych sesjach multilogowania */
 
-	GG_EVENT_USERLIST100_VERSION,	/**< Otrzymano numer wersji listy kontaktów na serwerze */
+	GG_EVENT_USERLIST100_VERSION,	/**< Otrzymano numer wersji listy kontaktów na serwerze (10.0) */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -1001,7 +1001,7 @@ struct gg_event_multilogon_info {
  * Opis zdarzenia \c GG_EVENT_USERLIST100_VERSION.
  */
 struct gg_event_userlist100_version {
-	uint32_t version;		/**< numer wersji listy kontaktów na serwerze */
+	uint32_t version;		/**< Numer wersji listy kontaktów na serwerze */
 };
 
 /**
