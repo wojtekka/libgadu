@@ -11,7 +11,7 @@
 #include <signal.h>
 #include <errno.h>
 
-void sigchld(int sig)
+static void sigchld(int sig)
 {
 	wait(NULL);
 	signal(SIGCHLD, sigchld);
