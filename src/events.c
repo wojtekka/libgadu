@@ -453,7 +453,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				gg_read_line(sess->fd, buf, sizeof(buf) - 1);
 
 			/* czytamy pierwszą linię danych. */
-			gg_read_line(sess->fd, buf, sizeof(buf) - 1);
+			if (gg_read_line(sess->fd, buf, sizeof(buf) - 1) == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error\n");
+				goto fail_connecting;
+			}
 			gg_chomp(buf);
 
 			/* jeśli pierwsza liczba w linii nie jest równa zeru,
@@ -485,6 +488,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			}
 
 			close(sess->fd);
+			sess->fd = -1;
 
 			gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// gg_watch_fd() received http data (%s)\n", buf);
 
@@ -509,9 +513,13 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				port = atoi(tmp + 1);
 			}
 
+			if (strcmp(host, "") == 0) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid response\n");
+				goto fail_unavailable;
+			}
+
 			if (!strcmp(host, "notoperating")) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
-				sess->fd = -1;
 				goto fail_unavailable;
 			}
 
