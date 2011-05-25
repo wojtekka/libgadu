@@ -11,12 +11,17 @@ nie zmieniają dotychczasowego zachowania.
 
 \section changelog-1_10_1 libgadu 1.10.1
 
-- Dodanie zdarzenia \c GG_EVENT_USERLIST100_VERSION.
+- Import i eksport listy kontaktów zgodnej z Gadu-Gadu 10. \ref importexport "Szczegóły".
 
 - Uniezależnienie połączeń bezpośrednich Gadu-Gadu 7.x od zmiennych połączeń
 bezpośrednich Gadu-Gadu 6.x.
 
 - Pole \c tls struktury \c gg_login_params przyjmuje wartości z \c gg_ssl_t.
+
+- Nowa funkcja \c gg_libgadu_check_feature() pozwala sprawdzić, czy funkcje
+zależne od zewnętrznych bibliotek są dostępne.
+
+- Nowe powody nieudanego połączenia: \c GG_FAILURE_HUB i \c GG_FAILURE_PROXY.
 
 \section changelog-1_10_0 libgadu 1.10.0
 

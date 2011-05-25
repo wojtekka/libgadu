@@ -12,8 +12,6 @@ została jeszcze zaimplementowana:
  - przesyłanie plików przez serwer w Gadu-Gadu 7.x,
  - bezpośrednie połączenia głosowe w Gadu-Gadu 7.x,
  - statusy zawierające czas powrotu,
- - możliwość wyboru rozwiązywania nazw przez procesy lub wątki w czasie pracy,
-   nie tylko przy kompilacji,
  - konfiguracja adresów IP i serwerów pośredniczących dla każdego połączenia
    osobno.
 

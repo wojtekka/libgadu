@@ -731,7 +731,9 @@ enum gg_failure_t {
 	GG_FAILURE_TLS,			/**< Błąd negocjacji szyfrowanego połączenia */
 	GG_FAILURE_NEED_EMAIL, 		/**< Serwer rozłączył nas z prośbą o zmianę adresu e-mail */
 	GG_FAILURE_INTRUDER,		/**< Zbyt wiele prób połączenia z nieprawidłowym hasłem */
-	GG_FAILURE_UNAVAILABLE		/**< Serwery są wyłączone */
+	GG_FAILURE_UNAVAILABLE,		/**< Serwery są wyłączone */
+	GG_FAILURE_PROXY,		/**< Błąd serwera pośredniczącego */
+	GG_FAILURE_HUB,			/**< Błąd połączenia z hubem */
 };
 
 /**

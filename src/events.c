@@ -259,9 +259,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
 
 			if (sess->state == GG_STATE_READING_REPLY)
-				goto fail_connecting;
-			else
-				goto done;
+				e->event.failure = GG_FAILURE_CONNECTING;
+
+			goto fail;
 		}
 
 		if (res == sess->send_left) {
@@ -300,7 +300,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (failed) {
 				errno = errno2;
-				goto fail_resolving;
+				goto fail_proxy_hub;
 			}
 
 			/* jeśli jesteśmy w resolverze i mamy ustawiony port
@@ -327,7 +327,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				/* jeśli w trybie asynchronicznym gg_connect()
 				 * zwróci błąd, nie ma sensu próbować dalej. */
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), critical\n", errno, strerror(errno));
-				goto fail_connecting;
+				goto fail_proxy_hub;
 			}
 
 			/* jeśli podano serwer i łączmy się przez proxy,
@@ -358,12 +358,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* jeśli asynchroniczne, sprawdzamy, czy nie wystąpił
 			 * przypadkiem jakiś błąd. */
 			if (sess->async && (getsockopt(sess->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
-				if (sess->proxy_addr && sess->proxy_port)
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
-				else
-					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to hub failed (errno=%d, %s)\n", res, strerror(res));
-
-				goto fail_connecting;
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to %s failed (errno=%d, %s)\n", (sess->proxy_addr && sess->proxy_port) ? "proxy" : "hub", res, strerror(res));
+				goto fail_proxy_hub;
 			}
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected to hub, sending query\n");
@@ -375,7 +371,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (client == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for client version\n");
-				goto fail_connecting;
+				goto fail;
 			}
 
 			if (!gg_proxy_http_only && sess->proxy_addr && sess->proxy_port)
@@ -413,13 +409,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			 * stało się coś złego. */
 			if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending query failed\n");
-
-				e->type = GG_EVENT_CONN_FAILED;
-				e->event.failure = GG_FAILURE_WRITING;
-				sess->state = GG_STATE_IDLE;
-				close(sess->fd);
-				sess->fd = -1;
-				break;
+				goto fail_proxy_hub;
 			}
 
 			sess->state = GG_STATE_READING_DATA;
@@ -445,7 +435,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* sprawdzamy, czy wszystko w porządku. */
 			if (strncmp(buf, "HTTP/1.", 7) || strncmp(buf + 9, "200", 3)) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid http reply, connection failed\n");
-				goto fail_connecting;
+				goto fail_proxy_hub;
 			}
 
 			/* ignorujemy resztę nagłówka. */
@@ -455,7 +445,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* czytamy pierwszą linię danych. */
 			if (gg_read_line(sess->fd, buf, sizeof(buf) - 1) == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error\n");
-				goto fail_connecting;
+				goto fail_proxy_hub;
 			}
 			gg_chomp(buf);
 
@@ -515,12 +505,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (strcmp(host, "") == 0) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() invalid response\n");
-				goto fail_unavailable;
+				e->event.failure = GG_FAILURE_HUB;
+				goto fail;
 			}
 
 			if (!strcmp(host, "notoperating")) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
-				goto fail_unavailable;
+				e->event.failure = GG_FAILURE_UNAVAILABLE;
+				goto fail;
 			}
 
 			addr.s_addr = inet_addr(host);
@@ -531,7 +523,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				if ((sess->fd = gg_connect(&sess->proxy_addr, sess->proxy_port, sess->async)) == -1) {
 					/* nie wyszło? trudno. */
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_PROXY;
+					goto fail;
 				}
 
 				sess->state = GG_STATE_CONNECTING_GG;
@@ -547,7 +540,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (sess->server_addr == INADDR_NONE) {
 				if (sess->resolver_start(&sess->fd, &sess->resolver, host) == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_login() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_resolving;
+					goto fail;
 				}
 
 				sess->state = GG_STATE_RESOLVING_GG;
@@ -567,7 +560,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					/* ostatnia deska ratunku zawiodła?
 					 * w takim razie zwijamy manatki. */
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
 				}
 			}
 
@@ -599,7 +593,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 			if (failed) {
 				errno = errno2;
-				goto fail_resolving;
+				e->event.failure = GG_FAILURE_RESOLVING;
+				goto fail;
 			}
 
 			sess->server_addr = addr.s_addr;
@@ -615,7 +610,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					/* ostatnia deska ratunku zawiodła?
 					 * w takim razie zwijamy manatki. */
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
 				}
 			}
 
@@ -642,7 +638,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				 * nie mamy czego próbować więcej. */
 				if (sess->proxy_addr && sess->proxy_port) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection to proxy failed (errno=%d, %s)\n", res, strerror(res));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_PROXY;
+					goto fail;
 				}
 
 				close(sess->fd);
@@ -662,21 +659,25 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				if (sess->ssl) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
 				}
 #endif
 
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s), trying https\n", res, strerror(res));
 
-				if (sess->port == GG_HTTPS_PORT)
-					goto fail_connecting;
+				if (sess->port == GG_HTTPS_PORT) {
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
+				}
 
 				sess->port = GG_HTTPS_PORT;
 
 				/* próbujemy na port 443. */
 				if ((sess->fd = gg_connect(&sess->server_addr, sess->port, sess->async)) == -1) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", errno, strerror(errno));
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_CONNECTING;
+					goto fail;
 				}
 
 				sess->state = GG_STATE_CONNECTING_GG;
@@ -712,7 +713,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				if (write(sess->fd, buf, strlen(buf)) < (signed)strlen(buf)) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
 					free(auth);
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_PROXY;
+					goto fail;
 				}
 
 				if (auth) {
@@ -720,7 +722,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 					if (write(sess->fd, auth, strlen(auth)) < (signed)strlen(auth)) {
 						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
 						free(auth);
-						goto fail_connecting;
+						e->event.failure = GG_FAILURE_PROXY;
+						goto fail;
 					}
 
 					free(auth);
@@ -728,7 +731,8 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 				if (write(sess->fd, "\r\n", 2) < 2) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't send proxy request\n");
-					goto fail_connecting;
+					e->event.failure = GG_FAILURE_PROXY;
+					goto fail;
 				}
 			}
 
@@ -957,23 +961,17 @@ gnutls_handshake_repeat:
 
 			if (gh == NULL) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd_connected() gg_recv_packet failed (errno=%d, %s)\n", errno, strerror(errno));
- 				if (errno == EAGAIN) {
-					e->type = GG_EVENT_NONE;
-					res = 0;
-				} else {
-					res = -1;
+
+ 				if (errno != EAGAIN)
+					goto fail;
+			} else {
+				if (gg_session_handle_packet(sess, gh->type, (const char *) gh + sizeof(struct gg_header), gh->length, e) == -1) {
+					free(gh);
+					goto fail;
 				}
 
-				goto done;
-			}
-
-			if (gg_session_handle_packet(sess, gh->type, (const char *) gh + sizeof(struct gg_header), gh->length, e) == -1) {
 				free(gh);
-				res = -1;
-				goto done;
 			}
-
-			free(gh);
 
 			sess->check = GG_CHECK_READ;
 
@@ -981,40 +979,38 @@ gnutls_handshake_repeat:
 		}
 	}
 
-done:
-	if (res == -1) {
-		free(e);
-		e = NULL;
-	} else {
-		if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED))
-			sess->check |= GG_CHECK_WRITE;
-	}
+	if (sess->send_buf && (sess->state == GG_STATE_READING_REPLY || sess->state == GG_STATE_CONNECTED))
+		sess->check |= GG_CHECK_WRITE;
 
 	return e;
 
-fail_connecting:
+fail_proxy_hub:
+	if (sess->proxy_port)
+		e->event.failure = GG_FAILURE_PROXY;
+	else
+		e->event.failure = GG_FAILURE_HUB;
+
+fail:
+	sess->resolver_cleanup(&sess->resolver, 1);
+
+	sess->state = GG_STATE_IDLE;
+
 	if (sess->fd != -1) {
+		int errno2;
+
 		errno2 = errno;
 		close(sess->fd);
 		errno = errno2;
 		sess->fd = -1;
 	}
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_CONNECTING;
-	sess->state = GG_STATE_IDLE;
-	goto done;
 
-fail_resolving:
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_RESOLVING;
-	sess->state = GG_STATE_IDLE;
-	goto done;
-
-fail_unavailable:
-	e->type = GG_EVENT_CONN_FAILED;
-	e->event.failure = GG_FAILURE_UNAVAILABLE;
-	sess->state = GG_STATE_IDLE;
-	goto done;
+	if (e->event.failure != 0) {
+		e->type = GG_EVENT_CONN_FAILED;
+		return e;
+	} else {
+		free(e);
+		return NULL;
+	}
 }
 
 /*
