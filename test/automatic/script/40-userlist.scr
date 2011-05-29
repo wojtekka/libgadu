@@ -95,3 +95,50 @@ expect event GG_EVENT_USERLIST {
 	return TRUE;
 }
 
+#-----------------------------------------------------------------------------
+# New version of contact list on server
+#-----------------------------------------------------------------------------
+
+send (5c 00 00 00, auto, 44 33 22 11)
+
+expect event GG_EVENT_USERLIST100_VERSION (
+	userlist100_version.version == 0x11223344
+)
+
+#-----------------------------------------------------------------------------
+# Storing contact list on server
+#-----------------------------------------------------------------------------
+
+call {
+	gg_userlist100_request(session, GG_USERLIST100_PUT, 0x22334455, GG_USERLIST100_FORMAT_TYPE_GG100, "<Test/>");
+}
+
+expect data (40 00 00 00, auto, 00, 55 44 33 22, 02, 01, 78 da b3 09 49 2d 2e d1 b7 03 00 09 60 02 4a)
+
+send (41 00 00 00, auto, 10, 55 44 33 22, 02, 01)
+
+expect event GG_EVENT_USERLIST100_REPLY (
+	userlist100_reply.type == GG_USERLIST100_REPLY_ACK
+	userlist100_reply.version == 0x22334455
+	userlist100_reply.format_type == GG_USERLIST100_FORMAT_TYPE_GG100
+)
+
+#-----------------------------------------------------------------------------
+# Retrieving contact list from server
+#-----------------------------------------------------------------------------
+
+call {
+	gg_userlist100_request(session, GG_USERLIST100_GET, 0, GG_USERLIST100_FORMAT_TYPE_GG100, NULL);
+}
+
+expect data (40 00 00 00, auto, 02, 00 00 00 00, 02, 01)
+
+send (41 00 00 00, auto, 00, 55 44 33 22, 02, 01, 78 da b3 09 49 2d 2e d1 b7 03 00 09 60 02 4a)
+
+expect event GG_EVENT_USERLIST100_REPLY (
+	userlist100_reply.type == GG_USERLIST100_REPLY_LIST
+	userlist100_reply.version == 0x22334455
+	userlist100_reply.format_type == GG_USERLIST100_FORMAT_TYPE_GG100
+	userlist100_reply.reply == "<Test/>"
+)
+
