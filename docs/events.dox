@@ -317,6 +317,18 @@ i co minutę wywoływać funkcję \c gg_ping().
 <td>\copydoc gg_event_t::GG_EVENT_USERLIST</td>
 </tr>
 <tr>
+<td>\c GG_EVENT_USERLIST100_VERSION</td>
+<td>\c event.userlist100_version</td>
+<td>\c gg_event_userlist100_version</td>
+<td>\copydoc gg_event_t::GG_EVENT_USERLIST100_VERSION</td>
+</tr>
+<tr>
+<td>\c GG_EVENT_USERLIST100_REPLY</td>
+<td>\c event.userlist100_reply</td>
+<td>\c gg_event_userlist100_reply</td>
+<td>\copydoc gg_event_t::GG_EVENT_USERLIST100_REPLY</td>
+</tr>
+<tr>
 <th colspan="4">Katalog publiczny</th>
 </tr>
 <tr>
