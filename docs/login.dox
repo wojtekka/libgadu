@@ -63,8 +63,12 @@ Począwszy od Gadu-Gadu 10 możliwe są połączenia szyfrowane. Aby je włączy
 należy ustawić pole \c tls struktury \c gg_login_params:
 
 \code
-parametry.tls = 1;
+parametry.tls = GG_SSL_ENABLED;
 \endcode
+
+W przypadku braku wkompilowanej obsługi SSL parametr ten zostanie zignorowany.
+By upewnić się, że połączenie nigdy nie będzie przeprowadzone bez szyfrowania,
+należy przypisać wartość \c GG_SSL_REQUIRED (patrz \c gg_ssl_t).
 
 \section login-details Procedura łączenia z serwerem
 

@@ -4,14 +4,15 @@
 
 \details
 
-Niniejsza strona zawiera listę zmian mających wpływ na API lub ABI biblioteki.
-Poprawki dostarczające nową funkcjonalność w większości przypadków nie mają
-wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur
-nie zmieniają dotychczasowego zachowania.
+Niniejsza strona zawiera listę zmian, zwłaszcza tych mających wpływ na API
+lub ABI biblioteki. Poprawki dostarczające nową funkcjonalność w większości
+przypadków nie mają wpływ na interfejs binarny biblioteki. Nowe funkcje,
+stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
-\section changelog-1_10_1 libgadu 1.10.1
+\section changelog-1_11_0 libgadu 1.11.0
 
-- Import i eksport listy kontaktów zgodnej z Gadu-Gadu 10. \ref importexport "Szczegóły".
+- Import i eksport listy kontaktów zgodnej z Gadu-Gadu 10. Dodaje zależność
+od zlib. \ref importexport "Szczegóły".
 
 - Uniezależnienie połączeń bezpośrednich Gadu-Gadu 7.x od zmiennych połączeń
 bezpośrednich Gadu-Gadu 6.x.
@@ -22,6 +23,12 @@ bezpośrednich Gadu-Gadu 6.x.
 zależne od zewnętrznych bibliotek są dostępne.
 
 - Nowe powody nieudanego połączenia: \c GG_FAILURE_HUB i \c GG_FAILURE_PROXY.
+
+- Zmiana deskryptora w połączeniach bezpośrednich Gadu-Gadu 7.x, która wcześniej nie generowała żadnego zdarzenia, teraz będzie zwracać \c GG_EVENT_DCC7_PENDING.
+
+\section changelog-1_10_1 libgadu 1.10.1
+
+- Brak zmian API/ABI.
 
 \section changelog-1_10_0 libgadu 1.10.0
 
