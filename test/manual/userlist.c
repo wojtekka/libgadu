@@ -119,8 +119,11 @@ int main(int argc, char **argv)
 
 		while (fgets(buf, sizeof(buf), stdin)) {
 			char *tmp;
+			size_t len;
 
-			tmp = realloc(content, (content == NULL ? 0 : strlen(content)) + strlen(buf) + 1);
+			len = (content == NULL) ? 0 : strlen(content);
+
+			tmp = realloc(content, len + strlen(buf) + 1);
 
 			if (tmp == NULL) {
 				perror("realloc");
@@ -130,7 +133,7 @@ int main(int argc, char **argv)
 			}
 
 			content = tmp;
-			strcat(content, buf);
+			strcpy(content + len, buf);
 		}
 	}
 
@@ -172,6 +175,8 @@ int main(int argc, char **argv)
 					break;
 			}
 
+			gg_event_free(ge);
+
 			break;
 		}
 
@@ -181,6 +186,7 @@ int main(int argc, char **argv)
 	gg_logoff(gs);
 	free(content);
 	gg_free_session(gs);
+	config_free();
 
 	return res;
 }
