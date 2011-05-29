@@ -1,4 +1,4 @@
-libgadu 1.11.0-pre
+libgadu 1.11.0
 (C) Copyright 2001-2011 Autorzy (pełna lista w pliku AUTHORS)
 
 libgadu jest biblioteką przeznaczoną do obsługi protokołu komunikatora
@@ -22,7 +22,11 @@ Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
 libgadu-devel poświęconą rozwojowi biblioteki, programowaniu przy jej
 użyciu oraz protokołowi Gadu-Gadu. Istnieje również lista
 libgadu-commit, na którą są wysyłane informacje o zmianach w kodzie
-źródłowym.
+źródłowym. Informacje o listach dyskusyjnych można uzyskać na stronach:
+
+ - http://lists.ziew.org/mailman/listinfo/libgadu-devel
+
+ - http://lists.ziew.org/mailman/listinfo/libgadu-commit
 
 Ostrzeżenie: Należy pamiętać, że używanie alternatywnych klientów jest
 niezgodne z regulaminem korzystania z serwisu Gadu-Gadu.
@@ -37,6 +41,9 @@ z programami na licencji GPL.
 
 Do poprawnej obsługi połączeń bezpośrednich starszych wersji protokołu
 niezbędny jest kompilator obsługujący 64-bitowy typ long long.
+
+Do przechowywania listy kontaktów na serwerze niezbędna jest biblioteka
+zlib.
 
 Do wygenerowania dokumentacji używany jest Doxygen. Jeśli nie jest 
 dostępny, dokumentacja nie jest generowana.
