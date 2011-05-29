@@ -4,7 +4,8 @@ EXTRA_PROGRAMS = convert message2 message1 connect packet resolver protocol
 
 CFLAGS = -Wall -ggdb -DGG_IGNORE_DEPRECATED
 
-protocol_SOURCES = protocol.c script/script.c
+protocol_SOURCES = protocol.c
+nodist_protocol_SOURCES = script/script.c
 protocol_CFLAGS = -Iscript
 protocol_LDADD = $(top_builddir)/src/libgadu.la
 
