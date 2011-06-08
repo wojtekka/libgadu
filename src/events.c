@@ -350,7 +350,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		{
 			char buf[1024], *client, *auth;
 			int res = 0;
-			unsigned int res_size = sizeof(res);
+			socklen_t res_size = sizeof(res);
 			const char *host;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_HUB\n");
@@ -626,7 +626,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_CONNECTING_GG:
 		{
 			int res = 0;
-			unsigned int res_size = sizeof(res);
+			socklen_t res_size = sizeof(res);
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
 

@@ -235,7 +235,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 	if (h->state == GG_STATE_CONNECTING) {
 		int res = 0;
-		unsigned int res_size = sizeof(res);
+		socklen_t res_size = sizeof(res);
 
 		if (h->async && (getsockopt(h->fd, SOL_SOCKET, SO_ERROR, &res, &res_size) || res)) {
 			gg_debug(GG_DEBUG_MISC, "=> http, async connection failed (errno=%d, %s)\n", (res) ? res : errno , strerror((res) ? res : errno));
@@ -254,7 +254,7 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_SENDING_QUERY) {
-		int res;
+		size_t res; /* w tym pliku jest sporo takich */
 
 		if ((res = write(h->fd, h->query, strlen(h->query))) < 1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, write() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);

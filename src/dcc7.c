@@ -226,7 +226,7 @@ static int gg_dcc7_connect(struct gg_dcc7 *dcc)
 static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint32_t addr, uint16_t port)
 {
 	struct sockaddr_in sin;
-	unsigned int sin_len = sizeof(sin);
+	socklen_t sin_len = sizeof(sin);
 	int errsv;
 	int fd;
 
@@ -1050,7 +1050,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 		{
 			struct sockaddr_in sin;
 			int fd, one = 1;
-			unsigned int sin_len = sizeof(sin);
+			socklen_t sin_len = sizeof(sin);
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_LISTENING\n");
 
