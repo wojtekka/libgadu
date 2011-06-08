@@ -395,6 +395,9 @@ static int gg_dcc_callback(struct gg_dcc *d)
  * \param uin Własny numer
  * \param port Preferowany port (jeśli równy 0 lub -1, próbuje się domyślnego)
  *
+ * \note Ze względu na możliwość podania wartości -1 do parametru będącego
+ *       16-bitową liczbą bez znaku, port 65535 nie jest dostępny.
+ *
  * \return Struktura \c gg_dcc lub \c NULL w przypadku błędu
  *
  * \ingroup dcc6
@@ -418,7 +421,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 		return NULL;
 	}
 
-	if (port == 0 || port == -1)
+	if (port == 0 || port == (uint16_t)-1)
 		port = GG_DEFAULT_DCC_PORT;
 
 	while (!bound) {
