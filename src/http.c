@@ -105,7 +105,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 				method, path, header);
 	}
 
-	if (!h->query) {
+	if (h->query == NULL) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_connect() not enough memory for query\n");
 		free(h);
 		errno = ENOMEM;
@@ -139,7 +139,9 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 			return NULL;
 		}
 
-		if ((h->fd = gg_connect(&addr_list[0], port, 0)) == -1) {
+		h->fd = gg_connect(&addr_list[0], port, 0);
+
+		if (h->fd == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			gg_http_free(h);
 			free(addr_list);
@@ -198,7 +200,7 @@ int gg_http_watch_fd(struct gg_http *h)
 {
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_http_watch_fd(%p);\n", h);
 
-	if (!h) {
+	if (h == NULL) {
 		gg_debug(GG_DEBUG_MISC, "// gg_http_watch_fd() invalid arguments\n");
 		errno = EFAULT;
 		return -1;
@@ -254,14 +256,16 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_SENDING_QUERY) {
-		size_t res; /* w tym pliku jest sporo takich */
+		int res;
 
-		if ((res = write(h->fd, h->query, strlen(h->query))) < 1) {
+		res = write(h->fd, h->query, strlen(h->query));
+
+		if (res == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, write() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
 			gg_http_error(GG_ERROR_WRITING);
 		}
 
-		if (res < strlen(h->query)) {
+		if ((size_t) res < strlen(h->query)) {
 			gg_debug(GG_DEBUG_MISC, "=> http, partial header sent (led=%d, sent=%d)\n", strlen(h->query), res);
 
 			memmove(h->query, h->query + res, strlen(h->query) - res + 1);
@@ -285,7 +289,9 @@ int gg_http_watch_fd(struct gg_http *h)
 		char buf[1024], *tmp;
 		int res;
 
-		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
+		res = read(h->fd, buf, sizeof(buf));
+
+		if (res == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading header failed (errno=%d)\n", errno);
 			if (h->header) {
 				free(h->header);
@@ -294,7 +300,7 @@ int gg_http_watch_fd(struct gg_http *h)
 			gg_http_error(GG_ERROR_READING);
 		}
 
-		if (!res) {
+		if (res == 0) {
 			gg_debug(GG_DEBUG_MISC, "=> http, connection reset by peer\n");
 			if (h->header) {
 				free(h->header);
@@ -305,7 +311,9 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, read %d bytes of header\n", res);
 
-		if (!(tmp = realloc(h->header, h->header_size + res + 1))) {
+		tmp = realloc(h->header, h->header_size + res + 1);
+
+		if (tmp == NULL) {
 			gg_debug(GG_DEBUG_MISC, "=> http, not enough memory for header\n");
 			free(h->header);
 			h->header = NULL;
@@ -393,7 +401,9 @@ int gg_http_watch_fd(struct gg_http *h)
 		char buf[1024];
 		int res;
 
-		if ((res = read(h->fd, buf, sizeof(buf))) == -1) {
+		res = read(h->fd, buf, sizeof(buf));
+		
+		if (res == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading body failed (errno=%d)\n", errno);
 			if (h->body) {
 				free(h->body);
@@ -402,7 +412,7 @@ int gg_http_watch_fd(struct gg_http *h)
 			gg_http_error(GG_ERROR_READING);
 		}
 
-		if (!res) {
+		if (res == 0) {
 			if (h->body_done >= h->body_size) {
 				gg_debug(GG_DEBUG_MISC, "=> http, we're done, closing socket\n");
 				h->state = GG_STATE_PARSING;
@@ -491,23 +501,17 @@ void gg_http_stop(struct gg_http *h)
  */
 void gg_http_free_fields(struct gg_http *h)
 {
-	if (!h)
+	if (h == NULL)
 		return;
 
-	if (h->body) {
-		free(h->body);
-		h->body = NULL;
-	}
+	free(h->body);
+	h->body = NULL;
 
-	if (h->query) {
-		free(h->query);
-		h->query = NULL;
-	}
+	free(h->query);
+	h->query = NULL;
 
-	if (h->header) {
-		free(h->header);
-		h->header = NULL;
-	}
+	free(h->header);
+	h->header = NULL;
 }
 
 /**
@@ -521,7 +525,7 @@ void gg_http_free_fields(struct gg_http *h)
  */
 void gg_http_free(struct gg_http *h)
 {
-	if (!h)
+	if (h == NULL)
 		return;
 
 	gg_http_stop(h);

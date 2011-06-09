@@ -349,7 +349,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_CONNECTING_HUB:
 		{
 			char buf[1024], *client, *auth;
-			int res = 0;
 			socklen_t res_size = sizeof(res);
 			const char *host;
 
@@ -422,8 +421,9 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		case GG_STATE_READING_DATA:
 		{
 			char buf[1024], *tmp, *host;
-			int port = GG_DEFAULT_PORT;
 			struct in_addr addr;
+
+			port = GG_DEFAULT_PORT;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_READING_DATA\n");
 
@@ -452,23 +452,20 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			/* jeśli pierwsza liczba w linii nie jest równa zeru,
 			 * oznacza to, że mamy wiadomość systemową. */
 			if (atoi(buf)) {
-				char tmp[1024], *foo, *sysmsg_buf = NULL;
-				int len = 0;
+				char buf2[1024], *tmp2, *sysmsg_buf = NULL;
+				size_t len = 0;
 
-				while (gg_read_line(sess->fd, tmp, sizeof(tmp) - 1)) {
-					if (!(foo = realloc(sysmsg_buf, len + strlen(tmp) + 2))) {
+				while (gg_read_line(sess->fd, buf2, sizeof(buf2) - 1)) {
+					tmp2 = realloc(sysmsg_buf, len + strlen(buf2) + 1);
+
+					if (tmp2 == NULL) {
 						gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory for system message, ignoring\n");
 						break;
 					}
 
-					sysmsg_buf = foo;
-
-					if (!len)
-						strcpy(sysmsg_buf, tmp);
-					else
-						strcat(sysmsg_buf, tmp);
-
-					len += strlen(tmp);
+					sysmsg_buf = tmp2;
+					strcpy(sysmsg_buf + len, buf2);
+					len += strlen(buf2);
 				}
 
 				e->type = GG_EVENT_MSG;
@@ -625,7 +622,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		case GG_STATE_CONNECTING_GG:
 		{
-			int res = 0;
 			socklen_t res_size = sizeof(res);
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_CONNECTING_GG\n");
@@ -763,8 +759,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 #ifdef GG_CONFIG_HAVE_GNUTLS
 		case GG_STATE_TLS_NEGOTIATION:
 		{
-			int res;
-
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
 
 gnutls_handshake_repeat:
@@ -840,7 +834,6 @@ gnutls_handshake_repeat:
 #ifdef GG_CONFIG_HAVE_OPENSSL
 		case GG_STATE_TLS_NEGOTIATION:
 		{
-			int res;
 			X509 *peer;
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
