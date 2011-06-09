@@ -219,11 +219,11 @@ unsigned char finalcount[8];
 /** \cond internal */
 
 /**
- * \internal Liczy skrĂłt SHA1 z ziarna i hasĹa.
+ * \internal Liczy skrót SHA1 z ziarna i hasła.
  *
- * \param password HasĹo
+ * \param password Hasło
  * \param seed Ziarno
- * \param result Bufor na wynik funkcji skrĂłtu (20 bajtĂłw)
+ * \param result Bufor na wynik funkcji skrótu (20 bajtów)
  */
 void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 {
@@ -238,10 +238,10 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 }
 
 /**
- * \internal Liczy skrĂłt SHA1 z pliku.
+ * \internal Liczy skrót SHA1 z pliku.
  *
  * \param fd Deskryptor pliku
- * \param result WskaĹşnik na skrĂłt
+ * \param result Bufor na wynik funkcji skrótu (20 bajtów)
  *
  * \return 0 lub -1
  */
