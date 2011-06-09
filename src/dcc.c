@@ -602,7 +602,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct sockaddr_in sin;
 		struct gg_dcc *c;
 		int fd, one = 1;
-		unsigned int sin_len = sizeof(sin);
+		socklen_t sin_len = sizeof(sin);
 
 		if ((fd = accept(h->fd, (struct sockaddr*) &sin, &sin_len)) == -1) {
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() can't accept() new connection (errno=%d, %s)\n", errno, strerror(errno));
