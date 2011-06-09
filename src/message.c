@@ -164,7 +164,7 @@ uin_t gg_message_get_recipient(gg_message_t *gm)
 	GG_MESSAGE_CHECK(gm, (uin_t) -1);
 
 	if ((gm->recipients == NULL) || (gm->recipient_count < 1)) {
-		// errno = XXX;
+		/* errno = XXX; */
 		return (uin_t) -1;
 	}
 
@@ -312,7 +312,7 @@ int gg_message_set_attributes(gg_message_t *gm, const char *attributes, size_t l
 	GG_MESSAGE_CHECK(gm, -1);
 
 	if (length > 0xfffd) {
-		// errno = XXX;
+		/* errno = XXX; */
 		return -1;
 	}
 
@@ -455,7 +455,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 					color = &format_[format_idx];
 					format_idx += 3;
 				} else {
-					color = (unsigned char*) "\x00\x00\x00";
+					color = (const unsigned char*) "\x00\x00\x00";
 				}
 
 				if (src[i] != 0) {
@@ -629,8 +629,8 @@ size_t gg_message_html_to_text(char *dst, const char *html)
 				else if (strncmp(entity, "&amp;", 5) == 0)
 					dst[len++] = '&';
 				else if (strncmp(entity, "&nbsp;", 6) == 0) {
-					dst[len++] = 0xc2;
-					dst[len++] = 0xa0;
+					dst[len++] = '\xc2';
+					dst[len++] = '\xa0';
 				} else
 					dst[len++] = '?';
 			} else {

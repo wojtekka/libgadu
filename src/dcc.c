@@ -65,7 +65,7 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsig
 	gg_debug(GG_DEBUG_MISC, "++ gg_dcc %s (fd=%d,len=%d)", prefix, fd, size);
 
 	for (i = 0; i < size; i++)
-		gg_debug(GG_DEBUG_MISC, " %.2x", ((unsigned char*) buf)[i]);
+		gg_debug(GG_DEBUG_MISC, " %.2x", ((const unsigned char*) buf)[i]);
 
 	gg_debug(GG_DEBUG_MISC, "\n");
 }
@@ -90,7 +90,7 @@ static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsig
  */
 int gg_dcc_request(struct gg_session *sess, uin_t uin)
 {
-	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, (unsigned char*) "\002", 1);
+	return gg_send_message_ctcp(sess, GG_CLASS_CTCP, uin, (const unsigned char*) "\002", 1);
 }
 
 /**
@@ -524,15 +524,15 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
  */
 #define gg_dcc_read(fd, buf, size) \
 { \
-	int tmp = read(fd, buf, size); \
+	int _tmp = read(fd, buf, size); \
 	\
-	if (tmp < (int) size) { \
-		if (tmp == -1) { \
+	if (_tmp < (int) size) { \
+		if (_tmp == -1) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno)); \
-		} else if (tmp == 0) { \
+		} else if (_tmp == 0) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed, connection broken\n"); \
 		} else { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d bytes, %d needed)\n", tmp, size); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d bytes, %d needed)\n", _tmp, size); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
@@ -550,14 +550,14 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
  */
 #define gg_dcc_write(fd, buf, size) \
 { \
-	int tmp; \
+	int write_res; \
 	gg_dcc_debug_data("write", fd, buf, size); \
-	tmp = write(fd, buf, size); \
-	if (tmp < (int) size) { \
-		if (tmp == -1) { \
+	write_res = write(fd, buf, size); \
+	if (write_res < (int) size) { \
+		if (write_res == -1) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d needed, %d done)\n", size, tmp); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d needed, %d done)\n", size, write_res); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \

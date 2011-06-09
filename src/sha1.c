@@ -192,9 +192,9 @@ unsigned char finalcount[8];
         finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
          >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
     }
-    SHA1_Update(context, (unsigned char *)"\200", 1);
+    SHA1_Update(context, (const unsigned char *)"\200", 1);
     while ((context->count[0] & 504) != 448) {
-        SHA1_Update(context, (unsigned char *)"\0", 1);
+        SHA1_Update(context, (const unsigned char *)"\0", 1);
     }
     SHA1_Update(context, finalcount, 8);  /* Should cause a SHA1_Transform() */
     for (i = 0; i < 20; i++) {

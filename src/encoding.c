@@ -237,7 +237,7 @@ char *gg_encoding_convert(const char *src, gg_encoding_t src_encoding, gg_encodi
 		return NULL;
 	}
 
-	// specjalny przypadek obsługiwany ekspresowo
+	/* specjalny przypadek obsługiwany ekspresowo */
 	if ((dst_encoding == src_encoding) && (dst_length == -1) && (src_length == -1))
 		return strdup(src);
 

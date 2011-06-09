@@ -146,7 +146,7 @@ __attribute__ ((unused))
  *
  * \ingroup version
  */
-const char *gg_libgadu_version()
+const char *gg_libgadu_version(void)
 {
 	return GG_LIBGADU_VERSION;
 }
@@ -757,7 +757,7 @@ static int gg_session_callback(struct gg_session *sess)
 struct gg_session *gg_login(const struct gg_login_params *p)
 {
 	struct gg_session *sess = NULL;
-	char *hostname;
+	const char *hostname;
 	int port;
 
 	if (!p) {
@@ -859,7 +859,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			goto fail;
 		}
 		
-		// XXX pamiętać, żeby nie ciąć w środku znaku utf-8
+		/* XXX pamiętać, żeby nie ciąć w środku znaku utf-8 */
 		
 		if (strlen(sess->initial_descr) > max_length)
 			sess->initial_descr[max_length] = 0;
@@ -882,7 +882,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		gnutls_certificate_allocate_credentials(&tmp->xcred);
 		gnutls_init(&tmp->session, GNUTLS_CLIENT);
 		gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
-//		gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+/*		gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL); */
 		gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
 #elif defined(GG_CONFIG_HAVE_OPENSSL)
 		char buf[1024];
@@ -1191,13 +1191,13 @@ void gg_free_session(struct gg_session *sess)
  * \param sess Struktura sesji
  * \param status Nowy status użytkownika
  * \param descr Opis statusu użytkownika (lub \c NULL)
- * \param time Czas powrotu w postaci uniksowego znacznika czasu (lub 0)
+ * \param ts Czas powrotu w postaci uniksowego znacznika czasu (lub 0)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup status
  */
-static int gg_change_status_common(struct gg_session *sess, int status, const char *descr, int time)
+static int gg_change_status_common(struct gg_session *sess, int status, const char *descr, int ts)
 {
 	char *new_descr = NULL;
 	uint32_t new_time;
@@ -1244,7 +1244,7 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		packet_type = GG_NEW_STATUS;
 		descr_len_max = GG_STATUS_DESCR_MAXSIZE_PRE_8_0;
 
-		if (time != 0)
+		if (ts != 0)
 			append_null = 1;
 	}
 
@@ -1254,11 +1254,11 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 		if (descr_len > descr_len_max)
 			descr_len = descr_len_max;
 
-		// XXX pamiętać o tym, żeby nie ucinać w środku znaku utf-8
+		/* XXX pamiętać o tym, żeby nie ucinać w środku znaku utf-8 */
 	}
 
-	if (time)
-		new_time = gg_fix32(time);
+	if (ts)
+		new_time = gg_fix32(ts);
 
 	if (packet_type == GG_NEW_STATUS80) {
 		struct gg_new_status80 p;
@@ -1286,8 +1286,8 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 				descr_len,
 				(append_null) ? "\0" : NULL,
 				(append_null) ? 1 : 0,
-				(time) ? &new_time : NULL,
-				(time) ? sizeof(new_time) : 0,
+				(ts) ? &new_time : NULL,
+				(ts) ? sizeof(new_time) : 0,
 				NULL);
 	}
 
@@ -1344,17 +1344,17 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
  * \param sess Struktura sesji
  * \param status Nowy status użytkownika
  * \param descr Opis statusu użytkownika
- * \param time Czas powrotu w postaci uniksowego znacznika czasu
+ * \param ts Czas powrotu w postaci uniksowego znacznika czasu
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup status
  */
-int gg_change_status_descr_time(struct gg_session *sess, int status, const char *descr, int time)
+int gg_change_status_descr_time(struct gg_session *sess, int status, const char *descr, int ts)
 {
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, time);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, ts);
 
-	return gg_change_status_common(sess, status, descr, time);
+	return gg_change_status_common(sess, status, descr, ts);
 }
 
 /**
@@ -1525,9 +1525,10 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	} else {
 		int len;
 		
-		// Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
-		// wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
-		// wartość, żeby każda wiadomość miała unikalny numer.
+		/* Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
+		 * wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
+		 * wartość, żeby każda wiadomość miała unikalny numer.
+		 */
 
 		seq_no = time(NULL);
 
@@ -1537,11 +1538,11 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		sess->seq = seq_no;
 
 		if (format == NULL || formatlen < 3) {
-			format = (unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00";
+			format = (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00";
 			formatlen = 9;
 		}
 
-		len = gg_message_text_to_html(NULL, utf_msg, (char*) format + 3, formatlen - 3);
+		len = gg_message_text_to_html(NULL, utf_msg, (const char*) format + 3, formatlen - 3);
 
 		html_msg = malloc(len + 1);
 
@@ -1550,7 +1551,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-		gg_message_text_to_html(html_msg, utf_msg, (char*) format + 3, formatlen - 3);
+		gg_message_text_to_html(html_msg, utf_msg, (const char*) format + 3, formatlen - 3);
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);
@@ -1803,7 +1804,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 
 	r->flag = 0x05;
 	r->size = gg_fix32(size);
-	r->crc32 = gg_fix32(gg_crc32(0, (unsigned char*) image, size));
+	r->crc32 = gg_fix32(gg_crc32(0, (const unsigned char*) image, size));
 
 	while (size > 0) {
 		int buflen, chunklen;

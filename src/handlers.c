@@ -80,12 +80,13 @@ typedef struct {
  */
 static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_welcome *w;
+	const struct gg_welcome *w;
 	int ret;
 	uint8_t hash_buf[64];
 	uint32_t local_ip;
 	struct sockaddr_in sin;
 	socklen_t sin_len = sizeof(sin);
+	uint32_t seed;
 
 	if (len < sizeof(struct gg_welcome)) {
 		ge->type = GG_EVENT_CONN_FAILED;
@@ -96,8 +97,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		return 0;
 	}
 
-	w = (struct gg_welcome*) ptr;
-	w->key = gg_fix32(w->key);
+	w = (const struct gg_welcome*) ptr;
+	seed = gg_fix32(w->key);
 
 	memset(hash_buf, 0, sizeof(hash_buf));
 
@@ -106,8 +107,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		{
 			uint32_t hash;
 
-			hash = gg_fix32(gg_login_hash((unsigned char*) gs->password, w->key));
-			gg_debug_session(gs, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", w->key, hash);
+			hash = gg_fix32(gg_login_hash((unsigned char*) gs->password, seed));
+			gg_debug_session(gs, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> GG32 hash %.8x\n", seed, hash);
 			memcpy(hash_buf, &hash, sizeof(hash));
 
 			break;
@@ -120,13 +121,13 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 			int i;
 #endif
 
-			gg_login_hash_sha1(gs->password, w->key, hash_buf);
+			gg_login_hash_sha1(gs->password, seed, hash_buf);
 
 #ifndef GG_DEBUG_DISABLE
 			for (i = 0; i < 40; i += 2)
 				snprintf(tmp + i, sizeof(tmp) - i, "%02x", hash_buf[i / 2]);
 
-			gg_debug_session(gs, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> SHA1 hash: %s\n", w->key, tmp);
+			gg_debug_session(gs, GG_DEBUG_DUMP, "// gg_watch_fd() challenge %.4x --> SHA1 hash: %s\n", seed, tmp);
 #endif
 
 			break;
@@ -296,7 +297,7 @@ static int gg_session_handle_login_failed(struct gg_session *gs, uint32_t type, 
  */
 static int gg_session_handle_send_msg_ack(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_send_msg_ack *s = (struct gg_send_msg_ack*) ptr;
+	const struct gg_send_msg_ack *s = (const struct gg_send_msg_ack*) ptr;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a message ack\n");
 
@@ -510,7 +511,7 @@ static int gg_session_handle_dcc7_info(struct gg_session *gs, uint32_t type, con
  */
 static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender)
 {
-	struct gg_msg_image_reply *i = (void*) p;
+	const struct gg_msg_image_reply *i = (const void*) p;
 	struct gg_image_queue *q, *qq;
 
 	if (!p || !sess || !e) {
@@ -596,7 +597,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 		switch (*p) {
 			case GG_MSG_OPTION_CONFERENCE:
 			{
-				struct gg_msg_recipients *m = (void*) p;
+				const struct gg_msg_recipients *m = (const void*) p;
 				uint32_t i, count;
 
 				p += sizeof(*m);
@@ -681,7 +682,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 			case GG_MSG_OPTION_IMAGE_REQUEST:
 			{
-				struct gg_msg_image_request *i = (void*) p;
+				const struct gg_msg_image_request *i = (const void*) p;
 
 				if (p + sizeof(*i) > packet_end) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() packet out of bounds (3)\n");
@@ -802,7 +803,7 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 		goto malformed;
 	}
 
-	// jednobajtowa wiadomość o treści \x02 to żądanie połączenia DCC
+	/* jednobajtowa wiadomość o treści \x02 to żądanie połączenia DCC */
 	if (*payload == GG_MSG_CALLBACK && payload == payload_end - 1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() received ctcp packet\n");
 		length = 1;
@@ -819,14 +820,14 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 		length = (size_t) (options - payload);
 
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end)) {
-			case -1:	// handled
+			case -1:	/* handled */
 				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
 
-			case -2:	// failed
+			case -2:	/* failed */
 				goto fail;
 
-			case -3:	// malformed
+			case -3:	/* malformed */
 				goto malformed;
 		}
 	}
@@ -914,14 +915,14 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 
 	if (offset_attr != 0) {
 		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + length)) {
-			case -1:	// handled
+			case -1:	/* handled */
 				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
 
-			case -2:	// failed
+			case -2:	/* failed */
 				goto fail;
 
-			case -3:	// malformed
+			case -3:	/* malformed */
 				goto malformed;
 		}
 	}
@@ -976,7 +977,7 @@ malformed:
  */
 static int gg_session_handle_status(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_status *s = (void*) ptr;
+	const struct gg_status *s = (const void*) ptr;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
 
@@ -1004,8 +1005,8 @@ static int gg_session_handle_status(struct gg_session *gs, uint32_t type, const 
  */
 static int gg_session_handle_status_60_77_80beta(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_status60 *s60 = (void*) ptr;
-	struct gg_status77 *s77 = (void*) ptr;
+	const struct gg_status60 *s60 = (const void*) ptr;
+	const struct gg_status77 *s77 = (const void*) ptr;
 	size_t struct_len;
 	uint32_t uin;
 
@@ -1071,7 +1072,7 @@ static int gg_session_handle_status_60_77_80beta(struct gg_session *gs, uint32_t
  */
 static int gg_session_handle_notify_reply(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_notify_reply *n = (void*) ptr;
+	const struct gg_notify_reply *n = (const void*) ptr;
 	char *descr;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
@@ -1135,7 +1136,7 @@ static int gg_session_handle_notify_reply(struct gg_session *gs, uint32_t type, 
  */
 static int gg_session_handle_status_80(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_notify_reply80 *n = (void*) ptr;
+	const struct gg_notify_reply80 *n = (const void*) ptr;
 	size_t descr_len;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a status change\n");
@@ -1153,7 +1154,7 @@ static int gg_session_handle_status_80(struct gg_session *gs, uint32_t type, con
 	descr_len = gg_fix32(n->descr_len);
 
 	if (descr_len != 0 && sizeof(struct gg_notify_reply80) + descr_len <= len) {
-		ge->event.status60.descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply80), GG_ENCODING_UTF8, gs->encoding, descr_len, -1);
+		ge->event.status60.descr = gg_encoding_convert((const char*) n + sizeof(struct gg_notify_reply80), GG_ENCODING_UTF8, gs->encoding, descr_len, -1);
 
 		if (ge->event.status60.descr == NULL) {
 			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
@@ -1173,11 +1174,12 @@ static int gg_session_handle_status_80(struct gg_session *gs, uint32_t type, con
  */
 static int gg_session_handle_notify_reply_80(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_notify_reply80 *n = (void*) ptr;
+	const struct gg_notify_reply80 *n = (const void*) ptr;
 	unsigned int length = len, i = 0;
 
-	// TODO: najpierw przeanalizować strukturę i określić
-	// liczbę rekordów, żeby obyć się bez realloc()
+	/* TODO: najpierw przeanalizować strukturę i określić
+	 * liczbę rekordów, żeby obyć się bez realloc()
+	 */
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
 
@@ -1209,7 +1211,7 @@ static int gg_session_handle_notify_reply_80(struct gg_session *gs, uint32_t typ
 
 		if (descr_len != 0) {
 			if (sizeof(struct gg_notify_reply80) + descr_len <= length) {
-				ge->event.notify60[i].descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply80), GG_ENCODING_UTF8, gs->encoding, descr_len, -1);
+				ge->event.notify60[i].descr = gg_encoding_convert((const char*) n + sizeof(struct gg_notify_reply80), GG_ENCODING_UTF8, gs->encoding, descr_len, -1);
 
 				if (ge->event.notify60[i].descr == NULL) {
 					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
@@ -1219,14 +1221,14 @@ static int gg_session_handle_notify_reply_80(struct gg_session *gs, uint32_t typ
 				/* XXX czas */
 
 				length -= sizeof(struct gg_notify_reply80) + descr_len;
-				n = (void*) ((char*) n + sizeof(struct gg_notify_reply80) + descr_len);
+				n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply80) + descr_len);
 			} else {
 				length = 0;
 			}
 
 		} else {
 			length -= sizeof(struct gg_notify_reply80);
-			n = (void*) ((char*) n + sizeof(struct gg_notify_reply80));
+			n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply80));
 		}
 
 		if (!(tmp = realloc(ge->event.notify60, (i + 2) * sizeof(*ge->event.notify60)))) {
@@ -1249,7 +1251,7 @@ static int gg_session_handle_notify_reply_80(struct gg_session *gs, uint32_t typ
  */
 static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_notify_reply77 *n = (void*) ptr;
+	const struct gg_notify_reply77 *n = (const void*) ptr;
 	unsigned int length = len, i = 0;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
@@ -1285,10 +1287,10 @@ static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs, uint3
 			ge->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
 
 		if (GG_S_D(n->status)) {
-			unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply77));
+			unsigned char descr_len = *((const char*) n + sizeof(struct gg_notify_reply77));
 
 			if (sizeof(struct gg_notify_reply77) + descr_len <= length) {
-				ge->event.notify60[i].descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply77) + 1, (type == GG_NOTIFY_REPLY80BETA) ? GG_ENCODING_UTF8 : GG_ENCODING_CP1250, gs->encoding, descr_len, -1);
+				ge->event.notify60[i].descr = gg_encoding_convert((const char*) n + sizeof(struct gg_notify_reply77) + 1, (type == GG_NOTIFY_REPLY80BETA) ? GG_ENCODING_UTF8 : GG_ENCODING_CP1250, gs->encoding, descr_len, -1);
 
 				if (ge->event.notify60[i].descr == NULL) {
 					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
@@ -1298,14 +1300,14 @@ static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs, uint3
 				/* XXX czas */
 					
 				length -= sizeof(struct gg_notify_reply77) + descr_len + 1;
-				n = (void*) ((char*) n + sizeof(struct gg_notify_reply77) + descr_len + 1);
+				n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply77) + descr_len + 1);
 			} else {
 				length = 0;
 			}
 
 		} else {
 			length -= sizeof(struct gg_notify_reply77);
-			n = (void*) ((char*) n + sizeof(struct gg_notify_reply77));
+			n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply77));
 		}
 
 		if (!(tmp = realloc(ge->event.notify60, (i + 2) * sizeof(*ge->event.notify60)))) {
@@ -1328,7 +1330,7 @@ static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs, uint3
  */
 static int gg_session_handle_notify_reply_60(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_notify_reply60 *n = (void*) ptr;
+	const struct gg_notify_reply60 *n = (const void*) ptr;
 	unsigned int length = len, i = 0;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received a notify reply\n");
@@ -1362,12 +1364,12 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs, uint32_t typ
 			ge->event.notify60[i].version |= GG_ERA_OMNIX_MASK;
 
 		if (GG_S_D(n->status)) {
-			unsigned char descr_len = *((char*) n + sizeof(struct gg_notify_reply60));
+			unsigned char descr_len = *((const char*) n + sizeof(struct gg_notify_reply60));
 
 			if (sizeof(struct gg_notify_reply60) + descr_len <= length) {
 				char *descr;
 
-				descr = gg_encoding_convert((char*) n + sizeof(struct gg_notify_reply60) + 1, GG_ENCODING_CP1250, gs->encoding, descr_len, -1);
+				descr = gg_encoding_convert((const char*) n + sizeof(struct gg_notify_reply60) + 1, GG_ENCODING_CP1250, gs->encoding, descr_len, -1);
 
 				if (descr == NULL) {
 					gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() out of memory\n");
@@ -1379,14 +1381,14 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs, uint32_t typ
 				/* XXX czas */
 					
 				length -= sizeof(struct gg_notify_reply60) + descr_len + 1;
-				n = (void*) ((char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
+				n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply60) + descr_len + 1);
 			} else {
 				length = 0;
 			}
 
 		} else {
 			length -= sizeof(struct gg_notify_reply60);
-			n = (void*) ((char*) n + sizeof(struct gg_notify_reply60));
+			n = (const void*) ((const char*) n + sizeof(struct gg_notify_reply60));
 		}
 
 		if (!(tmp = realloc(ge->event.notify60, (i + 2) * sizeof(*ge->event.notify60)))) {
@@ -1410,8 +1412,8 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs, uint32_t typ
 static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	struct gg_user_data d;
-	char *p = (char*) ptr;
-	char *packet_end = (char*) ptr + len;
+	const char *p = (const char*) ptr;
+	const char *packet_end = (const char*) ptr + len;
 	struct gg_event_user_data_user *users;
 	int i, j;
 	int res = 0;
@@ -1591,7 +1593,7 @@ malformed:
  */
 static int gg_session_handle_typing_notification(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_typing_notification *n = (void*) ptr;
+	const struct gg_typing_notification *n = (const void*) ptr;
 	uin_t uin;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received typing notification\n");
@@ -1612,9 +1614,9 @@ static int gg_session_handle_typing_notification(struct gg_session *gs, uint32_t
  */
 static int gg_session_handle_multilogon_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	char *packet_end = (char*) ptr + len;
-	struct gg_multilogon_info *info = (struct gg_multilogon_info*) ptr;
-	char *p = (char*) ptr + sizeof(*info);
+	const char *packet_end = (const char*) ptr + len;
+	const struct gg_multilogon_info *info = (const struct gg_multilogon_info*) ptr;
+	const char *p = (const char*) ptr + sizeof(*info);
 	struct gg_multilogon_session *sessions = NULL;
 	size_t count;
 	size_t i;
@@ -1702,7 +1704,7 @@ malformed:
  */
 static int gg_session_handle_userlist_100_version(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_userlist100_version *version = (struct gg_userlist100_version*) ptr;
+	const struct gg_userlist100_version *version = (const struct gg_userlist100_version*) ptr;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist 100 version\n");
 
@@ -1719,7 +1721,7 @@ static int gg_session_handle_userlist_100_version(struct gg_session *gs, uint32_
  */
 static int gg_session_handle_userlist_100_reply(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	struct gg_userlist100_reply *reply = (struct gg_userlist100_reply*) ptr;
+	const struct gg_userlist100_reply *reply = (const struct gg_userlist100_reply*) ptr;
 	char *data = NULL;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received userlist 100 reply\n");

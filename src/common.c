@@ -387,7 +387,8 @@ int gg_http_hash(const char *format, ...)
 	va_start(ap, format);
 
 	for (j = 0; j < strlen(format); j++) {
-		char *arg, buf[16];
+		const char *arg;
+		char buf[16];
 
 		if (format[j] == 'u') {
 			snprintf(buf, sizeof(buf), "%d", va_arg(ap, uin_t));
@@ -489,7 +490,7 @@ char *gg_base64_decode(const char *buf)
 {
 	char *res, *save, *foo, val;
 	const char *end;
-	unsigned int index = 0;
+	unsigned int idx = 0;
 
 	if (!buf)
 		return NULL;
@@ -510,7 +511,7 @@ char *gg_base64_decode(const char *buf)
 			foo = gg_base64_charset;
 		val = (int)(foo - gg_base64_charset);
 		buf++;
-		switch (index) {
+		switch (idx) {
 			case 0:
 				*res |= val << 2;
 				break;
@@ -526,8 +527,8 @@ char *gg_base64_decode(const char *buf)
 				*res++ |= val;
 				break;
 		}
-		index++;
-		index %= 4;
+		idx++;
+		idx %= 4;
 	}
 	*res = 0;
 

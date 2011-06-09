@@ -2249,7 +2249,7 @@ struct gg_dcc7_accept {
 	uint32_t dunno1;		/* 0x00000000 */
 } GG_PACKED;
 
-// XXX API
+/* XXX API */
 #define GG_DCC7_TYPE_P2P 0x00000001	/**< Połączenie bezpośrednie */
 #define GG_DCC7_TYPE_SERVER 0x00000002	/**< Połączenie przez serwer */
 
@@ -2261,7 +2261,7 @@ struct gg_dcc7_reject {
 	uint32_t reason;		/**< Powód rozłączenia */
 } GG_PACKED;
 
-// XXX API
+/* XXX API */
 #define GG_DCC7_REJECT_BUSY 0x00000001	/**< Połączenie bezpośrednie już trwa, nie umiem obsłużyć więcej */
 #define GG_DCC7_REJECT_USER 0x00000002	/**< Użytkownik odrzucił połączenie */
 #define GG_DCC7_REJECT_VERSION 0x00000006	/**< Druga strona ma wersję klienta nieobsługującą połączeń bezpośrednich tego typu */
@@ -2272,7 +2272,7 @@ struct gg_dcc7_id_request {
 	uint32_t type;			/**< Rodzaj tranmisji */
 } GG_PACKED;
 
-// XXX API
+/* XXX API */
 #define GG_DCC7_TYPE_VOICE 0x00000001	/**< Transmisja głosu */
 #define GG_DCC7_TYPE_FILE 0x00000004	/**< transmisja pliku */
 
@@ -2286,7 +2286,7 @@ struct gg_dcc7_id_reply {
 #define GG_DCC7_DUNNO1 0x24
 
 struct gg_dcc7_dunno1 {
-	// XXX
+	/* XXX */
 } GG_PACKED;
 
 #define GG_DCC7_TIMEOUT_CONNECT 10	/* 10 sekund */

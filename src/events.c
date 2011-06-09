@@ -996,8 +996,6 @@ fail:
 	sess->state = GG_STATE_IDLE;
 
 	if (sess->fd != -1) {
-		int errno2;
-
 		errno2 = errno;
 		close(sess->fd);
 		errno = errno2;

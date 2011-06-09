@@ -226,7 +226,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		} else {
 			char *tmp;
 
-			// XXX \todo zoptymalizować
+			/* XXX \todo zoptymalizować */
 			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL)
@@ -236,7 +236,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 
 			free(tmp);
 
-			// XXX \todo zoptymalizować
+			/* XXX \todo zoptymalizować */
 			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL)
@@ -275,7 +275,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 		} else {
 			char *tmp;
 
-			// XXX \todo zoptymalizować
+			/* XXX \todo zoptymalizować */
 			tmp = gg_encoding_convert(req->entries[i].field, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 			if (tmp == NULL) {
@@ -287,7 +287,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 			p += strlen(tmp) + 1;
 			free(tmp);
 
-			// XXX \todo zoptymalizować
+			/* XXX \todo zoptymalizować */
 			tmp = gg_encoding_convert(req->entries[i].value, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 
 
@@ -324,7 +324,7 @@ uint32_t gg_pubdir50(struct gg_session *sess, gg_pubdir50_t req)
 int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length)
 {
 	const char *end = packet + length, *p;
-	struct gg_pubdir50_reply *r = (struct gg_pubdir50_reply*) packet;
+	const struct gg_pubdir50_reply *r = (const struct gg_pubdir50_reply*) packet;
 	gg_pubdir50_t res;
 	int num = 0;
 	

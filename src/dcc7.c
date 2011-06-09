@@ -685,7 +685,7 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, const voi
 
 	if (!(dcc = gg_dcc7_session_find(sess, p->id, gg_fix32(p->uin)))) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_accept() unknown dcc session\n");
-		// XXX wysłać reject?
+		/* XXX wysłać reject? */
 		e->type = GG_EVENT_DCC7_ERROR;
 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
 		return 0;
@@ -698,7 +698,7 @@ int gg_dcc7_handle_accept(struct gg_session *sess, struct gg_event *e, const voi
 		return 0;
 	}
 	
-	// XXX czy dla odwrotnego połączenia powinniśmy wywołać już zdarzenie GG_DCC7_ACCEPT?
+	/* XXX czy dla odwrotnego połączenia powinniśmy wywołać już zdarzenie GG_DCC7_ACCEPT? */
 	
 	dcc->offset = gg_fix32(p->offset);
 	dcc->state = GG_STATE_WAITING_FOR_INFO;
@@ -796,7 +796,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 			return 0;
 		}
 
-		// XXX wysyłać dopiero jeśli uda się połączyć z serwerem?
+		/* XXX wysyłać dopiero jeśli uda się połączyć z serwerem? */
 
 		gg_send_packet(dcc->sess, GG_DCC7_INFO, payload, len, NULL);
 
@@ -809,15 +809,17 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 		return 0;
 	}
 
-	// jeśli nadal czekamy na połączenie przychodzące, a druga strona nie
-	// daje rady i oferuje namiary na siebie, bierzemy co dają.
-
-// 	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
-// 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid state\n");
-// 		e->type = GG_EVENT_DCC7_ERROR;
-// 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
-// 		return 0;
-// 	}
+#if 0
+	/* jeśli nadal czekamy na połączenie przychodzące, a druga strona nie
+	 * daje rady i oferuje namiary na siebie, bierzemy co dają.
+	 */
+ 	if (dcc->state != GG_STATE_WAITING_FOR_INFO && (dcc->state != GG_STATE_LISTENING || dcc->reverse)) {
+ 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() invalid state\n");
+ 		e->type = GG_EVENT_DCC7_ERROR;
+ 		e->event.dcc7_error = GG_ERROR_DCC7_HANDSHAKE;
+ 		return 0;
+ 	}
+#endif
 
 	if (dcc->state == GG_STATE_LISTENING) {
 		close(dcc->fd);
@@ -880,7 +882,7 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 	e->event.dcc7_reject.dcc7 = dcc;
 	e->event.dcc7_reject.reason = gg_fix32(p->reason);
 
-	// XXX ustawić state na rejected?
+	/* XXX ustawić state na rejected? */
 
 	return 0;
 }
@@ -926,7 +928,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, const void *
 			}
 
 			dcc->size = gg_fix32(p->size);
-			strncpy((char*) dcc->filename, (char*) p->filename, GG_DCC7_FILENAME_LEN - 1);
+			strncpy((char*) dcc->filename, p->filename, GG_DCC7_FILENAME_LEN - 1);
 			dcc->filename[GG_DCC7_FILENAME_LEN] = 0;
 			memcpy(dcc->hash, p->hash, GG_DCC7_HASH_LEN);
 
@@ -1316,7 +1318,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-			// XXX zapisywać do skutku?
+			/* XXX zapisywać do skutku? */
 
 			if ((wres = write(dcc->file_fd, buf, res)) < res) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (fd=%d, res=%d, %s)\n", dcc->file_fd, wres, strerror(errno));
