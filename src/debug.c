@@ -162,7 +162,7 @@ void gg_debug_session(struct gg_session *gs, int level, const char *format, ...)
 void gg_debug_dump(struct gg_session *gs, int level, const char *buf, size_t len)
 {
 	char line[80];
-	int i, j;
+	unsigned int i, j;
 
 	for (i = 0; i < len; i += 16) {
 		int ofs;

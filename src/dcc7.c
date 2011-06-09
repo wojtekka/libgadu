@@ -636,7 +636,7 @@ int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, const void *p
 	for (tmp = sess->dcc7_list; tmp; tmp = tmp->next) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// checking dcc %p, state %d, type %d\n", tmp, tmp->state, tmp->dcc_type);
 
-		if (tmp->state != GG_STATE_REQUESTING_ID || tmp->dcc_type != gg_fix32(p->type))
+		if (tmp->state != GG_STATE_REQUESTING_ID || tmp->dcc_type != (int) gg_fix32(p->type))
 			continue;
 		
 		tmp->cid = p->id;
@@ -928,7 +928,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, const void *
 			}
 
 			dcc->size = gg_fix32(p->size);
-			strncpy((char*) dcc->filename, p->filename, GG_DCC7_FILENAME_LEN - 1);
+			strncpy((char*) dcc->filename, (char*) p->filename, GG_DCC7_FILENAME_LEN - 1);
 			dcc->filename[GG_DCC7_FILENAME_LEN] = 0;
 			memcpy(dcc->hash, p->hash, GG_DCC7_HASH_LEN);
 
@@ -1246,7 +1246,8 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 		case GG_STATE_SENDING_FILE:
 		{
 			char buf[1024];
-			int chunk, res;
+			size_t chunk;
+			int res;
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_SENDING_FILE (offset=%d, size=%d)\n", dcc->offset, dcc->size);
 
@@ -1349,7 +1350,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_RESOLVING_RELAY\n");
 
-			if (read(dcc->fd, &addr, sizeof(addr)) < sizeof(addr) || addr.s_addr == INADDR_NONE) {
+			if (read(dcc->fd, &addr, sizeof(addr)) < (int) sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				int errno_save = errno;
 
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() resolving failed\n");
@@ -1430,7 +1431,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_READING_RELAY\n");
 
-			if ((res = read(dcc->fd, buf, sizeof(buf))) < sizeof(*pkt)) {
+			if ((res = read(dcc->fd, buf, sizeof(buf))) < (int) sizeof(*pkt)) {
 				if (res == 0)
 					errno = ECONNRESET;
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));

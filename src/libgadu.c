@@ -492,7 +492,7 @@ void *gg_recv_packet(struct gg_session *sess)
 	struct gg_header h;
 	char *packet;
 	int ret = 0;
-	unsigned int offset, size = 0;
+	size_t offset, size = 0;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
 
@@ -581,7 +581,7 @@ void *gg_recv_packet(struct gg_session *sess)
 			errno = ECONNRESET;
 			goto fail;
 		}
-		if (ret > -1 && ret <= size) {
+		if (ret > -1 && ret <= (int) size) {
 			offset += ret;
 			size -= ret;
 		} else if (ret == -1) {
@@ -842,7 +842,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 
 	if (p->status_descr) {
-		int max_length;
+		size_t max_length;
 
 		if (sess->protocol_version >= 0x2d)
 			max_length = GG_STATUS_DESCR_MAXSIZE;
@@ -1807,7 +1807,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	r->crc32 = gg_fix32(gg_crc32(0, (const unsigned char*) image, size));
 
 	while (size > 0) {
-		int buflen, chunklen;
+		size_t buflen, chunklen;
 
 		/* \0 + struct gg_msg_image_reply */
 		buflen = sizeof(struct gg_msg_image_reply) + 1;
@@ -1818,7 +1818,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 			buflen += strlen(filename) + 1;
 		}
 
-		chunklen = (size >= sizeof(buf) - buflen) ? (sizeof(buf) - buflen) : size;
+		chunklen = ((size_t) size >= sizeof(buf) - buflen) ? (sizeof(buf) - buflen) : (size_t) size;
 
 		memcpy(buf + buflen, image, chunklen);
 		size -= chunklen;

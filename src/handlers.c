@@ -66,9 +66,9 @@ typedef struct {
 	/* Typ pakietu */
 	uint32_t type;
 	/* Stan w którym pakiet jest obsługiwany */
-	int state;
+	enum gg_state_t state;
 	/* Minimalny rozmiar danych pakietu */
-	int min_length;
+	size_t min_length;
 	/* Funkcja obsługująca pakiet. Patrz gg_session_handle_packet(). */
 	int (*handler)(struct gg_session *, uint32_t, const char *, size_t, struct gg_event *);
 } gg_packet_handler_t;
@@ -1415,7 +1415,7 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 	const char *p = (const char*) ptr;
 	const char *packet_end = (const char*) ptr + len;
 	struct gg_event_user_data_user *users;
-	int i, j;
+	unsigned int i, j;
 	int res = 0;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() received user data\n");
@@ -1689,7 +1689,7 @@ fail:
 malformed:
 	ge->type = GG_EVENT_NONE;
 
-	for (i = 0; i < ge->event.multilogon_info.count; i++)
+	for (i = 0; (int) i < ge->event.multilogon_info.count; i++)
 		free(ge->event.multilogon_info.sessions[i].name);
 
 	free(ge->event.multilogon_info.sessions);
@@ -1801,7 +1801,7 @@ static const gg_packet_handler_t handlers[] =
  */
 int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	int i;
+	unsigned int i;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet(%d, %p, %d)\n", type, ptr, len);
 
@@ -1833,7 +1833,7 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 		if (handlers[i].type != 0 && handlers[i].type != type)
 			continue;
 
-		if (handlers[i].state != 0 && handlers[i].state != gs->state) {
+		if (handlers[i].state != 0 && handlers[i].state != (enum gg_state_t) gs->state) {
 			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() packet 0x%02x unexpected in state %d\n", type, gs->state);
 			continue;
 		}

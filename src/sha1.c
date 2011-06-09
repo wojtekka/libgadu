@@ -267,10 +267,10 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 		while ((res = read(fd, buf, sizeof(buf))) > 0)
 			SHA1_Update(&ctx, buf, res);
 	} else {
-		int i;
+		unsigned int i;
 
 		for (i = 0; i < 9; i++) {
-			int j;
+			unsigned int j;
 
 			if (lseek(fd, (len - 1048576) / 9 * i, SEEK_SET) == (off_t) - 1)
 				return -1;

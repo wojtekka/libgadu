@@ -138,7 +138,7 @@ void gg_event_free(struct gg_event *e)
 
 		case GG_EVENT_USER_DATA:
 		{
-			int i, j;
+			unsigned int i, j;
 
 			for (i = 0; i < e->event.user_data.user_count; i++) {
 				for (j = 0; j < e->event.user_data.users[i].attr_count; j++) {

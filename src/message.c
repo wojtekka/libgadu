@@ -387,14 +387,14 @@ static void gg_append(char *dst, size_t *pos, const void *src, int len)
 size_t gg_message_text_to_html(char *dst, const char *src, const char *format, size_t format_len)
 {
 	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
-	const int span_len = 75;
+	const size_t span_len = 75;
 	const char img_fmt[] = "<img name=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
-	const int img_len = 29;
-	int char_pos = 0;
-	int format_idx = 0;
+	const size_t img_len = 29;
+	size_t char_pos = 0;
+	size_t format_idx = 0;
 	unsigned char old_attr = 0;
 	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
-	int i;
+	unsigned int i;
 	size_t len;
 	const unsigned char *format_ = (const unsigned char*) format;
 
@@ -417,7 +417,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 		/* Analizuj atrybuty tak długo jak dotyczą aktualnego znaku. */
 		for (;;) {
 			unsigned char attr;
-			int attr_pos;
+			size_t attr_pos;
 
 			if (format_idx + 3 > format_len)
 				break;
