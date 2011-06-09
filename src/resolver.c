@@ -86,7 +86,7 @@ static void gg_gethostbyname_cleaner(void *data)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *count, int pthread)
+int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigned int *count, int pthread)
 {
 #ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 	char *buf = NULL;
@@ -255,7 +255,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *co
 static int gg_resolver_run(int fd, const char *hostname)
 {
 	struct in_addr addr_ip[2], *addr_list;
-	int addr_count;
+	unsigned int addr_count;
 	int res = 0;
 
 	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run(%d, %s)\n", fd, hostname);
@@ -297,7 +297,7 @@ static int gg_resolver_run(int fd, const char *hostname)
 struct in_addr *gg_gethostbyname(const char *hostname)
 {
 	struct in_addr *result;
-	int count;
+	unsigned int count;
 
 	if (gg_gethostbyname_real(hostname, &result, &count, 0) == -1)
 		return NULL;

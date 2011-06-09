@@ -129,7 +129,7 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async, const
 		h->timeout = GG_DEFAULT_TIMEOUT;
 	} else {
 		struct in_addr *addr_list = NULL;
-		int addr_count;
+		unsigned int addr_count;
 
 		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 0) == -1 || addr_count == 0) {
 			gg_debug(GG_DEBUG_MISC, "// gg_http_connect() host not found\n");

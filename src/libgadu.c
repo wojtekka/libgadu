@@ -949,7 +949,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		if (!sess->server_addr) {
 			if ((addr.s_addr = inet_addr(hostname)) == INADDR_NONE) {
 				struct in_addr *addr_list = NULL;
-				int addr_count;
+				unsigned int addr_count;
 
 				if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 0) == -1 || addr_count == 0) {
 					gg_debug(GG_DEBUG_MISC, "// gg_login() host \"%s\" not found\n", hostname);

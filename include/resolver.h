@@ -21,6 +21,6 @@
 
 #include <arpa/inet.h>
 
-int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *count, int pthread);
+int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigned int *count, int pthread);
 
 #endif /* LIBGADU_RESOLVER_H */
