@@ -507,7 +507,7 @@ char *gg_base64_decode(const char *buf)
 			buf++;
 			continue;
 		}
-		if (!(foo = strchr(gg_base64_charset, *buf)))
+		if (!(foo = memchr(gg_base64_charset, *buf, sizeof(gg_base64_charset))))
 			foo = gg_base64_charset;
 		val = (int)(foo - gg_base64_charset);
 		buf++;
