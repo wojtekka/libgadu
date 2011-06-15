@@ -1501,14 +1501,14 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		if (!(cp_msg = recoded_msg = gg_encoding_convert((const char *) message, GG_ENCODING_UTF8, GG_ENCODING_CP1250, -1, -1)))
 			return -1;
 
-		utf_msg = message;
+		utf_msg = (const char *) message;
 	} else {
 		if (sess->protocol_version >= 0x2d) {
 			if (!(utf_msg = recoded_msg = gg_encoding_convert((const char *) message, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1)))
 				return -1;
 		}
 
-		cp_msg = message;
+		cp_msg = (const char *) message;
 	}
 
 	if (sess->protocol_version < 0x2d) {
