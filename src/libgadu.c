@@ -1472,8 +1472,9 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	struct gg_send_msg s;
 	struct gg_send_msg80 s80;
 	struct gg_msg_recipients r;
-	char *cp_msg = NULL;
-	char *utf_msg = NULL;
+	const char *cp_msg = NULL;
+	const char *utf_msg = NULL;
+	char *recoded_msg = NULL;
 	char *html_msg = NULL;
 	int seq_no;
 	int i, j, k;
@@ -1497,17 +1498,17 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	}
 
 	if (sess->encoding == GG_ENCODING_UTF8) {
-		if (!(cp_msg = gg_encoding_convert((const char *) message, GG_ENCODING_UTF8, GG_ENCODING_CP1250, -1, -1)))
+		if (!(cp_msg = recoded_msg = gg_encoding_convert((const char *) message, GG_ENCODING_UTF8, GG_ENCODING_CP1250, -1, -1)))
 			return -1;
 
-		utf_msg = (char*) message;
+		utf_msg = message;
 	} else {
 		if (sess->protocol_version >= 0x2d) {
-			if (!(utf_msg = gg_encoding_convert((const char *) message, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1)))
+			if (!(utf_msg = recoded_msg = gg_encoding_convert((const char *) message, GG_ENCODING_CP1250, GG_ENCODING_UTF8, -1, -1)))
 				return -1;
 		}
 
-		cp_msg = (char*) message;
+		cp_msg = message;
 	}
 
 	if (sess->protocol_version < 0x2d) {
@@ -1603,12 +1604,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	}
 
 cleanup:
-	if (cp_msg != (char*) message)
-		free(cp_msg);
-
-	if (utf_msg != (char*) message)
-		free(utf_msg);
-
+	free(recoded_msg);
 	free(html_msg);
 
 	return seq_no;

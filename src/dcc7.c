@@ -924,7 +924,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, const void *
 			}
 
 			dcc->size = gg_fix32(p->size);
-			strncpy((char*) dcc->filename, (char*) p->filename, GG_DCC7_FILENAME_LEN - 1);
+			strncpy((char*) dcc->filename, p->filename, GG_DCC7_FILENAME_LEN - 1);
 			dcc->filename[GG_DCC7_FILENAME_LEN] = 0;
 			memcpy(dcc->hash, p->hash, GG_DCC7_HASH_LEN);
 
