@@ -28,6 +28,11 @@
 #ifndef __COMPAT_H
 #define __COMPAT_H
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #ifdef sun
 #  define INADDR_NONE   ((in_addr_t) 0xffffffff)
 #endif

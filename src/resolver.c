@@ -33,12 +33,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
+#include "compat.h"
 #include "libgadu.h"
 #include "resolver.h"
-#include "compat.h"
 #include "session.h"
 
 /** Sposób rozwiązywania nazw serwerów */

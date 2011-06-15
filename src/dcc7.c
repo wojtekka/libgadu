@@ -29,12 +29,9 @@
  * \brief Obsługa połączeń bezpośrednich od wersji Gadu-Gadu 7.x
  */
 
-#include <sys/types.h>
+#include "compat.h"
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif
@@ -49,7 +46,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "compat.h"
 #include "libgadu.h"
 #include "protocol.h"
 #include "resolver.h"

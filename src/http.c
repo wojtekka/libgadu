@@ -24,11 +24,6 @@
  * \brief Obsługa połączeń HTTP
  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include "compat.h"
 #include "libgadu.h"
 #include "resolver.h"
