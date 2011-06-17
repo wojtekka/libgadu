@@ -263,7 +263,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-int test_connect(int server)
+int client(int server)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -277,6 +277,7 @@ int test_connect(int server)
 	glp.uin = 1;
 	glp.password = "dupa.8";
 	glp.async = async_mode;
+	glp.resolver = GG_RESOLVER_PTHREAD;
 
 	if (server) {
 		glp.server_addr = inet_addr(LOCALHOST);
@@ -285,16 +286,13 @@ int test_connect(int server)
 
 	gs = gg_login(&glp);
 
-	if (!async_mode) {
-		if (!gs)
-			return 0;
+	if (gs == NULL)
+		return 0;
 
+	if (!async_mode) {
 		gg_free_session(gs);
 		return 1;
 	} else {
-		if (!gs)
-			return 0;
-
 		for (;;) {
 			struct timeval tv;
 			fd_set rd, wr;
@@ -645,11 +643,6 @@ int main(int argc, char **argv)
 		test_to = TEST_MAX;
 	}
 
-	if (!(log_file = fopen("report.html", "w"))) {
-		perror("fopen");
-		failure();
-	}
-
 	signal(SIGPIPE, SIG_IGN);
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
@@ -662,11 +655,18 @@ int main(int argc, char **argv)
 	signal(SIGTERM, cleanup);
 	signal(SIGINT, cleanup);
 	signal(SIGQUIT, cleanup);
+	signal(SIGSEGV, cleanup);
+	signal(SIGABRT, cleanup);
 	signal(SIGALRM, sigalrm);
 
 	if (!server_pid) {
 		serve();
 		exit(0);
+	}
+
+	if (!(log_file = fopen("report.html", "w"))) {
+		perror("fopen");
+		failure();
 	}
 
 	fprintf(log_file, 
@@ -729,7 +729,7 @@ int main(int argc, char **argv)
 
 		for (j = 0; j < 2; j++) {
 			async_mode = j;
-			result[i][j] = test_connect(server);
+			result[i][j] = client(server);
 
 			/* check for invalid behaviour */
 			if (server && (tried_resolver || tried_80)) {
@@ -804,6 +804,7 @@ int main(int argc, char **argv)
 	}
 
 	fprintf(log_file, "</body>\n</html>\n");
+	fclose(log_file);
 
 	printf("\n");
 
