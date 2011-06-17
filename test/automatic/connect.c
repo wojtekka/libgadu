@@ -19,14 +19,9 @@
 #include <libgadu.h>
 
 #define LOCALHOST "127.0.67.67"
-#define LOCALPORT 17219
 #define UNREACHABLE "192.0.2.1"	/* documentation and example class, RFC 3330 */
 
 #define TEST_MAX (3*3*3*3*2)
-
-enum {
-	FLAG_SERVER = 1,
-};
 
 enum {
 	PLUG_NONE = 0,
@@ -35,22 +30,25 @@ enum {
 };
 
 /** Port and resolver plug flags */
-int plug_80, plug_443, plug_8074, plug_resolver;
+static int plug_80, plug_443, plug_8074, plug_resolver;
 
 /** Flags telling which actions libgadu */
-int tried_80, tried_443, tried_8074, tried_resolver;
+static int tried_80, tried_443, tried_8074, tried_resolver;
 
 /** Asynchronous mode flag */
-int async_mode;
+static int async_mode;
 
 /** Server process id, duh! */
-int server_pid = -1;
+static int server_pid = -1;
 
 /** Report file */
-FILE *log_file;
+static FILE *log_file;
 
 /** Log buffer */
-char *log_buffer;
+static char *log_buffer;
+
+/** Local ports */
+static int ports[4];
 
 static void debug_handler(int level, const char *format, va_list ap)
 {
@@ -67,13 +65,8 @@ static void debug_handler(int level, const char *format, va_list ap)
 		return;
 	}
 
-	if (log_buffer) {
-		log_buffer = tmp;
-		strcat(log_buffer, buf);
-	} else {
-		log_buffer = tmp;
-		strcpy(log_buffer, buf);
-	}
+	log_buffer = tmp;
+	strcpy(log_buffer + len, buf);
 }
 
 static inline void set32(char *ptr, unsigned int value)
@@ -93,9 +86,9 @@ static inline unsigned int get32(char *ptr)
 	return tmp[0] | (tmp[1] << 8) | (tmp[2] << 16) | (tmp[3] << 24);
 }
 
-void failure(void) __attribute__ ((noreturn));
+static void failure(void) __attribute__ ((noreturn));
 
-void failure(void)
+static void failure(void)
 {
 	if (server_pid == 0) {
 		kill(getppid(), SIGTERM);
@@ -107,7 +100,7 @@ void failure(void)
 	exit(0);
 }
 
-void debug(const char *fmt, ...)
+static void debug(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -123,75 +116,74 @@ extern struct hostent *__gethostbyname(const char *name);
 int __gethostbyname_r(const char *name,  struct hostent *ret, char *buf,
 size_t buflen,  struct hostent **result, int *h_errnop);
 
-int port_to_index(int port)
-{
-	switch (port) {
-		case 80:
-			return 0;
-		case 8074:
-			return 1;
-		case 443:
-			return 2;
-		default:
-			debug("Invalid port %d, terminating\n", port);
-			failure();
-	}
-}
+typedef struct {
+	struct in_addr addr;
+	char *addr_list[2];
+	char name[1];
+} resolver_storage_t;
 
 struct hostent *gethostbyname(const char *name)
 {
+	static char buf[256];
 	static struct hostent he;
-	static struct in_addr addr;
-	static char *addr_list[2];
-	static char sname[128];
+	struct hostent *he_ptr;
 
-	tried_resolver = 1;
-
-	if (plug_resolver != PLUG_NONE) {
-		if (plug_resolver == PLUG_TIMEOUT) {
-			if (async_mode)
-				sleep(30);
-			h_errno = TRY_AGAIN;
-		} else {
-			h_errno = HOST_NOT_FOUND;
-		}
+	if (gethostbyname_r(name, &he, buf, sizeof(buf), &he_ptr, &h_errno) == -1)
 		return NULL;
-	}
-
-	if (strcmp(name, GG_APPMSG_HOST)) {
-		debug("Invalid argument for gethostbyname(): \"%s\"\n", name);
-		errno = EINVAL;
-		return NULL;
-	}
-
-	addr_list[0] = (char*) &addr;
-	addr_list[1] = NULL;
-	addr.s_addr = inet_addr(LOCALHOST);
-
-	strncpy(sname, name, sizeof(sname) - 1);
-	sname[sizeof(sname) - 1] = 0;
-
-	memset(&he, 0, sizeof(he));
-	he.h_name = sname;
-	he.h_addrtype = AF_INET;
-	he.h_length = sizeof(struct in_addr);
-	he.h_addr_list = addr_list;
 	
-	return &he;
+	return he_ptr;
 }
 
 int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop)
 {
-	if (buflen < sizeof(struct hostent)) {
+	resolver_storage_t *storage;
+	int h_errno;
+
+	if (buflen < sizeof(*storage) + strlen(name)) {
 		errno = ERANGE;
 		*result = NULL;
 		return -1;
 	}
 
-	*result = gethostbyname(name);
+	tried_resolver = 1;
+
+	storage = (void*) buf;
+
+	if (plug_resolver != PLUG_NONE) {
+		if (plug_resolver == PLUG_TIMEOUT) {
+			if (async_mode)
+				sleep(30);
+			*h_errnop = TRY_AGAIN;
+		} else {
+			*h_errnop = HOST_NOT_FOUND;
+		}
+		*result = NULL;
+		return -1;
+	}
+
+	if (strcmp(name, GG_APPMSG_HOST) != 0) {
+		debug("Invalid argument for gethostbyname(): \"%s\"\n", name);
+		*h_errnop = HOST_NOT_FOUND;
+		*result = NULL;
+		return -1;
+	}
+
+	storage->addr_list[0] = (char*) &storage->addr;
+	storage->addr_list[1] = NULL;
+	storage->addr.s_addr = inet_addr(LOCALHOST);
+
+	strcpy(storage->name, name);
+
+	memset(ret, 0, sizeof(*ret));
+	ret->h_name = storage->name;
+	ret->h_addrtype = AF_INET;
+	ret->h_length = sizeof(struct in_addr);
+	ret->h_addr_list = storage->addr_list;
+	
+	*result = ret;
 	*h_errnop = h_errno;
 
-	return (*result) ? 0 : -1;
+	return 0;
 }
 
 int connect(int socket, const struct sockaddr *address, socklen_t address_len)
@@ -222,17 +214,17 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	switch (ntohs(sin.sin_port)) {
 		case 80:
 			plug = plug_80;
-			port = LOCALPORT;
+			port = ports[0];
 			tried_80 = 1;
 			break;
 		case 443:
 			plug = plug_443;
-			port = LOCALPORT + 1;
+			port = ports[1];
 			tried_443 = 1;
 			break;
 		case 8074:
 			plug = plug_8074;
-			port = LOCALPORT + 2;
+			port = ports[2];
 			tried_8074 = 1;
 			break;
 		default:
@@ -246,7 +238,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			sin.sin_port = htons(port);
 			break;
 		case PLUG_RESET:
-			sin.sin_port = htons(LOCALPORT + 3);
+			sin.sin_port = htons(ports[3]);
 			break;
 		case PLUG_TIMEOUT:
 			if (!async_mode) {
@@ -263,7 +255,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-int client(int server)
+static int client(int server)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -369,34 +361,7 @@ int client(int server)
 	}
 }
 
-void test_stats(void)
-{
-/*
-	printf("\n------------------------------------------------------------------------------\n");
-	printf(" Error count: %d\n", test_errors);
-
-	if (test_errors > 0) {
-		int i, first = 1;
-
-		printf(" Failed tests: ");
-
-		for (i = 0; i < TEST_MAX; i++) {
-			if (!test_failed[i])
-				continue;
-
-			if (!first)
-				printf(", ");
-			first = 0;
-			printf("%d", i + 1);
-		}
-
-		printf("\n");
-	}
-*/
-	printf("------------------------------------------------------------------------------\n");
-}
-
-void serve(void)
+static void server(int port_pipe)
 {
 	int sfds[4];
 	int cfds[2] = { -1, -1 };
@@ -407,6 +372,7 @@ void serve(void)
 
 	for (i = 0; i < 4; i++) {
 		struct sockaddr_in sin;
+		socklen_t sin_len = sizeof(sin);
 		int value = 1;
 
 		if ((sfds[i] = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -418,7 +384,6 @@ void serve(void)
 
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
-		sin.sin_port = htons(LOCALPORT + i);
 		sin.sin_addr.s_addr = inet_addr(LOCALHOST);
 
 		if (bind(sfds[i], (struct sockaddr*) &sin, sizeof(sin))) {
@@ -426,10 +391,26 @@ void serve(void)
 			failure();
 		}
 
-		if (i != 3 && listen(sfds[i], 1)) {
-			perror("listen");
+		if (getsockname(sfds[i], (struct sockaddr*) &sin, &sin_len) == -1) {
+			perror("getsockname");
 			failure();
 		}
+
+		ports[i] = ntohs(sin.sin_port);
+
+		/* Ostatni port ma powodować odrzucenie połączenia,
+		 * więc nie wołamy listen(). */
+		if (i != 3) {
+			if (listen(sfds[i], 1) == -1) {
+				perror("listen");
+				failure();
+			}
+		}
+	}
+
+	if (write(port_pipe, ports, sizeof(ports)) != sizeof(ports)) {
+		perror("write->pipe");
+		failure();
 	}
 
 	for (;;) {
@@ -550,7 +531,7 @@ void serve(void)
 	}
 }
 
-char *htmlize(const char *in)
+static char *htmlize(const char *in)
 {
 	char *out;
 	int i, j, size = 0;
@@ -618,20 +599,16 @@ char *htmlize(const char *in)
 	return out;
 }
 
-void cleanup(int sig)
+static void cleanup(int sig)
 {
 	failure();
-}
-
-void sigalrm(int sig)
-{
-
 }
 
 int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0, result[TEST_MAX][2] = { { 0, } };
 	int exit_code = 0;
+	int port_pipe[2];
 
 	if (argc == 3) {
 		test_from = atoi(argv[1]);
@@ -647,24 +624,40 @@ int main(int argc, char **argv)
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
-	if ((server_pid = fork()) == -1) {
-		perror("fork");
-		failure();
-	}
-
 	signal(SIGTERM, cleanup);
 	signal(SIGINT, cleanup);
 	signal(SIGQUIT, cleanup);
 	signal(SIGSEGV, cleanup);
 	signal(SIGABRT, cleanup);
-	signal(SIGALRM, sigalrm);
 
-	if (!server_pid) {
-		serve();
+	if (pipe(port_pipe) == -1) {
+		perror("pipe");
+		failure();
+	}
+
+	server_pid = fork();
+
+	if (server_pid == -1) {
+		perror("fork");
+		failure();
+	}
+
+	if (server_pid == 0) {
+		close(port_pipe[0]);
+		server(port_pipe[1]);
 		exit(0);
 	}
 
-	if (!(log_file = fopen("report.html", "w"))) {
+	close(port_pipe[1]);
+
+	if (read(port_pipe[0], ports, sizeof(ports)) != sizeof(ports)) {
+		perror("read<-pipe");
+		failure();
+	}
+
+	log_file = fopen("report.html", "w");
+
+	if (log_file == NULL) {
 		perror("fopen");
 		failure();
 	}
