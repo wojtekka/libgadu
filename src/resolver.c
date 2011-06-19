@@ -261,6 +261,7 @@ static int gg_resolver_run(int fd, const char *hostname)
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
 		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 1) == -1) {
 			addr_list = addr_ip;
+			addr_count = 0;
 			/* addr_ip[0] już zawiera INADDR_NONE */
 		}
 	} else {
