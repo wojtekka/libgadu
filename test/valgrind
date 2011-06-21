@@ -4,4 +4,15 @@ if [ -z "$NAME" ]; then
 	echo "Not to be run directly"
 	exit 1
 fi
-LD_LIBRARY_PATH=../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 "./.libs/$NAME" "$@" 3> "$NAME.log"
+BINARY=""
+for i in "./.libs/lt-$NAME" "./$NAME"; do
+	if [ -x "$i" ]; then
+		BINARY=$i
+		break
+	fi
+done
+if [ -n "$BINARY" ]; then
+	LD_LIBRARY_PATH=../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 "$BINARY" "$@" 3> "$NAME.log"
+else
+	echo "$NAME not found"
+fi
