@@ -1789,7 +1789,7 @@ static const gg_packet_handler_t handlers[] =
 };
 
 /**
- * \internal Analizuje przychodzący pakiet danych.
+ * \internal Obsługuje przychodzący pakiet danych.
  *
  * \param gs Struktura sesji
  * \param type Typ pakietu
@@ -1850,3 +1850,4 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 
 	return 0;
 }
+

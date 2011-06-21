@@ -295,6 +295,16 @@ struct gg_session {
 	int protocol_features;	/**< Opcje protokołu */
 	int status_flags;	/**< Flagi statusu */
 	int recv_msg_count;	/**< Liczba odebranych wiadomości */
+
+	const char *resolver_host;		/**< Nazwa do rozwiązania */
+	struct in_addr *resolver_result;	/**< Wynik rozwiązywania nazwy */
+	unsigned int resolver_index;		/**< Indeks aktualnie obsługiwanego wyniku rozwiązywania nazwy */
+	unsigned int resolver_count;		/**< Liczba wyników rozwiązywania nazwy */
+
+	uint16_t connect_port[2];		/**< Lista portów do połączenia */
+	unsigned int connect_index;		/**< Indeks aktualnie obsługiwanego portu */
+
+	char *connect_host;			/**< Adres serwera Gadu-Gadu, z którym się łączymy */
 };
 
 /**
@@ -555,6 +565,33 @@ enum gg_state_t {
 	GG_STATE_READING_RELAY,		/**< Odbieranie danych */
 
 	GG_STATE_DISCONNECTING,		/**< Oczekiwanie na potwierdzenie rozłączenia */
+
+	GG_STATE_CONNECT_HUB,		/**< Nawiązanie połączenia z hubem */
+	GG_STATE_CONNECT_PROXY_HUB,
+	GG_STATE_CONNECT_GG,		/**< Nawiązanie połączenia z serwerem */
+	GG_STATE_CONNECT_PROXY_GG,
+	GG_STATE_CONNECTING_PROXY_HUB,
+	GG_STATE_CONNECTING_PROXY_GG,
+	GG_STATE_RESOLVE_HUB_SYNC,
+	GG_STATE_RESOLVE_HUB_ASYNC,
+	GG_STATE_RESOLVE_PROXY_HUB_SYNC,
+	GG_STATE_RESOLVE_PROXY_HUB_ASYNC,
+	GG_STATE_RESOLVE_PROXY_GG_SYNC,
+	GG_STATE_RESOLVE_PROXY_GG_ASYNC,
+	GG_STATE_RESOLVE_GG_SYNC,
+	GG_STATE_RESOLVE_GG_ASYNC,
+	GG_STATE_RESOLVING_HUB,
+	GG_STATE_RESOLVING_PROXY_HUB,
+	GG_STATE_RESOLVING_PROXY_GG,
+	GG_STATE_SEND_HUB,
+	GG_STATE_SEND_PROXY_HUB,
+	GG_STATE_SEND_PROXY_GG,
+	GG_STATE_SENDING_HUB,
+	GG_STATE_SENDING_PROXY_HUB,
+	GG_STATE_SENDING_PROXY_GG,
+	GG_STATE_READING_HUB,
+	GG_STATE_READING_PROXY_HUB,
+	GG_STATE_READING_PROXY_GG,
 };
 
 /**

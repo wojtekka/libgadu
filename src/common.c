@@ -150,6 +150,8 @@ char *gg_saprintf(const char *format, ...)
  * \param ptr Wskaźnik do zmiennej, która przechowuje aktualne położenie
  *            w analizowanym buforze
  *
+ * \note Funkcja nie jest już używana. Pozostała dla zachowania ABI.
+ *
  * \return Wskaźnik do kolejnej linii tekstu lub NULL, jeśli to już koniec
  *         bufora.
  */
