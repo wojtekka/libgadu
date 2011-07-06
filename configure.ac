@@ -17,8 +17,12 @@ AC_C_CONST
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
-AC_SUBST(REQUIRES)
 AC_SUBST(INCLUDES)
+dnl Zależności dla pkgconfig
+AC_SUBST(REQUIRES_PRIVATE)
+AC_SUBST(REQUIRES_PUBLIC)
+AC_SUBST(LIBS_PRIVATE)
+AC_SUBST(LIBS_PUBLIC)
 
 if test "$GCC"; then
 	CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
@@ -116,8 +120,8 @@ dnl
 dnl  SunOS
 dnl
 
-AC_CHECK_LIB(nsl, t_accept, LIBS="$LIBS -lnsl")
-AC_CHECK_LIB(socket, socket, LIBS="$LIBS -lsocket")
+AC_CHECK_LIB(nsl, t_accept, LIBS_PRIVATE="$LIBS_PRIVATE -lnsl")
+AC_CHECK_LIB(socket, socket, LIBS_PRIVATE="$LIBS_PRIVATE -lsocket")
 
 dnl
 dnl  BeOS
@@ -127,7 +131,7 @@ AC_ARG_WITH(bind,
 	[  --without-bind          do not use libbind even if found])
 
 if test "x$with_bind" != "xno"; then
-	AC_CHECK_LIB(bind, __inet_addr, LIBS="$LIBS -lbind")
+	AC_CHECK_LIB(bind, __inet_addr, LIBS_PRIVATE="$LIBS_PRIVATE -lbind")
 fi
 
 dnl
@@ -176,7 +180,7 @@ if test "x$with_pthread" != "xno"; then
 			PTHREAD_LIBS="$PTHREAD_LIBS -pthread"
 		fi
 
-		LIBS="$PTHREAD_LIBS $LIBS"
+		LIBS_PRIVATE="$PTHREAD_LIBS $LIBS_PRIVATE"
 		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 		INCLUDES="$INCLUDES $PTHREAD_CFLAGS"
 		CC="$PTHREAD_CC"
@@ -202,7 +206,7 @@ AC_CHECK_LIB(z, inflateEnd, [have_zlib=yes], [have_zlib=no])
 AC_CHECK_HEADER(zlib.h, [have_zlib_h=yes], [have_zlib_h=no])
 
 if test "x$have_zlib" = "xyes" -a "x$have_zlib_h" = "xyes"; then
-	LIBS="$LIBS -lz"
+	LIBS_PRIVATE="$LIBS_PRIVATE -lz"
 	AC_DEFINE(HAVE_ZLIB, 1, [define if you have zlib])
 	AC_DEFINE([GG_CONFIG_HAVE_ZLIB], [], [Defined if libgadu was compiled and linked with zlib support.])
 fi
@@ -226,9 +230,10 @@ if test "x$with_gnutls" != "xno"; then
 			AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
 			AC_MSG_RESULT([yes])
 			AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
-			REQUIRES="$REQUIRES gnutls"
+			REQUIRES_PRIVATE="$REQUIRES_PRIVATE gnutls"
 			CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-			INCLUDES="$INCLUDES $GNUTLS_CFLAGS"
+			# Note: not adding to LIBS_PRIVATE, because
+			# "REQUIRES_PRIVATE" takes care of that for pkg-config.
 			LIBS="$LIBS $GNUTLS_LIBS"
 			have_gnutls="yes"
 		else
@@ -246,12 +251,18 @@ if test "x$have_gnutls" != "xyes"; then
 fi
 
 if test "x$have_openssl" = "xyes"; then
+	# Note: not adding to LIBS_PUBLIC, because "REQUIRES_PUBLIC" takes care
+	# of that for pkg-config.
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
-	REQUIRES="$REQUIRES openssl"
+	REQUIRES_PUBLIC="$REQUIRES_PUBLIC openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
+
+# We need separate lists of exposed and internally used libs, for the pkgconfig file.
+# We concatenate them here so that libtool can pick them up too.
+LIBS="$LIBS $LIBS_PUBLIC $LIBS_PRIVATE"
 
 dnl
 dnl  Testy
