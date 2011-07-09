@@ -881,8 +881,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		gnutls_global_init();
 		gnutls_certificate_allocate_credentials(&tmp->xcred);
 		gnutls_init(&tmp->session, GNUTLS_CLIENT);
-		gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
-//		gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+		gnutls_set_default_priority(tmp->session);
 		gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
 #elif defined(GG_CONFIG_HAVE_OPENSSL)
 		char buf[1024];
@@ -1116,18 +1115,6 @@ void gg_logoff(struct gg_session *sess)
 		sess->fd = -1;
 	}
 
-#ifdef GG_CONFIG_HAVE_GNUTLS
-	if (sess->ssl != NULL) {
-		gg_session_gnutls_t *tmp;
-
-		tmp = (gg_session_gnutls_t*) sess->ssl;
-		gnutls_deinit(tmp->session);
-		gnutls_certificate_free_credentials(tmp->xcred);
-		gnutls_global_deinit();
-		free(sess->ssl);
-	}
-#endif
-
 	if (sess->send_buf) {
 		free(sess->send_buf);
 		sess->send_buf = NULL;
@@ -1158,6 +1145,18 @@ void gg_free_session(struct gg_session *sess)
 	free(sess->client_version);
 	free(sess->recv_buf);
 	free(sess->header_buf);
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		gg_session_gnutls_t *tmp;
+
+		tmp = (gg_session_gnutls_t*) sess->ssl;
+		gnutls_deinit(tmp->session);
+		gnutls_certificate_free_credentials(tmp->xcred);
+		gnutls_global_deinit();
+		free(sess->ssl);
+	}
+#endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)
