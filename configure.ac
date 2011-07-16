@@ -270,11 +270,13 @@ dnl
 
 AC_SUBST([SUBDIRS_TEST])
 AC_SUBST([OPTIONAL_TESTS_GLIBC])
+AC_SUBST([OPTIONAL_TESTS_GLIBC_GNUTLS])
 AC_SUBST([OPTIONAL_TESTS_PERL])
 AC_SUBST([OPTIONAL_TESTS_VOICE7])
 AC_SUBST([OPTIONAL_TESTS_SEARCH])
 SUBDIRS_TEST=""
 OPTIONAL_TESTS_GLIBC=""
+OPTIONAL_TESTS_GLIBC_GNUTLS=""
 OPTIONAL_TESTS_PERL=""
 OPTIONAL_TESTS_VOICE7=""
 OPTIONAL_TESTS_SEARCH=""
@@ -289,7 +291,17 @@ if test "x$enable_tests" != "xno"; then
 	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
 	dnl 
 
-	AC_CHECK_LIB(c, __connect, [OPTIONAL_TESTS_GLIBC="connect resolver packet"])
+	have_glibc=""
+
+	AC_CHECK_LIB(c, __connect, [have_glibc="yes"])
+	
+	if test "x$have_glibc" = "xyes"; then
+		OPTIONAL_TESTS_GLIBC="resolver packet"
+		
+		if test "x$have_gnutls" = "xyes"; then
+			OPTIONAL_TESTS_GLIBC_GNUTLS="connect"
+		fi
+	fi
 
 	dnl
 	dnl  libgsm i libspeex dla voice7

@@ -17,14 +17,16 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <gnutls/gnutls.h>
+#include <gcrypt.h>
 
 #include <libgadu.h>
 
-#define HOST_LOCAL "127.0.67.67"
+#define HOST_LOCAL "127.0.0.1"
 #define HOST_PROXY "proxy.example.org"
 #define HOST_UNREACHABLE "192.0.2.1"	/* documentation and example class, RFC 3330 */
 
-#define TEST_MAX (3*3*3*3*2*2)
+#define TEST_MAX (3*3*3*3*2*2*2)
 
 typedef enum {
 	PLUG_NONE = 0,
@@ -50,6 +52,7 @@ typedef struct {
 	bool server;
 	bool async_mode;
 	bool proxy_mode;
+	bool ssl_mode;
 
 	bool tried_80;
 	bool tried_443;
@@ -80,7 +83,15 @@ static char *log_buffer;
 /** Local ports */
 static int ports[PORT_COUNT];
 
-test_param_t *get_test_param(void)
+static gnutls_certificate_credentials_t x509_cred;
+static gnutls_dh_params_t dh_params;
+#define DH_BITS 1024
+#define CERT_FILE "connect.pem"
+#define KEY_FILE "connect.pem"
+
+GCRY_THREAD_OPTION_PTHREAD_IMPL;
+
+static test_param_t *get_test_param(void)
 {
 	static test_param_t test;
 
@@ -302,7 +313,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-static int client(test_param_t *test)
+static bool client(test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -320,14 +331,17 @@ static int client(test_param_t *test)
 	if (test->server)
 		glp.server_addr = inet_addr(HOST_LOCAL);
 
+	if (test->ssl_mode)
+		glp.tls = GG_SSL_REQUIRED;
+
 	gs = gg_login(&glp);
 
 	if (gs == NULL)
-		return 0;
+		return false;
 
 	if (!test->async_mode) {
 		gg_free_session(gs);
-		return 1;
+		return true;
 	} else {
 		for (;;) {
 			struct timeval tv;
@@ -353,13 +367,13 @@ static int client(test_param_t *test)
 			if (res == 0 && !gs->soft_timeout) {
 				debug("Hard timeout\n");
 				gg_free_session(gs);
-				return 0;
+				return false;
 			}
 
 			if (res == -1 && errno != EINTR) {
 				debug("select() failed: %s\n", strerror(errno));
 				gg_free_session(gs);
-				return 0;
+				return false;
 			}
 
 			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (res == 0 && gs->soft_timeout)) {
@@ -375,19 +389,19 @@ static int client(test_param_t *test)
 				if (!ge) {
 					debug("gg_watch_fd() failed\n");
 					gg_free_session(gs);
-					return 0;
+					return false;
 				}
 
 				switch (ge->type) {
 					case GG_EVENT_CONN_SUCCESS:
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return 1;
+						return true;
 
 					case GG_EVENT_CONN_FAILED:
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return 0;
+						return false;
 
 					case GG_EVENT_NONE:
 						break;
@@ -396,7 +410,7 @@ static int client(test_param_t *test)
 						debug("Unknown event %d\n", ge->type);
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return 0;
+						return false;
 				}
 
 				gg_event_free(ge);
@@ -405,13 +419,48 @@ static int client(test_param_t *test)
 	}
 }
 
+static bool server_ssl_init(gnutls_session_t *session, int cfd)
+{
+	if (*session != NULL) {
+		gnutls_deinit(*session);
+		*session = NULL;
+	}
+	
+	if (gnutls_init(session, GNUTLS_SERVER) != GNUTLS_E_SUCCESS)
+		goto fail;
+	
+	if (gnutls_set_default_priority(*session) != GNUTLS_E_SUCCESS)
+		goto fail;
+
+	if (gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, x509_cred) != GNUTLS_E_SUCCESS)
+		goto fail;
+
+	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) cfd);
+
+	if (gnutls_handshake(*session) != GNUTLS_E_SUCCESS)
+		goto fail;
+
+	return true;
+
+fail:
+	gnutls_deinit(*session);
+	*session = NULL;
+	return false;
+}
+
+static void server_ssl_deinit(gnutls_session_t *session)
+{
+	gnutls_deinit(*session);
+	*session = NULL;
+}
+
 //static void server(int port_pipe)
 static void* server(void* arg)
 {
 	int port_pipe = (int) arg;
 	int sfds[PORT_COUNT];
 	int cfd = -1;
-	enum { CLIENT_HUB, CLIENT_GG, CLIENT_PROXY } ctype;
+	enum { CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype;
 	time_t started;
 	int i;
 	char buf[4096];
@@ -419,8 +468,10 @@ static void* server(void* arg)
 	const char welcome_packet[] = { 1, 0, 0, 0, 4, 0, 0, 0, 1, 2, 3, 4 };
 	const char login_ok_packet[] = { 3, 0, 0, 0, 0, 0, 0, 0 };
 	const char hub_reply[] = "HTTP/1.0 200 OK\r\n\r\n0 0 " HOST_LOCAL ":8074 " HOST_LOCAL "\r\n";
+	const char hub_ssl_reply[] = "HTTP/1.0 200 OK\r\n\r\n0 0 " HOST_LOCAL ":443 " HOST_LOCAL "\r\n";
 	const char proxy_reply[] = "HTTP/1.0 200 OK\r\n\r\n";
 	const char proxy_error[] = "HTTP/1.0 404 Not Found\r\n\r\n404 Not Found\r\n";
+	gnutls_session_t session = NULL;
 
 	for (i = 0; i < PORT_COUNT; i++) {
 		struct sockaddr_in sin;
@@ -505,6 +556,7 @@ static void* server(void* arg)
 		if (cfd != -1) {
 			if (time(NULL) - started > 5) {
 				debug("Timeout!\n");
+				server_ssl_deinit(&session);
 				close(cfd);
 				cfd = -1;
 				continue;
@@ -513,10 +565,17 @@ static void* server(void* arg)
 
 		if (cfd != -1 && FD_ISSET(cfd, &rd)) {
 			int res;
+			test_param_t *test;
 
-			res = recv(cfd, buf + len, sizeof(buf) - len - 1, 0);
+			test = get_test_param();
+
+			if (ctype == CLIENT_GG_SSL)
+				res = gnutls_record_recv(session, buf + len, sizeof(buf) - len - 1);
+			else
+				res = recv(cfd, buf + len, sizeof(buf) - len - 1, 0);
 
 			if (res < 1) {
+				server_ssl_deinit(&session);
 				close(cfd);
 				cfd = -1;
 				continue;
@@ -528,7 +587,10 @@ static void* server(void* arg)
 			switch (ctype) {
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
-						send(cfd, hub_reply, strlen(hub_reply), 0);
+						if (!test->ssl_mode)
+							send(cfd, hub_reply, strlen(hub_reply), 0);
+						else
+							send(cfd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
 						close(cfd);
 						cfd = -1;
 					}
@@ -539,6 +601,11 @@ static void* server(void* arg)
 						send(cfd, login_ok_packet, sizeof(login_ok_packet), 0);
 					break;
 
+				case CLIENT_GG_SSL:
+					if (len > 8 && len >= get32(buf + 4))
+						gnutls_record_send(session, login_ok_packet, sizeof(login_ok_packet));
+					break;
+
 				case CLIENT_PROXY:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
 						test_param_t *test;
@@ -547,22 +614,40 @@ static void* server(void* arg)
 
 						if (strncmp(buf, "GET http://" GG_APPMSG_HOST, 11 + strlen(GG_APPMSG_HOST)) == 0) {
 							test->tried_80 = 1;
-							if (test->plug_80 == PLUG_NONE)
-								send(cfd, hub_reply, strlen(hub_reply), 0);
-							else
+							if (test->plug_80 == PLUG_NONE) {
+								if (!test->ssl_mode)
+									send(cfd, hub_reply, strlen(hub_reply), 0);
+								else
+									send(cfd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
+							} else
 								send(cfd, proxy_error, strlen(proxy_error), 0);
 							close(cfd);
 							cfd = -1;
 						} else if (strncmp(buf, "CONNECT " HOST_LOCAL ":443 ", 13 + strlen(HOST_LOCAL)) == 0) {
-							get_test_param()->tried_443 = 1;
+							test->tried_443 = 1;
+
 							if (test->plug_443 == PLUG_NONE) {
 								send(cfd, proxy_reply, strlen(proxy_reply), 0);
-								send(cfd, welcome_packet, sizeof(welcome_packet), 0);
+
+								if (test->ssl_mode) {
+									if (!server_ssl_init(&session, cfd)) {
+										debug("Handshake failed");
+										close(cfd);
+										cfd = -1;
+										continue;
+									}
+
+									gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
+
+									ctype = CLIENT_GG_SSL;
+								} else {
+									send(cfd, welcome_packet, sizeof(welcome_packet), 0);
+									ctype = CLIENT_GG;
+								}
 							} else {
 								send(cfd, proxy_error, strlen(proxy_error), 0);
 							}
 							len = 0;
-							ctype = CLIENT_GG;
 						} else {
 							debug("Invalid proxy request");
 							send(cfd, proxy_error, strlen(proxy_error), 0);
@@ -582,7 +667,10 @@ static void* server(void* arg)
 				struct sockaddr_in sin;
 				socklen_t sin_len;
 				int fd;
-					
+				test_param_t *test;
+
+				test = get_test_param();
+
 				fd = accept(sfds[i], (struct sockaddr*) &sin, &sin_len);
 
 				if (cfd != -1) {
@@ -600,13 +688,22 @@ static void* server(void* arg)
 
 				if (i == PORT_80)
 					ctype = CLIENT_HUB;
-				else if (i == PORT_443 || i == PORT_8074)
-					ctype = CLIENT_GG;
-				else if (i == PORT_8080)
-					ctype = CLIENT_PROXY;
+				else if (i == PORT_443 && test->ssl_mode) {
+					ctype = CLIENT_GG_SSL;
 
-				if (ctype == CLIENT_GG)
+					if (!server_ssl_init(&session, cfd)) {
+						debug("Handshake failed");
+						close(cfd);
+						cfd = -1;
+						continue;
+					}
+						
+					gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
+				} else if (i == PORT_443 || i == PORT_8074) {
+					ctype = CLIENT_GG;
 					send(cfd, welcome_packet, sizeof(welcome_packet), 0);
+				} else if (i == PORT_8080)
+					ctype = CLIENT_PROXY;
 			}
 		}
 	}
@@ -691,10 +788,22 @@ static void cleanup(int sig)
 
 int main(int argc, char **argv)
 {
-	int i, test_from = 0, test_to = 0, result[TEST_MAX][2] = { { 0, } };
+	int i, test_from = 0, test_to = 0;
+	bool result[TEST_MAX][2] = { { false, } };
 	int exit_code = 0;
 	int port_pipe[2];
 	pthread_t t;
+
+	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
+
+	gnutls_global_init();
+	gnutls_certificate_allocate_credentials(&x509_cred);
+	gnutls_certificate_set_x509_key_file(x509_cred, CERT_FILE, KEY_FILE, GNUTLS_X509_FMT_PEM);
+
+	gnutls_dh_params_init(&dh_params);
+	gnutls_dh_params_generate2(dh_params, DH_BITS);
+	gnutls_certificate_set_dh_params(x509_cred, dh_params);
 
 	if (argc == 3) {
 		test_from = atoi(argv[1]);
@@ -775,7 +884,8 @@ int main(int argc, char **argv)
 	fflush(log_file);
 
 	for (i = test_from - 1; i < test_to; i++) {
-		int j = i, expect = 0;
+		int j = i;
+		bool expect = false;
 		char *log[2];
 		const char *display;
 		test_param_t *test;
@@ -793,49 +903,50 @@ int main(int argc, char **argv)
 			test->plug_resolver = i / 3 / 3 / 3 % 3;
 			test->server =  i / 3 / 3 / 3 / 3 % 2;
 			test->proxy_mode = i / 3 / 3 / 3 / 3 / 2 % 2;
+			test->ssl_mode = i / 3 / 3 / 3 / 3 / 2 / 2 % 2;
 
 			test->async_mode = j;
 			result[i][j] = client(test);
 
 			/* check for invalid behaviour */
 			if (test->proxy_mode && test->tried_non_8080) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Connected directly when proxy enabled\n");
 			}
 
 			if (!test->proxy_mode && test->tried_8080) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Connected to proxy when proxy disabled\n");
 			}
 
 			if (test->server && !test->proxy_mode && (test->tried_resolver || test->tried_80)) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Used resolver or hub when server provided\n");
 			}
 
-			if (!test->proxy_mode && test->tried_443 && !test->tried_8074) {
-				result[i][j] = 0;
+			if (!test->proxy_mode && !test->ssl_mode && test->tried_443 && !test->tried_8074) {
+				result[i][j] = false;
 				debug("Didn't try 8074 although tried 443\n");
 			}
 
 			if (!test->server && test->plug_resolver == PLUG_NONE && !test->tried_80) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Didn't use hub\n");
 			}
 
 			if (test->server && (!test->proxy_mode || test->plug_resolver == PLUG_NONE) && !test->tried_8074 && !test->tried_443) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Didn't try connecting directly\n");
 			}
 
 			if ((test->server || (test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE)) && test->plug_8074 != PLUG_NONE && !test->tried_443) {
-				result[i][j] = 0;
+				result[i][j] = false;
 				debug("Didn't try 443\n");
 			}
 
-			if (test->proxy_mode && test->tried_8074) {
-				result[i][j] = 0;
-				debug("Tried 8074 in proxy mode\n");
+			if ((test->proxy_mode || test->ssl_mode) && test->tried_8074) {
+				result[i][j] = false;
+				debug("Tried 8074 in proxy or SSL mode\n");
 			}
 
 			log[j] = log_buffer;
@@ -844,11 +955,11 @@ int main(int argc, char **argv)
 
 		if (!test->proxy_mode) {
 			if ((test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE) || test->server)
-				if (test->plug_8074 == PLUG_NONE || test->plug_443 == PLUG_NONE)
-					expect = 1;
+				if ((!test->ssl_mode && test->plug_8074 == PLUG_NONE) || test->plug_443 == PLUG_NONE)
+					expect = true;
 		} else {
 			if (test->plug_resolver == PLUG_NONE && test->plug_8080 == PLUG_NONE && (test->plug_80 == PLUG_NONE || test->server) && test->plug_443 == PLUG_NONE)
-				expect = 1;
+				expect = true;
 		}
 
 		if (result[i][0] == result[i][1] && result[i][0] == expect) {
@@ -895,7 +1006,9 @@ int main(int argc, char **argv)
 	pthread_cancel(t);
 	pthread_join(t, NULL);
 
-	cleanup(0);
+	gnutls_certificate_free_credentials(x509_cred);
+	gnutls_dh_params_deinit(dh_params);
+	gnutls_global_deinit();
 
 	return exit_code;
 }
