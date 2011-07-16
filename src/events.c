@@ -227,28 +227,34 @@ static int gg_session_init_ssl(struct gg_session *gs)
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gg_session_gnutls_t *tmp;
 
-	tmp = malloc(sizeof(gg_session_gnutls_t));
+	tmp = (gg_session_gnutls_t*) gs->ssl;
 
 	if (tmp == NULL) {
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() out of memory for GnuTLS session\n");
-		return -1;
+		tmp = malloc(sizeof(gg_session_gnutls_t));
+
+		if (tmp == NULL) {
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() out of memory for GnuTLS session\n");
+			return -1;
+		}
+
+		memset(tmp, 0, sizeof(gg_session_gnutls_t));
+
+		gs->ssl = tmp;
+
+		gnutls_global_init();
+		gnutls_certificate_allocate_credentials(&tmp->xcred);
+	} else {
+		gnutls_deinit(tmp->session);
 	}
 
-	gs->ssl = tmp;
-
-	gnutls_global_init();
-	gnutls_certificate_allocate_credentials(&tmp->xcred);
 	gnutls_init(&tmp->session, GNUTLS_CLIENT);
-	gnutls_priority_set_direct(tmp->session, "NORMAL:-VERS-TLS", NULL);
-//	gnutls_priority_set_direct(tmp->session, "NONE:+VERS-SSL3.0:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL", NULL);
+	gnutls_set_default_priority(tmp->session);
 	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
 	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) gs->fd);
 #endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	char buf[1024];
-	SSL_CTX *ctx;
-	SSL *ssl;
 
 	OpenSSL_add_ssl_algorithms();
 
@@ -266,27 +272,30 @@ static int gg_session_init_ssl(struct gg_session *gs)
 		RAND_seed((void *) &rstruct, sizeof(rstruct));
 	}
 
-	ctx = SSL_CTX_new(SSLv3_client_method());
+	if (gs->ssl_ctx != NULL) {
+		gs->ssl_ctx = SSL_CTX_new(SSLv3_client_method());
 
-	if (ctx == NULL) {
+		if (gs->ssl_ctx == NULL) {
+			ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+			gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+			return -1;
+		}
+
+		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
+	}
+
+	if (gs->ssl != NULL)
+		SSL_free(gs->ssl);
+
+	gs->ssl = SSL_new(ctx);
+
+	if (gs->ssl == NULL) {
 		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
 		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
 		return -1;
 	}
 
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
-
-	ssl = SSL_new(ctx);
-
-	if (ssl == NULL) {
-		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
-		return -1;
-	}
-
-	SSL_set_fd(ssl, gs->fd);
-
-	gs->ssl = ssl;
+	SSL_set_fd(gs->ssl, gs->fd);
 #endif
 
 	return 0;
@@ -668,7 +677,7 @@ static gg_action_t gg_handle_connecting_gg(struct gg_session *sess, struct gg_ev
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connected\n");
 
-	if (sess->ssl != NULL) {
+	if (sess->ssl_flag != GG_SSL_DISABLED) {
 		if (gg_session_init_ssl(sess) == -1) {
 			e->event.failure = GG_FAILURE_TLS;
 			return GG_ACTION_FAIL;
@@ -716,7 +725,7 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess, struct gg_event *
 
 	auth = gg_proxy_auth();
 
-	if (sess->ssl != NULL) {
+	if (sess->ssl_flag != GG_SSL_DISABLED) {
 		req = gg_saprintf
 			("GET %s/appsvc/appmsg_ver10.asp?fmnumber=%u&fmt=2&lastmsg=%d&version=%s&age=2&gender=1 HTTP/1.0\r\n"
 			"Connection: close\r\n"
@@ -1022,8 +1031,8 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 			continue;
 		}
 
-		if (res != 0) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS handshake error %d\n", res);
+		if (res != GNUTLS_E_SUCCESS) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS handshake error: %d, %s\n", res, gnutls_strerror(res));
 			e->event.failure = GG_FAILURE_TLS;
 			return GG_ACTION_FAIL;
 		}
@@ -1044,14 +1053,14 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 		const gnutls_datum_t *peers;
 		gnutls_x509_crt_t cert;
 
-		if (gnutls_x509_crt_init(&cert) >= 0) {
+		if (gnutls_x509_crt_init(&cert) == 0) {
 			peers = gnutls_certificate_get_peers(GG_SESSION_GNUTLS(sess), &peer_count);
 
 			if (peers != NULL) {
 				char buf[256];
 				size_t size;
 
-				if (gnutls_x509_crt_import(cert, &peers[0], GNUTLS_X509_FMT_DER) >= 0) {
+				if (gnutls_x509_crt_import(cert, &peers[0], GNUTLS_X509_FMT_DER) == 0) {
 					size = sizeof(buf);
 					gnutls_x509_crt_get_dn(cert, buf, &size);
 					gg_debug_session(sess, GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
@@ -1060,6 +1069,8 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 					gg_debug_session(sess, GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
 				}
 			}
+
+			gnutls_x509_crt_deinit(cert);
 		}
 	}
 
@@ -1229,7 +1240,7 @@ static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess, struct gg
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
 
-	if (sess->ssl != NULL) {
+	if (sess->ssl_flag != GG_SSL_DISABLED) {
 		if (gg_session_init_ssl(sess) == -1) {
 			e->event.failure = GG_FAILURE_TLS;
 			return GG_ACTION_FAIL;
@@ -1242,6 +1253,10 @@ static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess, struct gg
 			e->event.failure = GG_FAILURE_TLS;
 			return GG_ACTION_FAIL;
 		}
+
+		free(sess->recv_buf);
+		sess->recv_buf = NULL;
+		sess->recv_done = 0;
 
 		sess->state = alt_state;
 		sess->check = GG_CHECK_WRITE;

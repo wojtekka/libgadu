@@ -851,6 +851,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			errno = ENOSYS;
 			goto fail;
 		}
+#else
+		sess->ssl_flag = p->tls;
 #endif
 	}
 
@@ -879,19 +881,22 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		if (gg_proxy_enabled) {
 			sess->resolver_host = gg_proxy_host;
 			sess->proxy_port = gg_proxy_port;
-			if (gg_proxy_enabled) {
-				if (sess->port == 0)
-					sess->connect_port[0] = GG_HTTPS_PORT;
-				else
-					sess->connect_port[0] = sess->port;
-				sess->connect_port[1] = 0;
-			}
+			if (sess->port == 0)
+				sess->connect_port[0] = GG_HTTPS_PORT;
+			else
+				sess->connect_port[0] = sess->port;
+			sess->connect_port[1] = 0;
 			sess->state = (sess->async) ? GG_STATE_RESOLVE_PROXY_GG_ASYNC : GG_STATE_RESOLVE_PROXY_GG_SYNC;
 		} else {
 			sess->resolver_host = sess->connect_host;
 			if (sess->port == 0) {
-				sess->connect_port[0] = GG_DEFAULT_PORT;
-				sess->connect_port[1] = GG_HTTPS_PORT;
+				if (sess->ssl_flag == GG_SSL_DISABLED) {
+					sess->connect_port[0] = GG_DEFAULT_PORT;
+					sess->connect_port[1] = GG_HTTPS_PORT;
+				} else {
+					sess->connect_port[0] = GG_HTTPS_PORT;
+					sess->connect_port[1] = 0;
+				}
 			} else {
 				sess->connect_port[0] = sess->port;
 				sess->connect_port[1] = 0;
@@ -1020,18 +1025,6 @@ void gg_logoff(struct gg_session *sess)
 		sess->fd = -1;
 	}
 
-#ifdef GG_CONFIG_HAVE_GNUTLS
-	if (sess->ssl != NULL) {
-		gg_session_gnutls_t *tmp;
-
-		tmp = (gg_session_gnutls_t*) sess->ssl;
-		gnutls_deinit(tmp->session);
-		gnutls_certificate_free_credentials(tmp->xcred);
-		gnutls_global_deinit();
-		free(sess->ssl);
-	}
-#endif
-
 	if (sess->send_buf) {
 		free(sess->send_buf);
 		sess->send_buf = NULL;
@@ -1066,6 +1059,18 @@ void gg_free_session(struct gg_session *sess)
 	free(sess->client_version);
 	free(sess->header_buf);
 	free(sess->recv_buf);
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	if (sess->ssl != NULL) {
+		gg_session_gnutls_t *tmp;
+
+		tmp = (gg_session_gnutls_t*) sess->ssl;
+		gnutls_deinit(tmp->session);
+		gnutls_certificate_free_credentials(tmp->xcred);
+		gnutls_global_deinit();
+		free(sess->ssl);
+	}
+#endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	if (sess->ssl)

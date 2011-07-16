@@ -54,10 +54,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
-#ifdef GG_CONFIG_HAVE_OPENSSL
-#  include <openssl/err.h>
-#  include <openssl/rand.h>
-#endif
 
 /**
  * \internal Struktura opisująca funkcję obsługi pakietu.
