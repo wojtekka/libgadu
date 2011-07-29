@@ -533,7 +533,7 @@ void *gg_recv_packet(struct gg_session *sess)
 
 		if (res == -1 && errno == EAGAIN) {
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet() resource temporarily unavailable\n");
-			goto fail;
+			goto eagain;
 		}
 
 		if (res == -1) {
@@ -590,6 +590,7 @@ fail:
 	sess->recv_buf = NULL;
 	sess->recv_done = 0;
 
+eagain:
 	return NULL;
 }
 
