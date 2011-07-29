@@ -7,11 +7,13 @@
 enum {
 	EXPECT_NOTHING = 0,
 	EXPECT_PACKET,
-	EXPECT_ERROR
+	EXPECT_ERROR,
+	EXPECT_EAGAIN,
 };
 
 int state;
 int offset;
+int expected_packet;
 
 struct {
 	const char *data;
@@ -58,10 +60,10 @@ struct {
 	{ "\x00\x00\x00\x00", 4, EXPECT_PACKET, 7, 0, "" },
 
 	{ "\x08\x00\x00\x00", 4 },
-	{ "", -EAGAIN },
+	{ "", -EAGAIN, EXPECT_EAGAIN },
 	{ "\x04\x00\x00\x00", 4 },
 	{ "", -EINTR },
-	{ "", -EAGAIN },
+	{ "", -EAGAIN, EXPECT_EAGAIN },
 	{ "1234", 4, EXPECT_PACKET, 8, 4, "1234" },
 
 	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8, EXPECT_ERROR },
@@ -87,6 +89,9 @@ ssize_t read(int fd, char *buf, size_t len)
 		errno = EINVAL;
 		return -1;
 	}
+
+	if (input[state].expect == EXPECT_PACKET)
+		expected_packet = 1;
 
 	result = input[state].result;
 
@@ -136,11 +141,18 @@ int main(void)
 	for (state = 0; state < sizeof(input) / sizeof(input[0]); ) {
 		struct gg_header *gh;
 
+		expected_packet = 0;
+
 		gh = gg_recv_packet(&gs);
 
 		if (gh == NULL) {
+			if (expected_packet) {
+				fprintf(stderr, "Returned nothing, expected packet\n");
+				return 1;
+			}
+
 			if (errno == EAGAIN) {
-				if (input[state-1].expect != EXPECT_NOTHING) {
+				if (input[state-1].expect != EXPECT_EAGAIN) {
 					fprintf(stderr, "Returned no event, expected something\n");
 					return 1;
 				}
