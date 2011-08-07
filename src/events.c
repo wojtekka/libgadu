@@ -55,6 +55,7 @@
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #  include <openssl/err.h>
 #  include <openssl/x509.h>
+#  include <openssl/rand.h>
 #endif
 
 /**
@@ -287,7 +288,7 @@ static int gg_session_init_ssl(struct gg_session *gs)
 	if (gs->ssl != NULL)
 		SSL_free(gs->ssl);
 
-	gs->ssl = SSL_new(ctx);
+	gs->ssl = SSL_new(gs->ssl_ctx);
 
 	if (gs->ssl == NULL) {
 		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
