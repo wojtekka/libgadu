@@ -186,11 +186,15 @@ char *gg_get_line(char **ptr)
  * Funkcja czyta tekst znak po znaku, więc nie jest efektywna, ale dzięki
  * brakowi buforowania, nie koliduje z innymi funkcjami odczytu.
  *
+ * \note W przypadku zakończenia połączenia przez drugą stronę, ostatnia
+ * linia nie jest zwracana.
+ *
  * \param sock Deskryptor gniazda
  * \param buf Wskaźnik do bufora
  * \param length Długość bufora
  *
- * \return Zwraca \c buf jeśli się powiodło, lub \c NULL w przypadku błędu.
+ * \return Zwraca wskaźnik na koniec odebranej linii jeśli się powiodło,
+ * lub \c NULL w przypadku błędu.
  */
 char *gg_read_line(int sock, char *buf, int length)
 {
