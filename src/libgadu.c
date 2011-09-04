@@ -1457,7 +1457,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			formatlen = 9;
 		}
 
-               len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
+		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
 
 		html_msg = malloc(len + 1);
 
@@ -1466,7 +1466,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-               gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
+		gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);

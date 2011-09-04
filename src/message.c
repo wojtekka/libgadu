@@ -292,14 +292,14 @@ const char *gg_message_get_html(gg_message_t *gm)
 
 		free(gm->html_converted);
 
-               len = gg_message_text_to_html(NULL, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
+		len = gg_message_text_to_html(NULL, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
 
 		gm->html_converted = malloc(len + 1);
 
 		if (gm->html_converted == NULL)
 			return NULL;
 
-               gg_message_text_to_html(gm->html_converted, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
+		gg_message_text_to_html(gm->html_converted, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
 
 		return gm->html_converted;
 	}
@@ -531,7 +531,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 
 		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
 
-               if (encoding != GG_ENCODING_UTF8 || (src[i] & 0xc0) != 0xc0)
+		if (encoding != GG_ENCODING_UTF8 || (src[i] & 0xc0) != 0xc0)
 			char_pos++;
 
 		if (src[i] == 0)

@@ -138,7 +138,7 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 	xmlDocPtr doc;
 #endif
 
-       len = gg_message_text_to_html(NULL, input, GG_ENCODING_UTF8, attr, attr_len);
+	len = gg_message_text_to_html(NULL, input, GG_ENCODING_UTF8, attr, attr_len);
 
 	result = malloc(len + 1);
 
@@ -147,7 +147,7 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 		exit(1);
 	}
 
-       gg_message_text_to_html(result, input, GG_ENCODING_UTF8, attr, attr_len);
+	gg_message_text_to_html(result, input, GG_ENCODING_UTF8, attr, attr_len);
 
 	printf("text: \"%s\"", input);
 	if (attr != NULL) {
