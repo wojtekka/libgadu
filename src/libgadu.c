@@ -1475,7 +1475,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	}
 
 	if (recipients_count > 1) {
-		r.flag = 0x01;
+		r.flag = GG_MSG_OPTION_CONFERENCE;
 		r.count = gg_fix32(recipients_count - 1);
 
 		recps = malloc(sizeof(uin_t) * recipients_count);
@@ -1613,7 +1613,7 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
 	s.seq = gg_fix32(0);
 	s.msgclass = gg_fix32(GG_CLASS_MSG);
 
-	r.flag = 0x04;
+	r.flag = GG_MSG_OPTION_IMAGE_REQUEST;
 	r.size = gg_fix32(size);
 	r.crc32 = gg_fix32(crc32);
 
@@ -1712,7 +1712,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	buf[0] = 0;
 	r = (void*) &buf[1];
 
-	r->flag = 0x05;
+	r->flag = GG_MSG_OPTION_IMAGE_REPLY;
 	r->size = gg_fix32(size);
 	r->crc32 = gg_fix32(gg_crc32(0, (const unsigned char*) image, size));
 
@@ -1723,7 +1723,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 		buflen = sizeof(struct gg_msg_image_reply) + 1;
 
 		/* w pierwszym kawałku jest nazwa pliku */
-		if (r->flag == 0x05) {
+		if (r->flag == GG_MSG_OPTION_IMAGE_REPLY) {
 			strcpy(buf + buflen, filename);
 			buflen += strlen(filename) + 1;
 		}
@@ -1739,7 +1739,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 		if (res == -1)
 			break;
 
-		r->flag = 0x06;
+		r->flag = GG_MSG_OPTION_IMAGE_REPLY_MORE;
 	}
 
 	return res;
