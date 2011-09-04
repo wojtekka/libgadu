@@ -392,36 +392,25 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	const char img_fmt[] = "<img name=\"%02x%02x%02x%02x%02x%02x%02x%02x\">";
 	const size_t img_len = 29;
 	size_t char_pos = 0;
-	size_t format_idx = 0;
 	unsigned char old_attr = 0;
 	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
+	int in_span = 0;
 	unsigned int i;
-	size_t len;
+	size_t len = 0;
 	const unsigned char *format_ = (const unsigned char*) format;
-
-	len = 0;
-
-	/* Nie mamy atrybutów dla pierwsze znaku, a tekst nie jest pusty, więc
-	 * tak czy inaczej trzeba otworzyć <span>. */
-
-	if (src[0] != 0 && (format_idx + 3 > format_len || (format_[format_idx] | (format_[format_idx + 1] << 8)) != 0)) {
-		if (dst != NULL)
-			sprintf(&dst[len], span_fmt, 0, 0, 0);
-
-		len += span_len;
-	}
 
 	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
 	 * na końcu tekstu. */
 
 	for (i = 0; ; i++) {
 		int in_char = 0;
+		size_t format_idx = 0;
 
 		/* Sprawdź, czy bajt jest kontynuacją znaku UTF-8. */
 		if (encoding == GG_ENCODING_UTF8 && (src[i] & 0xc0) == 0x80)
 			in_char = 1;
 
-		/* Analizuj atrybuty tak długo jak dotyczą aktualnego znaku. */
+		/* Analizuj wszystkie atrybuty dotyczące aktualnego znaku. */
 		for (;;) {
 			unsigned char attr;
 			size_t attr_pos;
@@ -434,10 +423,6 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				break;
 
 			attr_pos = format_[format_idx] | (format_[format_idx + 1] << 8);
-
-			if (attr_pos != char_pos)
-				break;
-
 			attr = format_[format_idx + 2];
 
 			/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
@@ -447,19 +432,28 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 
 			format_idx += 3;
 
+			if (attr_pos != char_pos) {
+				if ((attr & GG_FONT_COLOR) != 0)
+					format_idx += 3;
+				if ((attr & GG_FONT_IMAGE) != 0)
+					format_idx += 10;
+
+				continue;
+			}
+
+			if ((old_attr & GG_FONT_UNDERLINE) != 0)
+				gg_append(dst, &len, "</u>", 4);
+
+			if ((old_attr & GG_FONT_ITALIC) != 0)
+				gg_append(dst, &len, "</i>", 4);
+
+			if ((old_attr & GG_FONT_BOLD) != 0)
+				gg_append(dst, &len, "</b>", 4);
+
 			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
-				if (char_pos != 0) {
-					if ((old_attr & GG_FONT_UNDERLINE) != 0)
-						gg_append(dst, &len, "</u>", 4);
-
-					if ((old_attr & GG_FONT_ITALIC) != 0)
-						gg_append(dst, &len, "</i>", 4);
-
-					if ((old_attr & GG_FONT_BOLD) != 0)
-						gg_append(dst, &len, "</b>", 4);
-
-					if (src[i] != 0)
-						gg_append(dst, &len, "</span>", 7);
+				if (in_span) {
+					gg_append(dst, &len, "</span>", 7);
+					in_span = 0;
 				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
@@ -472,12 +466,10 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				if (src[i] != 0) {
 					if (dst != NULL)
 						sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+
 					len += span_len;
+					in_span = 1;
 				}
-			} else if (char_pos == 0 && src[0] != 0) {
-				if (dst != NULL)
-					sprintf(&dst[len], span_fmt, 0, 0, 0);
-				len += span_len;
 			}
 
 			if ((attr & GG_FONT_BOLD) != 0)
@@ -509,6 +501,20 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 			old_attr = attr;
 		}
 
+		if (src[i] == 0)
+			break;
+
+		/* Jesteśmy na początku tekstu i choć nie było atrybutów dla pierwszego
+		* znaku, ponieważ tekst nie jest pusty, trzeba otworzyć <span>. */
+
+		if (!in_span) {
+			if (dst != NULL)
+				sprintf(&dst[len], span_fmt, 0, 0, 0);
+
+			len += span_len;
+			in_span = 1;
+		}
+
 		/* Doklej znak zachowując htmlowe escapowanie. */
 
 		switch (src[i]) {
@@ -531,16 +537,12 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				gg_append(dst, &len, "<br>", 4);
 				break;
 			case '\r':
-			case 0:
 				break;
 			default:
 				if (dst != NULL)
 					dst[len] = src[i];
 				len++;
 		}
-
-		if (src[i] == 0)
-			break;
 
 		if (!in_char)
 			char_pos++;
@@ -557,7 +559,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	if ((old_attr & GG_FONT_BOLD) != 0)
 		gg_append(dst, &len, "</b>", 4);
 
-	if (src[0] != 0)
+	if (in_span)
 		gg_append(dst, &len, "</span>", 7);
 
 	if (dst != NULL)
@@ -669,4 +671,3 @@ size_t gg_message_html_to_text(char *dst, const char *html)
 	
 	return len;
 }
-

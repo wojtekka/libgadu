@@ -24,13 +24,19 @@ const struct test_data text_to_html[] =
 	{ "<bzdura>\n\"ala&ma'kota\"", SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;") },
 
 	/* Obrazek na początku tekstu */
-	{ "test", SPAN("<img name=\"8877665544332211\">test"), "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ "test", "<img name=\"8877665544332211\">" SPAN("test"), "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
 	/* Obrazek na końcu tekstu */
 	{ "test", SPAN("test<img name=\"8877665544332211\">"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
 	/* Obrazek w środku tekstu */
 	{ "testtest", SPAN("test<img name=\"8877665544332211\">test"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Obrazek w środku tekstu, tekst na końcu formatowany, atrybuty w zwykłej kolejności */
+	{ "testtest foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x09\x00\x01", 16 },
+
+	/* Obrazek w środku tekstu, tekst na końcu formatowany, atrybuty obrazka na końcu, czyli tak jak wysyła oryginalny klient */
+	{ "testtest foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), "\x09\x00\x01\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 16 },
 
 	/* Obrazek poza tekstem */
 	{ "test", SPAN("test"), "\x05\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
