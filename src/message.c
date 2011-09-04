@@ -818,7 +818,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						}
 					}
 				}
-			} else if (strncmp(tag, "</span ", 7) == 0) {
+			} else if (strncmp(tag, "</span", 6) == 0) {
 				/* Można by trzymać kolory na stosie i tutaj przywracać poprzedni, ale to raczej zbędne */
 
 				attr_flag &= ~GG_FONT_COLOR;

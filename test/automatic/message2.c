@@ -192,6 +192,9 @@ const struct test_data html_to_text[] =
 	/* Kolorowy tekst na końcu */
 	{ SPAN("foobar") SPAN_COLOR("123456", "baz"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x06\x00\x08\x12\x34\x56", 12 },
 
+	/* Różne kolory, do tego pogrubienie */
+	{ SPAN("<b><span style=\"color:#ff0000;\">red, bold; </span>no color, bold; <span style=\"color:#0000ff;\">blue, bold; </span></b>no color"), "red, bold; no color, bold; blue, bold; no color", GG_ENCODING_UTF8, "\x00\x00\x09\xff\x00\x00\x0b\x00\x01\x1b\x00\x09\x00\x00\xff\x27\x00\x00", 18 },
+
 	/* Atrybut "w środku" znaku unikodowego */
 	{ SPAN("<b>ż</b><i>ółć</i>"), "żółć", GG_ENCODING_UTF8, "\x00\x00\x09\x00\x00\x00\x01\x00\x0a\x00\x00\x00", 12 },
 
