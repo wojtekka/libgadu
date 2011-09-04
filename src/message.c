@@ -608,7 +608,7 @@ static void gg_after_append_formatted_char(uint16_t *pos, unsigned char attr_fla
 	if ((attr_flag & GG_FONT_COLOR) != 0)
 		has_color = 1;
 
-	if (*old_attr_flag != attr_flag || (has_color && memcmp(old_color, color, color_size != 0))) {
+	if (*old_attr_flag != attr_flag || (has_color && memcmp(old_color, color, color_size) != 0)) {
 		size_t attr_size = sizeof(*pos) + sizeof(attr_flag) + (has_color ? color_size : 0);
 
 		if (*format != NULL) {
