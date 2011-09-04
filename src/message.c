@@ -393,7 +393,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	const size_t img_len = 29;
 	size_t char_pos = 0;
 	unsigned char old_attr = 0;
-	const unsigned char *color = (const unsigned char*) "\x00\x00\x00";
+	const unsigned char default_color[] = {'\x00', '\x00', '\x00'};
 	int in_span = 0;
 	unsigned int i;
 	size_t len = 0;
@@ -451,6 +451,8 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				gg_append(dst, &len, "</b>", 4);
 
 			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
+				const unsigned char *color;
+
 				if (in_span) {
 					gg_append(dst, &len, "</span>", 7);
 					in_span = 0;
@@ -460,7 +462,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 					color = &format_[format_idx];
 					format_idx += 3;
 				} else {
-					color = (const unsigned char*) "\x00\x00\x00";
+					color = default_color;
 				}
 
 				if (src[i] != 0) {
@@ -509,7 +511,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 
 		if (!in_span) {
 			if (dst != NULL)
-				sprintf(&dst[len], span_fmt, 0, 0, 0);
+				sprintf(&dst[len], span_fmt, default_color[0], default_color[1], default_color[2]);
 
 			len += span_len;
 			in_span = 1;
