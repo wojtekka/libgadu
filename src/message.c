@@ -415,10 +415,20 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	 * na końcu tekstu. */
 
 	for (i = 0; ; i++) {
+		int in_char = 0;
+
+		/* Sprawdź, czy bajt jest kontynuacją znaku UTF-8. */
+		if (encoding == GG_ENCODING_UTF8 && (src[i] & 0xc0) == 0x80)
+			in_char = 1;
+
 		/* Analizuj atrybuty tak długo jak dotyczą aktualnego znaku. */
 		for (;;) {
 			unsigned char attr;
 			size_t attr_pos;
+
+			/* Nie wstawiamy niczego wewnątrz wielobajtowego znaku UTF-8. */
+			if (in_char)
+				break;
 
 			if (format_idx + 3 > format_len)
 				break;
@@ -529,13 +539,11 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				len++;
 		}
 
-		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
-
-		if (encoding != GG_ENCODING_UTF8 || (src[i] & 0xc0) != 0xc0)
-			char_pos++;
-
 		if (src[i] == 0)
 			break;
+
+		if (!in_char)
+			char_pos++;
 	}
 
 	/* Zamknij tagi. */
