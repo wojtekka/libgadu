@@ -127,31 +127,79 @@ const struct test_data text_to_html[] =
 const struct test_data html_to_text[] =
 {
 	/* Typowa wiadomość */
-	{ SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), "<bzdura>\n\"ala&ma'kota\"" },
+	{ SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), "<bzdura>\n\"ala&ma'kota\"", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00", 6 },
 
 	/* Niepoprawny tag */
-	{ "<<<test>>>", ">>" },
+	{ "<<<test>>>", ">>", GG_ENCODING_UTF8 },
 
 	/* Tagi do wycięcia */
-	{ "<foo>bar</baz>", "bar" },
+	{ "<foo>bar</baz>", "bar", GG_ENCODING_UTF8 },
 
 	/* Poprawne encje */
-	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xc2\xa0>" },
+	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xc2\xa0>", GG_ENCODING_UTF8 },
 
 	/* Niepoprawne encje */
-	{ "test&test;test&#123;test&#xabc;test", "test?test?test?test" },
+	{ "test&test;test&#123;test&#xabc;test", "test?test?test?test", GG_ENCODING_UTF8 },
 
 	/* Różne warianty <br> */
-	{ "a<br>b<br/>c<br />d", "a\nb\nc\nd" },
+	{ "a<br>b<br/>c<br />d", "a\nb\nc\nd", GG_ENCODING_UTF8 },
 
 	/* Niepoprawne tagi */
-	{ "<foo&bar;baz><foo\"bar><foo<bar>", "" },
+	{ "<foo&bar;baz><foo\"bar><foo<bar>", "", GG_ENCODING_UTF8 },
 
 	/* Niedokończona encja */
-	{ "http://test/foo?ala=1&ma=2&kota=3", "http://test/foo?ala=1&ma=2&kota=3" },
+	{ "http://test/foo?ala=1&ma=2&kota=3", "http://test/foo?ala=1&ma=2&kota=3", GG_ENCODING_UTF8 },
+
+	/* Obrazek na początku tekstu, przed <span> */
+	{ "<img name=\"8877665544332211\">" SPAN("test"), "\xc2\xa0test", GG_ENCODING_UTF8, "\x01\x00\x08\x00\x00\x00\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
+
+	/* Obrazek na początku tekstu, wewnątrz <span> */
+	{ SPAN("<img name=\"8877665544332211\">test"), "\xc2\xa0test", GG_ENCODING_UTF8, "\x01\x00\x08\x00\x00\x00\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
+
+	/* Obrazek na końcu tekstu */
+	{ SPAN("test<img name=\"8877665544332211\">"), "test\xc2\xa0", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
+
+	/* Obrazek w środku tekstu, tekst na końcu formatowany */
+	{ SPAN("test<img name=\"8877665544332211\">test <b>foo</b>"), "test\xc2\xa0test foo", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
+
+	/* Bez tekstu, tylko obrazek */
+	{ "<img name=\"8877665544332211\">", "\xc2\xa0", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Bez tekstu, dwa obrazki */
+	{ "<img name=\"8877665544332211\"><img name=\"1122334455667788\">", "\xc2\xa0\xc2\xa0", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+
+	/* Atrybuty na początku, w środku i na końcu tekstu */
+	{ SPAN("<b>foo</b><i>bar</i><u>baz</u>"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x09\x00\x00\x00\x03\x00\x0a\x00\x00\x00\x06\x00\x0c\x00\x00\x00", 18 },
+
+	/* Mieszane atrybuty */
+	{ SPAN("<b><i>foo</i></b><b><u>bar</u></b><i><u>baz</u></i>"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x0b\x00\x00\x00\x03\x00\x0d\x00\x00\x00\x06\x00\x0e\x00\x00\x00", 18 },
+
+	/* Mieszane atrybuty, udziwnione i nie do końca poprawne */
+	{ SPAN("</i><b><i>foo</i><b><b><u>bar</u></b></b></b><i><u>baz</u></i>"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x0b\x00\x00\x00\x03\x00\x0d\x00\x00\x00\x06\x00\x0e\x00\x00\x00", 18 },
+
+	/* Wszystkie atrybuty */
+	{ SPAN("<b><i><u>test</u></i></b>"), "test", GG_ENCODING_UTF8, "\x00\x00\x0f\x00\x00\x00", 6 },
+
+	/* Kolorowy tekst */
+	{ SPAN_COLOR("123456", "test"), "test", GG_ENCODING_UTF8, "\x00\x00\x08\x12\x34\x56", 6 },
+
+	/* Kolorowy tekst na początku */
+	{ SPAN_COLOR("123456", "foo") SPAN("barbaz"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x08\x12\x34\x56\x03\x00\x08\x00\x00\x00", 12 },
+
+	/* Kolorowy tekst w środku */
+	{ SPAN("foo") SPAN_COLOR("123456", "bar") SPAN("baz"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x03\x00\x08\x12\x34\x56\x06\x00\x08\x00\x00\x00", 18 },
+
+	/* Kolorowy tekst na końcu */
+	{ SPAN("foobar") SPAN_COLOR("123456", "baz"), "foobarbaz", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x06\x00\x08\x12\x34\x56", 12 },
+
+	/* Atrybut "w środku" znaku unikodowego */
+	{ SPAN("<b>ż</b><i>ółć</i>"), "żółć", GG_ENCODING_UTF8, "\x00\x00\x09\x00\x00\x00\x01\x00\x0a\x00\x00\x00", 12 },
+
+	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl>, tym razem z drugiej strony */
+	{ SPAN("test<b>bolda</b>test"), "testboldatest", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x09\x00\x00\x00\x09\x00\x08\x00\x00\x00", 18 },
 
 	/* Pusty tekst */
-	{ "", "" },
+	{ "", "", GG_ENCODING_UTF8 },
 };
 
 static void test_text_to_html(const char *input, const unsigned char *attr, size_t attr_len, const char *output, gg_encoding_t encoding)
@@ -258,12 +306,19 @@ static void test_text_to_html(const char *input, const unsigned char *attr, size
 	free(result);
 }
 
-static void test_html_to_text(const char *input, const char *output, const char *attr, size_t attr_len)
+static void test_html_to_text(const char *input, const char *output, const unsigned char *attr, size_t attr_len, gg_encoding_t encoding)
 {
 	char *result;
-	size_t len;
+	unsigned char *formats;
+	size_t len, fmt_len, fmt_len2, i;
+	int formats_match = 0;
 
-	len = gg_message_html_to_text(NULL, NULL, NULL, input);
+	if (encoding != GG_ENCODING_UTF8) {
+		printf("non-utf8 encoding argument, not supported\n");
+		exit(1);
+	}
+
+	len = gg_message_html_to_text(NULL, NULL, &fmt_len, input);
 
 	result = malloc(len + 1);
 
@@ -272,19 +327,57 @@ static void test_html_to_text(const char *input, const char *output, const char 
 		exit(1);
 	}
 
-	gg_message_html_to_text(result, NULL, NULL, input);
+	formats = malloc(fmt_len);
+
+	if (formats == NULL) {
+		perror("gg_message_html_to_text");
+		free(result);
+		exit(1);
+	}
+
+	gg_message_html_to_text(result, formats, &fmt_len2, input);
+
+	if (fmt_len2 != fmt_len) {
+		printf("different format_length computed, first: %lu, second: %lu\n", (long unsigned int) fmt_len, (long unsigned int) fmt_len2);
+		free(result);
+		free(formats);
+		exit(1);
+	}
 
 	printf("html: \"%s\"\n", input);
 	printf("output: \"%s\"\n", result);
 
-	if (strcmp(result, output) == 0) {
-		printf("correct\n\n");
-		free(result);
-	} else {
+	if (strcmp(result, output) != 0) {
 		printf("expected: \"%s\"\n", output);
 		free(result);
+		free(formats);
 		exit(1);
 	}
+
+	printf("format attributes:");
+	for (i = 0; i < fmt_len; i++)
+		printf(" %02x", (unsigned int) formats[i]);
+	printf("\n");
+
+	if (attr_len == fmt_len) {
+		if (memcmp(attr, formats, fmt_len) == 0)
+			formats_match = 1;
+	}
+
+	if (!formats_match) {
+		/* Zachowaj tę samą długość, co "format attributes" */
+		printf("expected	 :");
+		for (i = 0; i < attr_len; i++)
+			printf(" %02x", (unsigned int) attr[i]);
+		printf("\n");
+		free(result);
+		free(formats);
+		exit(1);
+	}
+
+	printf("correct\n\n");
+	free(result);
+	free(formats);
 }
 
 int main(int argc, char **argv)
@@ -295,7 +388,7 @@ int main(int argc, char **argv)
 		test_text_to_html(text_to_html[i].src, (const unsigned char*) text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst, text_to_html[i].encoding);
 
 	for (i = 0; i < sizeof(html_to_text) / sizeof(html_to_text[0]); i++)
-		test_html_to_text(html_to_text[i].src, html_to_text[i].dst, html_to_text[i].attr, html_to_text[i].attr_len);
+		test_html_to_text(html_to_text[i].src, html_to_text[i].dst, (const unsigned char*) html_to_text[i].attr, html_to_text[i].attr_len, html_to_text[i].encoding);
 
 	return 0;
 }
