@@ -292,14 +292,14 @@ const char *gg_message_get_html(gg_message_t *gm)
 
 		free(gm->html_converted);
 
-		len = gg_message_text_to_html(NULL, gm->text, gm->attributes, gm->attributes_length);
+               len = gg_message_text_to_html(NULL, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
 
 		gm->html_converted = malloc(len + 1);
 
 		if (gm->html_converted == NULL)
 			return NULL;
 
-		gg_message_text_to_html(gm->html_converted, gm->text, gm->attributes, gm->attributes_length);
+               gg_message_text_to_html(gm->html_converted, gm->text, GG_ENCODING_UTF8, gm->attributes, gm->attributes_length);
 
 		return gm->html_converted;
 	}
@@ -373,7 +373,8 @@ static void gg_append(char *dst, size_t *pos, const void *src, int len)
  * \internal Zamienia tekst z formatowaniem Gadu-Gadu na HTML.
  *
  * \param dst Bufor wynikowy (może być \c NULL)
- * \param src Tekst źródłowy w UTF-8
+ * \param src Tekst źródłowy
+ * \param encoding Kodowanie tekstu źródłowego oraz wynikowego
  * \param format Atrybuty tekstu źródłowego
  * \param format_len Długość bloku atrybutów tekstu źródłowego
  *
@@ -384,7 +385,7 @@ static void gg_append(char *dst, size_t *pos, const void *src, int len)
  *
  * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-size_t gg_message_text_to_html(char *dst, const char *src, const char *format, size_t format_len)
+size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encoding, const char *format, size_t format_len)
 {
 	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
 	const size_t span_len = 75;
@@ -530,7 +531,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, const char *format, s
 
 		/* Sprawdź, czy bajt nie jest kontynuacją znaku unikodowego. */
 
-		if ((src[i] & 0xc0) != 0xc0)
+               if (encoding != GG_ENCODING_UTF8 || (src[i] & 0xc0) != 0xc0)
 			char_pos++;
 
 		if (src[i] == 0)
