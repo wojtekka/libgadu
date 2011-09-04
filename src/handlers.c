@@ -790,7 +790,6 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 	const struct gg_recv_msg *r = (const struct gg_recv_msg*) packet;
 	const char *payload = packet + sizeof(struct gg_recv_msg);
 	const char *payload_end = packet + length;
-	char *tmp;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %d, %p);\n", packet, length, e);
 
@@ -834,10 +833,9 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 
-	tmp = gg_encoding_convert(payload, GG_ENCODING_CP1250, sess->encoding, length, -1);
-	if (tmp == NULL)
+       e->event.msg.message = (unsigned char*) gg_encoding_convert(payload, GG_ENCODING_CP1250, sess->encoding, length, -1);
+       if (e->event.msg.message == NULL)
 		goto fail;
-	e->event.msg.message = (unsigned char*) tmp;
 
 	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
