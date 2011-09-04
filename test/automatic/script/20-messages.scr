@@ -59,8 +59,10 @@ expect event GG_EVENT_MSG (
 	msg.recipients_count == 0
 	msg.recipients == NULL
 
-	msg.formats_length == 0
-	msg.formats == NULL
+	msg.formats_length == 3
+	msg.formats[0] == (char) 0x00
+	msg.formats[1] == (char) 0x00
+	msg.formats[2] == (char) 0x01
 )
 
 expect data (46 00 00 00, auto, 22 22 22 22)
@@ -82,11 +84,10 @@ expect event GG_EVENT_MSG (
 	msg.recipients_count == 0
 	msg.recipients == NULL
 
-	msg.formats_length == 4
-	msg.formats[0] == (char) 0x12
-	msg.formats[1] == (char) 0x34
-	msg.formats[2] == (char) 0x56
-	msg.formats[3] == (char) 0x78
+	msg.formats_length == 3
+	msg.formats[0] == (char) 0x00
+	msg.formats[1] == (char) 0x00
+	msg.formats[2] == (char) 0x01
 )
 
 expect data (46 00 00 00, auto, 22 22 00 22)
@@ -110,8 +111,10 @@ expect event GG_EVENT_MSG (
 	msg.recipients[1] == (int) 2
 	msg.recipients[2] == (int) 3
 
-	msg.formats_length == 0
-	msg.formats == NULL
+	msg.formats_length == 3
+	msg.formats[0] == (char) 0x00
+	msg.formats[1] == (char) 0x00
+	msg.formats[2] == (char) 0x01
 )
 
 expect data (46 00 00 00, auto, xx xx xx xx)
@@ -169,11 +172,10 @@ expect event GG_EVENT_MSG (
 	msg.recipients[1] == (int) 2
 	msg.recipients[2] == (int) 3
 
-	msg.formats_length == 4
-	msg.formats[0] == (char) 0x12
-	msg.formats[1] == (char) 0x34
-	msg.formats[2] == (char) 0x56
-	msg.formats[3] == (char) 0x78
+	msg.formats_length == 3
+	msg.formats[0] == (char) 0x00
+	msg.formats[1] == (char) 0x00
+	msg.formats[2] == (char) 0x01
 )
 
 expect data (46 00 00 00, auto, xx xx xx xx)
