@@ -2,10 +2,10 @@
 
 /*
  *  (C) Copyright 2001-2010 Wojtek Kaniewski <wojtekka@irc.pl>
- *                          Robert J. Woźny <speedy@ziew.org>
- *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
- *                          Tomasz Chiliński <chilek@chilan.com>
- *                          Adam Wysocki <gophi@ekg.chmurka.net>
+ *			  Robert J. Woźny <speedy@ziew.org>
+ *			  Arkadiusz Miśkiewicz <arekm@pld-linux.org>
+ *			  Tomasz Chiliński <chilek@chilan.com>
+ *			  Adam Wysocki <gophi@ekg.chmurka.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -604,7 +604,7 @@ eagain:
  * \param sess Struktura sesji
  * \param type Rodzaj pakietu
  * \param ... Lista kolejnych części pakietu (wskaźnik na bufor i długość
- *            typu \c int) zakończona \c NULL
+ *	    typu \c int) zakończona \c NULL
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
@@ -726,10 +726,10 @@ static int gg_session_callback(struct gg_session *sess)
  *       obsługa SSL nie jest wkompilowana.
  *
  * \param p Struktura opisująca parametry połączenia. Wymagane pola: uin,
- *          password, async.
+ *	  password, async.
  *
  * \return Wskaźnik do zaalokowanej struktury sesji \c gg_session lub NULL
- *         w przypadku błędu.
+ *	 w przypadku błędu.
  *
  * \ingroup login
  */
@@ -1457,7 +1457,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			formatlen = 9;
 		}
 
-		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
+		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format + 3, formatlen - 3);
 
 		html_msg = malloc(len + 1);
 
@@ -1466,7 +1466,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-		gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, (const char*) format + 3, formatlen - 3);
+		gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, format + 3, formatlen - 3);
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);

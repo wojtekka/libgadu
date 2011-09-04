@@ -154,7 +154,7 @@ const struct test_data html_to_text[] =
 	{ "", "" },
 };
 
-static void test_text_to_html(const char *input, const char *attr, size_t attr_len, const char *output, gg_encoding_t encoding)
+static void test_text_to_html(const char *input, const unsigned char *attr, size_t attr_len, const char *output, gg_encoding_t encoding)
 {
 	char *result;
 	size_t len;
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 	int i;
 
 	for (i = 0; i < sizeof(text_to_html) / sizeof(text_to_html[0]); i++)
-		test_text_to_html(text_to_html[i].src, text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst, text_to_html[i].encoding);
+		test_text_to_html(text_to_html[i].src, (const unsigned char*) text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst, text_to_html[i].encoding);
 
 	for (i = 0; i < sizeof(html_to_text) / sizeof(html_to_text[0]); i++)
 		test_html_to_text(html_to_text[i].src, html_to_text[i].dst, html_to_text[i].attr, html_to_text[i].attr_len);

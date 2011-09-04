@@ -385,7 +385,7 @@ static void gg_append(char *dst, size_t *pos, const void *src, int len)
  *
  * \return Długość tekstu wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encoding, const char *format, size_t format_len)
+size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encoding, const unsigned char *format, size_t format_len)
 {
 	const char span_fmt[] = "<span style=\"color:#%02x%02x%02x; font-family:'MS Shell Dlg 2'; font-size:9pt; \">";
 	const size_t span_len = 75;
@@ -398,7 +398,6 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	int in_span = 0;
 	unsigned int i;
 	size_t len = 0;
-	const unsigned char *format_ = (const unsigned char*) format;
 
 	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
 	 * na końcu tekstu. */
@@ -428,8 +427,8 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 			if (format_idx + 3 > format_len)
 				break;
 
-			attr_pos = format_[format_idx] | (format_[format_idx + 1] << 8);
-			attr = format_[format_idx + 2];
+			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
+			attr = format[format_idx + 2];
 
 			/* Nie doklejaj atrybutów na końcu, co najwyżej obrazki. */
 
@@ -460,7 +459,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 				const unsigned char *color;
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
-					color = &format_[format_idx];
+					color = &format[format_idx];
 					format_idx += 3;
 				} else {
 					color = default_color;
@@ -495,14 +494,14 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 			if (((attr & GG_FONT_IMAGE) != 0) && (format_idx + 10 <= format_len)) {
 				if (dst != NULL) {
 					sprintf(&dst[len], img_fmt,
-						format_[format_idx + 9],
-						format_[format_idx + 8], 
-						format_[format_idx + 7],
-						format_[format_idx + 6], 
-						format_[format_idx + 5],
-						format_[format_idx + 4],
-						format_[format_idx + 3],
-						format_[format_idx + 2]);
+						format[format_idx + 9],
+						format[format_idx + 8], 
+						format[format_idx + 7],
+						format[format_idx + 6], 
+						format[format_idx + 5],
+						format[format_idx + 4],
+						format[format_idx + 3],
+						format[format_idx + 2]);
 				}
 
 				len += img_len;
