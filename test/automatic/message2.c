@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "libgadu.h"
 #include "message.h"
 #include "config.h"
 #ifdef HAVE_LIBXML2
@@ -11,6 +12,7 @@ struct test_data
 {
 	const char *src;
 	const char *dst;
+	gg_encoding_t encoding;
 	const char *attr;
 	size_t attr_len;
 };
@@ -21,82 +23,100 @@ struct test_data
 const struct test_data text_to_html[] =
 {
 	/* Typowa wiadomość */
-	{ "<bzdura>\n\"ala&ma'kota\"", SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;") },
+	{ "<bzdura>\n\"ala&ma'kota\"", SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), GG_ENCODING_UTF8 },
 
 	/* Obrazek na początku tekstu */
-	{ "test", "<img name=\"8877665544332211\">" SPAN("test"), "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ " test", "<img name=\"8877665544332211\">" SPAN("test"), GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Obrazek na początku tekstu, dokładnie tak jak wysyła oryginalny klient */
+	{ "\xa0test", "<img name=\"8877665544332211\">" SPAN("test"), GG_ENCODING_CP1250, "\x01\x00\x08\x00\x00\x00\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
 
 	/* Obrazek na końcu tekstu */
-	{ "test", SPAN("test<img name=\"8877665544332211\">"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ "test", SPAN("test<img name=\"8877665544332211\">"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Obrazek na końcu tekstu, dokładnie tak jak wysyła oryginalny klient */
+	{ "test\xa0", SPAN("test<img name=\"8877665544332211\">"), GG_ENCODING_CP1250, "\x00\x00\x08\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
 
 	/* Obrazek w środku tekstu */
-	{ "testtest", SPAN("test<img name=\"8877665544332211\">test"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ "test test", SPAN("test<img name=\"8877665544332211\">test"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
-	/* Obrazek w środku tekstu, tekst na końcu formatowany, atrybuty w zwykłej kolejności */
-	{ "testtest foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x09\x00\x01", 16 },
+	/* Obrazek w środku tekstu, tekst na końcu formatowany */
+	{ "test test foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x0a\x00\x01", 16 },
 
-	/* Obrazek w środku tekstu, tekst na końcu formatowany, atrybuty obrazka na końcu, czyli tak jak wysyła oryginalny klient */
-	{ "testtest foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), "\x09\x00\x01\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 16 },
+	/* Obrazek w środku tekstu, tekst na końcu formatowany, dokładnie tak jak wysyła oryginalny klient */
+	{ "test\xa0test foo", SPAN("test<img name=\"8877665544332211\">") SPAN("test ") SPAN("<b>foo</b>"), GG_ENCODING_CP1250, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
 
 	/* Obrazek poza tekstem */
-	{ "test", SPAN("test"), "\x05\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x05\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
 	/* Bez tekstu, tylko obrazek -- bez <span> */
-	{ "", "<img name=\"8877665544332211\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+	{ "", "<img name=\"8877665544332211\">", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Bez tekstu, tylko obrazek -- bez <span>, przypadek raczej egzotyczny */
+	{ "ż", "<img name=\"8877665544332211\">", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
+
+	/* Bez tekstu, tylko obrazek -- bez <span>, dokładnie tak jak wysyła oryginalny klient */
+	{ "\xa0", "<img name=\"8877665544332211\">", GG_ENCODING_CP1250, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
 	/* Bez tekstu, dwa obrazki -- nadal bez <span> */
-	{ "", "<img name=\"8877665544332211\"><img name=\"1122334455667788\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x00\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+	{ "", "<img name=\"8877665544332211\"><img name=\"1122334455667788\">", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x00\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+
+	/* Bez tekstu, dwa obrazki -- nadal bez <span>, dokładnie tak jak wysyła oryginalny klient */
+	{ "\xa0\xa0", "<img name=\"8877665544332211\"><img name=\"1122334455667788\">", GG_ENCODING_CP1250, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
 
 	/* Bez tekstu, dwa obrazki, w tym jeden poza */
-	{ "", "<img name=\"8877665544332211\">", "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
+	{ "", "<img name=\"8877665544332211\">", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
 
 	/* Atrybuty na początku, w środku i na końcu tekstu */
-	{ "foobarbaz", SPAN("<b>foo</b>") SPAN("<i>bar</i>") SPAN("<u>baz</u>"), "\x00\x00\x01\x03\x00\x02\x06\x00\x04", 9 },
+	{ "foobarbaz", SPAN("<b>foo</b>") SPAN("<i>bar</i>") SPAN("<u>baz</u>"), GG_ENCODING_UTF8, "\x00\x00\x01\x03\x00\x02\x06\x00\x04", 9 },
 
 	/* Mieszane atrybuty */
-	{ "foobarbaz", SPAN("<b><i>foo</i></b>") SPAN("<b><u>bar</u></b>") SPAN("<i><u>baz</u></i>"), "\x00\x00\x03\x03\x00\x05\x06\x00\x06", 9 },
+	{ "foobarbaz", SPAN("<b><i>foo</i></b>") SPAN("<b><u>bar</u></b>") SPAN("<i><u>baz</u></i>"), GG_ENCODING_UTF8, "\x00\x00\x03\x03\x00\x05\x06\x00\x06", 9 },
 
 	/* Wszystkie atrybuty */
-	{ "test", SPAN("<b><i><u>test</u></i></b>"), "\x00\x00\x07", 3 },
+	{ "test", SPAN("<b><i><u>test</u></i></b>"), GG_ENCODING_UTF8, "\x00\x00\x07", 3 },
 
 	/* Zbędne puste atrybuty */
-	{ "test", SPAN("test"), "\x00\x00\x00\x02\x00\x00\x04\x00\x00", 9 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x00\x00\x00\x02\x00\x00\x04\x00\x00", 9 },
 
 	/* Atrybut na końcu tekstu */
-	{ "test", SPAN("test"), "\x04\x00\x01", 3 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x01", 3 },
 
 	/* Atrybut poza tekstem */
-	{ "test", SPAN("test"), "\x05\x00\x01", 3 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x05\x00\x01", 3 },
 
 	/* Kolorowy tekst */
-	{ "test", SPAN_COLOR("123456", "test"), "\x00\x00\x08\x12\x34\x56", 6 },
+	{ "test", SPAN_COLOR("123456", "test"), GG_ENCODING_UTF8, "\x00\x00\x08\x12\x34\x56", 6 },
 
 	/* Kolorowy tekst na początku */
-	{ "foobarbaz", SPAN_COLOR("123456", "foo") SPAN("barbaz"), "\x00\x00\x08\x12\x34\x56\x03\x00\x08\x00\x00\x00", 12 },
+	{ "foobarbaz", SPAN_COLOR("123456", "foo") SPAN("barbaz"), GG_ENCODING_UTF8, "\x00\x00\x08\x12\x34\x56\x03\x00\x08\x00\x00\x00", 12 },
 
 	/* Kolorowy tekst w środku */
-	{ "foobarbaz", SPAN("foo") SPAN_COLOR("123456", "bar") SPAN("baz"), "\x03\x00\x08\x12\x34\x56\x06\x00\x08\x00\x00\x00", 12 },
+	{ "foobarbaz", SPAN("foo") SPAN_COLOR("123456", "bar") SPAN("baz"), GG_ENCODING_UTF8, "\x03\x00\x08\x12\x34\x56\x06\x00\x08\x00\x00\x00", 12 },
 
 	/* Kolorowy tekst na końcu (niezakończony) */
-	{ "foobarbaz", SPAN("foobar") SPAN_COLOR("123456", "baz"), "\x06\x00\x08\x12\x34\x56", 6 },
+	{ "foobarbaz", SPAN("foobar") SPAN_COLOR("123456", "baz"), GG_ENCODING_UTF8, "\x06\x00\x08\x12\x34\x56", 6 },
 
 	/* Kolorowy tekst na końcu (zakończony) */
-	{ "foobarbaz", SPAN("foobar") SPAN_COLOR("123456", "baz"), "\x06\x00\x08\x12\x34\x56\x09\x00\x08\x00\x00\x00", 12 },
+	{ "foobarbaz", SPAN("foobar") SPAN_COLOR("123456", "baz"), GG_ENCODING_UTF8, "\x06\x00\x08\x12\x34\x56\x09\x00\x08\x00\x00\x00", 12 },
 
 	/* Atrybuty mocno poza zakresem */
-	{ "test", SPAN("test"), "\xff\xff\xff", 3 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\xff\xff\xff", 3 },
 
 	/* Niekompletny atrybut obrazka */
-	{ "test", SPAN("test"), "\x04\x00\x80\x09\x01", 5 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01", 5 },
 
 	/* Niekompletny atrybut obrazka */
-	{ "test", SPAN("test"), "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77", 12 },
+	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77", 12 },
 
 	/* Atrybut w środku znaku unikodowego */
-	{ "żółć", SPAN("<b>ż</b>") SPAN("<i>ółć</i>"), "\x00\x00\x01\x01\x00\x02", 6 },
+	{ "żółć", SPAN("<b>ż</b>") SPAN("<i>ółć</i>"), GG_ENCODING_UTF8, "\x00\x00\x01\x01\x00\x02", 6 },
+
+	/* To samo co wyżej, ale kodowanie CP1250 */
+	{ "\xbf\xf4\xb3\xe6", SPAN("<b>\xbf</b>") SPAN("<i>\xf4\xb3\xe6</i>"), GG_ENCODING_CP1250, "\x00\x00\x01\x01\x00\x02", 6 },
 
 	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl> */
-	{ "testboldatest", SPAN("test") SPAN("<b>bolda</b>") SPAN("test"), "\x04\x00\x01\x09\x00\x00", 6 },
+	{ "testboldatest", SPAN("test") SPAN("<b>bolda</b>") SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x01\x09\x00\x00", 6 },
 
 	/* Pusty tekst. Oryginalny klient co prawda nie wysyła pustego tekstu,
 	 * ale przy wiadomości zawierającej jedynie obrazek, nie dokleja tagów
@@ -134,7 +154,7 @@ const struct test_data html_to_text[] =
 	{ "", "" },
 };
 
-static void test_text_to_html(const char *input, const char *attr, size_t attr_len, const char *output)
+static void test_text_to_html(const char *input, const char *attr, size_t attr_len, const char *output, gg_encoding_t encoding)
 {
 	char *result;
 	size_t len;
@@ -144,7 +164,7 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 	xmlDocPtr doc;
 #endif
 
-	len = gg_message_text_to_html(NULL, input, GG_ENCODING_UTF8, attr, attr_len);
+	len = gg_message_text_to_html(NULL, input, encoding, attr, attr_len);
 
 	result = malloc(len + 1);
 
@@ -153,7 +173,7 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 		exit(1);
 	}
 
-	gg_message_text_to_html(result, input, GG_ENCODING_UTF8, attr, attr_len);
+	gg_message_text_to_html(result, input, encoding, attr, attr_len);
 
 	printf("text: \"%s\"", input);
 	if (attr != NULL) {
@@ -175,7 +195,11 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 #ifdef HAVE_LIBXML2
 	// Doklej <html></html>, żeby mieć tag dokumentu.
 
-	tmp = realloc(result, strlen(result) + strlen("<html></html>") + 1);
+	if (encoding == GG_ENCODING_CP1250) {
+		tmp = realloc(result, strlen(result) + strlen("<?xml version=\"1.0\" encoding=\"windows-1250\"?><html></html>") + 1);
+	} else {
+		tmp = realloc(result, strlen(result) + strlen("<html></html>") + 1);
+	}
 
 	if (tmp == NULL) {
 		perror("realloc");
@@ -185,8 +209,13 @@ static void test_text_to_html(const char *input, const char *attr, size_t attr_l
 
 	result = tmp;
 
-	memmove(result + strlen("<html>"), result, strlen(result) + 1);
-	memcpy(result, "<html>", strlen("<html>"));
+	if (encoding == GG_ENCODING_CP1250) {
+		memmove(result + strlen("<?xml version=\"1.0\" encoding=\"windows-1250\"?><html>"), result, strlen(result) + 1);
+		memcpy(result, "<?xml version=\"1.0\" encoding=\"windows-1250\"?><html>", strlen("<?xml version=\"1.0\" encoding=\"windows-1250\"?><html>"));
+	} else {
+		memmove(result + strlen("<html>"), result, strlen(result) + 1);
+		memcpy(result, "<html>", strlen("<html>"));
+	}
 	strcat(result, "</html>");
 
 	// Zamień <br> na <x/>, żeby parser się nie wywalił.
@@ -263,7 +292,7 @@ int main(int argc, char **argv)
 	int i;
 
 	for (i = 0; i < sizeof(text_to_html) / sizeof(text_to_html[0]); i++)
-		test_text_to_html(text_to_html[i].src, text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst);
+		test_text_to_html(text_to_html[i].src, text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst, text_to_html[i].encoding);
 
 	for (i = 0; i < sizeof(html_to_text) / sizeof(html_to_text[0]); i++)
 		test_html_to_text(html_to_text[i].src, html_to_text[i].dst, html_to_text[i].attr, html_to_text[i].attr_len);

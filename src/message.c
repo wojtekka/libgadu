@@ -410,6 +410,11 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 		if (encoding == GG_ENCODING_UTF8 && (src[i] & 0xc0) == 0x80)
 			in_char = 1;
 
+		/* GG_FONT_IMAGE powinno dotyczyć tylko jednego znaku, więc czyścimy stary atrybut */
+
+		if (!in_char && (old_attr & GG_FONT_IMAGE) != 0)
+			old_attr &= ~GG_FONT_IMAGE;
+
 		/* Analizuj wszystkie atrybuty dotyczące aktualnego znaku. */
 		for (;;) {
 			unsigned char attr;
@@ -505,6 +510,15 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 
 		if (src[i] == 0)
 			break;
+
+		/* Znaki oznaczone jako GG_FONT_IMAGE nie są częścią wiadomości. */
+
+		if ((old_attr & GG_FONT_IMAGE) != 0) {
+			if (!in_char)
+				char_pos++;
+
+			continue;
+		}
 
 		/* Jesteśmy na początku tekstu i choć nie było atrybutów dla pierwszego
 		* znaku, ponieważ tekst nie jest pusty, trzeba otworzyć <span>. */
