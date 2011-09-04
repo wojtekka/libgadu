@@ -394,6 +394,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 	size_t char_pos = 0;
 	unsigned char old_attr = 0;
 	const unsigned char default_color[] = {'\x00', '\x00', '\x00'};
+	const unsigned char *old_color = NULL;
 	int in_span = 0;
 	unsigned int i;
 	size_t len = 0;
@@ -455,13 +456,8 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 			if ((old_attr & GG_FONT_BOLD) != 0)
 				gg_append(dst, &len, "</b>", 4);
 
-			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0 || (attr == 0 && old_attr != 0)) {
+			if ((attr & (GG_FONT_BOLD | GG_FONT_ITALIC | GG_FONT_UNDERLINE | GG_FONT_COLOR)) != 0) {
 				const unsigned char *color;
-
-				if (in_span) {
-					gg_append(dst, &len, "</span>", 7);
-					in_span = 0;
-				}
 
 				if (((attr & GG_FONT_COLOR) != 0) && (format_idx + 3 <= format_len)) {
 					color = &format_[format_idx];
@@ -470,12 +466,20 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 					color = default_color;
 				}
 
-				if (src[i] != 0) {
-					if (dst != NULL)
-						sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+				if (old_color == NULL || memcmp(color, old_color, 3) != 0) {
+					if (in_span) {
+						gg_append(dst, &len, "</span>", 7);
+						in_span = 0;
+					}
 
-					len += span_len;
-					in_span = 1;
+					if (src[i] != 0) {
+						if (dst != NULL)
+							sprintf(&dst[len], span_fmt, color[0], color[1], color[2]);
+
+						len += span_len;
+						in_span = 1;
+						old_color = color;
+					}
 				}
 			}
 
@@ -529,6 +533,7 @@ size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encodin
 
 			len += span_len;
 			in_span = 1;
+			old_color = default_color;
 		}
 
 		/* Doklej znak zachowując htmlowe escapowanie. */

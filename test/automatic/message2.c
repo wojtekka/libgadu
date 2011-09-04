@@ -41,10 +41,10 @@ const struct test_data text_to_html[] =
 	{ "test test", SPAN("test<img name=\"8877665544332211\">test"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
 
 	/* Obrazek w środku tekstu, tekst na końcu formatowany */
-	{ "test test foo", SPAN("test<img name=\"8877665544332211\">test ") SPAN("<b>foo</b>"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x0a\x00\x01", 16 },
+	{ "test test foo", SPAN("test<img name=\"8877665544332211\">test <b>foo</b>"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x0a\x00\x01", 16 },
 
 	/* Obrazek w środku tekstu, tekst na końcu formatowany, dokładnie tak jak wysyła oryginalny klient */
-	{ "test\xa0test foo", SPAN("test<img name=\"8877665544332211\">") SPAN("test ") SPAN("<b>foo</b>"), GG_ENCODING_CP1250, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
+	{ "test\xa0test foo", SPAN("test<img name=\"8877665544332211\">test <b>foo</b>"), GG_ENCODING_CP1250, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
 
 	/* Obrazek poza tekstem */
 	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x05\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
@@ -68,10 +68,10 @@ const struct test_data text_to_html[] =
 	{ "", "<img name=\"8877665544332211\">", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88\x01\x00\x80\x09\x01\x88\x77\x66\x55\x44\x33\x22\x11", 26 },
 
 	/* Atrybuty na początku, w środku i na końcu tekstu */
-	{ "foobarbaz", SPAN("<b>foo</b>") SPAN("<i>bar</i>") SPAN("<u>baz</u>"), GG_ENCODING_UTF8, "\x00\x00\x01\x03\x00\x02\x06\x00\x04", 9 },
+	{ "foobarbaz", SPAN("<b>foo</b><i>bar</i><u>baz</u>"), GG_ENCODING_UTF8, "\x00\x00\x01\x03\x00\x02\x06\x00\x04", 9 },
 
 	/* Mieszane atrybuty */
-	{ "foobarbaz", SPAN("<b><i>foo</i></b>") SPAN("<b><u>bar</u></b>") SPAN("<i><u>baz</u></i>"), GG_ENCODING_UTF8, "\x00\x00\x03\x03\x00\x05\x06\x00\x06", 9 },
+	{ "foobarbaz", SPAN("<b><i>foo</i></b><b><u>bar</u></b><i><u>baz</u></i>"), GG_ENCODING_UTF8, "\x00\x00\x03\x03\x00\x05\x06\x00\x06", 9 },
 
 	/* Wszystkie atrybuty */
 	{ "test", SPAN("<b><i><u>test</u></i></b>"), GG_ENCODING_UTF8, "\x00\x00\x07", 3 },
@@ -110,13 +110,13 @@ const struct test_data text_to_html[] =
 	{ "test", SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77", 12 },
 
 	/* Atrybut w środku znaku unikodowego */
-	{ "żółć", SPAN("<b>ż</b>") SPAN("<i>ółć</i>"), GG_ENCODING_UTF8, "\x00\x00\x01\x01\x00\x02", 6 },
+	{ "żółć", SPAN("<b>ż</b><i>ółć</i>"), GG_ENCODING_UTF8, "\x00\x00\x01\x01\x00\x02", 6 },
 
 	/* To samo co wyżej, ale kodowanie CP1250 */
-	{ "\xbf\xf4\xb3\xe6", SPAN("<b>\xbf</b>") SPAN("<i>\xf4\xb3\xe6</i>"), GG_ENCODING_CP1250, "\x00\x00\x01\x01\x00\x02", 6 },
+	{ "\xbf\xf4\xb3\xe6", SPAN("<b>\xbf</b><i>\xf4\xb3\xe6</i>"), GG_ENCODING_CP1250, "\x00\x00\x01\x01\x00\x02", 6 },
 
 	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl> */
-	{ "testboldatest", SPAN("test") SPAN("<b>bolda</b>") SPAN("test"), GG_ENCODING_UTF8, "\x04\x00\x01\x09\x00\x00", 6 },
+	{ "testboldatest", SPAN("test<b>bolda</b>test"), GG_ENCODING_UTF8, "\x04\x00\x01\x09\x00\x00", 6 },
 
 	/* Pusty tekst. Oryginalny klient co prawda nie wysyła pustego tekstu,
 	 * ale przy wiadomości zawierającej jedynie obrazek, nie dokleja tagów
