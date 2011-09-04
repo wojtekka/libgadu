@@ -790,6 +790,7 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 	const struct gg_recv_msg *r = (const struct gg_recv_msg*) packet;
 	const char *payload = packet + sizeof(struct gg_recv_msg);
 	const char *payload_end = packet + length;
+	size_t len;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %d, %p);\n", packet, length, e);
 
@@ -833,17 +834,28 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 	e->event.msg.time = gg_fix32(r->time);
 	e->event.msg.seq = gg_fix32(r->seq);
 
-       e->event.msg.message = (unsigned char*) gg_encoding_convert(payload, GG_ENCODING_CP1250, sess->encoding, length, -1);
-       if (e->event.msg.message == NULL) {
-               gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg() out of memory\n");
+	e->event.msg.message = (unsigned char*) gg_encoding_convert(payload, GG_ENCODING_CP1250, sess->encoding, length, -1);
+	if (e->event.msg.message == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg() out of memory\n");
 		goto fail;
-       }
+	}
+
+	len = gg_message_text_to_html(NULL, (char*) e->event.msg.message, sess->encoding, e->event.msg.formats, e->event.msg.formats_length);
+	e->event.msg.xhtml_message = malloc(len + 1);
+
+	if (e->event.msg.xhtml_message == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg() out of memory\n");
+		goto fail;
+	}
+
+	gg_message_text_to_html(e->event.msg.xhtml_message, (char*) e->event.msg.message, sess->encoding, e->event.msg.formats, e->event.msg.formats_length);
 
 	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
 
 fail:
 	free(e->event.msg.message);
+	free(e->event.msg.xhtml_message);
 	free(e->event.msg.recipients);
 	free(e->event.msg.formats);
 	return -1;
@@ -926,42 +938,53 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	if (sess->encoding == GG_ENCODING_CP1250) {
 		e->event.msg.message = (unsigned char*) strdup(packet + offset_plain);
 
-               if (e->event.msg.message == NULL) {
-                       gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
-                       goto fail;
-               }
+		if (e->event.msg.message == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
+			goto fail;
+		}
 	} else {
 		if (offset_plain > sizeof(struct gg_recv_msg80)) {
-			int len;
+			size_t len;
 
 			len = gg_message_html_to_text(NULL, packet + sizeof(struct gg_recv_msg80));
 			e->event.msg.message = malloc(len + 1);
 
-                       if (e->event.msg.message == NULL) {
-                               gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
+			if (e->event.msg.message == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
 				goto fail;
-                       }
+			}
 
 			gg_message_html_to_text((char*) e->event.msg.message, packet + sizeof(struct gg_recv_msg80));
 		} else {
 			e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
 
-                       if (e->event.msg.message == NULL) {
-                               gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
-                               goto fail;
-                       }
+			if (e->event.msg.message == NULL) {
+				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
+				goto fail;
+			}
 		}
 	}
 
-       if (offset_plain > sizeof(struct gg_recv_msg80)) {
+	if (offset_plain > sizeof(struct gg_recv_msg80)) {
 		e->event.msg.xhtml_message = gg_encoding_convert(packet + sizeof(struct gg_recv_msg80), GG_ENCODING_UTF8, sess->encoding, -1, -1);
 
-               if (e->event.msg.xhtml_message == NULL) {
-                       gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
-                       goto fail;
-               }
-       } else
-		e->event.msg.xhtml_message = NULL;
+		if (e->event.msg.xhtml_message == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
+			goto fail;
+		}
+	} else {
+		size_t len;
+
+		len = gg_message_text_to_html(NULL, (char*) e->event.msg.message, sess->encoding, e->event.msg.formats, e->event.msg.formats_length);
+		e->event.msg.xhtml_message = malloc(len + 1);
+
+		if (e->event.msg.xhtml_message == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_session_handle_recv_msg_80() out of memory\n");
+			goto fail;
+		}
+
+		gg_message_text_to_html(e->event.msg.xhtml_message, (char*) e->event.msg.message, sess->encoding, e->event.msg.formats, e->event.msg.formats_length);
+	}
 
 	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
