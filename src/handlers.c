@@ -1,9 +1,9 @@
 /*
  *  (C) Copyright 2001-2011 Wojtek Kaniewski <wojtekka@irc.pl>
- *                          Robert J. Woźny <speedy@ziew.org>
- *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
- *                          Tomasz Chiliński <chilek@chilan.com>
- *                          Adam Wysocki <gophi@ekg.chmurka.net>
+ *			  Robert J. Woźny <speedy@ziew.org>
+ *			  Arkadiusz Miśkiewicz <arekm@pld-linux.org>
+ *			  Tomasz Chiliński <chilek@chilan.com>
+ *			  Adam Wysocki <gophi@ekg.chmurka.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -946,7 +946,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 		if (offset_plain > sizeof(struct gg_recv_msg80)) {
 			size_t len;
 
-			len = gg_message_html_to_text(NULL, packet + sizeof(struct gg_recv_msg80));
+			len = gg_message_html_to_text(NULL, NULL, NULL, packet + sizeof(struct gg_recv_msg80));
 			e->event.msg.message = malloc(len + 1);
 
 			if (e->event.msg.message == NULL) {
@@ -954,7 +954,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 				goto fail;
 			}
 
-			gg_message_html_to_text((char*) e->event.msg.message, packet + sizeof(struct gg_recv_msg80));
+			gg_message_html_to_text((char*) e->event.msg.message, NULL, NULL, packet + sizeof(struct gg_recv_msg80));
 		} else {
 			e->event.msg.message = (unsigned char*) gg_encoding_convert(packet + offset_plain, GG_ENCODING_CP1250, sess->encoding, -1, -1);
 
@@ -1596,7 +1596,7 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type, con
 
 			attrs[j].value = value;
 
-			gg_debug_session(gs, GG_DEBUG_DUMP, "        key=\"%s\", type=%d, value=\"%s\"\n", key, attr_type, value);
+			gg_debug_session(gs, GG_DEBUG_DUMP, "	key=\"%s\", type=%d, value=\"%s\"\n", key, attr_type, value);
 		}
 	}
 

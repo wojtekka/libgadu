@@ -263,7 +263,7 @@ static void test_html_to_text(const char *input, const char *output, const char 
 	char *result;
 	size_t len;
 
-	len = gg_message_html_to_text(NULL, input);
+	len = gg_message_html_to_text(NULL, NULL, NULL, input);
 
 	result = malloc(len + 1);
 
@@ -272,7 +272,7 @@ static void test_html_to_text(const char *input, const char *output, const char 
 		exit(1);
 	}
 
-	gg_message_html_to_text(result, input);
+	gg_message_html_to_text(result, NULL, NULL, input);
 
 	printf("html: \"%s\"\n", input);
 	printf("output: \"%s\"\n", result);
