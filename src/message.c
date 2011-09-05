@@ -617,10 +617,14 @@ static void gg_after_append_formatted_char(uint16_t *pos, unsigned char attr_fla
 			*format -= imgs_size;
 			memmove(*format + attr_size, *format, imgs_size);
 
-			memcpy(*format, pos, sizeof(*pos));
-			*format += sizeof(*pos);
-			memcpy(*format, &attr_flag, sizeof(attr_flag));
-			*format += sizeof(attr_flag);
+			**format = (unsigned char) (*pos & (uint16_t) 0x00ffU);
+			*format += 1;
+			**format = (unsigned char) ((*pos & (uint16_t) 0xff00U) >> 8);
+			*format += 1;
+
+			**format = attr_flag;
+			*format += 1;
+
 			if (has_color) {
 				memcpy(*format, color, color_size);
 				*format += color_size;
@@ -717,7 +721,8 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						if (format != NULL) {
 							char buf[3] = {};
 
-							memcpy(img_attr, &pos, sizeof(pos));
+							img_attr[0] = (unsigned char) (pos & (uint16_t) 0x00ffU);
+							img_attr[1] = (unsigned char) ((pos & (uint16_t) 0xff00U) >> 8);
 							img_attr[2] = GG_FONT_IMAGE;
 							img_attr[3] = '\x09';
 							img_attr[4] = '\x01';
