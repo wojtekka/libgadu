@@ -848,7 +848,7 @@ struct gg_event_msg {
 	void *formats;		/**< Informacje o formatowaniu tekstu */
 	uint32_t seq;		/**< Numer sekwencyjny wiadomości */
 
-	char *xhtml_message;	/**< Treść wiadomości w formacie XHTML (może być równe \c NULL, jeśli wiadomość nie zawiera treści XHTML) */
+	char *xhtml_message;	/**< Treść wiadomości w formacie XHTML */
 };
 
 /**

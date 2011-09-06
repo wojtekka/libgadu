@@ -220,7 +220,7 @@ static char *gg_encoding_convert_utf8_cp1250(const char *src, int src_length, in
  * \param src Tekst źródłowy.
  * \param src_encoding Kodowanie tekstu źródłowego.
  * \param dst_encoding Kodowanie tekstu docelowego.
- * \param src_length Długość ciągu źródłowego w bajtach (nigdy ujemna).
+ * \param src_length Długość ciągu źródłowego w bajtach (jeśli -1, zostanie obliczona na podstawie zawartości \p src).
  * \param dst_length Długość ciągu docelowego w bajtach (jeśli -1, nieograniczona).
  *
  * \return Zaalokowany bufor z tekstem w kodowaniu docelowym.
