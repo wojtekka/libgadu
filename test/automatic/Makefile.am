@@ -1,6 +1,6 @@
-TESTS = convert message2 message1 $(OPTIONAL_TESTS_GLIBC) $(OPTIONAL_TESTS_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
-check_PROGRAMS = convert message2 message1 $(OPTIONAL_TESTS_GLIBC) $(OPTIONAL_TESTS_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
-EXTRA_PROGRAMS = convert message2 message1 connect packet resolver protocol
+TESTS = convert message2 message1 hash $(OPTIONAL_TESTS_GLIBC) $(OPTIONAL_TESTS_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
+check_PROGRAMS = convert message2 message1 hash $(OPTIONAL_TESTS_GLIBC) $(OPTIONAL_TESTS_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
+EXTRA_PROGRAMS = convert message2 message1 hash connect packet resolver protocol
 
 CFLAGS += -DGG_IGNORE_DEPRECATED
 
@@ -16,6 +16,8 @@ message1_SOURCES = message1.c
 message2_SOURCES = message2.c $(top_builddir)/src/message.c
 message2_LDADD = @LIBXML2_LIBS@
 message2_CFLAGS = @LIBXML2_CFLAGS@
+
+hash_SOURCES = hash.c $(top_builddir)/src/sha1.c $(top_builddir)/src/endian.c
 
 connect_LDADD = $(top_builddir)/src/libgadu.la
 
