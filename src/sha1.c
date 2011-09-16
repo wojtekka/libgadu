@@ -45,7 +45,7 @@
 #define SHA_CTX gcry_md_hd_t
 #define SHA1_Init(ctx) gcry_md_open(ctx, GCRY_MD_SHA1, 0)
 #define SHA1_Update(ctx, ptr, len) gcry_md_write(*ctx, ptr, len)
-#define SHA1_Final(digest, ctx) memcpy(digest, gcry_md_read(*ctx, GCRY_MD_SHA1), 20)
+#define SHA1_Final(digest, ctx) do { memcpy(digest, gcry_md_read(*ctx, GCRY_MD_SHA1), 20); gcry_md_close(*ctx); } while (0)
 
 #else
 
@@ -298,10 +298,10 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 		}
 	}
 
+	SHA1_Final(result, &ctx);
+
 	if (res == -1)
 		return -1;
-
-	SHA1_Final(result, &ctx);
 
 	if (lseek(fd, pos, SEEK_SET) == (off_t) -1)
 		return -1;
