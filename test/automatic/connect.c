@@ -138,7 +138,7 @@ static void failure(void) __attribute__ ((noreturn));
 
 static void failure(void)
 {
-	exit(0);
+	exit(1);
 }
 
 static void debug(const char *fmt, ...)
