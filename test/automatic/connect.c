@@ -103,7 +103,7 @@ static void debug_handler(int level, const char *format, va_list ap)
 	char buf[4096], *tmp;
 	int len = (log_buffer) ? strlen(log_buffer) : 0;
 
-	if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf) - 1) {
+	if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf)) {
 		fprintf(stderr, "Increase temporary log buffer size!\n");
 		return;
 	}
