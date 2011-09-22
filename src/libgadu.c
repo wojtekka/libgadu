@@ -1331,7 +1331,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		return -1;
 	}
 
-	if (message == NULL || recipients_count <= 0 || recipients_count > 0xffff || (recipients_count != 1 && recipients == NULL)) {
+	if (message == NULL || recipients_count <= 0 || recipients_count > 0xffff || recipients == NULL) {
 		errno = EINVAL;
 		return -1;
 	}

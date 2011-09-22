@@ -43,6 +43,16 @@ expect data (2d 00 00 00, auto, 22 22 22 00, xx xx xx xx, 28 00 00 00, 6b 00 00 
 expect data (2d 00 00 00, auto, 33 33 33 00, xx xx xx xx, 28 00 00 00, 6b 00 00 00, 70 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Test</span>" 00, "Test" 00, 01, 02 00 00 00, 11 11 11 00, 22 22 22 00, 02 06 00 00 00 08 00 00 00)
 
 #-----------------------------------------------------------------------------
+# Sending incorrect conference message, triggered segfault in <=1.11.0
+#-----------------------------------------------------------------------------
+
+call {
+	gg_send_message_confer(session, GG_CLASS_CHAT | GG_CLASS_ACK, 1, NULL, (unsigned char*) "Test");
+}
+
+# expect nothing
+
+#-----------------------------------------------------------------------------
 # Receiving regular message
 #-----------------------------------------------------------------------------
 
