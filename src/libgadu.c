@@ -1402,7 +1402,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		r.flag = GG_MSG_OPTION_CONFERENCE;
 		r.count = gg_fix32(recipients_count - 1);
 
-		recps = malloc(sizeof(uin_t) * recipients_count);
+		recps = malloc(sizeof(uin_t) * (recipients_count - 1));
 
 		if (!recps) {
 			seq_no = -1;
@@ -1411,7 +1411,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 		for (i = 0; i < recipients_count; i++) {
 			for (j = 0, k = 0; j < recipients_count; j++) {
-				if (recipients[j] != recipients[i]) {
+				if (j != i) {
 					recps[k] = gg_fix32(recipients[j]);
 					k++;
 				}
