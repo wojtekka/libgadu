@@ -1238,7 +1238,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
 
-	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, NULL, 0);
+	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
 }
 
 /**
@@ -1285,7 +1285,7 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipients_count, recipients, message);
 
-	return gg_send_message_confer_richtext(sess, msgclass, recipients_count, recipients, message, NULL, 0);
+	return gg_send_message_confer_richtext(sess, msgclass, recipients_count, recipients, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
 }
 
 /**
@@ -1310,14 +1310,11 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 {
 	struct gg_send_msg s;
 	struct gg_send_msg80 s80;
-	struct gg_msg_recipients r;
 	const char *cp_msg = NULL;
 	const char *utf_msg = NULL;
 	char *recoded_msg = NULL;
 	char *html_msg = NULL;
 	int seq_no;
-	int i, j, k;
-	uin_t *recps;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
 
@@ -1331,7 +1328,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		return -1;
 	}
 
-	if (message == NULL || recipients_count <= 0 || recipients_count > 0xffff || recipients == NULL) {
+	if (message == NULL || recipients_count <= 0 || recipients_count > 0xffff || recipients == NULL || (format == NULL && formatlen != 0)) {
 		errno = EINVAL;
 		return -1;
 	}
@@ -1360,6 +1357,8 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		s.seq = gg_fix32(seq_no);
 	} else {
 		int len;
+		const unsigned char *format_ = NULL;
+		size_t formatlen_ = 0;
 		
 		/* Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
 		 * wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
@@ -1373,12 +1372,12 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 
 		sess->seq = seq_no;
 
-		if (format == NULL || formatlen < 3) {
-			format = (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00";
-			formatlen = 9;
+		if (format != NULL && formatlen >= 3) {
+			format_ = format + 3;
+			formatlen_ = formatlen - 3;
 		}
 
-		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format + 3, formatlen - 3);
+		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
 
 		html_msg = malloc(len + 1);
 
@@ -1387,7 +1386,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 			goto cleanup;
 		}
 
-		gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, format + 3, formatlen - 3);
+		gg_message_text_to_html(html_msg, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
 
 		s80.seq = gg_fix32(seq_no);
 		s80.msgclass = gg_fix32(msgclass);
@@ -1396,6 +1395,10 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	}
 
 	if (recipients_count > 1) {
+		struct gg_msg_recipients r;
+		int i, j, k;
+		uin_t *recps;
+
 		r.flag = GG_MSG_OPTION_CONFERENCE;
 		r.count = gg_fix32(recipients_count - 1);
 
