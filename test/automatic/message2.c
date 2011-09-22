@@ -135,8 +135,11 @@ const struct test_data html_to_text[] =
 	/* Tagi do wycięcia */
 	{ "<foo>bar</baz>", "bar", GG_ENCODING_UTF8 },
 
-	/* Poprawne encje */
+	/* Poprawne encje, UTF-8 */
 	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xc2\xa0>", GG_ENCODING_UTF8 },
+
+	/* Poprawne encje, CP1250 */
+	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xa0>", GG_ENCODING_CP1250 },
 
 	/* Niepoprawne encje */
 	{ "test&test;test&#123;test&#xabc;test", "test?test?test?test", GG_ENCODING_UTF8 },
@@ -159,8 +162,11 @@ const struct test_data html_to_text[] =
 	/* Obrazek na końcu tekstu */
 	{ SPAN("test<img name=\"8877665544332211\">"), "test\xc2\xa0", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
 
-	/* Obrazek w środku tekstu, tekst na końcu formatowany */
+	/* Obrazek w środku tekstu, tekst na końcu formatowany, UTF-8 */
 	{ SPAN("test<img name=\"8877665544332211\">test <b>foo</b>"), "test\xc2\xa0test foo", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
+
+	/* Obrazek w środku tekstu, tekst na końcu formatowany, CP1250 */
+	{ SPAN("test<img name=\"8877665544332211\">test <b>foo</b>"), "test\xa0test foo", GG_ENCODING_CP1250, "\x00\x00\x08\x00\x00\x00\x05\x00\x08\x00\x00\x00\x0a\x00\x09\x00\x00\x00\x04\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 31 },
 
 	/* Bez tekstu, tylko obrazek */
 	{ "<img name=\"8877665544332211\">", "\xc2\xa0", GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
@@ -197,6 +203,9 @@ const struct test_data html_to_text[] =
 
 	/* Atrybut "w środku" znaku unikodowego */
 	{ SPAN("<b>ż</b><i>ółć</i>"), "żółć", GG_ENCODING_UTF8, "\x00\x00\x09\x00\x00\x00\x01\x00\x0a\x00\x00\x00", 12 },
+
+	/* To co wyżej, ale CP1250 */
+	{ SPAN("<b>\xbf</b><i>\xf4\xb3\xe6</i>"), "\xbf\xf4\xb3\xe6", GG_ENCODING_CP1250, "\x00\x00\x09\x00\x00\x00\x01\x00\x0a\x00\x00\x00", 12 },
 
 	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl>, tym razem z drugiej strony */
 	{ SPAN("test<b>bolda</b>test"), "testboldatest", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x09\x00\x00\x00\x09\x00\x08\x00\x00\x00", 18 },
@@ -316,12 +325,7 @@ static void test_html_to_text(const char *input, const char *output, const unsig
 	size_t len, fmt_len, fmt_len2, i;
 	int formats_match = 0;
 
-	if (encoding != GG_ENCODING_UTF8) {
-		printf("non-utf8 encoding argument, not supported\n");
-		exit(1);
-	}
-
-	len = gg_message_html_to_text(NULL, NULL, &fmt_len, input);
+	len = gg_message_html_to_text(NULL, NULL, &fmt_len, input, encoding);
 
 	result = malloc(len + 1);
 
@@ -338,7 +342,7 @@ static void test_html_to_text(const char *input, const char *output, const unsig
 		exit(1);
 	}
 
-	gg_message_html_to_text(result, formats, &fmt_len2, input);
+	gg_message_html_to_text(result, formats, &fmt_len2, input, encoding);
 
 	if (fmt_len2 != fmt_len) {
 		printf("different format_length computed, first: %lu, second: %lu\n", (long unsigned int) fmt_len, (long unsigned int) fmt_len2);

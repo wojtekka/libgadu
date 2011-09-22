@@ -650,13 +650,14 @@ static void gg_after_append_formatted_char(uint16_t *pos, unsigned char attr_fla
  * \param dst Bufor wynikowy (może być \c NULL)
  * \param format Bufor wynikowy z atrybutami formatowania (może być \c NULL)
  * \param format_len Wskaźnik na zmienną, do której zostanie zapisana potrzebna wielkość bufora wynikowego z atrybutami formatowania, w bajtach (może być \c NULL)
- * \param html Tekst źródłowy w UTF-8
+ * \param html Tekst źródłowy
+ * \param encoding Kodowanie tekstu źródłowego oraz wynikowego
  *
  * \note Dokleja \c \\0 na końcu bufora wynikowego.
  *
  * \return Długość bufora wynikowego bez \c \\0 (nawet jeśli \c dst to \c NULL).
  */
-size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_len, const char *html)
+size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_len, const char *html, gg_encoding_t encoding)
 {
 	const char *src, *entity = NULL, *tag = NULL;
 	int in_tag = 0, in_entity = 0, in_bold = 0, in_italic = 0, in_underline = 0;
@@ -675,7 +676,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 
 			gg_append(dst, &len, entity, append_len);
 			for (i = 0; i < append_len; i++) {
-				if ((entity[i] & 0xc0) != 0x80) {
+				if (encoding != GG_ENCODING_UTF8 || (entity[i] & 0xc0) != 0x80) {
 					if (first) {
 						gg_after_append_formatted_char(&pos, attr_flag, &old_attr_flag, color, old_color, imgs_size, &format, format_len);
 						first = 0;
@@ -742,7 +743,8 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						imgs_size += sizeof(img_attr);
 
 						if (dst != NULL) {
-							dst[len++] = '\xc2';
+							if (encoding == GG_ENCODING_UTF8)
+								dst[len++] = '\xc2';
 							dst[len++] = '\xa0';
 						} else {
 							len += 2;
@@ -858,7 +860,8 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 				else if (strncmp(entity, "&amp;", 5) == 0)
 					dst[len++] = '&';
 				else if (strncmp(entity, "&nbsp;", 6) == 0) {
-					dst[len++] = '\xc2';
+					if (encoding == GG_ENCODING_UTF8)
+						dst[len++] = '\xc2';
 					dst[len++] = '\xa0';
 				} else
 					dst[len++] = '?';
@@ -884,7 +887,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 			dst[len] = *src;
 		len++;
 
-		if ((*src & 0xc0) != 0x80)
+		if (encoding != GG_ENCODING_UTF8 || (*src & 0xc0) != 0x80)
 			gg_after_append_formatted_char(&pos, attr_flag, &old_attr_flag, color, old_color, imgs_size, &format, format_len);
 	}
 
