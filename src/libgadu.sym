@@ -125,8 +125,10 @@ gg_search_request_mode_3
 gg_search_watch_fd
 gg_send_message
 gg_send_message_confer
+gg_send_message_confer_html
 gg_send_message_confer_richtext
 gg_send_message_ctcp
+gg_send_message_html
 gg_send_message_richtext
 gg_send_packet
 gg_session_get_resolver
