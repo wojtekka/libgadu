@@ -1219,77 +1219,10 @@ int gg_change_status_flags(struct gg_session *sess, int flags)
 	return 0;
 }
 
-/**
- * Wysyła wiadomość do użytkownika.
- *
- * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
- * do potwierdzenia.
- *
- * \param sess Struktura sesji
- * \param msgclass Klasa wiadomości
- * \param recipient Numer adresata
- * \param message Treść wiadomości
- *
- * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
- *
- * \ingroup messages
- */
-int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message)
-{
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
-
-	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
-}
+#ifndef DOXYGEN
 
 /**
- * Wysyła wiadomość formatowaną.
- *
- * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
- * do potwierdzenia.
- *
- * \param sess Struktura sesji
- * \param msgclass Klasa wiadomości
- * \param recipient Numer adresata
- * \param message Treść wiadomości
- * \param format Informacje o formatowaniu
- * \param formatlen Długość informacji o formatowaniu
- *
- * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
- *
- * \ingroup messages
- */
-int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
-{
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
-
-	return gg_send_message_confer_richtext(sess, msgclass, 1, &recipient, message, format, formatlen);
-}
-
-/**
- * Wysyła wiadomość w ramach konferencji.
- *
- * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
- * do potwierdzenia.
- *
- * \param sess Struktura sesji
- * \param msgclass Klasa wiadomości
- * \param recipients_count Liczba adresatów
- * \param recipients Wskaźnik do tablicy z numerami adresatów
- * \param message Treść wiadomości
- *
- * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
- *
- * \ingroup messages
- */
-int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
-{
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipients_count, recipients, message);
-
-	return gg_send_message_confer_richtext(sess, msgclass, recipients_count, recipients, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
-}
-
-/**
- * Wysyła wiadomość formatowaną w ramach konferencji.
+ * \internal Wysyła wiadomość.
  *
  * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
  * do potwierdzenia.
@@ -1303,10 +1236,10 @@ int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients
  * \param formatlen Długość informacji o formatowaniu
  *
  * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
- * 
+ *
  * \ingroup messages
  */
-int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
+static int gg_send_message_common(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
 {
 	struct gg_send_msg s;
 	struct gg_send_msg80 s80;
@@ -1316,7 +1249,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 	char *html_msg = NULL;
 	int seq_no;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_common(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
 
 	if (!sess) {
 		errno = EFAULT;
@@ -1359,7 +1292,7 @@ int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int r
 		int len;
 		const unsigned char *format_ = NULL;
 		size_t formatlen_ = 0;
-		
+
 		/* Drobne odchylenie od protokołu. Jeśli wysyłamy kilka
 		 * wiadomości w ciągu jednej sekundy, zwiększamy poprzednią
 		 * wartość, żeby każda wiadomość miała unikalny numer.
@@ -1450,6 +1383,102 @@ cleanup:
 	free(html_msg);
 
 	return seq_no;
+}
+
+#endif /* DOXYGEN */
+
+/**
+ * Wysyła wiadomość do użytkownika.
+ *
+ * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
+ * do potwierdzenia.
+ *
+ * \param sess Struktura sesji
+ * \param msgclass Klasa wiadomości
+ * \param recipient Numer adresata
+ * \param message Treść wiadomości
+ *
+ * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
+ *
+ * \ingroup messages
+ */
+int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, %u, %p)\n", sess, msgclass, recipient, message);
+
+	return gg_send_message_common(sess, msgclass, 1, &recipient, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
+}
+
+/**
+ * Wysyła wiadomość formatowaną.
+ *
+ * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
+ * do potwierdzenia.
+ *
+ * \param sess Struktura sesji
+ * \param msgclass Klasa wiadomości
+ * \param recipient Numer adresata
+ * \param message Treść wiadomości
+ * \param format Informacje o formatowaniu
+ * \param formatlen Długość informacji o formatowaniu
+ *
+ * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
+ *
+ * \ingroup messages
+ */
+int gg_send_message_richtext(struct gg_session *sess, int msgclass, uin_t recipient, const unsigned char *message, const unsigned char *format, int formatlen)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_richtext(%p, %d, %u, %p, %p, %d);\n", sess, msgclass, recipient, message, format, formatlen);
+
+	return gg_send_message_common(sess, msgclass, 1, &recipient, message, format, formatlen);
+}
+
+/**
+ * Wysyła wiadomość w ramach konferencji.
+ *
+ * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
+ * do potwierdzenia.
+ *
+ * \param sess Struktura sesji
+ * \param msgclass Klasa wiadomości
+ * \param recipients_count Liczba adresatów
+ * \param recipients Wskaźnik do tablicy z numerami adresatów
+ * \param message Treść wiadomości
+ *
+ * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
+ *
+ * \ingroup messages
+ */
+int gg_send_message_confer(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer(%p, %d, %d, %p, %p);\n", sess, msgclass, recipients_count, recipients, message);
+
+	return gg_send_message_common(sess, msgclass, recipients_count, recipients, message, (const unsigned char*) "\x02\x06\x00\x00\x00\x08\x00\x00\x00", 9);
+}
+
+/**
+ * Wysyła wiadomość formatowaną w ramach konferencji.
+ *
+ * Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać
+ * do potwierdzenia.
+ *
+ * \param sess Struktura sesji
+ * \param msgclass Klasa wiadomości
+ * \param recipients_count Liczba adresatów
+ * \param recipients Wskaźnik do tablicy z numerami adresatów
+ * \param message Treść wiadomości
+ * \param format Informacje o formatowaniu
+ * \param formatlen Długość informacji o formatowaniu
+ *
+ * \return Numer sekwencyjny wiadomości lub -1 w przypadku błędu.
+ *
+ * \ingroup messages
+ */
+int gg_send_message_confer_richtext(struct gg_session *sess, int msgclass, int recipients_count, uin_t *recipients, const unsigned char *message, const unsigned char *format, int formatlen)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message_confer_richtext(%p, %d, %d, %p, %p, %p, %d);\n", sess, msgclass, recipients_count, recipients, message, format, formatlen);
+
+	return gg_send_message_common(sess, msgclass, recipients_count, recipients, message, format, formatlen);
 }
 
 /**
