@@ -6,7 +6,9 @@ includedir=@includedir@
 Name: libgadu
 Version: @VERSION@
 Description: libgadu
-Requires: @REQUIRES@
-Libs: -L${libdir} -lgadu @LIBS@
+Requires: @REQUIRES_PUBLIC@
+Requires.private: @REQUIRES_PRIVATE@
+Libs: -L${libdir} -lgadu @LIBS_PUBLIC@
+Libs.private: -L${libdir} -lgadu @LIBS_PRIVATE@
 Cflags: -I${includedir} @INCLUDES@
 
