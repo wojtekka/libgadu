@@ -79,6 +79,7 @@ static FILE *log_file;
 
 /** Log buffer */
 static char *log_buffer;
+static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /** Local ports */
 static int ports[PORT_COUNT];
@@ -101,20 +102,27 @@ static test_param_t *get_test_param(void)
 static void debug_handler(int level, const char *format, va_list ap)
 {
 	char buf[4096], *tmp;
-	int len = (log_buffer) ? strlen(log_buffer) : 0;
-
+	int len;
+	
 	if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf)) {
 		fprintf(stderr, "Increase temporary log buffer size!\n");
 		return;
 	}
 
-	if (!(tmp = realloc(log_buffer, len + strlen(buf) + 1))) {
+	pthread_mutex_lock(&log_mutex);
+
+	len = (log_buffer != NULL) ? strlen(log_buffer) : 0;
+
+	tmp = realloc(log_buffer, len + strlen(buf) + 1);
+
+	if (tmp != NULL) {
+		log_buffer = tmp;
+		strcpy(log_buffer + len, buf);
+	} else {
 		fprintf(stderr, "Out of memory for log buffer!\n");
-		return;
 	}
 
-	log_buffer = tmp;
-	strcpy(log_buffer + len, buf);
+	pthread_mutex_unlock(&log_mutex);
 }
 
 static inline void set32(char *ptr, unsigned int value)
@@ -795,6 +803,7 @@ int main(int argc, char **argv)
 	pthread_t t;
 
 	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
+	gcry_check_version(NULL);
 	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
 
 	gnutls_global_init();
