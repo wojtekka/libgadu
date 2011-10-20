@@ -252,10 +252,10 @@ int gg_http_watch_fd(struct gg_http *h)
 	if (h->state == GG_STATE_SENDING_QUERY) {
 		ssize_t res;
 
-		res = write(h->fd, h->query, strlen(h->query));
+		res = send(h->fd, h->query, strlen(h->query), 0);
 
 		if (res == -1) {
-			gg_debug(GG_DEBUG_MISC, "=> http, write() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
+			gg_debug(GG_DEBUG_MISC, "=> http, send() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
 			gg_http_error(GG_ERROR_WRITING);
 		}
 
@@ -283,7 +283,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		char buf[1024], *tmp;
 		int res;
 
-		res = read(h->fd, buf, sizeof(buf));
+		res = recv(h->fd, buf, sizeof(buf), 0);
 
 		if (res == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading header failed (errno=%d)\n", errno);
@@ -395,7 +395,7 @@ int gg_http_watch_fd(struct gg_http *h)
 		char buf[1024];
 		int res;
 
-		res = read(h->fd, buf, sizeof(buf));
+		res = recv(h->fd, buf, sizeof(buf), 0);
 		
 		if (res == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading body failed (errno=%d)\n", errno);

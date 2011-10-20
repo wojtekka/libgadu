@@ -495,13 +495,13 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	packet.type = 0x03; /* XXX */
 	packet.length = gg_fix32(length);
 
-	if (write(d->fd, &packet, sizeof(packet)) < (signed)sizeof(packet)) {
+	if (send(d->fd, &packet, sizeof(packet), 0) < (signed)sizeof(packet)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
 		return -1;
 	}
 	gg_dcc_debug_data("write", d->fd, &packet, sizeof(packet));
 
-	if (write(d->fd, buf, length) < length) {
+	if (send(d->fd, buf, length, 0) < length) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
 		return -1;
 	}
@@ -519,7 +519,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
  */
 #define gg_dcc_read(fd, buf, size) \
 { \
-	int _tmp = read(fd, buf, size); \
+	int _tmp = recv(fd, buf, size, 0); \
 	\
 	if (_tmp < (int) size) { \
 		if (_tmp == -1) { \
@@ -547,7 +547,7 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 { \
 	int write_res; \
 	gg_dcc_debug_data("write", fd, buf, size); \
-	write_res = write(fd, buf, size); \
+	write_res = send(fd, buf, size, 0); \
 	if (write_res < (int) size) { \
 		if (write_res == -1) { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno)); \
@@ -819,7 +819,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_FILE_HEADER:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_FILE_HEADER\n");
 
-				tmp = read(h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+				tmp = recv(h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset, 0);
 
 				if (tmp == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno));
@@ -919,7 +919,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_VOICE_DATA:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_VOICE_DATA\n");
 
-				tmp = read(h->fd, h->voice_buf + h->chunk_offset, h->chunk_size - h->chunk_offset);
+				tmp = recv(h->fd, h->voice_buf + h->chunk_offset, h->chunk_size - h->chunk_offset, 0);
 				if (tmp < 1) {
 					if (tmp == -1) {
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno));
@@ -1186,7 +1186,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					}
 				}
 
-				tmp = write(h->fd, buf, size);
+				tmp = send(h->fd, buf, size, 0);
 
 				if (tmp == -1) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
@@ -1236,7 +1236,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				size = read(h->fd, buf, utmp);
+				size = recv(h->fd, buf, utmp, 0);
 
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, read()=%d\n", h->offset, h->file_info.size, size);
 

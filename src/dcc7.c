@@ -1150,7 +1150,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				struct gg_dcc7_welcome_p2p welcome, welcome_ok;
 				welcome_ok.id = dcc->cid;
 
-				if ((res = read(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+				if ((res = recv(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
 					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -1168,7 +1168,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome_ok.magic = GG_DCC7_WELCOME_SERVER;
 				welcome_ok.id = dcc->cid;
 
-				if ((res = read(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+				if ((res = recv(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
 					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -1206,7 +1206,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 				welcome.id = dcc->cid;
 
-				if ((res = write(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+				if ((res = send(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
 					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -1218,7 +1218,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome.magic = gg_fix32(GG_DCC7_WELCOME_SERVER);
 				welcome.id = dcc->cid;
 
-				if ((res = write(dcc->fd, &welcome, sizeof(welcome))) != sizeof(welcome)) {
+				if ((res = send(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
 					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
@@ -1270,7 +1270,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-			if ((res = write(dcc->fd, buf, res)) == -1) {
+			if ((res = send(dcc->fd, buf, res, 0)) == -1) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_NET;
@@ -1307,7 +1307,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				return e;
 			}
 
-			if ((res = read(dcc->fd, buf, sizeof(buf))) < 1) {
+			if ((res = recv(dcc->fd, buf, sizeof(buf), 0)) < 1) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = (res == -1) ? GG_ERROR_DCC7_NET : GG_ERROR_DCC7_EOF;
@@ -1345,7 +1345,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_RESOLVING_RELAY\n");
 
-			if (read(dcc->fd, &addr, sizeof(addr)) < (int) sizeof(addr) || addr.s_addr == INADDR_NONE) {
+			if (recv(dcc->fd, &addr, sizeof(addr), 0) < (int) sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				int errno_save = errno;
 
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() resolving failed\n");
@@ -1402,7 +1402,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			gg_debug_dcc(dcc, GG_DEBUG_DUMP, "// gg_dcc7_watch_fd() send pkt(0x%.2x)\n", gg_fix32(pkt.magic));
 			gg_debug_dump_dcc(dcc, GG_DEBUG_DUMP, (const char*) &pkt, sizeof(pkt));
 
-			if ((res = write(dcc->fd, &pkt, sizeof(pkt))) != sizeof(pkt)) {
+			if ((res = send(dcc->fd, &pkt, sizeof(pkt), 0)) != sizeof(pkt)) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() sending failed\n");
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_RELAY;
@@ -1426,7 +1426,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_READING_RELAY\n");
 
-			if ((res = read(dcc->fd, buf, sizeof(buf))) < (int) sizeof(*pkt)) {
+			if ((res = recv(dcc->fd, buf, sizeof(buf), 0)) < (int) sizeof(*pkt)) {
 				if (res == 0)
 					errno = ECONNRESET;
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));

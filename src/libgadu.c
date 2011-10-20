@@ -244,7 +244,7 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 #endif
 
 	for (;;) {
-		res = read(sess->fd, buf, length);
+		res = recv(sess->fd, buf, length, 0);
 
 		if (res == -1 && errno == EINTR)
 			continue;
@@ -322,7 +322,7 @@ static int gg_write_common(struct gg_session *sess, const char *buf, int length)
 #endif
 
 	for (;;) {
-		res = write(sess->fd, buf, length);
+		res = send(sess->fd, buf, length, 0);
 
 		if (res == -1 && errno == EINTR)
 			continue;

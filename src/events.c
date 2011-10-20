@@ -317,13 +317,13 @@ static int gg_send_queued_data(struct gg_session *sess)
 		
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() sending %d bytes of queued data\n", sess->send_left);
 
-	res = write(sess->fd, sess->send_buf, sess->send_left);
+	res = send(sess->fd, sess->send_buf, sess->send_left, 0);
 
 	if (res == -1) {
 		if (errno == EAGAIN || errno == EINTR)
 			return 0;
 
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() send() failed (errno=%d, %s)\n", errno, strerror(errno));
 
 		return -1;
 	}
@@ -753,7 +753,7 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess, struct gg_event *
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// sending http query:\n%s", req);
 
-	res = write(sess->fd, req, req_len);
+	res = send(sess->fd, req, req_len, 0);
 
 	free(req);
 	
@@ -802,15 +802,15 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 	struct in_addr addr;
 	int res;
 
-	res = read(sess->fd, buf, sizeof(buf));
+	res = recv(sess->fd, buf, sizeof(buf), 0);
 
 	if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical recv error (errno=%d, %s)\n", errno, strerror(errno));
 		return GG_ACTION_WAIT;
 	}
 
 	if (res == -1) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() recv error (errno=%d, %s)\n", errno, strerror(errno));
 		e->event.failure = GG_FAILURE_CONNECTING;
 		return GG_ACTION_FAIL;
 	}
@@ -982,7 +982,7 @@ static gg_action_t gg_handle_send_proxy_gg(struct gg_session *sess, struct gg_ev
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() proxy request:\n%s", req);
 
-	res = write(sess->fd, req, req_len);
+	res = send(sess->fd, req, req_len, 0);
 
 	free(req);
 
@@ -1162,17 +1162,17 @@ static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess, struct gg
 	int reply;
 	char *body;
 
-	res = read(sess->fd, buf, sizeof(buf));
+	res = recv(sess->fd, buf, sizeof(buf), 0);
 
-	gg_debug_session(sess, GG_DEBUG_MISC, "read() = %d\n", res);
+	gg_debug_session(sess, GG_DEBUG_MISC, "recv() = %d\n", res);
 
 	if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical read error (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical recv error (errno=%d, %s)\n", errno, strerror(errno));
 		return GG_ACTION_WAIT;
 	}
 
 	if (res == -1) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() recv error (errno=%d, %s)\n", errno, strerror(errno));
 		e->event.failure = GG_FAILURE_CONNECTING;
 		return GG_ACTION_FAIL;
 	}

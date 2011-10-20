@@ -1,3 +1,4 @@
+#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -80,12 +81,12 @@ struct {
 	{ "", -ENOTSOCK, EXPECT_ERROR },
 };
 
-ssize_t read(int fd, char *buf, size_t len)
+ssize_t recv(int fd, void *buf, size_t len, int flags)
 {
 	ssize_t result;
 
 	if (fd != 123) {
-		fprintf(stderr, "read: Invalid descriptor\n");
+		fprintf(stderr, "recv: Invalid descriptor\n");
 		errno = EINVAL;
 		return -1;
 	}
