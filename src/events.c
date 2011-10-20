@@ -29,8 +29,7 @@
  * \todo Poprawna obsługa gg_proxy_http_only
  */
 
-#include "compat.h"
-#include <sys/ioctl.h>
+#include "network.h"
 #include <ctype.h>
 
 #include "libgadu.h"
@@ -353,7 +352,7 @@ static int gg_send_queued_data(struct gg_session *sess)
 static int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 {
 	int res = 0;
-	unsigned int res_size = sizeof(res);
+	socklen_t res_size = sizeof(res);
 
 	if (!gs->async)
 		return 0;

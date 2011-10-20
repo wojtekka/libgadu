@@ -26,9 +26,8 @@
  * \brief Obsługa połączeń bezpośrednich do wersji Gadu-Gadu 6.x
  */
 
-#include "compat.h"
+#include "network.h"
 #include <sys/stat.h>
-#include <sys/ioctl.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif

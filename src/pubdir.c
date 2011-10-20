@@ -26,6 +26,7 @@
  * \brief Obsługa katalogu publicznego
  */
 
+#include "network.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -193,7 +194,7 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 		return NULL;
 	}
     
-	__pwd = gg_saprintf("%ld", random());
+	__pwd = gg_saprintf("%d", rand());
 	__fmpwd = gg_urlencode(password);
 	__tokenid = gg_urlencode(tokenid);
 	__tokenval = gg_urlencode(tokenval);

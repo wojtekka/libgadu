@@ -158,6 +158,10 @@ AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);],
 	AC_MSG_RESULT([no])
 ])
 
+AC_CHECK_FUNCS([_Exit], [AC_DEFINE([GG_CONFIG_HAVE__EXIT], [], [Defined if this machine has _Exit().])])
+
+AC_CHECK_FUNCS([fork], [AC_DEFINE([GG_CONFIG_HAVE_FORK], [], [Defined if this machine has fork().])])
+
 AC_ARG_ENABLE(debug, 
 	[  --disable-debug         compile without debugging support])
 

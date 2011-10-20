@@ -24,11 +24,9 @@
  *
  * \brief Funkcje wykorzystywane przez różne moduły biblioteki
  */
+
+#include "network.h"
 #include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif

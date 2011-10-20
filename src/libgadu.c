@@ -28,7 +28,7 @@
  * \brief Główny moduł biblioteki
  */
 
-#include "compat.h"
+#include "network.h"
 #ifdef sun
 #  include <sys/filio.h>
 #endif
@@ -44,7 +44,6 @@
 #include "deflate.h"
 
 #include <errno.h>
-#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -24,13 +24,12 @@
  * \brief Obsługa połączeń HTTP
  */
 
-#include "compat.h"
+#include "network.h"
 #include "libgadu.h"
 #include "resolver.h"
 
 #include <ctype.h>
 #include <errno.h>
-#include <netdb.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -251,7 +250,7 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_SENDING_QUERY) {
-		int res;
+		ssize_t res;
 
 		res = write(h->fd, h->query, strlen(h->query));
 

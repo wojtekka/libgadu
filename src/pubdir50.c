@@ -25,6 +25,7 @@
  * testowa konwersja, żeby poznać długość tekstu wynikowego.
  */
 
+#include "network.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

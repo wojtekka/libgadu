@@ -27,15 +27,12 @@
  */
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <ctype.h>
 #ifdef sun
 #  include <sys/filio.h>
 #endif
 
-#include "compat.h"
+#include "network.h"
 #include "libgadu.h"
 #include "resolver.h"
 #include "session.h"
@@ -46,7 +43,6 @@
 #include "deflate.h"
 
 #include <errno.h>
-#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -20,21 +20,31 @@
  */
 
 /**
- * \file compat.h
+ * \file network.h
  *
  * \brief Makra zapewniające kompatybilność API na różnych systemach
  */
 
-#ifndef __COMPAT_H
-#define __COMPAT_H
+#ifndef LIBGADU_NETWORK_H
+#define LIBGADU_NETWORK_H
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef _WIN32
+#  include <ws2tcpip.h>
+#  include <winsock2.h>
+#  define EINPROGRESS WSAEINPROGRESS
+#  define ETIMEDOUT WSAETIMEDOUT
+#  define ENOTCONN WSAENOTCONN
+#  define ECONNRESET WSAECONNRESET
+#else
+#  include <sys/ioctl.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <arpa/inet.h>
+#  include <netdb.h>
+#endif
 
 #ifdef sun
 #  define INADDR_NONE   ((in_addr_t) 0xffffffff)
 #endif
 
-#endif
+#endif /* LIBGADU_NETWORK_H */
