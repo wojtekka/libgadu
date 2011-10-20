@@ -942,7 +942,6 @@ void gg_logoff(struct gg_session *sess)
 	sess->resolver_cleanup(&sess->resolver, 1);
 
 	if (sess->fd != -1) {
-		shutdown(sess->fd, SHUT_RDWR);
 		close(sess->fd);
 		sess->fd = -1;
 	}
