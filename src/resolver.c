@@ -377,7 +377,7 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 		status = (gg_resolver_run(pipes[1], hostname) == -1) ? 1 : 0;
 
 #ifdef GG_CONFIG_HAVE__EXIT
-		_Exit(status);
+		_exit(status);
 #else
 		exit(status);
 #endif

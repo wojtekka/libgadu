@@ -53,7 +53,7 @@ extern "C" {
 /* Defined if this machine has gethostbyname_r(). */
 #undef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 
-/* Defined if this machine has _Exit(). */
+/* Defined if this machine has _exit(). */
 #undef GG_CONFIG_HAVE__EXIT
 
 /* Defined if libgadu was compiled and linked with fork support. */
