@@ -797,11 +797,13 @@ int gg_global_set_resolver(gg_resolver_t type)
 			gg_global_resolver_cleanup = NULL;
 			return 0;
 
+#ifdef GG_CONFIG_HAVE_FORK
 		case GG_RESOLVER_FORK:
 			gg_global_resolver_type = type;
 			gg_global_resolver_start = gg_resolver_fork_start;
 			gg_global_resolver_cleanup = gg_resolver_fork_cleanup;
 			return 0;
+#endif
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 		case GG_RESOLVER_PTHREAD:

@@ -33,7 +33,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <netdb.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
