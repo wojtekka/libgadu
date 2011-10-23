@@ -247,9 +247,9 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 #if defined(GG_CONFIG_HAVE_PTHREAD) || defined(GG_CONFIG_HAVE_FORK)
 
 /**
- * \internal Rozwiązuje nazwę i zapisuje wynik do podanego desktyptora.
+ * \internal Rozwiązuje nazwę i zapisuje wynik do podanego gniazda.
  *
- * \param fd Deskryptor
+ * \param fd Deskryptor gniazda
  * \param hostname Nazwa serwera
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
@@ -323,13 +323,12 @@ struct gg_resolver_fork_data {
  * \internal Rozwiązuje nazwę serwera w osobnym procesie.
  *
  * Połączenia asynchroniczne nie mogą blokować procesu w trakcie rozwiązywania
- * nazwy serwera. W tym celu tworzony jest potok, nowy proces i dopiero w nim
- * przeprowadzane jest rozwiązywanie nazwy. Deskryptor strony do odczytu 
+ * nazwy serwera. W tym celu tworzona jest para gniazd, nowy proces i dopiero
+ * w nim przeprowadzane jest rozwiązywanie nazwy. Deskryptor gniazda do odczytu 
  * zapisuje się w strukturze sieci i czeka na dane w postaci struktury
  * \c in_addr. Jeśli nie znaleziono nazwy, zwracana jest \c INADDR_NONE.
  *
- * \param fd Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor
- *           potoku
+ * \param fd Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda
  * \param priv_data Wskaźnik na zmienną, gdzie zostanie umieszczony wskaźnik
  *                  do numeru procesu potomnego rozwiązującego nazwę
  * \param hostname Nazwa serwera do rozwiązania
@@ -356,7 +355,7 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 		return -1;
 	}
 
-	if (pipe(pipes) == -1) {
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_fork_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
 		free(data);
 		return -1;
@@ -506,8 +505,7 @@ static void *gg_resolver_pthread_thread(void *arg)
  * że działa na wątkach, nie procesach. Jest dostępna wyłącznie gdy podczas
  * kompilacji włączono odpowiednią opcję.
  *
- * \param fd Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor
- *           potoku
+ * \param fd Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda
  * \param priv_data Wskaźnik na zmienną, gdzie zostanie umieszczony wskaźnik
  *                  do prywatnych danych wątku rozwiązującego nazwę
  * \param hostname Nazwa serwera do rozwiązania
@@ -534,7 +532,7 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 		return -1;
 	}
 
-	if (pipe(pipes) == -1) {
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
 		free(data);
 		return -1;
@@ -652,7 +650,7 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  * \param resolver_cleanup Funkcja zwalniająca zasoby
  *
  * Parametry funkcji rozpoczynającej rozwiązywanie nazwy wyglądają następująco:
- *  - \c "int *fd" &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor potoku
+ *  - \c "int *fd" &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda
  *  - \c "void **priv_data" &mdash; wskaźnik na zmienną, gdzie można umieścić wskaźnik do prywatnych danych na potrzeby rozwiązywania nazwy
  *  - \c "const char *name" &mdash; nazwa serwera do rozwiązania
  *
@@ -661,14 +659,15 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  *  - \c "int force" &mdash; flaga mówiąca o tym, że zasoby są zwalniane przed zakończeniem rozwiązywania nazwy, np. z powodu zamknięcia sesji.
  *
  * Własny kod rozwiązywania nazwy powinien stworzyć potok, parę gniazd lub
- * inny deskryptor pozwalający na co najmniej jednostronną komunikację i 
- * przekazać go w parametrze \c fd. Po zakończeniu rozwiązywania nazwy,
- * powinien wysłać otrzymany adres IP w postaci sieciowej (big-endian) do
- * deskryptora. Jeśli rozwiązywanie nazwy się nie powiedzie, należy wysłać
- * \c INADDR_NONE. Następnie zostanie wywołana funkcja zwalniająca zasoby
- * z parametrem \c force równym \c 0. Gdyby sesja została zakończona przed
- * rozwiązaniem nazwy, np. za pomocą funkcji \c gg_logoff(), funkcja
- * zwalniająca zasoby zostanie wywołana z parametrem \c force równym \c 1.
+ * inny deskryptor pozwalający na co najmniej odbiór danych i przekazać go
+ * w parametrze \c fd. Na platformie Windows możliwe jest przekazanie jedynie
+ * deskryptora gniazda. Po zakończeniu rozwiązywania nazwy powinien wysłać
+ * otrzymany adres IP w postaci sieciowej (big-endian) do deskryptora. Jeśli
+ * rozwiązywanie nazwy się nie powiedzie, należy wysłać \c INADDR_NONE.
+ * Następnie zostanie wywołana funkcja zwalniająca zasoby z parametrem
+ * \c force równym \c 0. Gdyby sesja została zakończona przed rozwiązaniem
+ * nazwy, np. za pomocą funkcji \c gg_logoff(), funkcja zwalniająca zasoby
+ * zostanie wywołana z parametrem \c force równym \c 1.
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */

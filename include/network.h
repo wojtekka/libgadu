@@ -35,6 +35,12 @@
 #  define ETIMEDOUT WSAETIMEDOUT
 #  define ENOTCONN WSAENOTCONN
 #  define ECONNRESET WSAECONNRESET
+#  define ioctl(a, b, c) ioctlsocket(a, b, (u_long *)(c))
+#  define getsockopt(a, b, c, d, e) getsockopt(a, b, c, (char *)(d), e)
+#  define send(a, b, c, d) send(a, (char *)(b), c, d)
+#  define recv(a, b, c, d) recv(a, (char *)(b), c, d)
+#  define socketpair(a, b, c, d) gg_win32_socketpair(d)
+int gg_win32_socketpair(int sv[2]);
 #else
 #  include <sys/ioctl.h>
 #  include <sys/socket.h>
@@ -44,7 +50,7 @@
 #endif
 
 #ifdef sun
-#  define INADDR_NONE   ((in_addr_t) 0xffffffff)
+#  define INADDR_NONE ((in_addr_t) 0xffffffff)
 #endif
 
 #endif /* LIBGADU_NETWORK_H */
