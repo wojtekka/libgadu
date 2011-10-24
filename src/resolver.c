@@ -244,8 +244,6 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 #endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 }
 
-#if defined(GG_CONFIG_HAVE_PTHREAD) || defined(GG_CONFIG_HAVE_FORK)
-
 /**
  * \internal Rozwiązuje nazwę i zapisuje wynik do podanego gniazda.
  *
@@ -284,8 +282,6 @@ static int gg_resolver_run(int fd, const char *hostname)
 
 	return res;
 }
-
-#endif /* GG_CONFIG_HAVE_PTHREAD || GG_CONFIG_HAVE_FORK */
 
 /**
  * \internal Odpowiednik \c gethostbyname zapewniający współbieżność.
@@ -578,6 +574,150 @@ cleanup:
 
 #endif /* GG_CONFIG_HAVE_PTHREAD */
 
+#ifdef _WIN32
+
+/**
+ * \internal Struktura przekazywana do wątku rozwiązującego nazwę.
+ */
+struct gg_resolver_win32_data {
+	DWORD thread;		/*< Identyfikator wątku */
+	char *hostname;		/*< Nazwa serwera */
+	int rfd;		/*< Deskryptor do odczytu */
+	int wfd;		/*< Deskryptor do zapisu */
+};
+
+/**
+ * \internal Wątek rozwiązujący nazwę.
+ *
+ * \param arg Wskaźnik na strukturę \c gg_resolver_win32_data
+ */
+DWORD WINAPI gg_resolver_win32_thread(void *arg)
+{
+	struct gg_resolver_win32_data *data = arg;
+
+	if (gg_resolver_run(data->wfd, data->hostname) == -1)
+		ExitThread(-1);
+	else
+		ExitThread(0);
+
+	return 0;	/* żeby kompilator nie marudził */
+}
+
+/**
+ * \internal Rozwiązuje nazwę serwera w osobnym wątku.
+ *
+ * Funkcja działa analogicznie do \c gg_resolver_pthread_start(), z tą różnicą,
+ * że działa na wątkach Win32. Jest dostępna wyłącznie przy kompilacji dla
+ * systemu Windows.
+ *
+ * \param fd Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda
+ * \param priv_data Wskaźnik na zmienną, gdzie zostanie umieszczony wskaźnik
+ *                  do prywatnych danych wątku rozwiązującego nazwę
+ * \param hostname Nazwa serwera do rozwiązania
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ */
+static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostname)
+{
+	struct gg_resolver_win32_data *data = NULL;
+	int pipes[2], new_errno;
+
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolver_win32_start(%p, %p, \"%s\");\n", fd, priv_data, hostname);
+
+	if (fd == NULL || priv_data == NULL || hostname == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() invalid arguments\n");
+		errno = EFAULT;
+		return -1;
+	}
+
+	data = malloc(sizeof(struct gg_resolver_win32_data));
+
+	if (data == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() out of memory for resolver data\n");
+		return -1;
+	}
+
+	if (socket_pipe(pipes) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		free(data);
+		return -1;
+	}
+
+	data->hostname = strdup(hostname);
+
+	if (data->hostname == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() out of memory\n");
+		new_errno = errno;
+		goto cleanup;
+	}
+
+	data->rfd = pipes[0];
+	data->wfd = pipes[1];
+
+	if (!SUCCEEDED(CreateThread(NULL, 0, gg_resolver_win32_thread, data, 0, &data->thread))) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to create thread\n");
+		new_errno = errno;
+		goto cleanup;
+	}
+
+	gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() %p\n", data);
+
+	*fd = data->rfd;
+	*priv_data = data;
+
+	return 0;
+
+cleanup:
+	if (data) {
+		free(data->hostname);
+		free(data);
+	}
+
+	close(pipes[0]);
+	close(pipes[1]);
+
+	errno = new_errno;
+
+	return -1;
+}
+
+/**
+ * \internal Usuwanie zasobów po wątku rozwiązywaniu nazwy.
+ *
+ * Funkcja wywoływana po zakończeniu rozwiązanywania nazwy lub przy zwalnianiu
+ * zasobów sesji podczas rozwiązywania nazwy.
+ *
+ * \param priv_data Wskaźnik na zmienną przechowującą wskaźnik do prywatnych
+ *                  danych
+ * \param force Flaga usuwania zasobów przed zakończeniem działania
+ */
+static void gg_resolver_win32_cleanup(void **priv_data, int force)
+{
+	struct gg_resolver_win32_data *data;
+
+	if (priv_data == NULL || *priv_data == NULL)
+		return;
+
+	data = (struct gg_resolver_win32_data *) *priv_data;
+	*priv_data = NULL;
+
+	if (force) {
+		TerminateThread((HANDLE)data->thread, 0);
+	}
+
+	free(data->hostname);
+	data->hostname = NULL;
+
+	if (data->wfd != -1) {
+		close(data->wfd);
+		data->wfd = -1;
+	}
+
+	free(data);
+}
+
+#endif /* WIN32 */
+
 /**
  * Ustawia sposób rozwiązywania nazw w sesji.
  *
@@ -598,7 +738,9 @@ int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
 			return 0;
 		}
 
-#if defined(GG_CONFIG_HAVE_PTHREAD) && defined(GG_CONFIG_PTHREAD_DEFAULT)
+#ifdef _WIN32
+		type = GG_RESOLVER_WIN32;
+#elif defined(GG_CONFIG_HAVE_PTHREAD) && defined(GG_CONFIG_PTHREAD_DEFAULT)
 		type = GG_RESOLVER_PTHREAD;
 #elif defined(GG_CONFIG_HAVE_FORK)
 		type = GG_RESOLVER_FORK;
@@ -619,6 +761,14 @@ int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
 			gs->resolver_type = type;
 			gs->resolver_start = gg_resolver_pthread_start;
 			gs->resolver_cleanup = gg_resolver_pthread_cleanup;
+			return 0;
+#endif
+
+#ifdef _WIN32
+		case GG_RESOLVER_WIN32:
+			gs->resolver_type = type;
+			gs->resolver_start = gg_resolver_win32_start;
+			gs->resolver_cleanup = gg_resolver_win32_cleanup;
 			return 0;
 #endif
 
@@ -710,7 +860,9 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type)
 			return 0;
 		}
 
-#if defined(GG_CONFIG_HAVE_PTHREAD) && defined(GG_CONFIG_PTHREAD_DEFAULT)
+#ifdef _WIN32
+		type = GG_RESOLVER_WIN32;
+#elif defined(GG_CONFIG_HAVE_PTHREAD) && defined(GG_CONFIG_PTHREAD_DEFAULT)
 		type = GG_RESOLVER_PTHREAD;
 #elif defined(GG_CONFIG_HAVE_FORK)
 		type = GG_RESOLVER_FORK;
@@ -731,6 +883,14 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type)
 			gh->resolver_type = type;
 			gh->resolver_start = gg_resolver_pthread_start;
 			gh->resolver_cleanup = gg_resolver_pthread_cleanup;
+			return 0;
+#endif
+
+#ifdef _WIN32
+		case GG_RESOLVER_WIN32:
+			gh->resolver_type = type;
+			gh->resolver_start = gg_resolver_win32_start;
+			gh->resolver_cleanup = gg_resolver_win32_cleanup;
 			return 0;
 #endif
 
@@ -809,6 +969,14 @@ int gg_global_set_resolver(gg_resolver_t type)
 			gg_global_resolver_type = type;
 			gg_global_resolver_start = gg_resolver_pthread_start;
 			gg_global_resolver_cleanup = gg_resolver_pthread_cleanup;
+			return 0;
+#endif
+
+#ifdef _WIN32
+		case GG_RESOLVER_WIN32:
+			gg_global_resolver_type = type;
+			gg_global_resolver_start = gg_resolver_win32_start;
+			gg_global_resolver_cleanup = gg_resolver_win32_cleanup;
 			return 0;
 #endif
 
