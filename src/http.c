@@ -201,11 +201,14 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_RESOLVING) {
-		struct in_addr a;
+		struct in_addr addr;
+		int res;
 
 		gg_debug(GG_DEBUG_MISC, "=> http, resolving done\n");
 
-		if (read(h->fd, &a, sizeof(a)) < (signed)sizeof(a) || a.s_addr == INADDR_NONE) {
+		res = gg_resolver_recv(h->fd, &addr, sizeof(addr), h->resolver_type);
+
+		if (res != sizeof(addr) || addr.s_addr == INADDR_NONE) {
 			gg_debug(GG_DEBUG_MISC, "=> http, resolver thread failed\n");
 			gg_http_error(GG_ERROR_RESOLVING);
 		}
@@ -215,9 +218,11 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		h->resolver_cleanup(&h->resolver, 0);
 
-		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(a), h->port);
+		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(addr), h->port);
 
-		if ((h->fd = gg_connect(&a, h->port, h->async)) == -1) {
+		h->fd = gg_connect(&addr, h->port, h->async);
+
+		if (h->fd == -1) {
 			gg_debug(GG_DEBUG_MISC, "=> http, connection failed (errno=%d, %s)\n", errno, strerror(errno));
 			gg_http_error(GG_ERROR_CONNECTING);
 		}

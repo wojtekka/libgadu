@@ -22,5 +22,6 @@
 #include "network.h"
 
 int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigned int *count, int pthread);
+int gg_resolver_recv(int fd, void *buf, size_t len, gg_resolver_t type);
 
 #endif /* LIBGADU_RESOLVER_H */
