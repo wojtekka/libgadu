@@ -580,7 +580,7 @@ cleanup:
  * \internal Struktura przekazywana do wątku rozwiązującego nazwę.
  */
 struct gg_resolver_win32_data {
-	DWORD thread;		/*< Identyfikator wątku */
+	HANDLE thread;		/*< Uchwyt wątku */
 	char *hostname;		/*< Nazwa serwera */
 	int rfd;		/*< Deskryptor do odczytu */
 	int wfd;		/*< Deskryptor do zapisu */
@@ -591,7 +591,7 @@ struct gg_resolver_win32_data {
  *
  * \param arg Wskaźnik na strukturę \c gg_resolver_win32_data
  */
-DWORD WINAPI gg_resolver_win32_thread(void *arg)
+static DWORD WINAPI gg_resolver_win32_thread(void *arg)
 {
 	struct gg_resolver_win32_data *data = arg;
 
@@ -637,7 +637,7 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 		return -1;
 	}
 
-	if (socket_pipe(pipes) == -1) {
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
 		free(data);
 		return -1;
@@ -654,13 +654,14 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 	data->rfd = pipes[0];
 	data->wfd = pipes[1];
 
-	if (!SUCCEEDED(CreateThread(NULL, 0, gg_resolver_win32_thread, data, 0, &data->thread))) {
+	data->thread = CreateThread(NULL, 0, gg_resolver_win32_thread, data, 0, NULL);
+	if (!data->thread) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to create thread\n");
 		new_errno = errno;
 		goto cleanup;
 	}
 
-	gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() %p\n", data);
+	gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() %p\n", data);
 
 	*fd = data->rfd;
 	*priv_data = data;
@@ -701,9 +702,12 @@ static void gg_resolver_win32_cleanup(void **priv_data, int force)
 	data = (struct gg_resolver_win32_data *) *priv_data;
 	*priv_data = NULL;
 
-	if (force) {
-		TerminateThread((HANDLE)data->thread, 0);
+	if (WaitForSingleObject(data->thread, 0) == WAIT_TIMEOUT) {
+		if (force)
+			TerminateThread(data->thread, 0);
 	}
+
+	CloseHandle(data->thread);
 
 	free(data->hostname);
 	data->hostname = NULL;

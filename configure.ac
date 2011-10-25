@@ -376,6 +376,19 @@ else
 	SUBDIRS_DOXYGEN=""
 fi
 
+dnl
+dnl  Egzotyczne systemy operacyjne
+dnl
+case "$host" in
+	*-*-mingw*)
+		MINGW_LDFLAGS="-no-undefined -lws2_32"
+		;;
+	*)
+		MINGW_LDFLAGS=""
+		;;
+esac
+AC_SUBST([MINGW_LDFLAGS])
+
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/automatic/Makefile test/automatic/script/Makefile test/manual/Makefile test/manual/lib/Makefile])
 
 AC_OUTPUT
