@@ -661,7 +661,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 {
 	const char *src, *entity = NULL, *tag = NULL;
 	int in_tag = 0, in_entity = 0, in_bold = 0, in_italic = 0, in_underline = 0;
-	unsigned char color[3] = {}, old_color[3] = {};
+	unsigned char color[3] = { 0 }, old_color[3] = { 0 };
 	unsigned char attr_flag = 0, old_attr_flag = 0;
 	uint16_t pos = 0;
 	size_t len = 0, imgs_size = 0;
@@ -720,7 +720,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						unsigned char img_attr[13];
 
 						if (format != NULL) {
-							char buf[3] = {};
+							char buf[3] = { };
 
 							img_attr[0] = (unsigned char) (pos & (uint16_t) 0x00ffU);
 							img_attr[1] = (unsigned char) ((pos & (uint16_t) 0xff00U) >> 8);
@@ -798,7 +798,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 					if (*tag == '\"' || *tag == '\'' || *tag == ' ') {
 						if (strncmp(tag + 1, "color:#", 7) == 0) {
 							int i, ok = 1;
-							char buf[3] = {};
+							char buf[3] = { 0 };
 
 							tag += 8;
 							if (tag + 6 > src)

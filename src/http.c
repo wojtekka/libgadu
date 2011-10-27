@@ -255,7 +255,7 @@ int gg_http_watch_fd(struct gg_http *h)
 	}
 
 	if (h->state == GG_STATE_SENDING_QUERY) {
-		ssize_t res;
+		int res;
 
 		res = send(h->fd, h->query, strlen(h->query), 0);
 
