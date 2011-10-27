@@ -274,7 +274,7 @@ static int gg_resolver_run(int fd, const char *hostname)
 
 	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run() count = %d\n", addr_count);
 
-	if (write(fd, addr_list, (addr_count + 1) * sizeof(struct in_addr)) != (int)((addr_count + 1) * sizeof(struct in_addr)))
+	if (send(fd, addr_list, (addr_count + 1) * sizeof(struct in_addr), 0) != (int)((addr_count + 1) * sizeof(struct in_addr)))
 		res = -1;
 
 	if (addr_list != addr_ip)
