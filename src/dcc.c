@@ -1326,6 +1326,9 @@ void gg_dcc_free(struct gg_dcc *d)
 	if (d->fd != -1)
 		close(d->fd);
 
+	if (d->file_fd != -1)
+		close(d->file_fd);
+
 	free(d->chunk_buf);
 	free(d);
 }
