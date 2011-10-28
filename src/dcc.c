@@ -496,13 +496,13 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	packet.length = gg_fix32(length);
 
 	if (send(d->fd, &packet, sizeof(packet), 0) < (signed)sizeof(packet)) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() send() failed\n");
 		return -1;
 	}
 	gg_dcc_debug_data("write", d->fd, &packet, sizeof(packet));
 
 	if (send(d->fd, buf, length, 0) < length) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() write() failed\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_voice_send() send() failed\n");
 		return -1;
 	}
 	gg_dcc_debug_data("write", d->fd, buf, length);
@@ -523,11 +523,11 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	\
 	if (_tmp < (int) size) { \
 		if (_tmp == -1) { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno)); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else if (_tmp == 0) { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed, connection broken\n"); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed, connection broken\n"); \
 		} else { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (%d bytes, %d needed)\n", _tmp, size); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed (%d bytes, %d needed)\n", _tmp, size); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
@@ -550,9 +550,9 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 	write_res = send(fd, buf, size, 0); \
 	if (write_res < (int) size) { \
 		if (write_res == -1) { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (errno=%d, %s)\n", errno, strerror(errno)); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() send() failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else { \
-			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%d needed, %d done)\n", size, write_res); \
+			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() send() failed (%d needed, %d done)\n", size, write_res); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
@@ -822,7 +822,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				tmp = recv(h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset, 0);
 
 				if (tmp == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() recv() failed (errno=%d, %s)\n", errno, strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
@@ -922,9 +922,9 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				tmp = recv(h->fd, h->voice_buf + h->chunk_offset, h->chunk_size - h->chunk_offset, 0);
 				if (tmp < 1) {
 					if (tmp == -1) {
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n", errno, strerror(errno));
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed (errno=%d, %s)\n", errno, strerror(errno));
 					} else {
-						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed, connection broken\n");
+						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed, connection broken\n");
 					}
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
@@ -1189,14 +1189,14 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				tmp = send(h->fd, buf, size, 0);
 
 				if (tmp == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (%s)\n", strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() send() failed (%s)\n", strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
 				}
 
 				if (tmp == 0) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() write() failed (connection reset)\n");
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() send() failed (connection reset)\n");
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
@@ -1238,11 +1238,11 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				size = recv(h->fd, buf, utmp, 0);
 
-				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, read()=%d\n", h->offset, h->file_info.size, size);
+				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() ofs=%d, size=%d, recv()=%d\n", h->offset, h->file_info.size, size);
 
 				/* błąd */
 				if (size == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() failed. (errno=%d, %s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed. (errno=%d, %s)\n", errno, strerror(errno));
 
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
@@ -1252,7 +1252,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 				/* koniec? */
 				if (size == 0) {
-					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() read() reached eof\n");
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() reached eof\n");
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_EOF;
 

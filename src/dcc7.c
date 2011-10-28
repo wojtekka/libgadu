@@ -1151,7 +1151,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome_ok.id = dcc->cid;
 
 				if ((res = recv(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
-					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() recv() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 					return e;
@@ -1169,7 +1169,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome_ok.id = dcc->cid;
 
 				if ((res = recv(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
-					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() recv() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 					return e;
@@ -1207,7 +1207,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome.id = dcc->cid;
 
 				if ((res = send(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
-					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)\n", res, strerror(errno));
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() send() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 					return e;
@@ -1219,7 +1219,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				welcome.id = dcc->cid;
 
 				if ((res = send(dcc->fd, &welcome, sizeof(welcome), 0)) != sizeof(welcome)) {
-					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%d, %s)\n", res, strerror(errno));
+					gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() send() failed (%d, %s)\n", res, strerror(errno));
 					e->type = GG_EVENT_DCC7_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC7_HANDSHAKE;
 					return e;
@@ -1271,7 +1271,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			}
 
 			if ((res = send(dcc->fd, buf, res, 0)) == -1) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() write() failed (%s)\n", strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() send() failed (%s)\n", strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_NET;
 				return e;
@@ -1308,7 +1308,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			}
 
 			if ((res = recv(dcc->fd, buf, sizeof(buf), 0)) < 1) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() recv() failed (fd=%d, res=%d, %s)\n", dcc->fd, res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = (res == -1) ? GG_ERROR_DCC7_NET : GG_ERROR_DCC7_EOF;
 				return e;
@@ -1429,7 +1429,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			if ((res = recv(dcc->fd, buf, sizeof(buf), 0)) < (int) sizeof(*pkt)) {
 				if (res == 0)
 					errno = ECONNRESET;
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() read() failed (%d, %s)\n", res, strerror(errno));
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() recv() failed (%d, %s)\n", res, strerror(errno));
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_RELAY;
 				return e;
