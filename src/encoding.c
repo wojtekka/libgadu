@@ -100,7 +100,7 @@ static char *gg_encoding_convert_cp1250_utf8(const char *src, int src_length, in
 			uc = table_cp1250[(unsigned char) src[i] - 128];
 
 		if (uc < 0x80) 
-			result[j++] = uc;
+			result[j++] = (char) uc;
 		else if (uc < 0x800) {
 			if (j + 1 > len)
 				break;

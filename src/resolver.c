@@ -720,7 +720,7 @@ static void gg_resolver_win32_cleanup(void **priv_data, int force)
 	free(data);
 }
 
-#endif /* WIN32 */
+#endif /* _WIN32 */
 
 /**
  * Ustawia sposób rozwiązywania nazw w sesji.

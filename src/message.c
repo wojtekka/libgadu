@@ -720,7 +720,7 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						unsigned char img_attr[13];
 
 						if (format != NULL) {
-							char buf[3] = { };
+							char buf[3] = { 0 };
 
 							img_attr[0] = (unsigned char) (pos & (uint16_t) 0x00ffU);
 							img_attr[1] = (unsigned char) ((pos & (uint16_t) 0xff00U) >> 8);
