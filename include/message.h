@@ -20,7 +20,6 @@
 #define LIBGADU_MESSAGE_H
 
 #include <sys/types.h>
-#include <inttypes.h>
 #include "libgadu.h"
 
 #if 0
