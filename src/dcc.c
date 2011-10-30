@@ -26,20 +26,15 @@
  * \brief Obsługa połączeń bezpośrednich do wersji Gadu-Gadu 6.x
  */
 
+#include "fileio.h"
 #include "network.h"
-#include <sys/stat.h>
-#ifdef sun
-#  include <sys/filio.h>
-#endif
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "libgadu.h"
 
@@ -1328,7 +1323,7 @@ void gg_dcc_free(struct gg_dcc *d)
 		close(d->fd);
 
 	if (d->file_fd != -1)
-		close(d->file_fd);
+		gg_file_close(d->file_fd);
 
 	free(d->chunk_buf);
 	free(d);

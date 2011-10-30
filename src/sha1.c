@@ -26,9 +26,9 @@
  * \brief Funkcje wyznaczania skrótu SHA1
  */
 
+#include "fileio.h"
+
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include "libgadu.h"
 

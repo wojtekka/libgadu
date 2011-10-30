@@ -22,7 +22,7 @@
 /**
  * \file network.h
  *
- * \brief Makra zapewniające kompatybilność API na różnych systemach
+ * \brief Makra zapewniające kompatybilność API do obsługi sieci na różnych systemach
  */
 
 #ifndef LIBGADU_NETWORK_H

@@ -29,21 +29,16 @@
  * \brief Obsługa połączeń bezpośrednich od wersji Gadu-Gadu 7.x
  */
 
+#include "fileio.h"
 #include "network.h"
-#include <sys/stat.h>
-#ifdef sun
-#  include <sys/filio.h>
-#endif
-#include <time.h>
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <time.h>
 
 #include "libgadu.h"
 #include "protocol.h"
@@ -509,7 +504,7 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt, const cha
 fail:
 	if (fd != -1) {
 		int errsv = errno;
-		close(fd);
+		gg_file_close(fd);
 		errno = errsv;
 	}
 
@@ -1524,7 +1519,7 @@ void gg_dcc7_free(struct gg_dcc7 *dcc)
 		close(dcc->fd);
 
 	if (dcc->file_fd != -1)
-		close(dcc->file_fd);
+		gg_file_close(dcc->file_fd);
 
 	if (dcc->sess)
 		gg_dcc7_session_remove(dcc->sess, dcc);
