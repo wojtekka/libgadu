@@ -455,6 +455,7 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 
 	c->port = c->id = port;
 	c->fd = sock;
+	c->file_fd = -1;
 	c->type = GG_SESSION_DCC_SOCKET;
 	c->uin = uin;
 	c->timeout = -1;
