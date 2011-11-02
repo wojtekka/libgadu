@@ -233,7 +233,7 @@ char *gg_read_line(int sock, char *buf, int length)
  */
 int gg_connect(void *addr, int port, int async)
 {
-	int sock, one = 1, errno2;
+	int sock, errno2;
 	struct sockaddr_in sin;
 	struct in_addr *a = addr;
 	struct sockaddr_in myaddr;
@@ -260,11 +260,13 @@ int gg_connect(void *addr, int port, int async)
 
 	if (async) {
 #ifdef FIONBIO
+		int one = 1;
+
 		if (ioctl(sock, FIONBIO, &one) == -1) {
 #else
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
 #endif
-			gg_debug(GG_DEBUG_MISC, "// gg_connect() ioctl() failed (errno=%d, %s)\n", errno, strerror(errno));
+			gg_debug(GG_DEBUG_MISC, "// gg_connect() can't set nonblocking (errno=%d, %s)\n", errno, strerror(errno));
 			errno2 = errno;
 			close(sock);
 			errno = errno2;

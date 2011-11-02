@@ -590,7 +590,10 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 	if (h->type == GG_SESSION_DCC_SOCKET) {
 		struct sockaddr_in sin;
 		struct gg_dcc *c;
-		int fd, one = 1;
+		int fd;
+#ifdef FIONBIO
+		int one = 1;
+#endif
 		socklen_t sin_len = sizeof(sin);
 
 		if ((fd = accept(h->fd, (struct sockaddr*) &sin, &sin_len)) == -1) {

@@ -1040,7 +1040,10 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 		case GG_STATE_LISTENING:
 		{
 			struct sockaddr_in sin;
-			int fd, one = 1;
+			int fd;
+#ifdef FIONBIO
+			int one = 1;
+#endif
 			socklen_t sin_len = sizeof(sin);
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_LISTENING\n");

@@ -53,6 +53,8 @@ static void (*gg_global_resolver_cleanup)(void **private_data, int force);
 
 #include <pthread.h>
 
+#ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
+
 /**
  * \internal Funkcja pomocnicza zwalniająca zasoby po rozwiązywaniu nazwy
  * w wątku.
@@ -68,6 +70,8 @@ static void gg_gethostbyname_cleaner(void *data)
 		*buf_ptr = NULL;
 	}
 }
+
+#endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 
 #endif /* GG_CONFIG_HAVE_PTHREAD */
 

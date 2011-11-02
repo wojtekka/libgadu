@@ -55,7 +55,7 @@ int gg_win32_socketpair(int sv[2]);
 #  endif
 #endif
 
-#ifdef sun
+#ifndef INADDR_NONE
 #  define INADDR_NONE ((in_addr_t) 0xffffffff)
 #endif
 
