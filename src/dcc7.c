@@ -764,11 +764,15 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 			return 0;
 		}
 
-#if defined(HAVE_UINT64_T) && defined(HAVE_STRTOULL)
+#if defined(HAVE_UINT64_T) && (defined(HAVE__STRTOUI64) || defined(HAVE_STRTOULL))
 		{
 			uint64_t cid;
 
+#  ifdef HAVE__STRTOUI64
+			cid = _strtoui64(tmp + 2, NULL, 0);
+#  else
 			cid = strtoull(tmp + 2, NULL, 0);
+#  endif
 
 			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_handle_info() info.str=%s, info.id=%llu, sess.id=%llu\n", tmp + 2, cid, *((unsigned long long*) &dcc->cid));
 

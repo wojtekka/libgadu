@@ -117,6 +117,7 @@ AC_TRY_COMPILE([],
 ])
 
 AC_CHECK_FUNCS([strtoull], [AC_DEFINE([HAVE_STRTOULL], [], [Defined if this machine has strtoull().])])
+AC_CHECK_FUNCS([_strtoui64], [AC_DEFINE([HAVE__STRTOUI64], [], [Defined if this machine has _strtoui64().])])
 
 AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
 AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
