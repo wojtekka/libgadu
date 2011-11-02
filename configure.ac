@@ -93,6 +93,14 @@ if test "x$with_c99_vsnprintf" = "x"; then
 fi
 
 dnl
+dnl  Sprawdzamy dostępność specyficznego dla Win32 _vscprintf(), które
+dnl  pozwala oszczędzić użycie alokatora na MSVC, które nie posiada
+dnl  vsnprintf() zgodnego z C99.
+dnl
+
+AC_CHECK_FUNCS([_vscprintf], [AC_DEFINE([GG_CONFIG_HAVE__VSCPRINTF], [], [Defined if this machine has _vscprintf().])])
+
+dnl
 dnl  Sprawdzamy, czy jest system obsługuje 64-bitowe zmienne potrzebne dla
 dnl  połączeń bezpośrednich.
 dnl

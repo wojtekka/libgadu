@@ -68,6 +68,9 @@ extern "C" {
 /* Defined if this machine has C99-compiliant vsnprintf(). */
 #undef GG_CONFIG_HAVE_C99_VSNPRINTF
 
+/* Defined if this machine has _vscprintf(). */
+#undef GG_CONFIG_HAVE__VSCPRINTF
+
 /* Defined if this machine has va_copy(). */
 #undef GG_CONFIG_HAVE_VA_COPY
 

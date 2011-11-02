@@ -68,7 +68,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 	char *buf = NULL;
 	va_list aq;
 
-#ifndef GG_CONFIG_HAVE_C99_VSNPRINTF
+#if !defined(GG_CONFIG_HAVE_C99_VSNPRINTF) && !defined(GG_CONFIG_HAVE__VSCPRINTF)
 	{
 		int res = 0;
 		char *tmp;
@@ -94,19 +94,24 @@ char *gg_vsaprintf(const char *format, va_list ap)
 		} while (res >= size || res < 0);
 	}
 #else
+	va_copy(aq, ap);
+
+#  ifdef GG_CONFIG_HAVE__VSCPRINTF
+	size = _vscprintf(format, aq) + 1;
+#  else
 	{
 		char tmp[2];
 
-		va_copy(aq, ap);
 		/* libce Solarisa przy buforze NULL zawsze zwracają -1, więc
 		 * musimy podać coś istniejącego jako cel printf()owania. */
 		size = vsnprintf(tmp, sizeof(tmp), format, aq) + 1;
-		va_end(aq);
-		if (!(buf = malloc(size)))
-			return NULL;
-
-		vsnprintf(buf, size, format, ap);
 	}
+#  endif
+	va_end(aq);
+	if (!(buf = malloc(size)))
+		return NULL;
+
+	vsnprintf(buf, size, format, ap);
 #endif
 
 	return buf;
