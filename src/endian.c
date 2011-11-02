@@ -30,7 +30,6 @@
 
 #include "libgadu.h"
 #include "internal.h"
-#include "config.h"
 
 #ifdef HAVE_UINT64_T
 /**
