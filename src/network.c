@@ -95,4 +95,213 @@ fail:
 	return -1;
 }
 
+static int gg_win32_map_wsa_error_to_errno(int wsaewouldblock_map)
+{
+	int wsa_error;
+
+	wsa_error = WSAGetLastError();
+
+	/* Tutaj powinny być tłumaczone wszystkie typy błędów sprawdzane przez
+	 * kod libgadu. Dla spójność są również tłumaczone typy błędów ustawiane
+	 * przez libgadu.
+	 * Ponadto gdyby okazało się, że jakaś aplikacja na Win32 chce móc
+	 * polegać jeszcze na innych wartościach errno, można tutaj dodać
+	 * ich tłumaczenie. Najpierw jednak zawsze trzeba porównać dokumentacje,
+	 * aby upewnić się co do poprawności tłumaczenia (patrz WSAEWOULDBLOCK,
+	 * które można tłumaczyć na EWOULDBLOCK lub EAGAIN, a nawet na
+	 * EINPROGRESS w przypadku connect()).
+	 */
+	switch (wsa_error)
+	{
+	/* Typy błędów sprawdzane przez libgadu. */
+	case WSAEINTR:
+		return EINTR;
+	case WSAEWOULDBLOCK:
+		return wsaewouldblock_map;
+	/* Typy błędów ustawiane przez libgadu. */
+	case WSAECONNRESET:
+		return ECONNRESET;
+	case WSAEFAULT:
+		return EFAULT;
+	case WSAEINVAL:
+		return EINVAL;
+	case WSAENOTCONN:
+		return ENOTCONN;
+	case WSAETIMEDOUT:
+		return ETIMEDOUT;
+	default:
+		/* Najlepiej zwrócić oryginalny kod błędu. I tak będzie co najwyżej
+		 * wyświetlony w komunikacie debugowym, a tym sposobem będzie łatwiej
+		 * dojść przyczyny problemu. */
+		return wsa_error;
+	}
+}
+
+#undef accept
+int gg_win32_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	int res;
+
+	res = accept(sockfd, addr, addrlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef bind
+int gg_win32_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+	int res;
+
+	res = bind(sockfd, addr, addrlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+int gg_win32_close(int sockfd)
+{
+	int res;
+
+	res = closesocket(sockfd);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef connect
+int gg_win32_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+	int res;
+
+	res = connect(sockfd, addr, addrlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EINPROGRESS);
+
+	return res;
+}
+
+#undef gethostbyname
+struct hostent *gg_win32_gethostbyname(const char *name)
+{
+	struct hostent *res;
+
+	res = gethostbyname(name);
+
+	if (res == NULL)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef getsockname
+int gg_win32_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+	int res;
+
+	res = getsockname(sockfd, addr, addrlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef getsockopt
+int gg_win32_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen)
+{
+	int res;
+
+	res = getsockopt(sockfd, level, optname, optval, optlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+int gg_win32_ioctl(int d, int request, int *argp)
+{
+	int res;
+
+	res = ioctlsocket(d, request, (u_long *)argp);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef listen
+int gg_win32_listen(int sockfd, int backlog)
+{
+	int res;
+
+	res = listen(sockfd, backlog);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef recv
+int gg_win32_recv(int sockfd, void *buf, size_t len, int flags)
+{
+	int res;
+
+	res = recv(sockfd, buf, len, flags);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef send
+int gg_win32_send(int sockfd, const void *buf, size_t len, int flags)
+{
+	int res;
+
+	res = send(sockfd, buf, len, flags);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef setsockopt
+int gg_win32_setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen)
+{
+	int res;
+
+	res = setsockopt(sockfd, level, optname, optval, optlen);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
+#undef socket
+int gg_win32_socket(int domain, int type, int protocol)
+{
+	int res;
+
+	res = socket(domain, type, protocol);
+
+	if (res == -1)
+		errno = gg_win32_map_wsa_error_to_errno(EAGAIN);
+
+	return res;
+}
+
 #endif /* _WIN32 */

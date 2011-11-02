@@ -31,16 +31,49 @@
 #ifdef _WIN32
 #  include <ws2tcpip.h>
 #  include <winsock2.h>
-#  define EINPROGRESS WSAEINPROGRESS
-#  define ETIMEDOUT WSAETIMEDOUT
-#  define ENOTCONN WSAENOTCONN
-#  define ECONNRESET WSAECONNRESET
-#  define close closesocket
-#  define ioctl(a, b, c) ioctlsocket(a, b, (u_long *)(c))
-#  define getsockopt(a, b, c, d, e) getsockopt(a, b, c, (char *)(d), e)
-#  define send(a, b, c, d) send(a, (char *)(b), c, d)
-#  define recv(a, b, c, d) recv(a, (char *)(b), c, d)
+#  include <errno.h>
+/* Obecnie na Win32 tylko MSVC definiuje te typy błędów. Na wypadek, gdyby
+ * jednak Cygwin bądź MinGW zaczęły je definiować, używamy bardziej ogólnych
+ * ifdefów. */
+#  ifndef ECONNRESET
+#    define ECONNRESET WSAECONNRESET
+#  endif
+#  ifndef EINPROGRESS
+#    define EINPROGRESS WSAEINPROGRESS
+#  endif
+#  ifndef ENOTCONN
+#    define ENOTCONN WSAENOTCONN
+#  endif
+#  ifndef ETIMEDOUT
+#    define ETIMEDOUT WSAETIMEDOUT
+#  endif
+#  define accept gg_win32_accept
+#  define bind gg_win32_bind
+#  define close gg_win32_close
+#  define connect gg_win32_connect
+#  define gethostbyname gg_win32_gethostbyname
+#  define getsockname gg_win32_getsockname
+#  define getsockopt gg_win32_getsockopt
+#  define ioctl gg_win32_ioctl
+#  define listen gg_win32_listen
+#  define recv gg_win32_recv
+#  define send gg_win32_send
+#  define setsockopt gg_win32_setsockopt
+#  define socket gg_win32_socket
 #  define socketpair(a, b, c, d) gg_win32_socketpair(d)
+int gg_win32_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+int gg_win32_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+int gg_win32_close(int sockfd);
+int gg_win32_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+struct hostent *gg_win32_gethostbyname(const char *name);
+int gg_win32_getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+int gg_win32_getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
+int gg_win32_ioctl(int d, int request, int *argp);
+int gg_win32_listen(int sockfd, int backlog);
+int gg_win32_recv(int sockfd, void *buf, size_t len, int flags);
+int gg_win32_send(int sockfd, const void *buf, size_t len, int flags);
+int gg_win32_setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+int gg_win32_socket(int domain, int type, int protocol);
 int gg_win32_socketpair(int sv[2]);
 #else
 #  include <sys/ioctl.h>
