@@ -38,6 +38,17 @@
 
 #include "libgadu.h"
 
+#ifndef GG_CONFIG_HAVE_VA_COPY
+#  ifdef GG_CONFIG_HAVE___VA_COPY
+#    define va_copy(dest, src) __va_copy((dest), (src))
+#  else
+/* Taka wersja va_copy() działa poprawnie tylko na platformach, które
+ * va_copy() de facto wcale nie potrzebują, np. MSVC. Definicja tylko dla
+ * przejrzystości kodu. */
+#    define va_copy(dest, src) (dest) = (src)
+#  endif
+#endif
+
 /**
  * \internal Odpowiednik funkcji \c vsprintf alokujący miejsce na wynik.
  *
@@ -53,59 +64,49 @@
  */
 char *gg_vsaprintf(const char *format, va_list ap)
 {
-	int size = 0;
+	int size;
 	char *buf = NULL;
-
-#ifdef GG_CONFIG_HAVE_VA_COPY
 	va_list aq;
-
-	va_copy(aq, ap);
-#else
-#  ifdef GG_CONFIG_HAVE___VA_COPY
-	va_list aq;
-
-	__va_copy(aq, ap);
-#  endif
-#endif
 
 #ifndef GG_CONFIG_HAVE_C99_VSNPRINTF
 	{
-		int res;
+		int res = 0;
 		char *tmp;
 
 		size = 128;
 		do {
-			size *= 2;
+			if (res > size) {
+				/* Jednak zachowanie zgodne z C99. */
+				size = res + 1;
+			} else {
+				size *= 2;
+			}
+
 			if (!(tmp = realloc(buf, size))) {
 				free(buf);
 				return NULL;
 			}
+
 			buf = tmp;
-			res = vsnprintf(buf, size, format, ap);
-		} while (res == size - 1 || res == -1);
+			va_copy(aq, ap);
+			res = vsnprintf(buf, size, format, aq);
+			va_end(aq);
+		} while (res >= size || res < 0);
 	}
 #else
 	{
 		char tmp[2];
 
+		va_copy(aq, ap);
 		/* libce Solarisa przy buforze NULL zawsze zwracają -1, więc
 		 * musimy podać coś istniejącego jako cel printf()owania. */
-		size = vsnprintf(tmp, sizeof(tmp), format, ap);
-		if (!(buf = malloc(size + 1)))
+		size = vsnprintf(tmp, sizeof(tmp), format, aq) + 1;
+		va_end(aq);
+		if (!(buf = malloc(size)))
 			return NULL;
-	}
-#endif
 
-#ifdef GG_CONFIG_HAVE_VA_COPY
-	vsnprintf(buf, size + 1, format, aq);
-	va_end(aq);
-#else
-#  ifdef GG_CONFIG_HAVE___VA_COPY
-	vsnprintf(buf, size + 1, format, aq);
-	va_end(aq);
-#  else
-	vsnprintf(buf, size + 1, format, ap);
-#  endif
+		vsnprintf(buf, size, format, ap);
+	}
 #endif
 
 	return buf;
