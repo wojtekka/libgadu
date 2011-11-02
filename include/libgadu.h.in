@@ -1313,8 +1313,8 @@ extern FILE *gg_debug_file;
 /** @} */
 
 #ifdef GG_DEBUG_DISABLE
-#define gg_debug(x, y...) do { } while(0)
-#define gg_debug_session(z, x, y...) do { } while(0)
+#define gg_debug(...) do { } while (0)
+#define gg_debug_session(...) do { } while (0)
 #else
 void gg_debug(int level, const char *format, ...);
 void gg_debug_session(struct gg_session *sess, int level, const char *format, ...);

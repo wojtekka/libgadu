@@ -45,8 +45,13 @@
 #include "internal.h"
 #include "debug.h"
 
-#define gg_debug_dcc(dcc, level, fmt...) \
+#ifdef _MSC_VER
+#  define gg_debug_dcc(dcc, level, fmt, ...) \
+	gg_debug_session(((dcc) != NULL) ? (dcc)->sess : NULL, level, fmt, __VA_ARGS__)
+#else
+#  define gg_debug_dcc(dcc, level, fmt...) \
 	gg_debug_session(((dcc) != NULL) ? (dcc)->sess : NULL, level, fmt)
+#endif
 
 #define gg_debug_dump_dcc(dcc, level, buf, len) \
 	gg_debug_dump(((dcc) != NULL) ? (dcc)->sess : NULL, level, buf, len)
