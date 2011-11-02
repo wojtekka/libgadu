@@ -24,6 +24,7 @@
  * \brief Obsługa połączeń HTTP
  */
 
+#include "strman.h"
 #include "network.h"
 #include "libgadu.h"
 #include "resolver.h"

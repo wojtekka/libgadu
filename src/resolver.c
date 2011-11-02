@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "strman.h"
 #include "network.h"
 #include "libgadu.h"
 #include "resolver.h"

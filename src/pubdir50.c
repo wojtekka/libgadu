@@ -26,6 +26,7 @@
  */
 
 #include "network.h"
+#include "strman.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

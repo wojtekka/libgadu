@@ -28,6 +28,7 @@
  * \brief Główny moduł biblioteki
  */
 
+#include "strman.h"
 #include "network.h"
 #ifdef sun
 #  include <sys/filio.h>

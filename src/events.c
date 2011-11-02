@@ -29,6 +29,7 @@
  * \todo Poprawna obsługa gg_proxy_http_only
  */
 
+#include "strman.h"
 #include "network.h"
 
 #include "libgadu.h"

@@ -31,11 +31,11 @@
 
 #include "fileio.h"
 #include "network.h"
+#include "strman.h"
 
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
