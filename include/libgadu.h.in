@@ -2324,10 +2324,6 @@ struct gg_dcc7_id_reply {
 
 #define GG_DCC7_DUNNO1 0x24
 
-struct gg_dcc7_dunno1 {
-	/* XXX */
-} GG_PACKED;
-
 #define GG_DCC7_TIMEOUT_CONNECT 10	/* 10 sekund */
 #define GG_DCC7_TIMEOUT_SEND 1800	/* 30 minut */
 #define GG_DCC7_TIMEOUT_GET 1800	/* 30 minut */
