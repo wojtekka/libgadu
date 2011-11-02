@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdarg.h>
 #include <fcntl.h>
 #include <time.h>
@@ -8,13 +7,10 @@
 #include <errno.h>
 #include <signal.h>
 #include <ctype.h>
-#include <arpa/inet.h>
 #include <sys/select.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #include <libgadu.h>
-#include "../../include/compat.h"
+#include "../../include/network.h"
 #include "userconfig.h"
 
 #define debug(msg...) \

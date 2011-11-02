@@ -69,8 +69,6 @@ A million repetitions of "a"
 /* #define LITTLE_ENDIAN * This should be #define'd if true. */
 /* #define SHA1HANDSOFF * Copies data before messing with it. */
 
-#include <string.h>
-
 typedef struct {
     uint32_t state[5];
     uint32_t count[2];

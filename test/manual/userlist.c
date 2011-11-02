@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <time.h>
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
 
 #include <libgadu.h>
-#include "../../include/compat.h"
+#include "../../include/network.h"
 #include "userconfig.h"
 
 static void usage(const char *argv0)

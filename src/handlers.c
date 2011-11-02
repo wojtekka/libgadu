@@ -26,7 +26,6 @@
  * \brief Funkcje obsługi przychodzących pakietów
  */
 
-#include <sys/types.h>
 #include <ctype.h>
 #ifdef sun
 #  include <sys/filio.h>
@@ -43,12 +42,9 @@
 #include "deflate.h"
 
 #include <errno.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
-#include <unistd.h>
 #include <time.h>
 
 /**

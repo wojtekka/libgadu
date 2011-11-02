@@ -30,7 +30,6 @@
  */
 
 #include "network.h"
-#include <ctype.h>
 
 #include "libgadu.h"
 #include "protocol.h"
@@ -41,11 +40,9 @@
 #include "resolver.h"
 
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 #include <ctype.h>
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #  include <gnutls/gnutls.h>

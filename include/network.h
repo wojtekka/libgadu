@@ -44,10 +44,15 @@
 int gg_win32_socketpair(int sv[2]);
 #else
 #  include <sys/ioctl.h>
+#  include <sys/types.h>
 #  include <sys/socket.h>
 #  include <netinet/in.h>
 #  include <arpa/inet.h>
 #  include <netdb.h>
+#  include <unistd.h>
+#  ifndef FIONBIO
+#    include <fcntl.h>
+#  endif
 #endif
 
 #ifdef sun

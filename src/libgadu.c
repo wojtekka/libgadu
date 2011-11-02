@@ -45,12 +45,10 @@
 
 #include <errno.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include <time.h>
-#include <unistd.h>
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #  include <gnutls/gnutls.h>
 #endif
