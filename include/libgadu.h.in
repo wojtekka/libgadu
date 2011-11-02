@@ -839,7 +839,11 @@ typedef struct gg_pubdir50_s *gg_pubdir50_t;
 struct gg_event_msg {
 	uin_t sender;		/**< Numer nadawcy/odbiorcy */
 	int msgclass;		/**< Klasa wiadomości */
+#ifndef _WIN32
 	time_t time;		/**< Czas nadania */
+#else
+	uint32_t time;		/**< Czas nadania */
+#endif
 	unsigned char *message;	/**< Treść wiadomości */
 
 	int recipients_count;	/**< Liczba odbiorców konferencji */
@@ -880,7 +884,11 @@ struct gg_event_status60 {
 	int version;		/**< Wersja protokołu */
 	int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
 	char *descr;		/**< Opis statusu */
+#ifndef _WIN32
 	time_t time;		/**< Czas powrotu */
+#else
+	uint32_t time;		/**< Czas powrotu */
+#endif
 };
 
 /**
@@ -894,7 +902,11 @@ struct gg_event_notify60 {
 	int version;		/**< Wersja protokołu */
 	int image_size;		/**< Maksymalny rozmiar obsługiwanych obrazków w KiB */
 	char *descr;		/**< Opis statusu */
+#ifndef _WIN32
 	time_t time;		/**< Czas powrotu */
+#else
+	uint32_t time;		/**< Czas powrotu */
+#endif
 };
 
 /**
@@ -1032,7 +1044,11 @@ struct gg_multilogon_session {
 	uint32_t remote_addr;		/**< Adres sesji */
 	int status_flags;		/**< Flagi statusu sesji */
 	int protocol_features;		/**< Opcje protokolu sesji */
+#ifndef _WIN32
 	time_t logon_time;		/**< Czas zalogowania */
+#else
+	uint32_t logon_time;		/**< Czas zalogowania */
+#endif
 };
 
 /**
@@ -1265,7 +1281,11 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 #endif
 
 extern int gg_dcc_port;
+#ifndef _WIN32
 extern unsigned long gg_dcc_ip;
+#else
+extern uint32_t gg_dcc_ip;
+#endif
 
 int gg_dcc_request(struct gg_session *sess, uin_t uin);
 
@@ -1345,7 +1365,11 @@ extern char *gg_proxy_username;
 extern char *gg_proxy_password;
 extern int gg_proxy_http_only;
 
+#ifndef _WIN32
 extern unsigned long gg_local_ip;
+#else
+extern uint32_t gg_local_ip;
+#endif
 
 #define GG_LOGIN_HASH_GG32 0x01	/**< Algorytm Gadu-Gadu */
 #define GG_LOGIN_HASH_SHA1 0x02	/**< Algorytm SHA1 */
