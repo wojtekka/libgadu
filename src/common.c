@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
 #include "libgadu.h"
 
 #ifndef GG_CONFIG_HAVE_VA_COPY
