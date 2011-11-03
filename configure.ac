@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE(libgadu, 1.12.0-pre)
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
 AC_CONFIG_HEADERS(config.h include/libgadu.h)
+AC_CONFIG_MACRO_DIR([m4])
 
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
@@ -23,6 +24,9 @@ AC_SUBST(REQUIRES_PRIVATE)
 AC_SUBST(REQUIRES_PUBLIC)
 AC_SUBST(LIBS_PRIVATE)
 AC_SUBST(LIBS_PUBLIC)
+
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
+PKG_PROG_PKG_CONFIG
 
 if test "$GCC"; then
 	CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
@@ -56,8 +60,7 @@ if test "x$STDINT_H" = "xsys/types.h"; then
 	AC_DEFINE([GG_CONFIG_HAVE_SYS_TYPES_H], [], [Defined if uintX_t types are defined in <sys/types.h>.])
 fi
 
-AC_DEFINE([GG_LIBGADU_VERSION], [], [Library version])
-AC_DEFINE_UNQUOTED(GG_LIBGADU_VERSION, "${VERSION}")
+AC_DEFINE_UNQUOTED([GG_LIBGADU_VERSION], ["${VERSION}"], [Library version])
 
 dnl
 dnl  Sprawdźmy, jaką wersję vsnprintf() dostajemy. Dodatkowa opcja jest
@@ -98,7 +101,7 @@ dnl  pozwala oszczędzić użycie alokatora na MSVC, które nie posiada
 dnl  vsnprintf() zgodnego z C99.
 dnl
 
-AC_CHECK_FUNCS([_vscprintf], [AC_DEFINE([GG_CONFIG_HAVE__VSCPRINTF], [], [Defined if this machine has _vscprintf().])])
+AC_CHECK_FUNCS([_vscprintf])
 
 dnl
 dnl  Sprawdzamy, czy jest system obsługuje 64-bitowe zmienne potrzebne dla
@@ -116,8 +119,8 @@ AC_TRY_COMPILE([],
 	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
 ])
 
-AC_CHECK_FUNCS([strtoull], [AC_DEFINE([HAVE_STRTOULL], [], [Defined if this machine has strtoull().])])
-AC_CHECK_FUNCS([_strtoui64], [AC_DEFINE([HAVE__STRTOUI64], [], [Defined if this machine has _strtoui64().])])
+AC_CHECK_FUNCS([strtoull])
+AC_CHECK_FUNCS([_strtoui64])
 
 AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
 AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
@@ -167,7 +170,7 @@ AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);],
 	AC_MSG_RESULT([no])
 ])
 
-AC_CHECK_FUNCS([_exit], [AC_DEFINE([GG_CONFIG_HAVE__EXIT], [], [Defined if this machine has _exit().])])
+AC_CHECK_FUNCS([_exit])
 
 AC_CHECK_FUNCS([fork], [AC_DEFINE([GG_CONFIG_HAVE_FORK], [], [Defined if this machine has fork().])])
 
@@ -234,25 +237,16 @@ AC_ARG_WITH(gnutls,
 have_gnutls=""
 
 if test "x$with_gnutls" != "xno"; then
-	AC_CHECK_PROG([PKGCONFIG], [pkg-config], [pkg-config], [no])
-	if test "x$PKGCONFIG" != "xno"; then
-		AC_MSG_CHECKING([for GnuTLS])
-		GNUTLS_LIBS=$($PKGCONFIG --libs gnutls)
-		GNUTLS_CFLAGS=$($PKGCONFIG --cflags gnutls)
-		if test "x$GNUTLS_LIBS" != "x" -o "x$GNUTLS_CFLAGS" != "x"; then
-			AC_DEFINE(HAVE_GNUTLS, 1, [define if you have GnuTLS])
-			AC_MSG_RESULT([yes])
-			AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
-			REQUIRES_PRIVATE="$REQUIRES_PRIVATE gnutls"
-			CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
-			# Note: not adding to LIBS_PRIVATE, because
-			# "REQUIRES_PRIVATE" takes care of that for pkg-config.
-			LIBS="$LIBS $GNUTLS_LIBS"
-			have_gnutls="yes"
-		else
-			AC_MSG_RESULT([no])
-		fi
-	fi
+	PKG_CHECK_MODULES([GNUTLS], [gnutls], [
+		AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
+		AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
+		REQUIRES_PRIVATE="$REQUIRES_PRIVATE gnutls"
+		CFLAGS="$CFLAGS $GNUTLS_CFLAGS"
+		# Note: not adding to LIBS_PRIVATE, because
+		# "REQUIRES_PRIVATE" takes care of that for pkg-config.
+		LIBS="$LIBS $GNUTLS_LIBS"
+		have_gnutls="yes"
+	], [:])
 fi
 
 dnl
@@ -358,18 +352,11 @@ if test "x$enable_tests" != "xno"; then
 	dnl
 	dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
 	dnl
-
-	export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
-
-	PKG_PROG_PKG_CONFIG
-
-	if test "x$PKG_CONFIG" != "x"; then
-		AC_SUBST([LIBXML2_CFLAGS])
-		AC_SUBST([LIBXML2_LIBS])
-		PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
-			AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
-		], [:])
-	fi
+	AC_SUBST([LIBXML2_CFLAGS])
+	AC_SUBST([LIBXML2_LIBS])
+	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
+		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
+	], [:])
 fi
 
 dnl

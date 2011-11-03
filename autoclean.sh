@@ -14,6 +14,8 @@ rm -rf \
 	libtool \
 	ltconfig \
 	ltmain.sh \
+	m4/lt*.m4 \
+	m4/libtool.m4 \
 	Makefile \
 	Makefile.in \
 	missing \

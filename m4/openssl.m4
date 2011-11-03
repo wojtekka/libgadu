@@ -14,20 +14,11 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
       fi)
 
   if test "x$without_openssl" != "xyes" -a "x$with_arg" = "x"; then
-    AC_CHECK_PROG([PKGCONFIG], [pkg-config], [pkg-config], [no])
-    if test "x$PKGCONFIG" != "xno"; then
-      AC_MSG_CHECKING([for OpenSSL])
-      OPENSSL_LIBS=$($PKGCONFIG --libs openssl)
-      OPENSSL_INCLUDES=$($PKGCONFIG --cflags openssl)
-      if test "x$OPENSSL_LIBS" != "x" -o "x$OPENSSL_INCLUDES" != "x"; then
+    PKG_CHECK_MODULES([OPENSSL], [openssl], [
 	AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
-	AC_MSG_RESULT([yes])
         without_openssl=yes
 	have_openssl=yes
-      else
-        AC_MSG_RESULT([no])
-      fi
-    fi
+	], [:])
   fi
 
   if test "x$without_openssl" != "xyes" ; then

@@ -68,7 +68,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 	char *buf = NULL;
 	va_list aq;
 
-#if !defined(GG_CONFIG_HAVE_C99_VSNPRINTF) && !defined(GG_CONFIG_HAVE__VSCPRINTF)
+#if !defined(GG_CONFIG_HAVE_C99_VSNPRINTF) && !defined(HAVE__VSCPRINTF)
 	{
 		int res = 0;
 		char *tmp;
@@ -96,7 +96,7 @@ char *gg_vsaprintf(const char *format, va_list ap)
 #else
 	va_copy(aq, ap);
 
-#  ifdef GG_CONFIG_HAVE__VSCPRINTF
+#  ifdef HAVE__VSCPRINTF
 	size = _vscprintf(format, aq) + 1;
 #  else
 	{
