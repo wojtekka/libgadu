@@ -389,7 +389,7 @@ dnl
 dnl  Egzotyczne systemy operacyjne
 dnl
 case "$host" in
-	*-*-mingw*)
+	*-*-mingw* | *-*-cygwin*)
 		MINGW_LDFLAGS="-no-undefined -lws2_32"
 		;;
 	*)
