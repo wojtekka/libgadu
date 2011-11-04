@@ -151,7 +151,7 @@ const char *gg_libgadu_version()
 	return GG_LIBGADU_VERSION;
 }
 
-#ifdef GG_CONFIG_HAVE_UINT64_T
+#ifdef HAVE_UINT64_T
 /**
  * \internal Zamienia kolejność bajtów w 64-bitowym słowie.
  *
@@ -180,7 +180,7 @@ uint64_t gg_fix64(uint64_t x)
 		((x & (uint64_t) 0xff00000000000000ULL) >> 56));
 #endif
 }
-#endif /* GG_CONFIG_HAVE_UINT64_T */
+#endif /* HAVE_UINT64_T */
 
 /**
  * \internal Zamienia kolejność bajtów w 32-bitowym słowie.

@@ -108,7 +108,7 @@ AC_TRY_COMPILE([],
 	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
 ])
 
-AC_CHECK_FUNCS([strtoull], [AC_DEFINE([HAVE_STRTOULL], [], [Defined if this machine has strtoull().])])
+AC_CHECK_FUNCS([strtoull])
 
 AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
 AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
@@ -157,6 +157,8 @@ AC_TRY_LINK([#include <stdarg.h>], [va_list a, b; __va_copy(a, b);],
 ], [
 	AC_MSG_RESULT([no])
 ])
+
+AC_CHECK_FUNCS([_exit])
 
 AC_ARG_ENABLE(debug, 
 	[  --disable-debug         compile without debugging support])

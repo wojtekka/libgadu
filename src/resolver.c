@@ -234,7 +234,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, int *co
 	/* Kopiuj */
 
 	for (i = 0; he->h_addr_list[i] != NULL; i++)
-		memcpy(&((*result)[i]), he->h_addr_list[0], sizeof(struct in_addr));
+		memcpy(&((*result)[i]), he->h_addr_list[i], sizeof(struct in_addr));
 
 	(*result)[i].s_addr = INADDR_NONE;
 
@@ -263,6 +263,7 @@ static int gg_resolver_run(int fd, const char *hostname)
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
 		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 1) == -1) {
 			addr_list = addr_ip;
+			addr_count = 0;
 			/* addr_ip[0] już zawiera INADDR_NONE */
 		}
 	} else {
@@ -363,12 +364,17 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 	}
 
 	if (data->pid == 0) {
+		int status;
+
 		close(pipes[0]);
 
-		if (gg_resolver_run(pipes[1], hostname) == -1)
-			exit(1);
-		else
-			exit(0);
+		status = (gg_resolver_run(pipes[1], hostname) == -1) ? 1 : 0;
+
+#ifdef HAVE__EXIT
+		_exit(status);
+#else
+		exit(status);
+#endif
 	}
 
 	close(pipes[1]);
