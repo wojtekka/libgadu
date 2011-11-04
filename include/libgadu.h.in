@@ -33,7 +33,7 @@
 #ifndef LIBGADU_LIBGADU_H
 #define LIBGADU_LIBGADU_H
 
-#if defined(__cplusplus) || defined(_WIN32)
+#ifdef _WIN32
 #pragma pack(push, 1)
 #endif
 
@@ -2352,7 +2352,7 @@ struct gg_dcc7_id_reply {
 }
 #endif
 
-#if defined(__cplusplus) || defined(_WIN32)
+#ifdef _WIN32
 #pragma pack(pop)
 #endif
 
