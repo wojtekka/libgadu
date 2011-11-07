@@ -1222,6 +1222,19 @@ enum {
 #endif	/* DOXYGEN */
 
 /**
+ * Powód błędu operacji na katalogu publicznym.
+ *
+ * \ingroup http
+ */
+typedef enum {
+	GG_PUBDIR_ERROR_NONE = 0,	/**< Brak błędu */
+	GG_PUBDIR_ERROR_OTHER,	/**< Nieznany błąd */
+	GG_PUBDIR_ERROR_TOKEN,	/**< Błędny token */
+	GG_PUBDIR_ERROR_OLD_PASSWORD,	/**< Niepoprawne stare hasło */
+	GG_PUBDIR_ERROR_NEW_PASSWORD,	/**< Niepoprawne nowe hasło */
+} gg_pubdir_error_t;
+
+/**
  * Wynik operacji na katalogu publicznym.
  *
  * \ingroup http
@@ -1229,6 +1242,7 @@ enum {
 struct gg_pubdir {
 	int success;		/**< Flaga powodzenia operacji */
 	uin_t uin;		/**< Otrzymany numer lub 0 w przypadku błędu */
+	gg_pubdir_error_t error;	/**< Powód błędu */
 };
 
 int gg_pubdir_watch_fd(struct gg_http *f);
