@@ -1015,26 +1015,42 @@ void gg_free_session(struct gg_session *sess)
 	free(sess);
 }
 
-#ifndef DOXYGEN
-
 /**
- * \internal Funkcja wysyłająca pakiet zmiany statusu użytkownika.
+ * Zmienia status użytkownika.
  *
  * \param sess Struktura sesji
  * \param status Nowy status użytkownika
- * \param descr Opis statusu użytkownika (lub \c NULL)
- * \param ts Czas powrotu w postaci uniksowego znacznika czasu (lub 0)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  *
  * \ingroup status
  */
-static int gg_change_status_common(struct gg_session *sess, int status, const char *descr)
+int gg_change_status(struct gg_session *sess, int status)
+{
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status(%p, %d);\n", sess, status);
+
+	return gg_change_status_descr(sess, status, NULL);
+}
+
+/**
+ * Zmienia status użytkownika na status opisowy.
+ *
+ * \param sess Struktura sesji
+ * \param status Nowy status użytkownika
+ * \param descr Opis statusu użytkownika (lub \c NULL)
+ *
+ * \return 0 jeśli się powiodło, -1 w przypadku błędu
+ *
+ * \ingroup status
+ */
+int gg_change_status_descr(struct gg_session *sess, int status, const char *descr)
 {
 	struct gg_new_status80 p;
 	char *new_descr = NULL;
 	int descr_len = 0;
 	int res;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr(%p, %d, \"%s\");\n", sess, status, descr);
 
 	if (!sess) {
 		errno = EFAULT;
@@ -1082,43 +1098,6 @@ static int gg_change_status_common(struct gg_session *sess, int status, const ch
 	return res;
 }
 
-#endif /* DOXYGEN */
-
-/**
- * Zmienia status użytkownika.
- *
- * \param sess Struktura sesji
- * \param status Nowy status użytkownika
- *
- * \return 0 jeśli się powiodło, -1 w przypadku błędu
- *
- * \ingroup status
- */
-int gg_change_status(struct gg_session *sess, int status)
-{
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status(%p, %d);\n", sess, status);
-
-	return gg_change_status_common(sess, status, NULL);
-}
-
-/**
- * Zmienia status użytkownika na status opisowy.
- *
- * \param sess Struktura sesji
- * \param status Nowy status użytkownika
- * \param descr Opis statusu użytkownika
- *
- * \return 0 jeśli się powiodło, -1 w przypadku błędu
- *
- * \ingroup status
- */
-int gg_change_status_descr(struct gg_session *sess, int status, const char *descr)
-{
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr(%p, %d, \"%s\");\n", sess, status, descr);
-
-	return gg_change_status_common(sess, status, descr);
-}
-
 /**
  * Zmienia status użytkownika na status opisowy z podanym czasem powrotu.
  *
@@ -1135,7 +1114,7 @@ int gg_change_status_descr_time(struct gg_session *sess, int status, const char 
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr_time(%p, %d, \"%s\", %d);\n", sess, status, descr, ts);
 
-	return gg_change_status_common(sess, status, descr);
+	return gg_change_status_descr(sess, status, descr);
 }
 
 /**
