@@ -76,6 +76,10 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 	socklen_t sin_len = sizeof(sin);
 	uint32_t seed;
 
+	struct gg_login80 l80;
+	const char *client_name, *version, *descr;
+	uint32_t client_name_len, version_len, descr_len;
+
 	if (len < sizeof(struct gg_welcome)) {
 		ge->type = GG_EVENT_CONN_FAILED;
 		ge->event.failure = GG_FAILURE_INVALID;
@@ -141,77 +145,44 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		local_ip = 0;
 	}
 
-	if (GG_SESSION_IS_PROTOCOL_8_0(gs)) {
-		struct gg_login80 l80;
-		const char *client_name, *version, *descr;
-		uint32_t client_name_len, version_len, descr_len;
+	if (gs->external_addr == 0)
+		gs->external_addr = local_ip;
 
-		if (gs->external_addr == 0)
-			gs->external_addr = local_ip;
+	memset(&l80, 0, sizeof(l80));
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
+	l80.uin = gg_fix32(gs->uin);
+	memcpy(l80.language, GG8_LANG, sizeof(l80.language));
+	l80.hash_type = gs->hash_type;
+	memcpy(l80.hash, hash_buf, sizeof(l80.hash));
+	l80.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
+	l80.flags = gg_fix32(gs->status_flags);
+	l80.features = gg_fix32(gs->protocol_features);
+	l80.image_size = gs->image_size;
+	l80.dunno2 = 0x64;
 
-		memset(&l80, 0, sizeof(l80));
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN80 packet\n");
-		l80.uin = gg_fix32(gs->uin);
-		memcpy(l80.language, GG8_LANG, sizeof(l80.language));
-		l80.hash_type = gs->hash_type;
-		memcpy(l80.hash, hash_buf, sizeof(l80.hash));
-		l80.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
-		l80.flags = gg_fix32(gs->status_flags);
-		l80.features = gg_fix32(gs->protocol_features);
-		l80.image_size = gs->image_size;
-		l80.dunno2 = 0x64;
-
-		if (gs->client_version != NULL && !isdigit(gs->client_version[0])) {
-			client_name = "";
-			client_name_len = 0;
-		} else {
-			client_name = GG8_VERSION;
-			client_name_len = strlen(GG8_VERSION);
-		}
-
-		version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION;
-		version_len = gg_fix32(client_name_len + strlen(version));
-
-		descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
-		descr_len = (gs->initial_descr != NULL) ? gg_fix32(strlen(gs->initial_descr)) : 0;
-
-		ret = gg_send_packet(gs,
-				GG_LOGIN80,
-				&l80, sizeof(l80),
-				&version_len, sizeof(version_len),
-				client_name, client_name_len,
-				version, strlen(version),
-				&descr_len, sizeof(descr_len),
-				descr, strlen(descr),
-				NULL);
+	if (gs->client_version != NULL && !isdigit(gs->client_version[0])) {
+		client_name = "";
+		client_name_len = 0;
 	} else {
-		struct gg_login70 l70;
-
-		if (gg_dcc_ip != (unsigned long) inet_addr("255.255.255.255"))
-			local_ip = gg_dcc_ip;
-
-		gs->client_addr = local_ip;
-
-		memset(&l70, 0, sizeof(l70));
-		l70.uin = gg_fix32(gs->uin);
-		l70.hash_type = gs->hash_type;
-		memcpy(l70.hash, hash_buf, sizeof(l70.hash));
-		l70.status = gg_fix32(gs->initial_status ? gs->initial_status : GG_STATUS_AVAIL);
-		l70.version = gg_fix32(gs->protocol_version | gs->protocol_flags);
-		if (gs->external_addr && gs->external_port > 1023) {
-			l70.local_ip = gs->external_addr;
-			l70.local_port = gg_fix16(gs->external_port);
-		} else {
-			l70.local_ip = local_ip;
-			l70.local_port = gg_fix16(gg_dcc_port);
-		}
-
-		l70.image_size = gs->image_size;
-		l70.dunno2 = 0xbe;
-
-		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending GG_LOGIN70 packet\n");
-		ret = gg_send_packet(gs, GG_LOGIN70, &l70, sizeof(l70), gs->initial_descr, (gs->initial_descr) ? strlen(gs->initial_descr) : 0, NULL);
+		client_name = GG8_VERSION;
+		client_name_len = strlen(GG8_VERSION);
 	}
+
+	version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION;
+	version_len = gg_fix32(client_name_len + strlen(version));
+
+	descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
+	descr_len = (gs->initial_descr != NULL) ? gg_fix32(strlen(gs->initial_descr)) : 0;
+
+	ret = gg_send_packet(gs,
+			GG_LOGIN80,
+			&l80, sizeof(l80),
+			&version_len, sizeof(version_len),
+			client_name, client_name_len,
+			version, strlen(version),
+			&descr_len, sizeof(descr_len),
+			descr, strlen(descr),
+			NULL);
 
 	if (ret == -1) {
 		int errno_copy;
