@@ -766,28 +766,28 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 						old_attr_flag = -1;
 					}
 				}
-			} else if (strncmp(tag, "<b", 2) == 0) {
+			} else if (strncmp(tag, "<b>", 3) == 0) {
 				in_bold++;
 				attr_flag |= GG_FONT_BOLD;
-			} else if (strncmp(tag, "</b", 3) == 0) {
+			} else if (strncmp(tag, "</b>", 4) == 0) {
 				if (in_bold > 0) {
 					in_bold--;
 					if (in_bold == 0)
 						attr_flag &= ~GG_FONT_BOLD;
 				}
-			} else if (strncmp(tag, "<i", 2) == 0) {
+			} else if (strncmp(tag, "<i>", 3) == 0) {
 				in_italic++;
 				attr_flag |= GG_FONT_ITALIC;
-			} else if (strncmp(tag, "</i", 3) == 0) {
+			} else if (strncmp(tag, "</i>", 4) == 0) {
 				if (in_italic > 0) {
 					in_italic--;
 					if (in_italic == 0)
 						attr_flag &= ~GG_FONT_ITALIC;
 				}
-			} else if (strncmp(tag, "<u", 2) == 0) {
+			} else if (strncmp(tag, "<u>", 3) == 0) {
 				in_underline++;
 				attr_flag |= GG_FONT_UNDERLINE;
-			} else if (strncmp(tag, "</u", 3) == 0) {
+			} else if (strncmp(tag, "</u>", 4) == 0) {
 				if (in_underline > 0) {
 					in_underline--;
 					if (in_underline == 0)

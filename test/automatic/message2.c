@@ -211,6 +211,9 @@ const struct test_data html_to_text[] =
 	/* Błąd zgłoszony na ekg-users <5b601e1c.7feabed5.4bfaf8b6.1410c@o2.pl>, tym razem z drugiej strony */
 	{ SPAN("test<b>bolda</b>test"), "testboldatest", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x09\x00\x00\x00\x09\x00\x08\x00\x00\x00", 18 },
 
+	/* Przed r1239 tag <bot/> był interpretowany jak bold */
+	{ "<bot body=\"&lt;html/&gt;\">test</bot>test", "testtest", GG_ENCODING_UTF8 },
+
 	/* Pusty tekst */
 	{ "", "", GG_ENCODING_UTF8 },
 };
