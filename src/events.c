@@ -289,7 +289,7 @@ static int gg_session_init_ssl(struct gg_session *gs)
 
 	if (gs->ssl == NULL) {
 		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_CTX_new() failed: %s\n", buf);
+		gg_debug(GG_DEBUG_MISC, "// gg_session_connect() SSL_new() failed: %s\n", buf);
 		return -1;
 	}
 
