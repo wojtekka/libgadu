@@ -368,12 +368,12 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 			res = written;
 		}
 	} else {
-		res = 0;
-
 		if (sess->send_buf == NULL) {
 			res = gg_write_common(sess, buf, length);
 
-			if (res == -1 && errno != EAGAIN)
+			if (res == -1 && errno == EAGAIN)
+				res = 0;
+			if (res == -1)
 				return -1;
 		}
 
