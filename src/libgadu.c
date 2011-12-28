@@ -403,7 +403,7 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
  * w zaalokowanym buforze.
  *
  * Przy połączeniach asynchronicznych, funkcja może nie być w stanie
- * skompletować całego pakietu -- w takim przypadku zwróci -1, a kodem błędu
+ * skompletować całego pakietu -- w takim przypadku zwróci \c NULL, a kodem błędu
  * będzie \c EAGAIN.
  *
  * \param sess Struktura sesji
