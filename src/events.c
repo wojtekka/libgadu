@@ -270,7 +270,7 @@ static int gg_session_init_ssl(struct gg_session *gs)
 		RAND_seed((void *) &rstruct, sizeof(rstruct));
 	}
 
-	if (gs->ssl_ctx != NULL) {
+	if (gs->ssl_ctx == NULL) {
 		gs->ssl_ctx = SSL_CTX_new(SSLv3_client_method());
 
 		if (gs->ssl_ctx == NULL) {
