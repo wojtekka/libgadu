@@ -373,7 +373,7 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 		if (sess->send_buf == NULL) {
 			res = gg_write_common(sess, buf, length);
 
-			if (res == -1)
+			if (res == -1 && errno != EAGAIN)
 				return -1;
 		}
 
