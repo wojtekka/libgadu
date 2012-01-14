@@ -9,6 +9,10 @@ lub ABI biblioteki. Poprawki dostarczające nową funkcjonalność w większośc
 przypadków nie mają wpływ na interfejs binarny biblioteki. Nowe funkcje,
 stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_11_1 libgadu 1.11.1
+
+- Brak zmian API/ABI.
+
 \section changelog-1_11_0 libgadu 1.11.0
 
 - Import i eksport listy kontaktów zgodnej z Gadu-Gadu 10. Dodaje zależność
