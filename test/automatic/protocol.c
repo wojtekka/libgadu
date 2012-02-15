@@ -44,12 +44,6 @@ static char outbuf[4096];
 static int outbuflen = 0;
 static int fd = -1;	/* connected socket */
 
-int buffered_write(char *data, int len)
-{
-
-	return 0;
-}
-
 int main(int argc, char **argv)
 {
 	struct gg_login_params glp;
