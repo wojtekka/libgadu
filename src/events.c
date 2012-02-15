@@ -1333,6 +1333,12 @@ static gg_action_t gg_handle_connected(struct gg_session *sess, struct gg_event 
 	gh = gg_recv_packet(sess);
 
 	if (gh == NULL) {
+		if (sess->state == GG_STATE_DISCONNECTING) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection broken expectedly\n");
+			e->type = GG_EVENT_DISCONNECT_ACK;
+			return GG_ACTION_WAIT;
+		}
+
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() gg_recv_packet failed (errno=%d, %s)\n", errno, strerror(errno));
 
 		if (errno != EAGAIN)

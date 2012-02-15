@@ -177,9 +177,7 @@ int main(int argc, char **argv)
 		time_t now;
 
 		if (disconnect_flag) {
-//			gg_change_status(gs, GG_STATUS_NOT_AVAIL);
-			gs->timeout = 5;
-			gs->state == GG_STATE_DISCONNECTING;
+			gg_change_status(gs, GG_STATUS_NOT_AVAIL);
 			disconnect_flag = 0;
 		}
 
