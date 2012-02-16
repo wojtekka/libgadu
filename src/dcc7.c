@@ -1118,7 +1118,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 					}
 
 					if (dcc->relay_index >= dcc->relay_count) {
-						gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() no relay available");
+						gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() no relay available\n");
 						e->type = GG_EVENT_DCC7_ERROR;
 						e->event.dcc_error = GG_ERROR_DCC7_RELAY;
 						return e;
@@ -1461,7 +1461,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			dcc->relay_list = malloc(dcc->relay_count * sizeof(gg_dcc7_relay_t));
 
 			if (dcc->relay_list == NULL) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() not enough memory");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() not enough memory\n");
 				dcc->relay_count = 0;
 				free(e);
 				return NULL;
@@ -1490,7 +1490,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			}
 
 			if (dcc->relay_index >= dcc->relay_count) {
-				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() no relay available");
+				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() no relay available\n");
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_RELAY;
 				return e;

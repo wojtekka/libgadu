@@ -732,7 +732,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	if (!p->protocol_version)
 		sess->protocol_version = GG_DEFAULT_PROTOCOL_VERSION;
 	else if (p->protocol_version < 0x2e) {
-		gg_debug(GG_DEBUG_MISC, "// gg_login() libgadu no longer support protocol < 0x2e");
+		gg_debug(GG_DEBUG_MISC, "// gg_login() libgadu no longer support protocol < 0x2e\n");
 		sess->protocol_version = 0x2e;
 	} else
 		sess->protocol_version = p->protocol_version;
@@ -2075,7 +2075,7 @@ int gg_userlist100_request(struct gg_session *sess, char type, unsigned int vers
 	zrequest = gg_deflate(request, &zrequest_len);
 
 	if (zrequest == NULL) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_userlist100_request() gg_deflate() failed");
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_userlist100_request() gg_deflate() failed\n");
 		return -1;
 	}
 

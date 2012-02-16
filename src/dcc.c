@@ -35,8 +35,7 @@
 #include <stdlib.h>
 
 #include "libgadu.h"
-
-#ifndef GG_DEBUG_DISABLE
+#include "debug.h"
 
 /**
  * \internal Przekazuje zawartość pakietu do odpluskwiania.
@@ -48,18 +47,10 @@
  */
 static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsigned int size)
 {
-	unsigned int i;
-
 	gg_debug(GG_DEBUG_MISC, "++ gg_dcc %s (fd=%d,len=%d)", prefix, fd, size);
-
-	for (i = 0; i < size; i++)
-		gg_debug(GG_DEBUG_MISC, " %.2x", ((const unsigned char*) buf)[i]);
-
+	gg_debug_dump(NULL, GG_DEBUG_DUMP, buf, size);
 	gg_debug(GG_DEBUG_MISC, "\n");
 }
-#else
-#define gg_dcc_debug_data(a,b,c,d) do { } while (0)
-#endif
 
 /**
  * Wysyła żądanie zwrotnego połączenia bezpośredniego.
