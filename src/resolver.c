@@ -252,6 +252,9 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 /**
  * \internal Rozwiązuje nazwę i zapisuje wynik do podanego gniazda.
  *
+ * \note Użycie logowania w tej funkcji może mieć negatywny wpływ na
+ * aplikacje jednowątkowe korzystające.
+ *
  * \param fd Deskryptor gniazda
  * \param hostname Nazwa serwera
  *
@@ -262,8 +265,6 @@ static int gg_resolver_run(int fd, const char *hostname)
 	struct in_addr addr_ip[2], *addr_list;
 	unsigned int addr_count;
 	int res = 0;
-
-	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run(%d, %s)\n", fd, hostname);
 
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
 		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 1) == -1) {
@@ -276,8 +277,6 @@ static int gg_resolver_run(int fd, const char *hostname)
 		addr_ip[1].s_addr = INADDR_NONE;
 		addr_count = 1;
 	}
-
-	gg_debug(GG_DEBUG_MISC, "// gg_resolver_run() count = %d\n", addr_count);
 
 	if (send(fd, addr_list, (addr_count + 1) * sizeof(struct in_addr), 0) != (int)((addr_count + 1) * sizeof(struct in_addr)))
 		res = -1;
