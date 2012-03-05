@@ -600,6 +600,8 @@ static gg_action_t gg_handle_connecting(struct gg_session *sess, struct gg_event
 {
 	int res;
 
+	sess->soft_timeout = 0;
+
 	if (gg_async_connect_failed(sess, &res)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
 		sess->resolver_index++;
