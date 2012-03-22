@@ -26,11 +26,12 @@
  * \brief Funkcje wyznaczania skrótu SHA1
  */
 
-#include "fileio.h"
 
 #include <string.h>
 
 #include "libgadu.h"
+#include "fileio.h"
+#include "config.h"
 
 /** \cond ignore */
 
@@ -38,7 +39,7 @@
 
 #include <openssl/sha.h>
 
-#elif defined(GG_CONFIG_HAVE_GNUTLS)
+#elif defined(HAVE_LIBGCRYPT)
 
 #include <gcrypt.h>
 

@@ -250,6 +250,20 @@ if test "x$with_gnutls" != "xno"; then
 fi
 
 dnl
+dnl  Sprawdzamy libgcrypt
+dnl
+AC_ARG_WITH(libgcrypt,
+  [  --without-libgcrypt     do not use libgcrypt even if found])
+
+if test "x$with_libgcrypt" != "xno"; then
+	AM_PATH_LIBGCRYPT([], [
+		AC_DEFINE([HAVE_LIBGCRYPT], [], [Defined if libgcrypt is available.])
+		CFLAGS="$CFLAGS $LIBGCRYPT_CFLAGS"
+		LIBS_PRIVATE="$LIBS_PRIVATE $LIBGCRYPT_LIBS"
+	])
+fi
+
+dnl
 dnl  Sprawdzamy OpenSSL, jeśli nie ma GnuTLS
 dnl
 
