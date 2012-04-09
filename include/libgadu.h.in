@@ -1289,11 +1289,7 @@ struct gg_http *gg_change_passwd4(uin_t uin, const char *email, const char *pass
 #endif
 
 extern int gg_dcc_port;
-#ifndef _WIN32
 extern unsigned long gg_dcc_ip;
-#else
-extern uint32_t gg_dcc_ip;
-#endif
 
 int gg_dcc_request(struct gg_session *sess, uin_t uin);
 
@@ -1373,11 +1369,7 @@ extern char *gg_proxy_username;
 extern char *gg_proxy_password;
 extern int gg_proxy_http_only;
 
-#ifndef _WIN32
 extern unsigned long gg_local_ip;
-#else
-extern uint32_t gg_local_ip;
-#endif
 
 #define GG_LOGIN_HASH_GG32 0x01	/**< Algorytm Gadu-Gadu */
 #define GG_LOGIN_HASH_SHA1 0x02	/**< Algorytm SHA1 */
