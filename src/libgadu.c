@@ -70,22 +70,14 @@ int gg_dcc_port = 0;
  *
  * \ingroup ip
  */
-#ifndef _WIN32
 unsigned long gg_dcc_ip = 0;
-#else
-uint32_t gg_dcc_ip = 0;
-#endif
 
 /**
  * Adres lokalnego interfejsu IP, z którego wywoływane są wszystkie połączenia.
  *
  * \ingroup ip
  */
-#ifndef _WIN32
 unsigned long gg_local_ip = 0;
-#else
-uint32_t gg_local_ip = 0;
-#endif
 
 /**
  * Flaga włączenia połączeń przez serwer pośredniczący.
