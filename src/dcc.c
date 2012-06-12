@@ -349,9 +349,9 @@ void gg_dcc_set_type(struct gg_dcc *d, int type)
  * \internal Funkcja zwrotna połączenia bezpośredniego.
  *
  * Pole \c callback struktury \c gg_dcc zawiera wskaźnik do tej funkcji.
- * Wywołuje ona \c gg_watch_fd() i zachowuje wynik w polu \c event.
+ * Wywołuje ona \c gg_dcc_watch_fd() i zachowuje wynik w polu \c event.
  *
- * \note Funkcjonalność funkcjo zwrotnej nie jest już wspierana.
+ * \note Funkcjonalność funkcji zwrotnej nie jest już wspierana.
  *
  * \param d Struktura połączenia
  *
@@ -810,7 +810,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 				tmp = recv(h->fd, h->chunk_buf + h->chunk_offset, h->chunk_size - h->chunk_offset, 0);
 
 				if (tmp == -1) {
-					gg_debug(GG_DEBUG_MISC, "// gg_watch_fd() recv() failed (errno=%d, %s)\n", errno, strerror(errno));
+					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed (errno=%d, %s)\n", errno, strerror(errno));
 					e->type = GG_EVENT_DCC_ERROR;
 					e->event.dcc_error = GG_ERROR_DCC_NET;
 					return e;
