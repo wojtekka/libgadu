@@ -6,7 +6,6 @@
 #include <time.h>
 #include <string.h>
 #include <errno.h>
-#include <signal.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
@@ -56,7 +55,6 @@ int main(int argc, char **argv)
 	int state = 0;
 	time_t last = 0;
 
-	signal(SIGPIPE, SIG_IGN);
 	gg_debug_file = stdout;
 	gg_debug_level = ~0;
 

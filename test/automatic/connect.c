@@ -7,12 +7,10 @@
 #include <time.h>
 #include <string.h>
 #include <errno.h>
-#include <signal.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include <sys/signal.h>
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -789,11 +787,6 @@ static char *htmlize(const char *in)
 	return out;
 }
 
-static void cleanup(int sig)
-{
-	failure();
-}
-
 int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0;
@@ -824,15 +817,8 @@ int main(int argc, char **argv)
 		test_to = TEST_MAX;
 	}
 
-	signal(SIGPIPE, SIG_IGN);
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
-
-	signal(SIGTERM, cleanup);
-	signal(SIGINT, cleanup);
-	signal(SIGQUIT, cleanup);
-	signal(SIGSEGV, cleanup);
-	signal(SIGABRT, cleanup);
 
 	if (pipe(port_pipe) == -1) {
 		perror("pipe");
