@@ -480,12 +480,12 @@ void gg_http_stop(struct gg_http *h)
 	if (h->state == GG_STATE_ERROR || h->state == GG_STATE_DONE)
 		return;
 
+	h->resolver_cleanup(&h->resolver, 1);
+
 	if (h->fd != -1) {
 		close(h->fd);
 		h->fd = -1;
 	}
-
-	h->resolver_cleanup(&h->resolver, 1);
 }
 
 /**
