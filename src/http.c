@@ -207,12 +207,12 @@ int gg_http_watch_fd(struct gg_http *h)
 			res = gg_resolver_recv(h->fd, &addr, sizeof(addr), h->resolver_type);
 		} while (res == -1 && (errno == EAGAIN || errno == EINTR));
 
+		h->resolver_cleanup(&h->resolver, 0);
+
 		if (res != sizeof(addr) || addr.s_addr == INADDR_NONE) {
 			gg_debug(GG_DEBUG_MISC, "=> http, resolver thread failed\n");
 			gg_http_error(GG_ERROR_RESOLVING);
 		}
-
-		h->resolver_cleanup(&h->resolver, 0);
 
 		close(h->fd);
 		h->fd = -1;

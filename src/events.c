@@ -460,6 +460,8 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 		return GG_ACTION_WAIT;
 	}
 
+	sess->resolver_cleanup(&sess->resolver, 0);
+
 	if (res == -1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() read error (errno=%d, %s)\n", errno, strerror(errno));
 		e->event.failure = GG_FAILURE_RESOLVING;
@@ -542,8 +544,6 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 		free(list);
 	}
 #endif
-
-	sess->resolver_cleanup(&sess->resolver, 0);
 
 	close(sess->fd);
 	sess->fd = -1;
@@ -1475,8 +1475,6 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 				continue;
 
 			case GG_ACTION_FAIL:
-				//sess->resolver_cleanup(&sess->resolver, 1);
-
 				sess->state = GG_STATE_IDLE;
 
 				if (sess->fd != -1) {

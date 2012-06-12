@@ -1356,13 +1356,14 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 				res = gg_resolver_recv(dcc->fd, &addr, sizeof(addr), 0);
 			} while (res == -1 && (errno == EAGAIN || errno == EINTR));
 
+			dcc->sess->resolver_cleanup(&dcc->resolver, 0);
+
 			if (res != sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				int errno_save = errno;
 
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() resolving failed\n");
 				close(dcc->fd);
 				dcc->fd = -1;
-				dcc->sess->resolver_cleanup(&dcc->resolver, 0);
 				errno = errno_save;
 				e->type = GG_EVENT_DCC7_ERROR;
 				e->event.dcc_error = GG_ERROR_DCC7_RELAY;
