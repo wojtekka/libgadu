@@ -439,7 +439,6 @@ static void gg_resolver_fork_cleanup(void **priv_data, int force)
 struct gg_resolver_pthread_data {
 	pthread_t thread;	/*< Identyfikator wątku */
 	char *hostname;		/*< Nazwa serwera */
-	int rfd;		/*< Deskryptor do odczytu */
 	int wfd;		/*< Deskryptor do zapisu */
 };
 
@@ -468,14 +467,8 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 
 	pthread_join(data->thread, NULL);
 
+	close(data->wfd);
 	free(data->hostname);
-	data->hostname = NULL;
-
-	if (data->wfd != -1) {
-		close(data->wfd);
-		data->wfd = -1;
-	}
-
 	free(data);
 }
 
@@ -544,7 +537,6 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 		goto cleanup;
 	}
 
-	data->rfd = pipes[0];
 	data->wfd = pipes[1];
 
 	if (pthread_create(&data->thread, NULL, gg_resolver_pthread_thread, data)) {
@@ -584,7 +576,6 @@ cleanup:
 struct gg_resolver_win32_data {
 	HANDLE thread;		/*< Uchwyt wątku */
 	char *hostname;		/*< Nazwa serwera */
-	int rfd;		/*< Deskryptor do odczytu */
 	int wfd;		/*< Deskryptor do zapisu */
 };
 
@@ -653,7 +644,6 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 		goto cleanup;
 	}
 
-	data->rfd = pipes[0];
 	data->wfd = pipes[1];
 
 	data->thread = CreateThread(NULL, 0, gg_resolver_win32_thread, data, 0, NULL);
@@ -665,7 +655,7 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 
 	gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() %p\n", data);
 
-	*fd = data->rfd;
+	*fd = pipes[0];
 	*priv_data = data;
 
 	return 0;
@@ -711,14 +701,8 @@ static void gg_resolver_win32_cleanup(void **priv_data, int force)
 
 	CloseHandle(data->thread);
 
+	close(data->wfd);
 	free(data->hostname);
-	data->hostname = NULL;
-
-	if (data->wfd != -1) {
-		close(data->wfd);
-		data->wfd = -1;
-	}
-
 	free(data);
 }
 
