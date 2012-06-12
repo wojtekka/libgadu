@@ -509,7 +509,7 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 	if (count == -1)
 		return GG_ACTION_WAIT;
 
-#ifndef GG_DISABLE_DEBUG
+#ifndef GG_DEBUG_DISABLE
 	if ((gg_debug_level & GG_DEBUG_DUMP) && (count > 0)) {
 		char *list;
 		size_t len;
