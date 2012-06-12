@@ -203,7 +203,9 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		gg_debug(GG_DEBUG_MISC, "=> http, resolving done\n");
 
-		res = gg_resolver_recv(h->fd, &addr, sizeof(addr), h->resolver_type);
+		do {
+			res = gg_resolver_recv(h->fd, &addr, sizeof(addr), h->resolver_type);
+		} while (res == -1 && (errno == EAGAIN || errno == EINTR));
 
 		if (res != sizeof(addr) || addr.s_addr == INADDR_NONE) {
 			gg_debug(GG_DEBUG_MISC, "=> http, resolver thread failed\n");
