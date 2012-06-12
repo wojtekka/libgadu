@@ -26,7 +26,7 @@
  * \brief Funkcje wyznaczania skrótu SHA1
  */
 
-
+#include <errno.h>
 #include <string.h>
 
 #include "libgadu.h"
@@ -272,25 +272,30 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 	SHA1_Init(&ctx);
 
 	if (len <= 10485760) {
-		while ((res = read(fd, buf, sizeof(buf))) > 0)
-			SHA1_Update(&ctx, buf, res);
+		while ((res = read(fd, buf, sizeof(buf))) > 0 || (res == -1 && (errno == EINTR || errno == EAGAIN))) {
+			if (res != -1)
+				SHA1_Update(&ctx, buf, res);
+		}
 	} else {
 		unsigned int i;
 
 		for (i = 0; i < 9; i++) {
-			unsigned int j;
+			unsigned int left = 1048576;
 
 			if (lseek(fd, (len - 1048576) / 9 * i, SEEK_SET) == (off_t) - 1)
 				return -1;
 
-			for (j = 0; j < 1048576 / sizeof(buf); j++) {
-				if ((res = read(fd, buf, sizeof(buf))) != sizeof(buf)) {
-					res = -1;
-					break;
-				}
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+			while ((res = read(fd, buf, MIN(sizeof(buf), left))) > 0 || (res == -1 && (errno == EINTR || errno == EAGAIN))) {
+				if (res != -1) {
+					SHA1_Update(&ctx, buf, res);
 
-				SHA1_Update(&ctx, buf, res);
+					left -= res;
+					if (left == 0)
+						break;
+				}
 			}
+#undef MIN
 
 			if (res == -1)
 				break;
