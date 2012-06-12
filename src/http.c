@@ -210,10 +210,10 @@ int gg_http_watch_fd(struct gg_http *h)
 			gg_http_error(GG_ERROR_RESOLVING);
 		}
 
+		h->resolver_cleanup(&h->resolver, 0);
+
 		close(h->fd);
 		h->fd = -1;
-
-		h->resolver_cleanup(&h->resolver, 0);
 
 		gg_debug(GG_DEBUG_MISC, "=> http, connecting to %s:%d\n", inet_ntoa(addr), h->port);
 

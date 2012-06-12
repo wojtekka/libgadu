@@ -543,10 +543,10 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 	}
 #endif
 
+	sess->resolver_cleanup(&sess->resolver, 0);
+
 	close(sess->fd);
 	sess->fd = -1;
-
-	sess->resolver_cleanup(&sess->resolver, 0);
 
 	sess->state = next_state;
 	sess->resolver_result = (struct in_addr*) sess->recv_buf;
