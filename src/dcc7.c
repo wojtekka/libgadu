@@ -1351,7 +1351,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_RESOLVING_RELAY\n");
 
-			if (recv(dcc->fd, &addr, sizeof(addr), 0) < (int) sizeof(addr) || addr.s_addr == INADDR_NONE) {
+			if (gg_resolver_recv(dcc->fd, &addr, sizeof(addr), 0) < (int) sizeof(addr) || addr.s_addr == INADDR_NONE) {
 				int errno_save = errno;
 
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() resolving failed\n");
