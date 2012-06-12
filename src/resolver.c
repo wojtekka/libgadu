@@ -463,10 +463,10 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 	data = (struct gg_resolver_pthread_data *) *priv_data;
 	*priv_data = NULL;
 
-	if (force) {
+	if (force)
 		pthread_cancel(data->thread);
-		pthread_join(data->thread, NULL);
-	}
+
+	pthread_join(data->thread, NULL);
 
 	free(data->hostname);
 	data->hostname = NULL;
@@ -487,8 +487,6 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 static void *gg_resolver_pthread_thread(void *arg)
 {
 	struct gg_resolver_pthread_data *data = arg;
-
-	pthread_detach(pthread_self());
 
 	if (gg_resolver_run(data->wfd, data->hostname) == -1)
 		pthread_exit((void*) -1);
