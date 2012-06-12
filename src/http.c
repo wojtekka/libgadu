@@ -258,9 +258,14 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		res = send(h->fd, h->query, strlen(h->query), 0);
 
-		if (res == -1) {
+		if (res == -1 && errno != EINTR && errno != EAGAIN) {
 			gg_debug(GG_DEBUG_MISC, "=> http, send() failed (len=%d, res=%d, errno=%d)\n", strlen(h->query), res, errno);
 			gg_http_error(GG_ERROR_WRITING);
+		}
+
+		if (res == -1) {
+			gg_debug(GG_DEBUG_MISC, "=> http, non-critical send error (errno=%d, %s)\n", errno, strerror(errno));
+			return 0;
 		}
 
 		if ((size_t) res < strlen(h->query)) {
@@ -289,13 +294,18 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		res = recv(h->fd, buf, sizeof(buf), 0);
 
-		if (res == -1) {
+		if (res == -1 && errno != EINTR && errno != EAGAIN) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading header failed (errno=%d)\n", errno);
 			if (h->header) {
 				free(h->header);
 				h->header = NULL;
 			}
 			gg_http_error(GG_ERROR_READING);
+		}
+
+		if (res == -1) {
+			gg_debug(GG_DEBUG_MISC, "=> http, non-critical recv error (errno=%d, %s)\n", errno, strerror(errno));
+			return 0;
 		}
 
 		if (res == 0) {
@@ -401,13 +411,18 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		res = recv(h->fd, buf, sizeof(buf), 0);
 		
-		if (res == -1) {
+		if (res == -1 && errno != EINTR && errno != EAGAIN) {
 			gg_debug(GG_DEBUG_MISC, "=> http, reading body failed (errno=%d)\n", errno);
 			if (h->body) {
 				free(h->body);
 				h->body = NULL;
 			}
 			gg_http_error(GG_ERROR_READING);
+		}
+
+		if (res == -1) {
+			gg_debug(GG_DEBUG_MISC, "=> http, non-critical recv error (errno=%d, %s)\n", errno, strerror(errno));
+			return 0;
 		}
 
 		if (res == 0) {
