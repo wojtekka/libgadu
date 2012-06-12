@@ -21,9 +21,7 @@ AC_SUBST(LIBTOOL_DEPS)
 AC_SUBST(INCLUDES)
 dnl Zależności dla pkgconfig
 AC_SUBST(REQUIRES_PRIVATE)
-AC_SUBST(REQUIRES_PUBLIC)
 AC_SUBST(LIBS_PRIVATE)
-AC_SUBST(LIBS_PUBLIC)
 
 export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
 PKG_PROG_PKG_CONFIG
@@ -272,18 +270,18 @@ if test "x$have_gnutls" != "xyes"; then
 fi
 
 if test "x$have_openssl" = "xyes"; then
-	# Note: not adding to LIBS_PUBLIC, because "REQUIRES_PUBLIC" takes care
+	# Note: not adding to LIBS_PRIVATE, because "REQUIRES_PRIVATE" takes care
 	# of that for pkg-config.
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
-	REQUIRES_PUBLIC="$REQUIRES_PUBLIC openssl"
+	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
 
-# We need separate lists of exposed and internally used libs, for the pkgconfig file.
-# We concatenate them here so that libtool can pick them up too.
-LIBS="$LIBS $LIBS_PUBLIC $LIBS_PRIVATE"
+# We need separate lists of libs handled with and without pkgconfig help, for the pkgconfig file.
+# We concatenate them here so that libtool can pick the pkgconfig-less libs too.
+LIBS="$LIBS $LIBS_PRIVATE"
 
 dnl
 dnl  Testy
