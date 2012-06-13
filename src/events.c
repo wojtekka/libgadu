@@ -318,8 +318,11 @@ static int gg_send_queued_data(struct gg_session *sess)
 	res = send(sess->fd, sess->send_buf, sess->send_left, 0);
 
 	if (res == -1) {
-		if (errno == EAGAIN || errno == EINTR)
+		if (errno == EAGAIN || errno == EINTR) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical send error (errno=%d, %s)\n", errno, strerror(errno));
+
 			return 0;
+		}
 
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() send() failed (errno=%d, %s)\n", errno, strerror(errno));
 
