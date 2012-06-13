@@ -272,27 +272,47 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 	SHA1_Init(&ctx);
 
 	if (len <= 10485760) {
+		off_t current_pos = 0;
+
 		while ((res = read(fd, buf, sizeof(buf))) > 0 || (res == -1 && errno == EINTR)) {
-			if (res != -1)
+			if (res != -1) {
 				SHA1_Update(&ctx, buf, res);
+				current_pos += res;
+			} else {
+				/* Dokumentacja read(2) mówi, że nie wiadomo, co się dzieje z pozycją po błędzie. */
+				if (lseek(fd, current_pos, SEEK_SET) == (off_t) -1) {
+					res = -1;
+					break;
+				}
+			}
 		}
 	} else {
 		unsigned int i;
 
 		for (i = 0; i < 9; i++) {
 			unsigned int left = 1048576;
+			off_t current_pos = (len - 1048576) / 9 * i;
 
-			if (lseek(fd, (len - 1048576) / 9 * i, SEEK_SET) == (off_t) - 1)
-				return -1;
+			if (lseek(fd, current_pos, SEEK_SET) == (off_t) - 1) {
+				res = -1;
+				break;
+			}
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 			while ((res = read(fd, buf, MIN(sizeof(buf), left))) > 0 || (res == -1 && errno == EINTR)) {
 				if (res != -1) {
 					SHA1_Update(&ctx, buf, res);
 
+					current_pos += res;
 					left -= res;
 					if (left == 0)
 						break;
+				} else {
+					/* Dokumentacja read(2) mówi, że nie wiadomo, co się dzieje z pozycją po błędzie. */
+					if (lseek(fd, current_pos, SEEK_SET) == (off_t) -1) {
+						res = -1;
+						break;
+					}
 				}
 			}
 #undef MIN
