@@ -1354,7 +1354,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			do {
 				res = gg_resolver_recv(dcc->fd, &addr, sizeof(addr), 0);
-			} while (res == -1 && (errno == EAGAIN || errno == EINTR));
+			} while (res == -1 && errno == EINTR);
 
 			dcc->sess->resolver_cleanup(&dcc->resolver, 0);
 

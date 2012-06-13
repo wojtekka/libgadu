@@ -272,7 +272,7 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 	SHA1_Init(&ctx);
 
 	if (len <= 10485760) {
-		while ((res = read(fd, buf, sizeof(buf))) > 0 || (res == -1 && (errno == EINTR || errno == EAGAIN))) {
+		while ((res = read(fd, buf, sizeof(buf))) > 0 || (res == -1 && errno == EINTR)) {
 			if (res != -1)
 				SHA1_Update(&ctx, buf, res);
 		}
@@ -286,7 +286,7 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 				return -1;
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
-			while ((res = read(fd, buf, MIN(sizeof(buf), left))) > 0 || (res == -1 && (errno == EINTR || errno == EAGAIN))) {
+			while ((res = read(fd, buf, MIN(sizeof(buf), left))) > 0 || (res == -1 && errno == EINTR)) {
 				if (res != -1) {
 					SHA1_Update(&ctx, buf, res);
 

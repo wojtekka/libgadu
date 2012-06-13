@@ -205,7 +205,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		do {
 			res = gg_resolver_recv(h->fd, &addr, sizeof(addr), h->resolver_type);
-		} while (res == -1 && (errno == EAGAIN || errno == EINTR));
+		} while (res == -1 && errno == EINTR);
 
 		h->resolver_cleanup(&h->resolver, 0);
 
