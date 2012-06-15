@@ -318,6 +318,14 @@ if test "x$enable_tests" != "xno"; then
 	if test "x$have_glibc" = "xyes"; then
 		OPTIONAL_TESTS_GLIBC="resolver packet"
 		
+		dnl For tests always try to use GnuTLS if available
+		if test "x$have_gnutls" != "xyes"; then
+			PKG_CHECK_MODULES([GNUTLS], [gnutls], [
+				AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
+				have_gnutls="yes"
+			], [:])
+		fi
+
 		if test "x$have_gnutls" = "xyes"; then
 			OPTIONAL_TESTS_GLIBC_GNUTLS="connect"
 		fi
@@ -348,6 +356,12 @@ if test "x$enable_tests" != "xno"; then
 	AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
 
 	if test "x$tmp" = "xxxxxx"; then
+		dnl For tests always try to use OpenSSL if available
+		if test "x$have_openssl" != "xyes"; then
+			force_openssl="yes"
+			AC_CHECK_OPENSSL
+		fi
+
 		if test "x$have_openssl" = "xyes"; then
 			OPTIONAL_TESTS_SEARCH="search"
 		fi

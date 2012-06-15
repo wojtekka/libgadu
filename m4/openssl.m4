@@ -13,7 +13,7 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
         with_arg=$withval/include:-L$withval/lib
       fi)
 
-  if test "x$without_openssl" != "xyes" -a "x$with_arg" = "x"; then
+  if test "x$without_openssl" != "xyes" -a "x$with_arg" = "x" -o "x$force_openssl" = "xyes"; then
     PKG_CHECK_MODULES([OPENSSL], [openssl], [
 	AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
         without_openssl=yes
