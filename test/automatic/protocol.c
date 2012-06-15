@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
 		if (script[state].type == ACTION_END) {
 			debug("state %d: ending\n", state);
-			exit(0);
+			break;
 		}
 
 		if (script[state].type == ACTION_LOGIN) {
@@ -359,6 +359,8 @@ int main(int argc, char **argv)
 			gg_event_free(ge);
 		}
 	}
+
+	close(lfd);
 
 	return 0;
 }
