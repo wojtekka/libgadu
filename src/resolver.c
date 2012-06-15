@@ -209,6 +209,9 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 #else /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 	struct hostent *he;
 	int i;
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	int old_state;
+#endif
 
 	if (result == NULL || count == NULL) {
 		errno = EINVAL;
@@ -227,7 +230,17 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 
 	/* Zaalokuj */
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	if (pthread)
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
 	*result = malloc((i + 1) * sizeof(struct in_addr));
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	if (pthread)
+		pthread_setcancelstate(old_state, NULL);
+#endif
 
 	if (*result == NULL)
 		return -1;
