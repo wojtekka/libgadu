@@ -249,20 +249,6 @@ if test "x$with_gnutls" != "xno"; then
 fi
 
 dnl
-dnl  Sprawdzamy libgcrypt
-dnl
-AC_ARG_WITH(libgcrypt,
-  [  --without-libgcrypt     do not use libgcrypt even if found])
-
-if test "x$with_libgcrypt" != "xno"; then
-	AM_PATH_LIBGCRYPT([], [
-		AC_DEFINE([HAVE_LIBGCRYPT], [], [Defined if libgcrypt is available.])
-		CFLAGS="$CFLAGS $LIBGCRYPT_CFLAGS"
-		LIBS_PRIVATE="$LIBS_PRIVATE $LIBGCRYPT_LIBS"
-	])
-fi
-
-dnl
 dnl  Sprawdzamy OpenSSL, jeśli nie ma GnuTLS
 dnl
 
@@ -278,6 +264,26 @@ if test "x$have_openssl" = "xyes"; then
 	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
 	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
+fi
+
+dnl
+dnl  Sprawdzamy libgcrypt, jeśli nie ma OpenSSL
+dnl
+
+have_libgcrypt=""
+
+if test "x$have_openssl" != "xyes"; then
+	AC_ARG_WITH(libgcrypt,
+	  [  --without-libgcrypt     do not use libgcrypt even if found])
+
+	if test "x$with_libgcrypt" != "xno"; then
+		AM_PATH_LIBGCRYPT([], [
+			AC_DEFINE([HAVE_LIBGCRYPT], [], [Defined if libgcrypt is available.])
+			CFLAGS="$CFLAGS $LIBGCRYPT_CFLAGS"
+			LIBS_PRIVATE="$LIBS_PRIVATE $LIBGCRYPT_LIBS"
+			have_libgcrypt="yes"
+		])
+	fi
 fi
 
 # We need separate lists of libs handled with and without pkgconfig help, for the pkgconfig file.
@@ -326,7 +332,14 @@ if test "x$enable_tests" != "xno"; then
 			], [:])
 		fi
 
-		if test "x$have_gnutls" = "xyes"; then
+		dnl For tests always try to use libgcrypt if available
+		if test "x$have_libgcrypt" != "xyes"; then
+			AM_PATH_LIBGCRYPT([], [
+				have_libgcrypt="yes"
+			])
+		fi
+
+		if test "x$have_gnutls" = "xyes" -a "x$have_libgcrypt" = "xyes"; then
 			OPTIONAL_TESTS_GLIBC_GNUTLS="connect"
 		fi
 	fi
