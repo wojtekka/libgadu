@@ -456,7 +456,7 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 	int res;
 	unsigned int i;
 
-	res = gg_resolver_recv(sess->fd, buf, sizeof(buf), sess->resolver_type);
+	res = gg_resolver_recv(sess->fd, buf, sizeof(buf));
 
 	if (res == -1 && (errno == EAGAIN || errno == EINTR)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() non-critical error (errno=%d, %s)\n", errno, strerror(errno));

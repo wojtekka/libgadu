@@ -1056,11 +1056,10 @@ int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char
  * \param fd Deskryptor
  * \param buf Wskaźnik na bufor
  * \param len Długość bufora
- * \param type Sposób rozwiązywania nazw
  *
  * \return Patrz recv() i read().
  */
-int gg_resolver_recv(int fd, void *buf, size_t len, gg_resolver_t type)
+int gg_resolver_recv(int fd, void *buf, size_t len)
 {
 #ifndef _WIN32
 	return read(fd, buf, len);

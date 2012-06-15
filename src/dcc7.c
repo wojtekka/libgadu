@@ -1353,7 +1353,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_RESOLVING_RELAY\n");
 
 			do {
-				res = gg_resolver_recv(dcc->fd, &addr, sizeof(addr), 0);
+				res = gg_resolver_recv(dcc->fd, &addr, sizeof(addr));
 			} while (res == -1 && errno == EINTR);
 
 			dcc->sess->resolver_cleanup(&dcc->resolver, 0);
