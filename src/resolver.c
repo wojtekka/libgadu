@@ -55,25 +55,21 @@ static void (*gg_global_resolver_cleanup)(void **private_data, int force);
 
 #include <pthread.h>
 
-#ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
-
 /**
  * \internal Funkcja pomocnicza zwalniająca zasoby po rozwiązywaniu nazwy
  * w wątku.
  *
  * \param data Wskaźnik na wskaźnik bufora zaalokowanego w wątku
  */
-static void gg_gethostbyname_cleaner(void *data)
+static void gg_resolver_cleaner(void *data)
 {
-	char **buf_ptr = (char**) data;
+	void **buf_ptr = (void **) data;
 
 	if (buf_ptr != NULL) {
 		free(*buf_ptr);
 		*buf_ptr = NULL;
 	}
 }
-
-#endif /* GG_CONFIG_HAVE_GETHOSTBYNAME_R */
 
 #endif /* GG_CONFIG_HAVE_PTHREAD */
 
@@ -112,7 +108,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
-	pthread_cleanup_push(gg_gethostbyname_cleaner, &buf);
+	pthread_cleanup_push(gg_resolver_cleaner, &buf);
 
 	if (pthread)
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
@@ -206,7 +202,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
-	pthread_cleanup_pop(1);
+	pthread_cleanup_pop(0);
 #endif
 
 	return res;
@@ -257,32 +253,63 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
  *
  * \param fd Deskryptor gniazda
  * \param hostname Nazwa serwera
+ * \param pthread Flaga blokowania unicestwiania wątku podczas alokacji pamięci
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-static int gg_resolver_run(int fd, const char *hostname)
+static int gg_resolver_run(int fd, const char *hostname, int pthread)
 {
-	struct in_addr addr_ip[2], *addr_list;
+	struct in_addr addr_ip[2], *addr_list = NULL;
 	unsigned int addr_count;
 	int res = 0;
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	int old_state;
+#endif
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	pthread_cleanup_push(gg_resolver_cleaner, &addr_list);
+#endif
 
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
-		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, 1) == -1) {
-			addr_list = addr_ip;
+		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, pthread) == -1) {
+#ifdef GG_CONFIG_HAVE_PTHREAD
+			if (pthread)
+				pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
+			free(addr_list);
+			addr_list = NULL;
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+			if (pthread)
+				pthread_setcancelstate(old_state, NULL);
+#endif
+
 			addr_count = 0;
 			/* addr_ip[0] już zawiera INADDR_NONE */
 		}
 	} else {
-		addr_list = addr_ip;
 		addr_ip[1].s_addr = INADDR_NONE;
 		addr_count = 1;
 	}
 
-	if (send(fd, addr_list, (addr_count + 1) * sizeof(struct in_addr), 0) != (int)((addr_count + 1) * sizeof(struct in_addr)))
+	if (send(fd, addr_list != NULL ? addr_list : addr_ip, (addr_count + 1) * sizeof(struct in_addr), 0) != (int)((addr_count + 1) * sizeof(struct in_addr)))
 		res = -1;
 
-	if (addr_list != addr_ip)
-		free(addr_list);
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	if (pthread)
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
+#endif
+
+	free(addr_list);
+	addr_list = NULL;
+
+#ifdef GG_CONFIG_HAVE_PTHREAD
+	if (pthread)
+		pthread_setcancelstate(old_state, NULL);
+
+	pthread_cleanup_pop(0);
+#endif
 
 	return res;
 }
@@ -373,7 +400,7 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 
 		close(pipes[0]);
 
-		status = (gg_resolver_run(pipes[1], hostname) == -1) ? 1 : 0;
+		status = (gg_resolver_run(pipes[1], hostname, 0) == -1) ? 1 : 0;
 
 #ifdef HAVE__EXIT
 		_exit(status);
@@ -481,7 +508,7 @@ static void *gg_resolver_pthread_thread(void *arg)
 {
 	struct gg_resolver_pthread_data *data = arg;
 
-	if (gg_resolver_run(data->wfd, data->hostname) == -1)
+	if (gg_resolver_run(data->wfd, data->hostname, 1) == -1)
 		pthread_exit((void*) -1);
 	else
 		pthread_exit(NULL);
@@ -588,7 +615,7 @@ static DWORD WINAPI gg_resolver_win32_thread(void *arg)
 {
 	struct gg_resolver_win32_data *data = arg;
 
-	if (gg_resolver_run(data->wfd, data->hostname) == -1)
+	if (gg_resolver_run(data->wfd, data->hostname, 0) == -1)
 		ExitThread(-1);
 	else
 		ExitThread(0);
