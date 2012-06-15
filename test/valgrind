@@ -1,18 +1,28 @@
 #!/bin/sh
-NAME=$(echo "$0" | sed -e 's/.*\///' -e 's/-\?valgrind$//')
-if [ -z "$NAME" ]; then
+
+PROGRAM_PATH=$(dirname "$0")
+PROGRAM_NAME=$(basename "$0" | sed 's/-\?valgrind$//')
+
+if [ -z "$PROGRAM_NAME" ]; then
 	echo "Not to be run directly"
 	exit 1
 fi
-BINARY=""
-for i in "./.libs/lt-$NAME" "./$NAME"; do
+
+PROGRAM=""
+for i in "$PROGRAM_PATH/.libs/$PROGRAM_NAME" "$PROGRAM_PATH/.libs/lt-$PROGRAM_NAME" "$PROGRAM_PATH/$PROGRAM_NAME"; do
 	if [ -x "$i" ]; then
-		BINARY=$i
+		PROGRAM=$i
 		break
 	fi
 done
-if [ -n "$BINARY" ]; then
-	LD_LIBRARY_PATH=../../src/.libs valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --log-fd=3 "$BINARY" "$@" 3> "$NAME.log"
+
+if [ -n "$PROGRAM" ]; then
+	LOG_FILE="$PROGRAM_PATH/$PROGRAM_NAME.log"
+	LD_LIBRARY_PATH="$PROGRAM_PATH/../../src/.libs" valgrind \
+		--tool=memcheck --leak-check=full --show-reachable=yes --track-origins=yes \
+		--trace-children=yes --child-silent-after-fork=yes --track-fds=yes \
+		--log-file="$LOG_FILE" "$PROGRAM" $@
+	echo "valgrind output is in file \"$LOG_FILE\""
 else
-	echo "$NAME not found"
+	echo "$PROGRAM_NAME not found"
 fi
