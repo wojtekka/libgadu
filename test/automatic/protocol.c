@@ -11,13 +11,14 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
 #include <libgadu.h>
 
 #include "script.h"
 
-#define LOCALHOST "127.0.67.67"
-#define LOCALPORT 17219
+#define LOCALHOST_NAME "localhost"
+#define LOCALHOST_ADDR "127.0.0.1"
 
 #define debug(msg...) \
 	do { \
@@ -50,10 +51,14 @@ int main(int argc, char **argv)
 	int lfd;	/* listening socket */
 	int value = 1;
 	struct sockaddr_in sin;
+	socklen_t sin_len;
 	char inbuf[4096];
 	int inbuflen = 0;
 	int state = 0;
 	time_t last = 0;
+	struct hostent *he;
+	uint32_t server_addr;
+	uint16_t server_port;
 
 	gg_debug_file = stdout;
 	gg_debug_level = ~0;
@@ -67,15 +72,30 @@ int main(int argc, char **argv)
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
-	sin.sin_port = htons(LOCALPORT);
-	sin.sin_addr.s_addr = inet_addr(LOCALHOST);
 
-	if (bind(lfd, (struct sockaddr*) &sin, sizeof(sin))) {
+	he = gethostbyname(LOCALHOST_NAME);
+
+	if (he != NULL)
+		memcpy(&sin.sin_addr.s_addr, he->h_addr, sizeof(sin.sin_addr.s_addr));
+	else
+		sin.sin_addr.s_addr = inet_addr(LOCALHOST_ADDR);
+
+	if (bind(lfd, (struct sockaddr*) &sin, sizeof(sin)) == -1) {
 		perror("bind");
 		exit(1);
 	}
 
-	if (listen(lfd, 5)) {
+	sin_len = sizeof(sin);
+
+	if (getsockname(lfd, (struct sockaddr*) &sin, &sin_len) == -1) {
+		perror("getsockname");
+		exit(1);
+	}
+
+	server_addr = sin.sin_addr.s_addr;
+	server_port = ntohs(sin.sin_port);
+
+	if (listen(lfd, 5) == -1) {
 		perror("listen");
 		exit(1);
 	}
@@ -100,8 +120,8 @@ int main(int argc, char **argv)
 				gg_free_session(gs);
 
 			memcpy(&glp, script[state].glp, sizeof(glp));
-			glp.server_addr = inet_addr(LOCALHOST);
-			glp.server_port = LOCALPORT;
+			glp.server_addr = server_addr;
+			glp.server_port = server_port;
 			glp.async = 1;
 			glp.resolver = GG_RESOLVER_PTHREAD;
 
@@ -255,9 +275,9 @@ int main(int argc, char **argv)
 		}
 
 		if (FD_ISSET(lfd, &rds)) {
-			socklen_t sinlen = sizeof(sin);
+			sin_len = sizeof(sin);
 
-			res = accept(lfd, (struct sockaddr*) &sin, &sinlen);
+			res = accept(lfd, (struct sockaddr*) &sin, &sin_len);
 
 			if (res == -1) {
 				perror("accept");
