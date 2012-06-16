@@ -246,7 +246,53 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
 }
 
 /**
+ * \internal Liczy skrót SHA1 z fragmentu pliku.
+ *
+ * \param fd Deskryptor pliku
+ * \param ctx Kontekst SHA-1
+ * \param pos Położenie fragmentu pliku
+ * \param len Długość fragmentu pliku
+ *
+ * \return 0 lub -1
+ */
+static int gg_file_hash_sha1_part(int fd, SHA_CTX *ctx, off_t pos, size_t len)
+{
+	unsigned char buf[4096];
+	size_t chunk_len;
+	int res = 0;
+
+	while (len > 0) {
+		if (lseek(fd, pos, SEEK_SET) == (off_t) -1) {
+			res = -1;
+			break;
+		}
+
+		chunk_len = len;
+
+		if (chunk_len > sizeof(buf))
+			chunk_len = sizeof(buf);
+
+		res = read(fd, buf, chunk_len);
+		
+		if (res == -1 && errno != EINTR)
+			break;
+
+		if (res != -1) {
+			SHA1_Update(ctx, buf, res);
+
+			pos += res;
+			len -= res;
+		}
+	}
+
+	return res;
+}
+
+/**
  * \internal Liczy skrót SHA1 z pliku.
+ * 
+ * Dla plików poniżej 10MB liczony jest skrót z całego pliku, dla plików
+ * powyżej 10MB liczy się 9 jednomegabajtowych fragmentów.
  *
  * \param fd Deskryptor pliku
  * \param result Bufor na wynik funkcji skrótu (20 bajtów)
@@ -255,10 +301,10 @@ void gg_login_hash_sha1(const char *password, uint32_t seed, uint8_t *result)
  */
 int gg_file_hash_sha1(int fd, uint8_t *result)
 {
-	unsigned char buf[4096];
 	SHA_CTX ctx;
 	off_t pos, len;
 	int res;
+	const size_t part_len = 1048576;
 
 	if ((pos = lseek(fd, 0, SEEK_CUR)) == (off_t) -1)
 		return -1;
@@ -271,51 +317,15 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 
 	SHA1_Init(&ctx);
 
-	if (len <= 10485760) {
-		off_t current_pos = 0;
-
-		while ((res = read(fd, buf, sizeof(buf))) > 0 || (res == -1 && errno == EINTR)) {
-			if (res != -1) {
-				SHA1_Update(&ctx, buf, res);
-				current_pos += res;
-			} else {
-				/* Dokumentacja read(2) mówi, że nie wiadomo, co się dzieje z pozycją po błędzie. */
-				if (lseek(fd, current_pos, SEEK_SET) == (off_t) -1) {
-					res = -1;
-					break;
-				}
-			}
-		}
+	if (len <= part_len * 10) {
+		res = gg_file_hash_sha1_part(fd, &ctx, 0, len);
 	} else {
 		unsigned int i;
 
 		for (i = 0; i < 9; i++) {
-			unsigned int left = 1048576;
-			off_t current_pos = (len - 1048576) / 9 * i;
+			off_t part_pos = (len - part_len) / 9 * i;
 
-			if (lseek(fd, current_pos, SEEK_SET) == (off_t) - 1) {
-				res = -1;
-				break;
-			}
-
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-			while ((res = read(fd, buf, MIN(sizeof(buf), left))) > 0 || (res == -1 && errno == EINTR)) {
-				if (res != -1) {
-					SHA1_Update(&ctx, buf, res);
-
-					current_pos += res;
-					left -= res;
-					if (left == 0)
-						break;
-				} else {
-					/* Dokumentacja read(2) mówi, że nie wiadomo, co się dzieje z pozycją po błędzie. */
-					if (lseek(fd, current_pos, SEEK_SET) == (off_t) -1) {
-						res = -1;
-						break;
-					}
-				}
-			}
-#undef MIN
+			res = gg_file_hash_sha1_part(fd, &ctx, part_pos, part_len);
 
 			if (res == -1)
 				break;
