@@ -44,7 +44,7 @@
 #include <gcrypt.h>
 
 #define SHA_CTX gcry_md_hd_t
-#define SHA1_Init(ctx) gcry_md_open(ctx, GCRY_MD_SHA1, 0)
+#define SHA1_Init(ctx) do { gcry_check_version(NULL); gcry_md_open(ctx, GCRY_MD_SHA1, 0); } while (0)
 #define SHA1_Update(ctx, ptr, len) gcry_md_write(*ctx, ptr, len)
 #define SHA1_Final(digest, ctx) do { memcpy(digest, gcry_md_read(*ctx, GCRY_MD_SHA1), 20); gcry_md_close(*ctx); } while (0)
 
