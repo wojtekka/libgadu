@@ -221,7 +221,7 @@ ssize_t send(int fd, const void *buf, size_t len, int flags)
 	}
 
 	if (len != send_list[send_state].expect_len) {
-		fprintf(stderr, "Expected %d bytes instead of %d\n", send_list[send_state].expect_len, len);
+		fprintf(stderr, "Expected %d bytes instead of %d\n", (int) send_list[send_state].expect_len, (int) len);
 		exit(1);
 	}
 
@@ -234,7 +234,7 @@ ssize_t send(int fd, const void *buf, size_t len, int flags)
 	res = send_list[send_state].result_value;
 	send_state++;
 
-	printf("send(%d, %p, %d, %d) = %d\n", fd, buf, len, flags, res);
+	printf("send(%d, %p, %d, %d) = %d\n", fd, buf, (int) len, flags, (int) res);
 
 	return res;
 }
