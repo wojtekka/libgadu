@@ -445,7 +445,7 @@ static bool server_ssl_init(gnutls_session_t *session, int cfd)
 	if (gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, x509_cred) != GNUTLS_E_SUCCESS)
 		goto fail;
 
-	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) cfd);
+	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) (ptrdiff_t) cfd);
 
 	if (gnutls_handshake(*session) != GNUTLS_E_SUCCESS)
 		goto fail;
@@ -468,7 +468,7 @@ static void server_ssl_deinit(gnutls_session_t *session)
 //static void server(int port_pipe)
 static void* server(void* arg)
 {
-	int port_pipe = (int) arg;
+	int port_pipe = *((int*) arg);
 	int sfds[PORT_COUNT];
 	int cfd = -1;
 	enum { CLIENT_UNKNOWN, CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype = CLIENT_UNKNOWN;
@@ -800,7 +800,7 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-	pthread_create(&t, NULL, server, (void*) port_pipe[1]);
+	pthread_create(&t, NULL, server, &port_pipe[1]);
 
 	if (read(port_pipe[0], ports, sizeof(ports)) != sizeof(ports)) {
 		perror("read<-pipe");
