@@ -15,10 +15,13 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <gnutls/gnutls.h>
-#include <gcrypt.h>
 
 #include <libgadu.h>
+
+#ifdef GG_CONFIG_HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+#include <gcrypt.h>
+#endif
 
 #define HOST_LOCAL "127.0.0.1"
 #define HOST_PROXY "proxy.example.org"
@@ -60,21 +63,6 @@ typedef struct {
 	bool tried_resolver;
 } test_param_t;
 
-/** Port and resolver plug flags */
-//static int plug_80, plug_443, plug_8074, plug_8080, plug_resolver;
-
-/** Flags telling which actions libgadu */
-//static int tried_80, tried_443, tried_8074, tried_8080, tried_resolver, tried_non_8080;
-
-/** Asynchronous mode flag */
-//static int async_mode;
-
-/** Proxy mode flag */
-//static int proxy_mode;
-
-/** Report file */
-static FILE *log_file;
-
 /** Log buffer */
 static char *log_buffer;
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -82,6 +70,8 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 /** Local ports */
 static int ports[PORT_COUNT];
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+static bool gnutls_initialized;
 static gnutls_certificate_credentials_t x509_cred;
 static gnutls_dh_params_t dh_params;
 #define DH_BITS 1024
@@ -89,10 +79,11 @@ static gnutls_dh_params_t dh_params;
 #define KEY_FILE "connect.pem"
 
 GCRY_THREAD_OPTION_PTHREAD_IMPL;
+#endif
 
 static test_param_t *get_test_param(void)
 {
-	static test_param_t test;
+	static test_param_t test = { false };
 
 	return &test;
 }
@@ -152,9 +143,7 @@ static void debug(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	debug_handler(0, "\001", ap);
 	debug_handler(0, fmt, ap);
-	debug_handler(0, "\002", ap);
 	va_end(ap);
 }
 
@@ -244,6 +233,12 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 
 	test = get_test_param();
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
+	/* GnuTLS may want to connect */
+	if (!gnutls_initialized)
+		return __connect(socket, address, address_len);
+#endif
+
 	if (address_len < sizeof(sin)) {
 		debug("Invalid argument for connect(): sa_len < %d\n", sizeof(sin));
 		errno = EINVAL;
@@ -314,7 +309,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			break;
 	}
 
-	result =  __connect(socket, (struct sockaddr*) &sin, address_len);
+	result = __connect(socket, (struct sockaddr*) &sin, address_len);
 
 	return result;
 }
@@ -323,6 +318,14 @@ static bool client(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
+	unsigned int timeout = 1;
+	const char *ld_preload;
+
+	/* increase timeout if we're running under valgrind */
+	ld_preload = getenv("LD_PRELOAD");
+
+	if (ld_preload != NULL && strstr(ld_preload, "valgrind") == 0)
+		timeout = 30;
 
 	gg_proxy_host = HOST_PROXY;
 	gg_proxy_port = 8080;
@@ -364,7 +367,7 @@ static bool client(const test_param_t *test)
 				FD_SET(gs->fd, &wr);
 
 			if ((gs->timeout)) {
-				tv.tv_sec = 1;
+				tv.tv_sec = timeout;
 				tv.tv_usec = 0;
 			}
 
@@ -425,6 +428,7 @@ static bool client(const test_param_t *test)
 	}
 }
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
 static bool server_ssl_init(gnutls_session_t *session, int cfd)
 {
 	if (*session != NULL) {
@@ -459,6 +463,7 @@ static void server_ssl_deinit(gnutls_session_t *session)
 	gnutls_deinit(*session);
 	*session = NULL;
 }
+#endif /* GG_CONFIG_HAVE_GNUTLS */
 
 //static void server(int port_pipe)
 static void* server(void* arg)
@@ -466,8 +471,8 @@ static void* server(void* arg)
 	int port_pipe = (int) arg;
 	int sfds[PORT_COUNT];
 	int cfd = -1;
-	enum { CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype;
-	time_t started;
+	enum { CLIENT_UNKNOWN, CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype = CLIENT_UNKNOWN;
+	time_t started = 0;
 	int i;
 	char buf[4096];
 	int len = 0;
@@ -477,7 +482,9 @@ static void* server(void* arg)
 	const char hub_ssl_reply[] = "HTTP/1.0 200 OK\r\n\r\n0 0 " HOST_LOCAL ":443 " HOST_LOCAL "\r\n";
 	const char proxy_reply[] = "HTTP/1.0 200 OK\r\n\r\n";
 	const char proxy_error[] = "HTTP/1.0 404 Not Found\r\n\r\n404 Not Found\r\n";
+#ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_session_t session = NULL;
+#endif
 
 	for (i = 0; i < PORT_COUNT; i++) {
 		struct sockaddr_in sin;
@@ -562,7 +569,9 @@ static void* server(void* arg)
 		if (cfd != -1) {
 			if (time(NULL) - started > 5) {
 				debug("Timeout!\n");
+#ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
+#endif
 				close(cfd);
 				cfd = -1;
 				continue;
@@ -575,13 +584,17 @@ static void* server(void* arg)
 
 			test = get_test_param();
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
 			if (ctype == CLIENT_GG_SSL)
 				res = gnutls_record_recv(session, buf + len, sizeof(buf) - len - 1);
 			else
+#endif
 				res = recv(cfd, buf + len, sizeof(buf) - len - 1, 0);
 
 			if (res < 1) {
+#ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
+#endif
 				close(cfd);
 				cfd = -1;
 				continue;
@@ -591,6 +604,9 @@ static void* server(void* arg)
 			len += res;
 
 			switch (ctype) {
+				case CLIENT_UNKNOWN:
+					break;
+
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
 						if (!test->ssl_mode)
@@ -608,8 +624,10 @@ static void* server(void* arg)
 					break;
 
 				case CLIENT_GG_SSL:
+#ifdef GG_CONFIG_HAVE_GNUTLS
 					if (len > 8 && len >= get32(buf + 4))
 						gnutls_record_send(session, login_ok_packet, sizeof(login_ok_packet));
+#endif
 					break;
 
 				case CLIENT_PROXY:
@@ -635,6 +653,7 @@ static void* server(void* arg)
 							if (test->plug_443 == PLUG_NONE) {
 								send(cfd, proxy_reply, strlen(proxy_reply), 0);
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
 								if (test->ssl_mode) {
 									if (!server_ssl_init(&session, cfd)) {
 										debug("Handshake failed");
@@ -646,7 +665,9 @@ static void* server(void* arg)
 									gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
 
 									ctype = CLIENT_GG_SSL;
-								} else {
+								} else
+#endif
+								{
 									send(cfd, welcome_packet, sizeof(welcome_packet), 0);
 									ctype = CLIENT_GG;
 								}
@@ -673,9 +694,6 @@ static void* server(void* arg)
 				struct sockaddr_in sin;
 				socklen_t sin_len;
 				int fd;
-				test_param_t *test;
-
-				test = get_test_param();
 
 				fd = accept(sfds[i], (struct sockaddr*) &sin, &sin_len);
 
@@ -694,7 +712,8 @@ static void* server(void* arg)
 
 				if (i == PORT_80)
 					ctype = CLIENT_HUB;
-				else if (i == PORT_443 && test->ssl_mode) {
+#ifdef GG_CONFIG_HAVE_GNUTLS
+				else if (i == PORT_443 && get_test_param()->ssl_mode) {
 					ctype = CLIENT_GG_SSL;
 
 					if (!server_ssl_init(&session, cfd)) {
@@ -705,7 +724,9 @@ static void* server(void* arg)
 					}
 						
 					gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
-				} else if (i == PORT_443 || i == PORT_8074) {
+				}
+#endif 
+				else if (i == PORT_443 || i == PORT_8074) {
 					ctype = CLIENT_GG;
 					send(cfd, welcome_packet, sizeof(welcome_packet), 0);
 				} else if (i == PORT_8080)
@@ -717,84 +738,29 @@ static void* server(void* arg)
 	return NULL;
 }
 
-static char *htmlize(const char *in)
+static const char *plug_to_string(test_plug_t plug)
 {
-	char *out;
-	int i, j, size = 0;
-
-	for (i = 0; in != NULL && in[i] != 0; i++) {
-		switch (in[i]) {
-			case '<':
-			case '>':
-				size += 4;
-				break;
-			case '&':
-				size += 5;
-				break;
-			case '\n':
-				size += 7;
-				break;
-			case 1:
-				size += 3;
-				break;
-			case 2:
-				size += 4;
-				break;
-			default:
-				size++;
-		}
+	switch (plug) {
+		case PLUG_NONE:
+			return "open,   ";
+		case PLUG_RESET:
+			return "closed, ";
+		case PLUG_TIMEOUT:
+			return "timeout,";
+		default:
+			return "unknown,";
 	}
-
-	out = malloc(size + 1);
-
-	if (out == NULL)
-		return NULL;
-
-	for (i = 0, j = 0; in != NULL && in[i] != 0; i++) {
-		switch (in[i]) {
-			case '<':
-				strcpy(out + j, "&lt;");
-				j += 4;
-				break;
-			case '>':
-				strcpy(out + j, "&gt;");
-				j += 4;
-				break;
-			case '&':
-				strcpy(out + j, "&amp;");
-				j += 5;
-				break;
-			case '\n':
-				strcpy(out + j, "<br />\n");
-				j += 7;
-				break;
-			case 1:
-				strcpy(out + j, "<b>");
-				j += 3;
-				break;
-			case 2:
-				strcpy(out + j, "</b>");
-				j += 4;
-				break;
-			default:
-				out[j] = in[i];
-				j++;
-		}
-	}
-		
-	out[size] = 0;
-
-	return out;
 }
 
 int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0;
-	bool result[TEST_MAX][2] = { { false, } };
 	int exit_code = 0;
 	int port_pipe[2];
 	pthread_t t;
+	bool verbose = false;
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
 	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
 	gcry_check_version(NULL);
 	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
@@ -807,12 +773,21 @@ int main(int argc, char **argv)
 	gnutls_dh_params_generate2(dh_params, DH_BITS);
 	gnutls_certificate_set_dh_params(x509_cred, dh_params);
 
-	if (argc == 3) {
+	gnutls_initialized = true;
+#endif
+
+	if (argc > 1 && (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--verbose") == 0)) {
+		verbose = true;
+		argv++;
+		argc--;
+	}
+
+	if (argc > 2) {
 		test_from = atoi(argv[1]);
 		test_to = atoi(argv[2]);
 	}
 
-	if (argc != 3 || test_from < 1 || test_from > TEST_MAX || test_from > test_to || test_to < 1 || test_to > TEST_MAX) {
+	if (argc < 3 || test_from < 1 || test_from > TEST_MAX || test_from > test_to || test_to < 1 || test_to > TEST_MAX) {
 		test_from = 1;
 		test_to = TEST_MAX;
 	}
@@ -832,61 +807,10 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-	log_file = fopen("report.html", "w");
-
-	if (log_file == NULL) {
-		perror("fopen");
-		failure();
-	}
-
-	fprintf(log_file, 
-"<html>\n"
-"<head>\n"
-"<title>libgadu connection test report</title>\n"
-"<style type=\"text/css\">\n"
-".io { text-align: center; }\n"
-".testno { font-size: 16pt; }\n"
-".yes { background: #c0ffc0; }\n"
-".no { background: #ffc0c0; }\n"
-"tt { margin: 4px 3px; display: block; }\n"
-"#header { margin-bottom: 0.5em; text-align: right; }\n"
-"</style>\n"
-"<script>\n"
-"function toggle(id)\n"
-"{\n"
-"	if (document.getElementById(id).style.display == 'none')\n"
-"		document.getElementById(id).style.display = 'block';\n"
-"	else\n"
-"		document.getElementById(id).style.display = 'none';\n"
-"}\n"
-"function showall()\n"
-"{\n"
-"	for (i = %d; i <= %d; i++) {\n"
-"		document.getElementById('log'+i+'a').style.display = 'block';\n"
-"		document.getElementById('log'+i+'b').style.display = 'block';\n"
-"	}\n"
-"}\n"
-"</script>\n"
-"</head>\n"
-"<body>\n"
-"<div id=\"header\">\n"
-"<a href=\"javascript:showall();\">Show all</a>\n"
-"</div>\n"
-"<table border=\"1\" width=\"100%%\">\n"
-"<tr><td rowspan=\"2\">No.</td><td colspan=\"6\" class=\"io\">Input</td><td colspan=\"3\" class=\"io\">Output</td></tr>\n"
-"<tr><th>Proxy</th><th>Resolver</th><th>Hub</th><th>Port 8074</th><th>Port 443</th><th>Server</th><th>Expect</th><th>Sync</th><th>Async</th></tr>\n", test_from, test_to);
-
-	fflush(log_file);
-
 	for (i = test_from - 1; i < test_to; i++) {
 		int j = i;
 		bool expect = false;
-		char *log[2];
-		const char *display;
 		test_param_t *test;
-
-		printf("\r\033[KTest %d of %d...", i + 1, TEST_MAX);
-		fflush(stdout);
 
 		test = get_test_param();
 		memset(test, 0, sizeof(test_param_t));
@@ -903,55 +827,6 @@ int main(int argc, char **argv)
 			continue;
 #endif
 
-		for (j = 0; j < 2; j++) {
-			test->async_mode = j;
-			result[i][j] = client(test);
-
-			/* check for invalid behaviour */
-			if (test->proxy_mode && test->tried_non_8080) {
-				result[i][j] = false;
-				debug("Connected directly when proxy enabled\n");
-			}
-
-			if (!test->proxy_mode && test->tried_8080) {
-				result[i][j] = false;
-				debug("Connected to proxy when proxy disabled\n");
-			}
-
-			if (test->server && !test->proxy_mode && (test->tried_resolver || test->tried_80)) {
-				result[i][j] = false;
-				debug("Used resolver or hub when server provided\n");
-			}
-
-			if (!test->proxy_mode && !test->ssl_mode && test->tried_443 && !test->tried_8074) {
-				result[i][j] = false;
-				debug("Didn't try 8074 although tried 443\n");
-			}
-
-			if (!test->server && test->plug_resolver == PLUG_NONE && !test->tried_80) {
-				result[i][j] = false;
-				debug("Didn't use hub\n");
-			}
-
-			if (test->server && (!test->proxy_mode || test->plug_resolver == PLUG_NONE) && !test->tried_8074 && !test->tried_443) {
-				result[i][j] = false;
-				debug("Didn't try connecting directly\n");
-			}
-
-			if ((test->server || (test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE)) && test->plug_8074 != PLUG_NONE && !test->tried_443) {
-				result[i][j] = false;
-				debug("Didn't try 443\n");
-			}
-
-			if ((test->proxy_mode || test->ssl_mode) && test->tried_8074) {
-				result[i][j] = false;
-				debug("Tried 8074 in proxy or SSL mode\n");
-			}
-
-			log[j] = log_buffer;
-			log_buffer = NULL;
-		}
-
 		if (!test->proxy_mode) {
 			if ((test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE) || test->server)
 				if ((!test->ssl_mode && test->plug_8074 == PLUG_NONE) || test->plug_443 == PLUG_NONE)
@@ -961,53 +836,85 @@ int main(int argc, char **argv)
 				expect = true;
 		}
 
-		if (result[i][0] == result[i][1] && result[i][0] == expect) {
-			display = " style=\"display: none;\"";
-		} else {
-			display = "";
-			exit_code = 1;
-		}
-
-		fprintf(log_file, "<tr class=\"params\"><td><b>%d</b></td>", i + 1);
-		fprintf(log_file, (test->proxy_mode) ? "<td>Yes</td>" : "<td>No</td>");
-		fprintf(log_file, (test->plug_resolver == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((test->plug_resolver == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
-		fprintf(log_file, (test->plug_80 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((test->plug_80 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
-		fprintf(log_file, (test->plug_8074 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((test->plug_8074 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
-		fprintf(log_file, (test->plug_443 == PLUG_NONE) ? "<td class=\"yes\">Running</td>" : ((test->plug_443 == PLUG_RESET) ? "<td class=\"no\">Closed</td>" : "<td class=\"no\">Timeout</td>"));
-		fprintf(log_file, (test->server) ? "<td>Yes</td>" : "<td>No</td>");
-		fprintf(log_file, (expect) ? "<td class=\"yes\">Success</td>" : "<td class=\"no\">Failure</td>");
-
 		for (j = 0; j < 2; j++) {
-			fprintf(log_file, "<td class=\"%s\"><a href=\"javascript:toggle('log%d%c');\">%s</a></td>", (result[i][j]) ? "yes" : "no", i + 1, 'a' + j, (result[i][j]) ? "Success" : "Failure");
+			bool result;
+
+			printf("%3d/%d: %s 80 %s 8074 %s 443 %s resolver %s server %s proxy %s ssl %s\n",
+				i + 1, TEST_MAX,
+				j ? "async," : "sync, ",
+				plug_to_string(test->plug_80),
+				plug_to_string(test->plug_8074),
+				plug_to_string(test->plug_443),
+				plug_to_string(test->plug_resolver),
+				test->server ? "yes," : "no, ",
+				test->proxy_mode ? "yes," : "no, ",
+				test->ssl_mode ? "yes" : "no ");
+
+			test->async_mode = j;
+
+			/* perform test */
+			result = (client(test) == expect);
+
+			/* check for invalid behaviour */
+			if (test->proxy_mode && test->tried_non_8080) {
+				result = false;
+				debug("Connected directly when proxy enabled\n");
+			}
+
+			if (!test->proxy_mode && test->tried_8080) {
+				result = false;
+				debug("Connected to proxy when proxy disabled\n");
+			}
+
+			if (test->server && !test->proxy_mode && (test->tried_resolver || test->tried_80)) {
+				result = false;
+				debug("Used resolver or hub when server provided\n");
+			}
+
+			if (!test->proxy_mode && !test->ssl_mode && test->tried_443 && !test->tried_8074) {
+				result = false;
+				debug("Didn't try 8074 although tried 443\n");
+			}
+
+			if (!test->server && test->plug_resolver == PLUG_NONE && !test->tried_80) {
+				result = false;
+				debug("Didn't use hub\n");
+			}
+
+			if (test->server && (!test->proxy_mode || test->plug_resolver == PLUG_NONE) && !test->tried_8074 && !test->tried_443) {
+				result = false;
+				debug("Didn't try connecting directly\n");
+			}
+
+			if ((test->server || (test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE)) && test->plug_8074 != PLUG_NONE && !test->tried_443 && !test->proxy_mode) {
+				result = false;
+				debug("Didn't try 443\n");
+			}
+
+			if ((test->proxy_mode || test->ssl_mode) && test->tried_8074) {
+				result = false;
+				debug("Tried 8074 in proxy or SSL mode\n");
+			}
+
+			if (!result || verbose)
+				printf("%s", log_buffer);
+
+			if (!result)
+				exit_code = 1;
+
+			free(log_buffer);
+			log_buffer = NULL;
 		}
-
-		fprintf(log_file, "</tr>\n");
-
-		for (j = 0; j < 2; j++) {
-			const char *class = (result[i][j]) ? "yes" : "no";
-			char *tmp = htmlize(log[j]);
-
-			fprintf(log_file, "<tr>\n<td colspan=\"10\" class=\"%s\">\n<tt id=\"log%d%c\"%s>\n%s\n</tt>\n</td>\n</tr>\n", class, i + 1, 'a' + j, display, tmp);
-			free(tmp);
-		}
-
-		fflush(log_file);
-
-		free(log[0]);
-		free(log[1]);
 	}
-
-	fprintf(log_file, "</body>\n</html>\n");
-	fclose(log_file);
-
-	printf("\n");
 
 	pthread_cancel(t);
 	pthread_join(t, NULL);
 
+#ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_certificate_free_credentials(x509_cred);
 	gnutls_dh_params_deinit(dh_params);
 	gnutls_global_deinit();
+#endif
 
 	return exit_code;
 }
