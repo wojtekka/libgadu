@@ -222,8 +222,8 @@ static void test_text_to_html(const char *input, const unsigned char *attr, size
 {
 	char *result;
 	size_t len;
-	char *tmp;
 #ifdef HAVE_LIBXML2
+	char *tmp;
 	xmlParserCtxtPtr ctxt;
 	xmlDocPtr doc;
 #endif
