@@ -75,7 +75,7 @@ int connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
 	return 0;
 }
 
-int test(int resolver, int delay)
+static int test(int resolver, int delay)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -152,7 +152,7 @@ static int dummy(void)
 	return 0;
 }
 
-int test_set_get(void)
+static int test_set_get(void)
 {
 	struct gg_session *gs;
 	struct gg_http *gh;
