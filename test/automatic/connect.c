@@ -319,7 +319,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-static bool client(test_param_t *test)
+static bool client(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -889,17 +889,21 @@ int main(int argc, char **argv)
 		fflush(stdout);
 
 		test = get_test_param();
+		memset(test, 0, sizeof(test_param_t));
+		test->plug_80 = i % 3;
+		test->plug_8074 = i / 3 % 3;
+		test->plug_443 = i / 3 / 3 % 3;
+		test->plug_resolver = i / 3 / 3 / 3 % 3;
+		test->server =  i / 3 / 3 / 3 / 3 % 2;
+		test->proxy_mode = i / 3 / 3 / 3 / 3 / 2 % 2;
+		test->ssl_mode = i / 3 / 3 / 3 / 3 / 2 / 2 % 2;
+
+#if !defined(GG_CONFIG_HAVE_GNUTLS) && !defined(GG_CONFIG_HAVE_OPENSSL)
+		if (test->ssl_mode)
+			continue;
+#endif
 
 		for (j = 0; j < 2; j++) {
-			memset(test, 0, sizeof(test_param_t));
-			test->plug_80 = i % 3;
-			test->plug_8074 = i / 3 % 3;
-			test->plug_443 = i / 3 / 3 % 3;
-			test->plug_resolver = i / 3 / 3 / 3 % 3;
-			test->server =  i / 3 / 3 / 3 / 3 % 2;
-			test->proxy_mode = i / 3 / 3 / 3 / 3 / 2 % 2;
-			test->ssl_mode = i / 3 / 3 / 3 / 3 / 2 / 2 % 2;
-
 			test->async_mode = j;
 			result[i][j] = client(test);
 
