@@ -27,6 +27,9 @@
 #define HOST_PROXY "proxy.example.org"
 #define HOST_UNREACHABLE "192.0.2.1"	/* documentation and example class, RFC 3330 */
 
+//#define SERVER_TIMEOUT 60
+//#define CLIENT_TIMEOUT 60
+
 #define TEST_MAX (3*3*3*3*2*2*2)
 
 typedef enum {
@@ -70,6 +73,12 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 /** Local ports */
 static int ports[PORT_COUNT];
 
+/** gethostbyname/connect timeout notification pipe */
+static int timeout_pipe[2];
+
+/** Verbosity flag */
+static bool verbose;
+
 #ifdef GG_CONFIG_HAVE_GNUTLS
 static bool gnutls_initialized;
 static gnutls_certificate_credentials_t x509_cred;
@@ -90,28 +99,32 @@ static test_param_t *get_test_param(void)
 
 static void debug_handler(int level, const char *format, va_list ap)
 {
-	char buf[4096], *tmp;
-	int len;
-	
-	if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf)) {
-		fprintf(stderr, "Increase temporary log buffer size!\n");
-		return;
-	}
-
-	pthread_mutex_lock(&log_mutex);
-
-	len = (log_buffer != NULL) ? strlen(log_buffer) : 0;
-
-	tmp = realloc(log_buffer, len + strlen(buf) + 1);
-
-	if (tmp != NULL) {
-		log_buffer = tmp;
-		strcpy(log_buffer + len, buf);
+	if (verbose) {
+		vprintf(format, ap);
 	} else {
-		fprintf(stderr, "Out of memory for log buffer!\n");
-	}
+		char buf[4096], *tmp;
+		int len;
+	
+		if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf)) {
+			fprintf(stderr, "Increase temporary log buffer size!\n");
+			return;
+		}
 
-	pthread_mutex_unlock(&log_mutex);
+		pthread_mutex_lock(&log_mutex);
+
+		len = (log_buffer != NULL) ? strlen(log_buffer) : 0;
+
+		tmp = realloc(log_buffer, len + strlen(buf) + 1);
+
+		if (tmp != NULL) {
+			log_buffer = tmp;
+			strcpy(log_buffer + len, buf);
+		} else {
+			fprintf(stderr, "Out of memory for log buffer!\n");
+		}
+
+		pthread_mutex_unlock(&log_mutex);
+	}
 }
 
 static inline void set32(char *ptr, unsigned int value)
@@ -190,8 +203,12 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 
 	if (test->plug_resolver != PLUG_NONE) {
 		if (test->plug_resolver == PLUG_TIMEOUT) {
-			if (test->async_mode)
-				sleep(30);
+			if (test->async_mode) {
+				if (write(timeout_pipe[1], "", 1) == -1) {
+					*result = NULL;
+					return -1;
+				}
+			}
 			*h_errnop = TRY_AGAIN;
 		} else {
 			*h_errnop = HOST_NOT_FOUND;
@@ -303,6 +320,9 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			if (!test->async_mode) {
 				errno = ETIMEDOUT;
 				return -1;
+			} else {
+				if (write(timeout_pipe[1], "", 1) == -1)
+					return -1;
 			}
 
 			sin.sin_addr.s_addr = inet_addr(HOST_UNREACHABLE);
@@ -318,14 +338,6 @@ static bool client(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
-	unsigned int timeout = 1;
-	const char *ld_preload;
-
-	/* increase timeout if we're running under valgrind */
-	ld_preload = getenv("LD_PRELOAD");
-
-	if (ld_preload != NULL && strstr(ld_preload, "valgrind") == 0)
-		timeout = 30;
 
 	gg_proxy_host = HOST_PROXY;
 	gg_proxy_port = 8080;
@@ -353,12 +365,28 @@ static bool client(const test_param_t *test)
 		return true;
 	} else {
 		for (;;) {
-			struct timeval tv;
 			fd_set rd, wr;
 			int res;
+			int max_fd;
+			struct timeval *tv_ptr = NULL;
+
+#ifdef CLIENT_TIMEOUT
+			struct timeval tv;
+
+			tv.tv_sec = CLIENT_TIMEOUT;
+			tv.tv_usec = 0;
+			tv_ptr = &tv;
+#endif
 
 			FD_ZERO(&rd);
 			FD_ZERO(&wr);
+
+			max_fd = timeout_pipe[0];
+
+			if (gs->fd > max_fd)
+				max_fd = gs->fd;
+
+			FD_SET(timeout_pipe[0], &rd);
 
 			if ((gs->check & GG_CHECK_READ))
 				FD_SET(gs->fd, &rd);
@@ -366,29 +394,40 @@ static bool client(const test_param_t *test)
 			if ((gs->check & GG_CHECK_WRITE))
 				FD_SET(gs->fd, &wr);
 
-			if ((gs->timeout)) {
-				tv.tv_sec = timeout;
-				tv.tv_usec = 0;
-			}
+			res = select(max_fd + 1, &rd, &wr, NULL, tv_ptr);
 
-			res = select(gs->fd + 1, &rd, &wr, NULL, (gs->timeout) ? &tv : NULL);
-			
-			if (res == 0 && !gs->soft_timeout) {
-				debug("Hard timeout\n");
+			if (res == 0) {
+				debug("Test timeout\n");
 				gg_free_session(gs);
 				return false;
 			}
-
+			
 			if (res == -1 && errno != EINTR) {
 				debug("select() failed: %s\n", strerror(errno));
 				gg_free_session(gs);
 				return false;
 			}
 
-			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (res == 0 && gs->soft_timeout)) {
+			if (FD_ISSET(timeout_pipe[0], &rd)) {
+				char tmp;
+
+				if (read(timeout_pipe[0], &tmp, 1) == -1) {
+					debug("Test error\n");
+					gg_free_session(gs);
+					return false;
+				}
+
+				if (!gs->soft_timeout) {
+					debug("Hard timeout\n");
+					gg_free_session(gs);
+					return false;
+				}
+			}
+
+			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (FD_ISSET(timeout_pipe[0], &rd) && gs->soft_timeout)) {
 				struct gg_event *ge;
 				
-				if (res == 0) {
+				if (FD_ISSET(timeout_pipe[0], &rd)) {
 					debug("Soft timeout\n");
 					gs->timeout = 0;
 				}
@@ -472,7 +511,9 @@ static void* server(void* arg)
 	int sfds[PORT_COUNT];
 	int cfd = -1;
 	enum { CLIENT_UNKNOWN, CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype = CLIENT_UNKNOWN;
+#ifdef SERVER_TIMEOUT
 	time_t started = 0;
+#endif
 	int i;
 	char buf[4096];
 	int len = 0;
@@ -566,9 +607,10 @@ static void* server(void* arg)
 			break;
 		}
 
+#ifdef SERVER_TIMEOUT
 		if (cfd != -1) {
-			if (time(NULL) - started > 5) {
-				debug("Timeout!\n");
+			if (time(NULL) - started > SERVER_TIMEOUT) {
+				debug("Server timeout!\n");
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
 #endif
@@ -577,6 +619,7 @@ static void* server(void* arg)
 				continue;
 			}
 		}
+#endif
 
 		if (cfd != -1 && FD_ISSET(cfd, &rd)) {
 			int res;
@@ -708,7 +751,9 @@ static void* server(void* arg)
 				cfd = fd;
 				memset(buf, 0, sizeof(buf));
 				len = 0;
+#ifdef SERVER_TIMEOUT
 				started = time(NULL);
+#endif
 
 				if (i == PORT_80)
 					ctype = CLIENT_HUB;
@@ -758,7 +803,6 @@ int main(int argc, char **argv)
 	int exit_code = 0;
 	int port_pipe[2];
 	pthread_t t;
-	bool verbose = false;
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
@@ -795,7 +839,7 @@ int main(int argc, char **argv)
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
-	if (pipe(port_pipe) == -1) {
+	if (pipe(port_pipe) == -1 || pipe(timeout_pipe) == -1) {
 		perror("pipe");
 		failure();
 	}
@@ -896,7 +940,7 @@ int main(int argc, char **argv)
 				debug("Tried 8074 in proxy or SSL mode\n");
 			}
 
-			if (!result || verbose)
+			if (!result && !verbose)
 				printf("%s", log_buffer);
 
 			if (!result)
@@ -909,6 +953,11 @@ int main(int argc, char **argv)
 
 	pthread_cancel(t);
 	pthread_join(t, NULL);
+
+	close(port_pipe[0]);
+	close(port_pipe[1]);
+	close(timeout_pipe[0]);
+	close(timeout_pipe[1]);
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_certificate_free_credentials(x509_cred);
