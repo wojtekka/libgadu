@@ -735,7 +735,7 @@ static void* server(void* arg)
 
 			if (FD_ISSET(sfds[i], &rd)) {
 				struct sockaddr_in sin;
-				socklen_t sin_len;
+				socklen_t sin_len = sizeof(sin);
 				int fd;
 
 				fd = accept(sfds[i], (struct sockaddr*) &sin, &sin_len);
