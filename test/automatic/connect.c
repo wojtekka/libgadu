@@ -70,8 +70,12 @@ typedef struct {
 static char *log_buffer;
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-/** Local ports */
-static int ports[PORT_COUNT];
+/** Server data */
+static int server_ports[PORT_COUNT];
+static pthread_mutex_t server_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t server_cond = PTHREAD_COND_INITIALIZER;
+static bool server_init = false;
+static int server_pipe[2];
 
 /** gethostbyname/connect timeout notification pipe */
 static int timeout_pipe[2];
@@ -282,22 +286,22 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	switch (ntohs(sin.sin_port)) {
 		case 80:
 			plug = test->plug_80;
-			port = ports[PORT_80];
+			port = server_ports[PORT_80];
 			test->tried_80 = 1;
 			break;
 		case 443:
 			plug = test->plug_443;
-			port = ports[PORT_443];
+			port = server_ports[PORT_443];
 			test->tried_443 = 1;
 			break;
 		case 8074:
 			plug = test->plug_8074;
-			port = ports[PORT_8074];
+			port = server_ports[PORT_8074];
 			test->tried_8074 = 1;
 			break;
 		case 8080:
 			plug = test->plug_8080;
-			port = ports[PORT_8080];
+			port = server_ports[PORT_8080];
 			test->tried_8080 = 1;
 			break;
 		default:
@@ -314,7 +318,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			sin.sin_port = htons(port);
 			break;
 		case PLUG_RESET:
-			sin.sin_port = htons(ports[PORT_CLOSED]);
+			sin.sin_port = htons(server_ports[PORT_CLOSED]);
 			break;
 		case PLUG_TIMEOUT:
 			if (!test->async_mode) {
@@ -334,7 +338,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-static bool client(const test_param_t *test)
+static bool client_func(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -468,7 +472,7 @@ static bool client(const test_param_t *test)
 }
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
-static bool server_ssl_init(gnutls_session_t *session, int cfd)
+static bool server_ssl_init(gnutls_session_t *session, int client_fd)
 {
 	if (*session != NULL) {
 		gnutls_deinit(*session);
@@ -484,7 +488,7 @@ static bool server_ssl_init(gnutls_session_t *session, int cfd)
 	if (gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, x509_cred) != GNUTLS_E_SUCCESS)
 		goto fail;
 
-	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) (ptrdiff_t) cfd);
+	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) (ptrdiff_t) client_fd);
 
 	if (gnutls_handshake(*session) != GNUTLS_E_SUCCESS)
 		goto fail;
@@ -504,16 +508,11 @@ static void server_ssl_deinit(gnutls_session_t *session)
 }
 #endif /* GG_CONFIG_HAVE_GNUTLS */
 
-//static void server(int port_pipe)
-static void* server(void* arg)
+static void* server_func(void* arg)
 {
-	int port_pipe = *((int*) arg);
-	int sfds[PORT_COUNT];
-	int cfd = -1;
+	int server_fds[PORT_COUNT];
+	int client_fd = -1;
 	enum { CLIENT_UNKNOWN, CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype = CLIENT_UNKNOWN;
-#ifdef SERVER_TIMEOUT
-	time_t started = 0;
-#endif
 	int i;
 	char buf[4096];
 	int len = 0;
@@ -523,6 +522,9 @@ static void* server(void* arg)
 	const char hub_ssl_reply[] = "HTTP/1.0 200 OK\r\n\r\n0 0 " HOST_LOCAL ":443 " HOST_LOCAL "\r\n";
 	const char proxy_reply[] = "HTTP/1.0 200 OK\r\n\r\n";
 	const char proxy_error[] = "HTTP/1.0 404 Not Found\r\n\r\n404 Not Found\r\n";
+#ifdef SERVER_TIMEOUT
+	time_t started = 0;
+#endif
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_session_t session = NULL;
 #endif
@@ -532,48 +534,48 @@ static void* server(void* arg)
 		socklen_t sin_len = sizeof(sin);
 		int value = 1;
 
-		sfds[i] = socket(AF_INET, SOCK_STREAM, 0);
+		server_fds[i] = socket(AF_INET, SOCK_STREAM, 0);
 
-		if (sfds[i] == -1) {
+		if (server_fds[i] == -1) {
 			perror("socket");
 			failure();
 		}
 
-		setsockopt(sfds[i], SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+		setsockopt(server_fds[i], SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
 
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = inet_addr(HOST_LOCAL);
 
-		if (bind(sfds[i], (struct sockaddr*) &sin, sizeof(sin)) == -1) {
+		if (bind(server_fds[i], (struct sockaddr*) &sin, sizeof(sin)) == -1) {
 			perror("bind");
 			failure();
 		}
 
-		if (getsockname(sfds[i], (struct sockaddr*) &sin, &sin_len) == -1) {
+		if (getsockname(server_fds[i], (struct sockaddr*) &sin, &sin_len) == -1) {
 			perror("getsockname");
 			failure();
 		}
 
-		ports[i] = ntohs(sin.sin_port);
+		server_ports[i] = ntohs(sin.sin_port);
 
 		if (i != PORT_CLOSED) {
-			if (listen(sfds[i], 1) == -1) {
+			if (listen(server_fds[i], 1) == -1) {
 				perror("listen");
 				failure();
 			}
 		}
 	}
 
-	if (write(port_pipe, ports, sizeof(ports)) != sizeof(ports)) {
-		perror("write->pipe");
-		failure();
-	}
+	pthread_mutex_lock(&server_mutex);
+	server_init = true;
+	pthread_cond_signal(&server_cond);
+	pthread_mutex_unlock(&server_mutex);
 
 	for (;;) {
 		struct timeval tv;
 		fd_set rd, wr;
-		int max = -1;
+		int max_fd = -1;
 		int res;
 
 		tv.tv_sec = 1;
@@ -586,20 +588,25 @@ static void* server(void* arg)
 			if (i == PORT_CLOSED)
 				continue;
 
-			FD_SET(sfds[i], &rd);
+			FD_SET(server_fds[i], &rd);
 
-			if (sfds[i] > max)
-				max = sfds[i];
+			if (server_fds[i] > max_fd)
+				max_fd = server_fds[i];
 		}
 
-		if (cfd != -1) {
-			FD_SET(cfd, &rd);
+		if (client_fd != -1) {
+			FD_SET(client_fd, &rd);
 				
-			if (cfd > max)
-				max = cfd;
+			if (client_fd > max_fd)
+				max_fd = client_fd;
 		}
 
-		res = select(max + 1, &rd, &wr, NULL, &tv);
+		FD_SET(server_pipe[0], &rd);
+
+		if (server_pipe[0] > max_fd)
+			max_fd = server_pipe[0];
+
+		res = select(max_fd + 1, &rd, &wr, NULL, &tv);
 
 		if (res == -1 && errno != EINTR) {
 			debug("select() failed: %s\n", strerror(errno));
@@ -608,20 +615,20 @@ static void* server(void* arg)
 		}
 
 #ifdef SERVER_TIMEOUT
-		if (cfd != -1) {
+		if (client_fd != -1) {
 			if (time(NULL) - started > SERVER_TIMEOUT) {
 				debug("Server timeout!\n");
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
 #endif
-				close(cfd);
-				cfd = -1;
+				close(client_fd);
+				client_fd = -1;
 				continue;
 			}
 		}
 #endif
 
-		if (cfd != -1 && FD_ISSET(cfd, &rd)) {
+		if (client_fd != -1 && FD_ISSET(client_fd, &rd)) {
 			int res;
 			test_param_t *test;
 
@@ -632,14 +639,14 @@ static void* server(void* arg)
 				res = gnutls_record_recv(session, buf + len, sizeof(buf) - len - 1);
 			else
 #endif
-				res = recv(cfd, buf + len, sizeof(buf) - len - 1, 0);
+				res = recv(client_fd, buf + len, sizeof(buf) - len - 1, 0);
 
 			if (res < 1) {
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
 #endif
-				close(cfd);
-				cfd = -1;
+				close(client_fd);
+				client_fd = -1;
 				continue;
 			}
 
@@ -653,17 +660,17 @@ static void* server(void* arg)
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
 						if (!test->ssl_mode)
-							send(cfd, hub_reply, strlen(hub_reply), 0);
+							send(client_fd, hub_reply, strlen(hub_reply), 0);
 						else
-							send(cfd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
-						close(cfd);
-						cfd = -1;
+							send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
+						close(client_fd);
+						client_fd = -1;
 					}
 					break;
 
 				case CLIENT_GG:
 					if (len > 8 && len >= get32(buf + 4))
-						send(cfd, login_ok_packet, sizeof(login_ok_packet), 0);
+						send(client_fd, login_ok_packet, sizeof(login_ok_packet), 0);
 					break;
 
 				case CLIENT_GG_SSL:
@@ -683,25 +690,25 @@ static void* server(void* arg)
 							test->tried_80 = 1;
 							if (test->plug_80 == PLUG_NONE) {
 								if (!test->ssl_mode)
-									send(cfd, hub_reply, strlen(hub_reply), 0);
+									send(client_fd, hub_reply, strlen(hub_reply), 0);
 								else
-									send(cfd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
+									send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
 							} else
-								send(cfd, proxy_error, strlen(proxy_error), 0);
-							close(cfd);
-							cfd = -1;
+								send(client_fd, proxy_error, strlen(proxy_error), 0);
+							close(client_fd);
+							client_fd = -1;
 						} else if (strncmp(buf, "CONNECT " HOST_LOCAL ":443 ", 13 + strlen(HOST_LOCAL)) == 0) {
 							test->tried_443 = 1;
 
 							if (test->plug_443 == PLUG_NONE) {
-								send(cfd, proxy_reply, strlen(proxy_reply), 0);
+								send(client_fd, proxy_reply, strlen(proxy_reply), 0);
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 								if (test->ssl_mode) {
-									if (!server_ssl_init(&session, cfd)) {
+									if (!server_ssl_init(&session, client_fd)) {
 										debug("Handshake failed");
-										close(cfd);
-										cfd = -1;
+										close(client_fd);
+										client_fd = -1;
 										continue;
 									}
 
@@ -711,18 +718,18 @@ static void* server(void* arg)
 								} else
 #endif
 								{
-									send(cfd, welcome_packet, sizeof(welcome_packet), 0);
+									send(client_fd, welcome_packet, sizeof(welcome_packet), 0);
 									ctype = CLIENT_GG;
 								}
 							} else {
-								send(cfd, proxy_error, strlen(proxy_error), 0);
+								send(client_fd, proxy_error, strlen(proxy_error), 0);
 							}
 							len = 0;
 						} else {
 							debug("Invalid proxy request");
-							send(cfd, proxy_error, strlen(proxy_error), 0);
-							close(cfd);
-							cfd = -1;
+							send(client_fd, proxy_error, strlen(proxy_error), 0);
+							close(client_fd);
+							client_fd = -1;
 						}
 					}
 					break;
@@ -733,22 +740,22 @@ static void* server(void* arg)
 			if (i == PORT_CLOSED)
 				continue;
 
-			if (FD_ISSET(sfds[i], &rd)) {
+			if (FD_ISSET(server_fds[i], &rd)) {
 				struct sockaddr_in sin;
 				socklen_t sin_len = sizeof(sin);
-				int fd;
+				int new_fd;
 
-				fd = accept(sfds[i], (struct sockaddr*) &sin, &sin_len);
+				new_fd = accept(server_fds[i], (struct sockaddr*) &sin, &sin_len);
 
-				if (cfd != -1) {
+				if (client_fd != -1) {
 					debug("Overlapping connections\n");
-					close(fd);
-					close(cfd);
-					cfd = -1;
+					close(new_fd);
+					close(client_fd);
+					client_fd = -1;
 					continue;
 				}
 
-				cfd = fd;
+				client_fd = new_fd;
 				memset(buf, 0, sizeof(buf));
 				len = 0;
 #ifdef SERVER_TIMEOUT
@@ -761,10 +768,10 @@ static void* server(void* arg)
 				else if (i == PORT_443 && get_test_param()->ssl_mode) {
 					ctype = CLIENT_GG_SSL;
 
-					if (!server_ssl_init(&session, cfd)) {
+					if (!server_ssl_init(&session, client_fd)) {
 						debug("Handshake failed");
-						close(cfd);
-						cfd = -1;
+						close(client_fd);
+						client_fd = -1;
 						continue;
 					}
 						
@@ -773,12 +780,21 @@ static void* server(void* arg)
 #endif 
 				else if (i == PORT_443 || i == PORT_8074) {
 					ctype = CLIENT_GG;
-					send(cfd, welcome_packet, sizeof(welcome_packet), 0);
+					send(client_fd, welcome_packet, sizeof(welcome_packet), 0);
 				} else if (i == PORT_8080)
 					ctype = CLIENT_PROXY;
 			}
 		}
+
+		if (FD_ISSET(server_pipe[0], &rd))
+			break;
 	}
+
+	for (i = 0; i < PORT_COUNT; i++)
+		close(server_fds[i]);
+
+	if (client_fd != -1)
+		close(client_fd);
 
 	return NULL;
 }
@@ -801,8 +817,7 @@ int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0;
 	int exit_code = 0;
-	int port_pipe[2];
-	pthread_t t;
+	pthread_t server_thread;
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
@@ -839,17 +854,17 @@ int main(int argc, char **argv)
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
-	if (pipe(port_pipe) == -1 || pipe(timeout_pipe) == -1) {
+	if (pipe(server_pipe) == -1 || pipe(timeout_pipe) == -1) {
 		perror("pipe");
 		failure();
 	}
 
-	pthread_create(&t, NULL, server, &port_pipe[1]);
+	pthread_create(&server_thread, NULL, server_func, NULL);
 
-	if (read(port_pipe[0], ports, sizeof(ports)) != sizeof(ports)) {
-		perror("read<-pipe");
-		failure();
-	}
+	pthread_mutex_lock(&server_mutex);
+	while (!server_init)
+		pthread_cond_wait(&server_cond, &server_mutex);
+	pthread_mutex_unlock(&server_mutex);
 
 	for (i = test_from - 1; i < test_to; i++) {
 		int j = i;
@@ -880,7 +895,7 @@ int main(int argc, char **argv)
 				expect = true;
 		}
 
-		for (j = 0; j < 2; j++) {
+		for (j = 1; j < 2; j++) {
 			bool result;
 
 			printf("%3d/%d: %s 80 %s 8074 %s 443 %s resolver %s server %s proxy %s ssl %s\n",
@@ -897,7 +912,7 @@ int main(int argc, char **argv)
 			test->async_mode = j;
 
 			/* perform test */
-			result = (client(test) == expect);
+			result = (client_func(test) == expect);
 
 			/* check for invalid behaviour */
 			if (test->proxy_mode && test->tried_non_8080) {
@@ -951,13 +966,18 @@ int main(int argc, char **argv)
 		}
 	}
 
-	pthread_cancel(t);
-	pthread_join(t, NULL);
+	if (write(server_pipe[1], "", 1) == -1) {
+		perror("write");
+		failure();
+	}
 
-	close(port_pipe[0]);
-	close(port_pipe[1]);
+	pthread_join(server_thread, NULL);
+
 	close(timeout_pipe[0]);
 	close(timeout_pipe[1]);
+
+	close(server_pipe[0]);
+	close(server_pipe[1]);
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_certificate_free_credentials(x509_cred);
