@@ -607,6 +607,8 @@ static gg_action_t gg_handle_connecting(struct gg_session *sess, struct gg_event
 
 	if (gg_async_connect_failed(sess, &res)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
+		close(sess->fd);
+		sess->fd = -1;
 		sess->resolver_index++;
 		sess->state = alt_state;
 	} else {
@@ -670,6 +672,8 @@ static gg_action_t gg_handle_connecting_gg(struct gg_session *sess, struct gg_ev
 	/* jeśli wystąpił błąd podczas łączenia się... */
 	if (gg_async_connect_failed(sess, &res)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
+		close(sess->fd);
+		sess->fd = -1;
 		sess->connect_index++;
 		sess->state = alt_state;
 		return GG_ACTION_NEXT;
