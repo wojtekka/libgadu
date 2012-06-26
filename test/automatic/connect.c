@@ -12,6 +12,7 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
@@ -342,6 +343,7 @@ static bool client_func(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
+	char tmp;
 
 	gg_proxy_host = HOST_PROXY;
 	gg_proxy_port = 8080;
@@ -358,6 +360,8 @@ static bool client_func(const test_param_t *test)
 
 	if (test->ssl_mode)
 		glp.tls = GG_SSL_REQUIRED;
+
+	while (read(timeout_pipe[0], &tmp, sizeof(tmp)) != -1);
 
 	gs = gg_login(&glp);
 
@@ -413,8 +417,6 @@ static bool client_func(const test_param_t *test)
 			}
 
 			if (FD_ISSET(timeout_pipe[0], &rd)) {
-				char tmp;
-
 				if (read(timeout_pipe[0], &tmp, 1) == -1) {
 					debug("Test error\n");
 					gg_free_session(gs);
@@ -818,6 +820,9 @@ int main(int argc, char **argv)
 	int i, test_from = 0, test_to = 0;
 	int exit_code = 0;
 	pthread_t server_thread;
+#ifdef FIONBIO
+	int one = 1;
+#endif
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
@@ -859,6 +864,15 @@ int main(int argc, char **argv)
 		failure();
 	}
 
+#ifdef FIONBIO
+	if (ioctl(timeout_pipe[0], FIONBIO, &one) == -1) {
+#else
+	if (fcntl(timeout_pipe[0], F_SETFL, O_NONBLOCK) == -1) {
+#endif
+		perror("ioctl/fcntl");
+		failure();
+	}
+
 	pthread_create(&server_thread, NULL, server_func, NULL);
 
 	pthread_mutex_lock(&server_mutex);
@@ -895,7 +909,7 @@ int main(int argc, char **argv)
 				expect = true;
 		}
 
-		for (j = 1; j < 2; j++) {
+		for (j = 0; j < 2; j++) {
 			bool result;
 
 			printf("%3d/%d: %s 80 %s 8074 %s 443 %s resolver %s server %s proxy %s ssl %s\n",
