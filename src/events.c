@@ -359,7 +359,7 @@ static int gg_async_connect_failed(struct gg_session *gs, int *res_ptr)
 		return 0;
 
 	if (gs->timeout == 0) {
-		*res_ptr = 0;
+		*res_ptr = ETIMEDOUT;
 		return 1;
 	}
 
