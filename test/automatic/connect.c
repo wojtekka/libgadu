@@ -26,7 +26,6 @@
 
 #define HOST_LOCAL "127.0.0.1"
 #define HOST_PROXY "proxy.example.org"
-#define HOST_UNREACHABLE "192.0.2.1"	/* documentation and example class, RFC 3330 */
 
 //#define SERVER_TIMEOUT 60
 //#define CLIENT_TIMEOUT 60
@@ -45,6 +44,7 @@ typedef enum {
 	PORT_8074,
 	PORT_8080,
 	PORT_CLOSED,
+	PORT_TIMEOUT,
 	PORT_COUNT
 } test_port_t;
 
@@ -330,7 +330,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 					return -1;
 			}
 
-			sin.sin_addr.s_addr = inet_addr(HOST_UNREACHABLE);
+			sin.sin_port = htons(server_ports[PORT_TIMEOUT]);
 			break;
 	}
 
@@ -587,7 +587,7 @@ static void* server_func(void* arg)
 		FD_ZERO(&wr);
 
 		for (i = 0; i < PORT_COUNT; i++) {
-			if (i == PORT_CLOSED)
+			if (i == PORT_CLOSED || i == PORT_TIMEOUT)
 				continue;
 
 			FD_SET(server_fds[i], &rd);
@@ -739,7 +739,7 @@ static void* server_func(void* arg)
 		}
 
 		for (i = 0; i < PORT_COUNT; i++) {
-			if (i == PORT_CLOSED)
+			if (i == PORT_CLOSED || i == PORT_TIMEOUT)
 				continue;
 
 			if (FD_ISSET(server_fds[i], &rd)) {
