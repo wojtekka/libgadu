@@ -260,8 +260,7 @@ if test "x$have_openssl" = "xyes"; then
 	# Note: not adding to LIBS_PRIVATE, because "REQUIRES_PRIVATE" takes care
 	# of that for pkg-config.
 	LIBS="$LIBS $OPENSSL_LIBS"
-	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
-	INCLUDES="$INCLUDES $OPENSSL_INCLUDES"
+	CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
