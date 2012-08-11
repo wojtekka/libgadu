@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "libgadu.h"
+#include "internal.h"
 #include "fileio.h"
 #include "config.h"
 
@@ -47,7 +48,7 @@
 #define SHA_CTX gnutls_hash_hd_t
 #define SHA1_Init(ctx) (gnutls_hash_init((ctx), GNUTLS_DIG_SHA1) == 0 ? 1 : 0)
 #define SHA1_Update(ctx, ptr, len) (gnutls_hash(*(ctx), (ptr), (len)) == 0 ? 1 : 0)
-#define SHA1_Final(digest, ctx) (gnutls_hash_deinit(*(ctx), (digest)) == 0 ? 1 : 0)
+#define SHA1_Final(digest, ctx) (gnutls_hash_deinit(*(ctx), (digest)), 1)
 
 #else
 
