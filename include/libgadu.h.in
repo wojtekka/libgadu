@@ -767,6 +767,7 @@ enum gg_failure_t {
 	GG_FAILURE_UNAVAILABLE,		/**< Serwery są wyłączone */
 	GG_FAILURE_PROXY,		/**< Błąd serwera pośredniczącego */
 	GG_FAILURE_HUB,			/**< Błąd połączenia z hubem */
+	GG_FAILURE_INTERNAL,		/**< Błąd wewnętrzny */
 };
 
 /**

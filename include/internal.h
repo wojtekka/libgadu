@@ -38,6 +38,8 @@ int gg_resolve(int *fd, int *pid, const char *hostname);
 int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
 void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
+int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result);
+
 #ifdef HAVE_UINT64_T
 uint64_t gg_fix64(uint64_t x);
 #endif

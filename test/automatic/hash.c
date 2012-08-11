@@ -49,7 +49,10 @@ static void test_login_hash(const char *password, uint32_t seed, const char *exp
 {
 	uint8_t result[20];
 
-	gg_login_hash_sha1(password, seed, result);
+	if (gg_login_hash_sha1_2(password, seed, result) == -1) {
+		fprintf(stderr, "gg_login_hash_sha1_2() failed for \"%s\", 0x%08x\n", password, seed);
+		exit(1);
+	}
 
 	if (!sha1_compare(result, expect)) {
 		printf("hash failed for \"%s\", 0x%08x, expected %s, got %s\n", password, seed, expect, sha1_to_string(result));

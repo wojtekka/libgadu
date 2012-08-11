@@ -113,7 +113,19 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 			int i;
 #endif
 
-			gg_login_hash_sha1(gs->password, seed, hash_buf);
+			if (gg_login_hash_sha1_2(gs->password, seed, hash_buf) == -1) {
+				int errno_copy;
+
+				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() gg_login_hash_sha1_2() failed, probably out of memory\n");
+				errno_copy = errno;
+				close(gs->fd);
+				errno = errno_copy;
+				gs->fd = -1;
+				ge->type = GG_EVENT_CONN_FAILED;
+				ge->event.failure = GG_FAILURE_INTERNAL;
+				gs->state = GG_STATE_IDLE;
+				return -1;
+			}
 
 #ifndef GG_DEBUG_DISABLE
 			for (i = 0; i < 40; i += 2)
