@@ -39,14 +39,15 @@
 
 #include <openssl/sha.h>
 
-#elif defined(HAVE_LIBGCRYPT)
+#elif defined(GG_CONFIG_HAVE_GNUTLS)
 
-#include <gcrypt.h>
+#include <gnutls/gnutls.h>
+#include <gnutls/crypto.h>
 
-#define SHA_CTX gcry_md_hd_t
-#define SHA1_Init(ctx) do { gcry_check_version(NULL); gcry_md_open(ctx, GCRY_MD_SHA1, 0); } while (0)
-#define SHA1_Update(ctx, ptr, len) gcry_md_write(*ctx, ptr, len)
-#define SHA1_Final(digest, ctx) do { memcpy(digest, gcry_md_read(*ctx, GCRY_MD_SHA1), 20); gcry_md_close(*ctx); } while (0)
+#define SHA_CTX gnutls_hash_hd_t
+#define SHA1_Init(ctx) gnutls_hash_init((ctx), GNUTLS_DIG_SHA1)
+#define SHA1_Update(ctx, ptr, len) gnutls_hash(*(ctx), (ptr), (len))
+#define SHA1_Final(digest, ctx) gnutls_hash_deinit(*(ctx), (digest))
 
 #else
 

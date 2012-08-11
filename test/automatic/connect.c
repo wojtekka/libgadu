@@ -21,7 +21,6 @@
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #include <gnutls/gnutls.h>
-#include <gcrypt.h>
 #endif
 
 #define HOST_LOCAL "127.0.0.1"
@@ -91,8 +90,6 @@ static gnutls_dh_params_t dh_params;
 #define DH_BITS 1024
 #define CERT_FILE "connect.pem"
 #define KEY_FILE "connect.pem"
-
-GCRY_THREAD_OPTION_PTHREAD_IMPL;
 #endif
 
 static test_param_t *get_test_param(void)
@@ -825,10 +822,6 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
-	gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_pthread);
-	gcry_check_version(NULL);
-	gcry_control(GCRYCTL_ENABLE_QUICK_RANDOM, 0);
-
 	gnutls_global_init();
 	gnutls_certificate_allocate_credentials(&x509_cred);
 	gnutls_certificate_set_x509_key_file(x509_cred, CERT_FILE, KEY_FILE, GNUTLS_X509_FMT_PEM);

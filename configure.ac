@@ -266,26 +266,6 @@ if test "x$have_openssl" = "xyes"; then
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 fi
 
-dnl
-dnl  Sprawdzamy libgcrypt, jeśli nie ma OpenSSL
-dnl
-
-have_libgcrypt=""
-
-if test "x$have_openssl" != "xyes"; then
-	AC_ARG_WITH(libgcrypt,
-	  [  --without-libgcrypt     do not use libgcrypt even if found])
-
-	if test "x$with_libgcrypt" != "xno"; then
-		AM_PATH_LIBGCRYPT([], [
-			AC_DEFINE([HAVE_LIBGCRYPT], [], [Defined if libgcrypt is available.])
-			CFLAGS="$CFLAGS $LIBGCRYPT_CFLAGS"
-			LIBS_PRIVATE="$LIBS_PRIVATE $LIBGCRYPT_LIBS"
-			have_libgcrypt="yes"
-		])
-	fi
-fi
-
 # We need separate lists of libs handled with and without pkgconfig help, for the pkgconfig file.
 # We concatenate them here so that libtool can pick the pkgconfig-less libs too.
 LIBS="$LIBS $LIBS_PRIVATE"
@@ -332,14 +312,7 @@ if test "x$enable_tests" != "xno"; then
 			], [:])
 		fi
 
-		dnl For tests always try to use libgcrypt if available
-		if test "x$have_libgcrypt" != "xyes"; then
-			AM_PATH_LIBGCRYPT([], [
-				have_libgcrypt="yes"
-			])
-		fi
-
-		if test "x$have_gnutls" = "xyes" -a "x$have_libgcrypt" = "xyes"; then
+		if test "x$have_gnutls" = "xyes"; then
 			OPTIONAL_TESTS_GLIBC_GNUTLS="connect"
 		fi
 	fi

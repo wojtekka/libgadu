@@ -21,7 +21,7 @@ hash_SOURCES = hash.c $(top_builddir)/src/sha1.c $(top_builddir)/src/endian.c
 
 endian1_SOURCES = endian1.c $(top_builddir)/src/endian.c
 
-connect_LDADD = $(top_builddir)/src/libgadu.la -lgcrypt -lgnutls
+connect_LDADD = $(top_builddir)/src/libgadu.la -lgnutls
 
 packet_LDADD = $(top_builddir)/src/libgadu.la
 
