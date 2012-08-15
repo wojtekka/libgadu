@@ -237,7 +237,7 @@ AC_ARG_WITH(gnutls,
 have_gnutls=""
 
 if test "x$with_gnutls" != "xno"; then
-	PKG_CHECK_MODULES([GNUTLS], [gnutls], [
+	PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
 		AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
 		AC_DEFINE([GG_CONFIG_HAVE_GNUTLS], [], [Defined if libgadu was compiled and linked with GnuTLS support.])
 		REQUIRES_PRIVATE="$REQUIRES_PRIVATE gnutls"
@@ -306,7 +306,7 @@ if test "x$enable_tests" != "xno"; then
 		
 		dnl For tests always try to use GnuTLS if available
 		if test "x$have_gnutls" != "xyes"; then
-			PKG_CHECK_MODULES([GNUTLS], [gnutls], [
+			PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
 				AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
 				have_gnutls="yes"
 			], [:])

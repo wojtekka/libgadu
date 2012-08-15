@@ -14,7 +14,7 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
       fi)
 
   if test "x$without_openssl" != "xyes" -a "x$with_arg" = "x" -o "x$force_openssl" = "xyes"; then
-    PKG_CHECK_MODULES([OPENSSL], [openssl], [
+    PKG_CHECK_MODULES([OPENSSL], [openssl >= 0.9.7], [
 	AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
         without_openssl=yes
 	have_openssl=yes
@@ -22,6 +22,8 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
   fi
 
   if test "x$without_openssl" != "xyes" ; then
+    dnl Beware, this code is not able to check installed openssl version
+
     AC_MSG_CHECKING(for ssl.h)
 
     for i in $with_arg \

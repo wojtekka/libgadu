@@ -37,7 +37,8 @@ Wymagania
 Do połączeń szyfrowanych biblioteka wykorzystuje bibliotekę GnuTLS lub
 OpenSSL. Jeśli obie są zainstalowane w systemie, pierwszeństwo ma ta
 pierwsza, ponieważ użycie OpenSSL może powodować problemy z łączeniem
-z programami na licencji GPL.
+z programami na licencji GPL. Minimalna wymagana wersja biblioteki
+OpenSSL to 0.9.7, a biblioteki GnuTLS 2.10.0.
 
 Do poprawnej obsługi połączeń bezpośrednich starszych wersji protokołu
 niezbędny jest kompilator obsługujący 64-bitowy typ long long.
@@ -48,8 +49,10 @@ zlib.
 Do wygenerowania dokumentacji używany jest Doxygen. Jeśli nie jest 
 dostępny, dokumentacja nie jest generowana.
 
-Do niektórych testów automatycznych wymagane są glibc i Perl. Jeśli nie
-są dostępne, niektóre testy nie będą uruchamiane.
+Do niektórych testów automatycznych wymagane są glibc, GnuTLS, libxml2
+i Perl. Jeśli nie są dostępne, niektóre testy nie będą uruchamiane.
+Ponadto jeden z programów do ręcznego testowania biblioteki wymaga
+bibliotek CURL, Expat i OpenSSL.
 
 Podczas kompilacji wykrywana jest wersja biblioteki standardowej,
 ponieważ zachowanie używanych funkcji rodziny printf() zostało
@@ -61,7 +64,7 @@ standardową zgodną ze standardem C99, więc w przypadku wątpliwości
 można użyć --with-c99-vsnprintf.
 
 Do asynchronicznego rozwiązywania nazw biblioteka używa procesów
-lub wątków pthread. Jeśli system udostępnia wariant funkcji
-gethostbyname() działający poprawnie w aplikacjach wielowątkowych
-(Linux z glibc, SunOS), zostanie on użyty.
+lub wątków pthread. Jeśli system udostępnia funkcję gethostbyname_r()
+działającą poprawnie w aplikacjach wielowątkowych (Linux z glibc,
+SunOS), zostanie ona użyta.
 
