@@ -318,18 +318,18 @@ if test "x$enable_tests" != "xno"; then
 	fi
 
 	dnl
-	dnl  libgsm i libspeex dla voice7
+	dnl  libgsm i libspeex dla voice7 (obecnie wyłączone)
 	dnl
 
-	tmp=x
-	AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
-	AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
-	AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
-	AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
-
-	if test "x$tmp" = "xxxxxx"; then
-		OPTIONAL_TESTS_VOICE7="voice7"
-	fi
+dnl	tmp=x
+dnl	AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
+dnl	AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
+dnl	AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
+dnl	AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
+dnl
+dnl	if test "x$tmp" = "xxxxxx"; then
+dnl		OPTIONAL_TESTS_VOICE7="voice7"
+dnl	fi
 
 	dnl
 	dnl  curl, expat i OpenSSL dla search
