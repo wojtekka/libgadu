@@ -146,10 +146,15 @@ static int test(int resolver, int delay)
 	return 1;
 }
 
-static int dummy(void)
+static int dummy_start(int *fd, void **private_data, const char *hostname)
 {
-	fprintf(stderr, "** custom resolver called\n");
+	fprintf(stderr, "** custom resolver started\n");
 	return 0;
+}
+
+static void dummy_cleanup(void **private_data, int force)
+{
+	fprintf(stderr, "** custom resolver cleaning up\n");
 }
 
 static int test_set_get(void)
@@ -188,7 +193,7 @@ static int test_set_get(void)
 	}
 
 	printf("Setting global custom resolver\n");
-	gg_global_set_custom_resolver((void*) dummy, (void*) dummy);
+	gg_global_set_custom_resolver(dummy_start, dummy_cleanup);
 
 	if (gg_global_get_resolver() != GG_RESOLVER_CUSTOM) {
 		printf("Expected global custom resolver\n");
@@ -382,7 +387,7 @@ static int test_set_get(void)
 	/* Testy globalnego custom + lokalne */
 
 	printf("Setting global custom resolver\n");
-	gg_global_set_custom_resolver((void*) dummy, (void*) dummy);
+	gg_global_set_custom_resolver(dummy_start, dummy_cleanup);
 
 	/* Test globalnych ustawień + lokalne */
 
@@ -492,7 +497,7 @@ static int test_set_get(void)
 	/* Test HTTP */
 
 	printf("Testing global custom resolver in HTTP\n");
-	gg_global_set_custom_resolver((void*) dummy, (void*) dummy);
+	gg_global_set_custom_resolver(dummy_start, dummy_cleanup);
 
 	gh = gg_http_connect("test", 80, 1, "GET", "/test", "");
 
