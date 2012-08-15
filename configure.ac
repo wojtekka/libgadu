@@ -381,6 +381,8 @@ AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [:])
 AC_SUBST([SUBDIRS_DOXYGEN])
 if test "x$DOXYGEN" = "xdoxygen"; then
 	SUBDIRS_DOXYGEN="docs"
+	AC_SUBST([DOXYFILE_HTML_DIR])
+	DOXYFILE_HTML_DIR="html"
 else
 	SUBDIRS_DOXYGEN=""
 fi
