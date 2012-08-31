@@ -37,7 +37,7 @@ rm -rf \
 	examples/Makefile.in \
 	test/Makefile.in \
 	test/*/Makefile.in \
-	test/protocol/tests/Makefile.in \
+	test/*/*/Makefile.in \
 	pkgconfig/Makefile \
 	pkgconfig/Makefile.in \
 	pkgconfig/libgadu.pc \
