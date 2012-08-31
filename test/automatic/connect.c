@@ -43,7 +43,6 @@ typedef enum {
 	PORT_8074,
 	PORT_8080,
 	PORT_CLOSED,
-	PORT_TIMEOUT,
 	PORT_COUNT
 } test_port_t;
 
@@ -324,7 +323,6 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		case PLUG_TIMEOUT:
 			if (!test->async_mode) {
 				errno = ETIMEDOUT;
-				return -1;
 			} else {
 				int res;
 				if ((res = write(timeout_pipe[1], "", 1)) != 1) {
@@ -332,10 +330,9 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 					errno = EBADF;
 					return -1;
 				}
+				errno = EINPROGRESS;
 			}
-
-			sin.sin_port = htons(server_ports[PORT_TIMEOUT]);
-			break;
+			return -1;
 	}
 
 	result = __connect(socket, (struct sockaddr*) &sin, address_len);
@@ -608,7 +605,7 @@ static void* server_func(void* arg)
 		FD_ZERO(&wr);
 
 		for (i = 0; i < PORT_COUNT; i++) {
-			if (i == PORT_CLOSED || i == PORT_TIMEOUT)
+			if (i == PORT_CLOSED)
 				continue;
 
 			FD_SET(server_fds[i], &rd);
@@ -823,7 +820,7 @@ static void* server_func(void* arg)
 		}
 
 		for (i = 0; i < PORT_COUNT; i++) {
-			if (i == PORT_CLOSED || i == PORT_TIMEOUT)
+			if (i == PORT_CLOSED)
 				continue;
 
 			if (FD_ISSET(server_fds[i], &rd)) {
