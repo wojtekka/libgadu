@@ -1,7 +1,7 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
-#include <libgadu.h>
+#include "libgadu.h"
 
 typedef enum {
 	ACTION_LOGIN = 1,

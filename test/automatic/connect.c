@@ -17,7 +17,7 @@
 #include <netdb.h>
 #include <pthread.h>
 
-#include <libgadu.h>
+#include "libgadu.h"
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #include <gnutls/gnutls.h>

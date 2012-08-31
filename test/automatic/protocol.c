@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#include <libgadu.h>
+#include "libgadu.h"
 
 #include "script.h"
 

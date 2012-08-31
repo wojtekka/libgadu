@@ -9,8 +9,8 @@
 #include <ctype.h>
 #include <sys/select.h>
 
-#include <libgadu.h>
-#include "../../include/network.h"
+#include "libgadu.h"
+#include "network.h"
 #include "userconfig.h"
 
 #define debug(msg...) \

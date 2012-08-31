@@ -47,7 +47,7 @@
  #include <speex/speex.h>
 #endif
 
-#include <libgadu.h>
+#include "libgadu.h"
 #include "userconfig.h"
 
 #define EKG_CODEC_NONE    0x00

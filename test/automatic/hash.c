@@ -6,6 +6,7 @@
 #include <sys/types.h>
 
 #include "libgadu.h"
+#include "internal.h"
 
 static char *sha1_to_string(uint8_t *sha1)
 {
