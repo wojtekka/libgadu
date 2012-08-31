@@ -412,6 +412,8 @@ static bool client_func(const test_param_t *test)
 				gg_free_session(gs);
 				return false;
 			}
+			if (res == -1)
+				continue;
 
 			if (FD_ISSET(timeout_pipe[0], &rd)) {
 				if (read(timeout_pipe[0], &tmp, 1) == -1) {
@@ -612,6 +614,8 @@ static void* server_func(void* arg)
 //XXX			kill(getppid(), SIGTERM);
 			break;
 		}
+		if (res == -1)
+			continue;
 
 #ifdef SERVER_TIMEOUT
 		if (client_fd != -1) {
