@@ -275,14 +275,16 @@ dnl  Testy
 dnl
 
 AC_SUBST([SUBDIRS_TEST])
-AC_SUBST([OPTIONAL_TESTS_GLIBC])
-AC_SUBST([OPTIONAL_TESTS_GLIBC_GNUTLS])
+AC_SUBST([OPTIONAL_TESTS_AUTOMATIC_GLIBC])
+AC_SUBST([OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS])
+AC_SUBST([OPTIONAL_TESTS_MANUAL_GLIBC])
 AC_SUBST([OPTIONAL_TESTS_PERL])
 AC_SUBST([OPTIONAL_TESTS_VOICE7])
 AC_SUBST([OPTIONAL_TESTS_SEARCH])
 SUBDIRS_TEST=""
-OPTIONAL_TESTS_GLIBC=""
-OPTIONAL_TESTS_GLIBC_GNUTLS=""
+OPTIONAL_TESTS_AUTOMATIC_GLIBC=""
+OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS=""
+OPTIONAL_TESTS_MANUAL_GLIBC=""
 OPTIONAL_TESTS_PERL=""
 OPTIONAL_TESTS_VOICE7=""
 OPTIONAL_TESTS_SEARCH=""
@@ -302,7 +304,8 @@ if test "x$enable_tests" != "xno"; then
 	AC_CHECK_LIB(c, __connect, [have_glibc="yes"])
 	
 	if test "x$have_glibc" = "xyes"; then
-		OPTIONAL_TESTS_GLIBC="resolver packet"
+		OPTIONAL_TESTS_AUTOMATIC_GLIBC="resolver packet"
+		OPTIONAL_TESTS_MANUAL_GLIBC="dcc7"
 		
 		dnl For tests always try to use GnuTLS if available
 		if test "x$have_gnutls" != "xyes"; then
@@ -313,7 +316,7 @@ if test "x$enable_tests" != "xno"; then
 		fi
 
 		if test "x$have_gnutls" = "xyes"; then
-			OPTIONAL_TESTS_GLIBC_GNUTLS="connect"
+			OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS="connect"
 		fi
 	fi
 

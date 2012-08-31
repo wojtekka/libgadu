@@ -1,5 +1,5 @@
-check_PROGRAMS = client dcc7 userlist $(OPTIONAL_TESTS_SEARCH) $(OPTIONAL_TESTS_VOICE7)
-EXTRA_PROGRAMS = client dcc7 userlist search voice7
+check_PROGRAMS = client userlist $(OPTIONAL_TESTS_SEARCH) $(OPTIONAL_TESTS_VOICE7) $(OPTIONAL_TESTS_MANUAL_GLIBC)
+EXTRA_PROGRAMS = client userlist search voice7 dcc7
 
 CFLAGS = -DGG_IGNORE_DEPRECATED
 AM_LDFLAGS = -no-install
