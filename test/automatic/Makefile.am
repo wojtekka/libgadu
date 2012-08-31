@@ -3,6 +3,7 @@ check_PROGRAMS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_GLIBC) 
 EXTRA_PROGRAMS = convert endian1 message2 message1 hash connect packet resolver protocol
 
 CFLAGS += -DGG_IGNORE_DEPRECATED
+AM_LDFLAGS = -no-install
 
 protocol_SOURCES = protocol.c
 nodist_protocol_SOURCES = script/script.c

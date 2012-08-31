@@ -1,5 +1,6 @@
 noinst_PROGRAMS = send httphash conn-async register-sync register-async remind-sync remind-async status token-sync token-async
 LDADD = ../src/libgadu.la
+AM_LDFLAGS = -no-install
 
 httphash_CFLAGS = -DGG_IGNORE_DEPRECATED
 
