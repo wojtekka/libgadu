@@ -92,6 +92,13 @@ static gnutls_dh_params_t dh_params;
 #define KEY_FILE "connect.pem"
 #endif
 
+static void failure(void) __attribute__ ((noreturn));
+
+static void failure(void)
+{
+	exit(1);
+}
+
 static test_param_t *get_test_param(void)
 {
 	static test_param_t test = { false };
@@ -112,7 +119,10 @@ static void debug_handler(int level, const char *format, va_list ap)
 			return;
 		}
 
-		pthread_mutex_lock(&log_mutex);
+		if (pthread_mutex_lock(&log_mutex) != 0) {
+			fprintf(stderr, "pthread_mutex_lock failed!\n");
+			return;
+		}
 
 		len = (log_buffer != NULL) ? strlen(log_buffer) : 0;
 
@@ -125,7 +135,10 @@ static void debug_handler(int level, const char *format, va_list ap)
 			fprintf(stderr, "Out of memory for log buffer!\n");
 		}
 
-		pthread_mutex_unlock(&log_mutex);
+		if (pthread_mutex_unlock(&log_mutex) != 0) {
+			fprintf(stderr, "pthread_mutex_unlock failed!\n");
+			failure();
+		}
 	}
 }
 
@@ -144,13 +157,6 @@ static inline unsigned int get32(char *ptr)
 	unsigned char *tmp = (unsigned char*) ptr;
 
 	return tmp[0] | (tmp[1] << 8) | (tmp[2] << 16) | (tmp[3] << 24);
-}
-
-static void failure(void) __attribute__ ((noreturn));
-
-static void failure(void)
-{
-	exit(1);
 }
 
 static void debug(const char *fmt, ...)
@@ -179,7 +185,7 @@ struct hostent *gethostbyname(const char *name)
 	static struct hostent he;
 	struct hostent *he_ptr;
 
-	if (gethostbyname_r(name, &he, buf, sizeof(buf), &he_ptr, &h_errno) == -1)
+	if (gethostbyname_r(name, &he, buf, sizeof(buf), &he_ptr, &h_errno) != 0)
 		return NULL;
 	
 	return he_ptr;
@@ -187,49 +193,47 @@ struct hostent *gethostbyname(const char *name)
 
 int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop)
 {
-	resolver_storage_t *storage;
+	resolver_storage_t *storage = (void*) buf;
 	int h_errno;
 	test_param_t *test;
 
 	test = get_test_param();
 
-	if (buflen < sizeof(*storage) + strlen(name)) {
-		errno = ERANGE;
-		*result = NULL;
-		return -1;
-	}
+	*result = NULL;
+
+	if (buflen < sizeof(*storage) + strlen(name))
+		return ERANGE;
 
 	test->tried_resolver = 1;
-
-	storage = (void*) buf;
 
 	if (test->plug_resolver != PLUG_NONE) {
 		if (test->plug_resolver == PLUG_TIMEOUT) {
 			if (test->async_mode) {
-				if (write(timeout_pipe[1], "", 1) == -1) {
-					*result = NULL;
-					return -1;
+				int res;
+				if ((res = write(timeout_pipe[1], "", 1)) != 1) {
+					if (res == -1)
+						perror("write");
+					else
+						fprintf(stderr, "write returned %d\n", res);
+					failure();
 				}
 			}
 			*h_errnop = TRY_AGAIN;
 		} else {
 			*h_errnop = HOST_NOT_FOUND;
 		}
-		*result = NULL;
 		return -1;
 	}
 
 	if ((!test->proxy_mode && strcmp(name, GG_APPMSG_HOST) != 0) || (test->proxy_mode && strcmp(name, HOST_PROXY) != 0)) {
 		debug("Invalid argument for gethostbyname(): \"%s\"\n", name);
 		*h_errnop = HOST_NOT_FOUND;
-		*result = NULL;
 		return -1;
 	}
 
 	storage->addr_list[0] = (char*) &storage->addr;
 	storage->addr_list[1] = NULL;
 	storage->addr.s_addr = inet_addr(HOST_LOCAL);
-
 	strcpy(storage->name, name);
 
 	memset(ret, 0, sizeof(*ret));
@@ -239,7 +243,6 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 	ret->h_addr_list = storage->addr_list;
 	
 	*result = ret;
-	*h_errnop = h_errno;
 
 	return 0;
 }
@@ -323,8 +326,12 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 				errno = ETIMEDOUT;
 				return -1;
 			} else {
-				if (write(timeout_pipe[1], "", 1) == -1)
+				int res;
+				if ((res = write(timeout_pipe[1], "", 1)) != 1) {
+					debug("write() returned %d\n", res);
+					errno = EBADF;
 					return -1;
+				}
 			}
 
 			sin.sin_port = htons(server_ports[PORT_TIMEOUT]);
@@ -336,7 +343,8 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	return result;
 }
 
-static bool client_func(const test_param_t *test)
+/** @return 1 on success, 0 on failure, -1 on error */
+static int client_func(const test_param_t *test)
 {
 	struct gg_session *gs;
 	struct gg_login_params glp;
@@ -358,16 +366,16 @@ static bool client_func(const test_param_t *test)
 	if (test->ssl_mode)
 		glp.tls = GG_SSL_REQUIRED;
 
-	while (read(timeout_pipe[0], &tmp, sizeof(tmp)) != -1);
+	while (read(timeout_pipe[0], &tmp, 1) != -1);
 
 	gs = gg_login(&glp);
 
 	if (gs == NULL)
-		return false;
+		return 0;
 
 	if (!test->async_mode) {
 		gg_free_session(gs);
-		return true;
+		return 1;
 	} else {
 		for (;;) {
 			fd_set rd, wr;
@@ -404,28 +412,28 @@ static bool client_func(const test_param_t *test)
 			if (res == 0) {
 				debug("Test timeout\n");
 				gg_free_session(gs);
-				return false;
+				return 0;
 			}
 			
 			if (res == -1 && errno != EINTR) {
 				debug("select() failed: %s\n", strerror(errno));
 				gg_free_session(gs);
-				return false;
+				return -1;
 			}
 			if (res == -1)
 				continue;
 
 			if (FD_ISSET(timeout_pipe[0], &rd)) {
-				if (read(timeout_pipe[0], &tmp, 1) == -1) {
+				if (read(timeout_pipe[0], &tmp, 1) != 1) {
 					debug("Test error\n");
 					gg_free_session(gs);
-					return false;
+					return -1;
 				}
 
 				if (!gs->soft_timeout) {
 					debug("Hard timeout\n");
 					gg_free_session(gs);
-					return false;
+					return 0;
 				}
 			}
 
@@ -442,19 +450,19 @@ static bool client_func(const test_param_t *test)
 				if (!ge) {
 					debug("gg_watch_fd() failed\n");
 					gg_free_session(gs);
-					return false;
+					return -1;
 				}
 
 				switch (ge->type) {
 					case GG_EVENT_CONN_SUCCESS:
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return true;
+						return 1;
 
 					case GG_EVENT_CONN_FAILED:
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return false;
+						return 0;
 
 					case GG_EVENT_NONE:
 						break;
@@ -463,7 +471,7 @@ static bool client_func(const test_param_t *test)
 						debug("Unknown event %d\n", ge->type);
 						gg_event_free(ge);
 						gg_free_session(gs);
-						return false;
+						return -1;
 				}
 
 				gg_event_free(ge);
@@ -473,33 +481,35 @@ static bool client_func(const test_param_t *test)
 }
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
-static bool server_ssl_init(gnutls_session_t *session, int client_fd)
+static int server_ssl_init(gnutls_session_t *session, int client_fd)
 {
+	int res;
+
 	if (*session != NULL) {
 		gnutls_deinit(*session);
 		*session = NULL;
 	}
-	
-	if (gnutls_init(session, GNUTLS_SERVER) != GNUTLS_E_SUCCESS)
-		goto fail;
-	
-	if (gnutls_set_default_priority(*session) != GNUTLS_E_SUCCESS)
+
+	if ((res = gnutls_init(session, GNUTLS_SERVER)) != GNUTLS_E_SUCCESS)
 		goto fail;
 
-	if (gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, x509_cred) != GNUTLS_E_SUCCESS)
+	if ((res = gnutls_set_default_priority(*session)) != GNUTLS_E_SUCCESS)
+		goto fail;
+
+	if ((res = gnutls_credentials_set(*session, GNUTLS_CRD_CERTIFICATE, x509_cred)) != GNUTLS_E_SUCCESS)
 		goto fail;
 
 	gnutls_transport_set_ptr(*session, (gnutls_transport_ptr_t) (ptrdiff_t) client_fd);
 
-	if (gnutls_handshake(*session) != GNUTLS_E_SUCCESS)
+	if ((res = gnutls_handshake(*session)) !=  GNUTLS_E_SUCCESS)
 		goto fail;
 
-	return true;
+	return GNUTLS_E_SUCCESS;
 
 fail:
 	gnutls_deinit(*session);
 	*session = NULL;
-	return false;
+	return res;
 }
 
 static void server_ssl_deinit(gnutls_session_t *session)
@@ -542,7 +552,10 @@ static void* server_func(void* arg)
 			failure();
 		}
 
-		setsockopt(server_fds[i], SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+		if (setsockopt(server_fds[i], SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)) == -1) {
+			perror("setsockopt");
+			failure();
+		}
 
 		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
@@ -568,10 +581,19 @@ static void* server_func(void* arg)
 		}
 	}
 
-	pthread_mutex_lock(&server_mutex);
+	if (pthread_mutex_lock(&server_mutex) != 0) {
+		fprintf(stderr, "pthread_mutex_lock failed!\n");
+		failure();
+	}
 	server_init = true;
-	pthread_cond_signal(&server_cond);
-	pthread_mutex_unlock(&server_mutex);
+	if (pthread_cond_signal(&server_cond) != 0) {
+		fprintf(stderr, "pthread_cond_signal failed!\n");
+		failure();
+	}
+	if (pthread_mutex_unlock(&server_mutex) != 0) {
+		fprintf(stderr, "pthread_mutex_unlock failed!\n");
+		failure();
+	}
 
 	for (;;) {
 		struct timeval tv;
@@ -610,9 +632,8 @@ static void* server_func(void* arg)
 		res = select(max_fd + 1, &rd, &wr, NULL, &tv);
 
 		if (res == -1 && errno != EINTR) {
-			debug("select() failed: %s\n", strerror(errno));
-//XXX			kill(getppid(), SIGTERM);
-			break;
+			perror("select");
+			failure();
 		}
 		if (res == -1)
 			continue;
@@ -624,7 +645,10 @@ static void* server_func(void* arg)
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
 #endif
-				close(client_fd);
+				if (close(client_fd) == -1) {
+					perror("close");
+					failure();
+				}
 				client_fd = -1;
 				continue;
 			}
@@ -648,7 +672,10 @@ static void* server_func(void* arg)
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				server_ssl_deinit(&session);
 #endif
-				close(client_fd);
+				if (close(client_fd) == -1) {
+					perror("close");
+					failure();
+				}
 				client_fd = -1;
 				continue;
 			}
@@ -662,24 +689,42 @@ static void* server_func(void* arg)
 
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
-						if (!test->ssl_mode)
-							send(client_fd, hub_reply, strlen(hub_reply), 0);
-						else
-							send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
-						close(client_fd);
+						if (!test->ssl_mode) {
+							if (send(client_fd, hub_reply, strlen(hub_reply), 0) != strlen(hub_reply)) {
+								fprintf(stderr, "send() not completed\n");
+								failure();
+							}
+						} else {
+							if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != strlen(hub_ssl_reply)) {
+								fprintf(stderr, "send() not completed\n");
+								failure();
+							}
+						}
+						if (close(client_fd) == -1) {
+							perror("close");
+							failure();
+						}
 						client_fd = -1;
 					}
 					break;
 
 				case CLIENT_GG:
-					if (len > 8 && len >= get32(buf + 4))
-						send(client_fd, login_ok_packet, sizeof(login_ok_packet), 0);
+					if (len > 8 && len >= get32(buf + 4)) {
+						if (send(client_fd, login_ok_packet, sizeof(login_ok_packet), 0) != sizeof(login_ok_packet)) {
+							fprintf(stderr, "send() not completed\n");
+							failure();
+						}
+					}
 					break;
 
 				case CLIENT_GG_SSL:
 #ifdef GG_CONFIG_HAVE_GNUTLS
-					if (len > 8 && len >= get32(buf + 4))
-						gnutls_record_send(session, login_ok_packet, sizeof(login_ok_packet));
+					if (len > 8 && len >= get32(buf + 4)) {
+						if (gnutls_record_send(session, login_ok_packet, sizeof(login_ok_packet)) != sizeof(login_ok_packet)) {
+							fprintf(stderr, "gnutls_record_send() not completed\n");
+							failure();
+						}
+					}
 #endif
 					break;
 
@@ -689,49 +734,87 @@ static void* server_func(void* arg)
 
 						test = get_test_param();
 
-						if (strncmp(buf, "GET http://" GG_APPMSG_HOST, 11 + strlen(GG_APPMSG_HOST)) == 0) {
+						if (strncmp(buf, "GET http://" GG_APPMSG_HOST, strlen("GET http://" GG_APPMSG_HOST)) == 0) {
 							test->tried_80 = 1;
 							if (test->plug_80 == PLUG_NONE) {
-								if (!test->ssl_mode)
-									send(client_fd, hub_reply, strlen(hub_reply), 0);
-								else
-									send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0);
-							} else
-								send(client_fd, proxy_error, strlen(proxy_error), 0);
-							close(client_fd);
+								if (!test->ssl_mode) {
+									if (send(client_fd, hub_reply, strlen(hub_reply), 0) != strlen(hub_reply)) {
+										fprintf(stderr, "send() not completed\n");
+										failure();
+									}
+								} else {
+									if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != strlen(hub_ssl_reply)) {
+										fprintf(stderr, "send() not completed\n");
+										failure();
+									}
+								}
+							} else {
+								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+									fprintf(stderr, "send() not completed\n");
+									failure();
+								}
+							}
+							if (close(client_fd) == -1) {
+								perror("close");
+								failure();
+							}
 							client_fd = -1;
-						} else if (strncmp(buf, "CONNECT " HOST_LOCAL ":443 ", 13 + strlen(HOST_LOCAL)) == 0) {
+						} else if (strncmp(buf, "CONNECT " HOST_LOCAL ":443 ", strlen("CONNECT " HOST_LOCAL ":443 ")) == 0) {
 							test->tried_443 = 1;
 
 							if (test->plug_443 == PLUG_NONE) {
-								send(client_fd, proxy_reply, strlen(proxy_reply), 0);
+								if (send(client_fd, proxy_reply, strlen(proxy_reply), 0) != strlen(proxy_reply)) {
+									fprintf(stderr, "send() not completed\n");
+									failure();
+								}
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 								if (test->ssl_mode) {
-									if (!server_ssl_init(&session, client_fd)) {
-										debug("Handshake failed");
-										close(client_fd);
+									int res;
+
+									res = server_ssl_init(&session, client_fd);
+									if (res != GNUTLS_E_SUCCESS) {
+										debug("Handshake failed: %d, %s\n", res, gnutls_strerror(res));
+										if (close(client_fd) == -1) {
+											perror("close");
+											failure();
+										}
 										client_fd = -1;
 										continue;
 									}
 
-									gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
+									if (gnutls_record_send(session, welcome_packet, sizeof(welcome_packet)) != sizeof(welcome_packet)) {
+										fprintf(stderr, "gnutls_record_send() not completed\n");
+										failure();
+									}
 
 									ctype = CLIENT_GG_SSL;
 								} else
 #endif
 								{
-									send(client_fd, welcome_packet, sizeof(welcome_packet), 0);
+									if (send(client_fd, welcome_packet, sizeof(welcome_packet), 0) != sizeof(welcome_packet)) {
+										fprintf(stderr, "send() not completed\n");
+										failure();
+									}
 									ctype = CLIENT_GG;
 								}
 							} else {
-								send(client_fd, proxy_error, strlen(proxy_error), 0);
+								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+									fprintf(stderr, "send() not completed\n");
+									failure();
+								}
 							}
 							len = 0;
 						} else {
 							debug("Invalid proxy request");
-							send(client_fd, proxy_error, strlen(proxy_error), 0);
-							close(client_fd);
+							if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+								fprintf(stderr, "send() not completed\n");
+								failure();
+							}
+							if (close(client_fd) == -1) {
+								perror("close");
+								failure();
+							}
 							client_fd = -1;
 						}
 					}
@@ -748,12 +831,17 @@ static void* server_func(void* arg)
 				socklen_t sin_len = sizeof(sin);
 				int new_fd;
 
-				new_fd = accept(server_fds[i], (struct sockaddr*) &sin, &sin_len);
+				if ((new_fd = accept(server_fds[i], (struct sockaddr*) &sin, &sin_len)) == -1) {
+					perror("accept");
+					failure();
+				}
 
 				if (client_fd != -1) {
 					debug("Overlapping connections\n");
-					close(new_fd);
-					close(client_fd);
+					if (close(new_fd) == -1 || close(client_fd) == -1) {
+						perror("close");
+						failure();
+					}
 					client_fd = -1;
 					continue;
 				}
@@ -769,21 +857,33 @@ static void* server_func(void* arg)
 					ctype = CLIENT_HUB;
 #ifdef GG_CONFIG_HAVE_GNUTLS
 				else if (i == PORT_443 && get_test_param()->ssl_mode) {
-					ctype = CLIENT_GG_SSL;
+					int res;
 
-					if (!server_ssl_init(&session, client_fd)) {
-						debug("Handshake failed");
-						close(client_fd);
+					ctype = CLIENT_GG_SSL;
+					res = server_ssl_init(&session, client_fd);
+
+					if (res != GNUTLS_E_SUCCESS) {
+						debug("Handshake failed: %d, %s\n", res, gnutls_strerror(res));
+						if (close(client_fd) == -1) {
+							perror("close");
+							failure();
+						}
 						client_fd = -1;
 						continue;
 					}
 						
-					gnutls_record_send(session, welcome_packet, sizeof(welcome_packet));
+					if (gnutls_record_send(session, welcome_packet, sizeof(welcome_packet)) != sizeof(welcome_packet)) {
+						fprintf(stderr, "gnutls_record_send() not completed\n");
+						failure();
+					}
 				}
 #endif 
 				else if (i == PORT_443 || i == PORT_8074) {
 					ctype = CLIENT_GG;
-					send(client_fd, welcome_packet, sizeof(welcome_packet), 0);
+					if (send(client_fd, welcome_packet, sizeof(welcome_packet), 0) != sizeof(welcome_packet)) {
+						fprintf(stderr, "send() not completed\n");
+						failure();
+					}
 				} else if (i == PORT_8080)
 					ctype = CLIENT_PROXY;
 			}
@@ -794,10 +894,16 @@ static void* server_func(void* arg)
 	}
 
 	for (i = 0; i < PORT_COUNT; i++)
-		close(server_fds[i]);
+		if (close(server_fds[i]) == -1) {
+			perror("close");
+			failure();
+		}
 
 	if (client_fd != -1)
-		close(client_fd);
+		if (close(client_fd) == -1) {
+			perror("close");
+			failure();
+		}
 
 	return NULL;
 }
@@ -820,18 +926,35 @@ int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0;
 	int exit_code = 0;
+	int res;
 	pthread_t server_thread;
+	
 #ifdef FIONBIO
 	int one = 1;
 #endif
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
-	gnutls_global_init();
-	gnutls_certificate_allocate_credentials(&x509_cred);
-	gnutls_certificate_set_x509_key_file(x509_cred, CERT_FILE, KEY_FILE, GNUTLS_X509_FMT_PEM);
+	if ((res = gnutls_global_init()) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "gnutls_global_init: %d, %s\n", res, gnutls_strerror(res));
+		failure();
+	}
+	if ((res = gnutls_certificate_allocate_credentials(&x509_cred)) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "gnutls_certificate_allocate_credentials: %d, %s\n", res, gnutls_strerror(res));
+		failure();
+	}
+	if ((res = gnutls_certificate_set_x509_key_file(x509_cred, CERT_FILE, KEY_FILE, GNUTLS_X509_FMT_PEM)) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "gnutls_certificate_set_x509_key_file: %d, %s\n", res, gnutls_strerror(res));
+		failure();
+	}
 
-	gnutls_dh_params_init(&dh_params);
-	gnutls_dh_params_generate2(dh_params, DH_BITS);
+	if ((res = gnutls_dh_params_init(&dh_params)) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "gnutls_dh_params_init: %d, %s\n", res, gnutls_strerror(res));
+		failure();
+	}
+	if ((res = gnutls_dh_params_generate2(dh_params, DH_BITS)) != GNUTLS_E_SUCCESS) {
+		fprintf(stderr, "gnutls_dh_params_generate2: %d, %s\n", res, gnutls_strerror(res));
+		failure();
+	}
 	gnutls_certificate_set_dh_params(x509_cred, dh_params);
 
 	gnutls_initialized = true;
@@ -870,16 +993,28 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-	pthread_create(&server_thread, NULL, server_func, NULL);
+	if (pthread_create(&server_thread, NULL, server_func, NULL) != 0) {
+		fprintf(stderr, "pthread_create() failed!\n");
+		failure();
+	}
 
-	pthread_mutex_lock(&server_mutex);
+	if (pthread_mutex_lock(&server_mutex) != 0) {
+		fprintf(stderr, "pthread_mutex_lock() failed!\n");
+		failure();
+	}
 	while (!server_init)
-		pthread_cond_wait(&server_cond, &server_mutex);
-	pthread_mutex_unlock(&server_mutex);
+		if (pthread_cond_wait(&server_cond, &server_mutex) != 0) {
+			fprintf(stderr, "pthread_cond_wait() failed!\n");
+			failure();
+		}
+	if (pthread_mutex_unlock(&server_mutex) != 0) {
+		fprintf(stderr, "pthread_mutex_unlock() failed!\n");
+		failure();
+	}
 
 	for (i = test_from - 1; i < test_to; i++) {
 		int j = i;
-		bool expect = false;
+		int expect = 0;
 		test_param_t *test;
 
 		test = get_test_param();
@@ -900,10 +1035,10 @@ int main(int argc, char **argv)
 		if (!test->proxy_mode) {
 			if ((test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE) || test->server)
 				if ((!test->ssl_mode && test->plug_8074 == PLUG_NONE) || test->plug_443 == PLUG_NONE)
-					expect = true;
+					expect = 1;
 		} else {
 			if (test->plug_resolver == PLUG_NONE && test->plug_8080 == PLUG_NONE && (test->plug_80 == PLUG_NONE || test->server) && test->plug_443 == PLUG_NONE)
-				expect = true;
+				expect = 1;
 		}
 
 		for (j = 0; j < 2; j++) {
@@ -977,18 +1112,20 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (write(server_pipe[1], "", 1) == -1) {
+	if (write(server_pipe[1], "", 1) != 1) {
 		perror("write");
 		failure();
 	}
 
-	pthread_join(server_thread, NULL);
+	if (pthread_join(server_thread, NULL) != 0) {
+		fprintf(stderr, "pthread_join() failed!\n");
+		failure();
+	}
 
-	close(timeout_pipe[0]);
-	close(timeout_pipe[1]);
-
-	close(server_pipe[0]);
-	close(server_pipe[1]);
+	if (close(timeout_pipe[0]) == -1 || close(timeout_pipe[1]) == -1 || close(server_pipe[0]) == -1 || close(server_pipe[1]) == -1) {
+		perror("close");
+		failure();
+	}
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gnutls_certificate_free_credentials(x509_cred);
