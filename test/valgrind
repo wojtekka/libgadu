@@ -17,7 +17,7 @@ for i in "$PROGRAM_PATH/.libs/$PROGRAM_NAME" "$PROGRAM_PATH/.libs/lt-$PROGRAM_NA
 done
 
 if [ -n "$PROGRAM" ]; then
-	LOG_FILE="$PROGRAM_PATH/$PROGRAM_NAME.log"
+	LOG_FILE="$PROGRAM_PATH/$PROGRAM_NAME-valgrind.log"
 	LD_LIBRARY_PATH="$PROGRAM_PATH/../../src/.libs" valgrind \
 		--tool=memcheck --leak-check=full --show-reachable=yes --track-origins=yes \
 		--trace-children=yes --child-silent-after-fork=yes --track-fds=yes \
