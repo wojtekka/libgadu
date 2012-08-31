@@ -384,7 +384,6 @@ static int gg_dcc_callback(struct gg_dcc *d)
 struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 {
 	struct gg_dcc *c;
-	struct sockaddr_in sin;
 	int sock, bound = 0, errno2;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_create_dcc_socket(%d, %d);\n", uin, port);
@@ -404,6 +403,9 @@ struct gg_dcc *gg_dcc_socket_create(uin_t uin, uint16_t port)
 		port = GG_DEFAULT_DCC_PORT;
 
 	while (!bound) {
+		struct sockaddr_in sin;
+
+		memset(&sin, 0, sizeof(sin));
 		sin.sin_family = AF_INET;
 		sin.sin_addr.s_addr = INADDR_ANY;
 		sin.sin_port = htons(port);

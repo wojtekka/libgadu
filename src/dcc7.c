@@ -237,6 +237,7 @@ static int gg_dcc7_listen(struct gg_dcc7 *dcc, uint32_t addr, uint16_t port)
 		return -1;
 	}
 
+	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = addr;
 	sin.sin_port = htons(port);
