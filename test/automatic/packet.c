@@ -132,6 +132,7 @@ static void gs_init(struct gg_session *gs, int async)
 	gs->async = async;
 }
 
+// TODO: napisać test na r1324
 static void test_recv_packet(void)
 {
 	struct gg_session gs;

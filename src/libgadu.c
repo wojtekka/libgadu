@@ -199,11 +199,10 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 			res = gnutls_record_recv(GG_SESSION_GNUTLS(sess), buf, length);
 
 			if (res < 0) {
-				if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
-					continue;
-
 				if (res == GNUTLS_E_AGAIN)
 					errno = EAGAIN;
+				else if (!gnutls_error_is_fatal(res) || res == GNUTLS_E_INTERRUPTED)
+					continue;
 				else
 					errno = EINVAL;
 
