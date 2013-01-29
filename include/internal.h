@@ -23,10 +23,21 @@
 
 #include "libgadu.h"
 
+#define GG_PROTOCOL_110 0x40
+
 struct gg_dcc7_relay {
 	uint32_t addr;
 	uint16_t port;
 	uint8_t family;
+};
+
+struct gg_chat_list {
+	uint64_t id;
+	uint32_t version;
+	uint32_t participants_count;
+	uin_t *participants;
+
+	struct gg_chat_list *next;
 };
 
 typedef struct gg_dcc7_relay gg_dcc7_relay_t;
@@ -38,6 +49,12 @@ int gg_resolve_pthread(int *fd, void **resolver, const char *hostname);
 void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
 int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result);
+
+int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version, const uin_t *participants, int participants_count);
+struct gg_chat_list * gg_chat_find(struct gg_session *sess, uint64_t id);
+
+uin_t gg_str_to_uin(const char *str, int len);
+const char * gg_uin_to_str(uin_t uin);
 
 uint64_t gg_fix64(uint64_t x);
 

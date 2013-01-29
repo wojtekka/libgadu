@@ -52,4 +52,7 @@ int gg_message_init(gg_message_t *gm, int msgclass, int seq, uin_t *recipients, 
 size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_len, const char *html, gg_encoding_t encoding);
 size_t gg_message_text_to_html(char *dst, const char *src, gg_encoding_t encoding, const unsigned char *format, size_t format_len);
 
+char * gg_message_html_to_text_110(const char *html);
+char * gg_message_text_to_html_110(const char *text, ssize_t text_len);
+
 #endif /* LIBGADU_MESSAGE_H */

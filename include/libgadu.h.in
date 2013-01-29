@@ -186,6 +186,8 @@ struct gg_dcc7;
 
 struct gg_dcc7_relay;
 
+struct gg_chat_list;
+
 /**
  * Sposób rozwiązywania nazw serwerów.
  */
@@ -317,6 +319,8 @@ struct gg_session {
 
 	char *connect_host;			/**< Adres serwera Gadu-Gadu, z którym się łączymy */
 	gg_ssl_t ssl_flag;			/**< Flaga połączenia szyfrowanego */
+
+	struct gg_chat_list *chat_list;		/**< Lista konferencji, w których bierzemy udział */
 };
 
 /**
@@ -698,6 +702,11 @@ int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char
 
 int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id);
 
+int gg_chat_create(struct gg_session *gs);
+int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants, int participants_count);
+int gg_chat_leave(struct gg_session *gs, uint64_t id);
+int gg_chat_send_message(struct gg_session *gs, uint64_t id, const char *message, int is_html);
+
 /**
  * Rodzaj zdarzenia.
  *
@@ -753,6 +762,17 @@ enum gg_event_t {
 
 	GG_EVENT_USERLIST100_VERSION,	/**< Otrzymano numer wersji listy kontaktów na serwerze (10.0) */
 	GG_EVENT_USERLIST100_REPLY,	/**< Wynik importu lub eksportu listy kontaktów (10.0) */
+
+	GG_EVENT_IMTOKEN,		/**< Otrzymano ciąg IMTOKEN (11.0) */
+	GG_EVENT_PONG110,		/**< \brief Utrzymanie połączenia (11.0). Może służyć do synchronizacji czasu z serwerem. */
+	GG_EVENT_JSON_EVENT,		/**< Otrzymano komunikat systemowy (11.0) */
+	GG_EVENT_ACK110,		/**< Potwierdzenie wysłania wiadomości (11.0) */
+
+	GG_EVENT_CHAT_INFO,		/**< Otrzymano informację o konferencji (11.0). */
+	GG_EVENT_CHAT_INFO_GOT_ALL,	/**< \brief Informacje o wszystkich konferencjach zostały już wysłane (11.0). Otrzymywany po ostatnim pakiecie \c GG_EVENT_CHAT_INFO */
+	GG_EVENT_CHAT_INFO_UPDATE,	/**< \brief Aktualizacja informacji o konferencji (11.0). Dodanie, usunięcie jednego z uczestników. */
+	GG_EVENT_CHAT_CREATED,		/**< Potwierdzenie utworzenia konferencji (11.0) */
+	GG_EVENT_CHAT_INVITE_ACK,	/**< Potwierdzenie wysłania zaproszenia do konferencji (11.0) */
 };
 
 #define GG_EVENT_SEARCH50_REPLY GG_EVENT_PUBDIR50_SEARCH_REPLY
@@ -856,6 +876,9 @@ struct gg_event_msg {
 	uint32_t seq;		/**< Numer sekwencyjny wiadomości */
 
 	char *xhtml_message;	/**< Treść wiadomości w formacie XHTML */
+
+	uint64_t chat_id;	/**< Identyfikator konferencji lub 0, jeżeli jest to zwykła wiadomość (11.0) */
+	uint64_t flags;		/**< Flagi wiadomości (11.0) */
 };
 
 /**
@@ -921,6 +944,15 @@ struct gg_event_ack {
 };
 
 /**
+ * Opis zdarzenia \c GG_EVENT_ACK110.
+ */
+struct gg_event_ack110 {
+	uint8_t msg_type;	/**< Rodzaj wiadomości (0x01 - zwykła, 0x02 - konferencja) */
+	uint32_t seq;		/**< Numer sekwencyjny */
+	uint32_t time;		/**< Czas zdarzenia */
+};
+
+/**
  * Opis zdarzenia \c GG_EVENT_USERLIST.
  */
 struct gg_event_userlist {
@@ -961,6 +993,14 @@ struct gg_event_image_reply {
  */
 struct gg_event_xml_event {
 	char *data;		/**< Bufor z komunikatem */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_JSON_EVENT.
+ */
+struct gg_event_json_event {
+	char *data;		/**< Bufor z komunikatem */
+	char *type;		/**< Bufor z typem komunikatu */
 };
 
 /**
@@ -1079,6 +1119,58 @@ struct gg_event_userlist100_reply {
 };
 
 /**
+ * Opis zdarzenia \c GG_EVENT_IMTOKEN.
+ */
+struct gg_event_imtoken {
+	char *imtoken;			/**< Wartość IMTOKEN */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_PONG110.
+ */
+struct gg_event_pong110 {
+	time_t time;			/**< Aktualny czas na serwerze */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_CHAT_INFO.
+ */
+struct gg_event_chat_info {
+	uint64_t id;			/**< Identyfikator konferencji */
+	uint32_t version;		/**< Wersja informacji o konferencji */
+	uint32_t participants_count;	/**< Ilość uczestników */
+	uin_t *participants;		/**< Lista uczestników */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_CHAT_INFO_UPDATE.
+ */
+struct gg_event_chat_info_update {
+	uint64_t id;			/**< Identyfikator konferencji */
+	uint32_t type;			/**< Typ aktualizacji (\c GG_CHAT_INFO_UPDATE_*) */
+	uin_t participant;		/**< Uczestnik, którego dotyczy aktualizacja */
+	uin_t inviter;			/**< Uczestnik inicjujący aktualizację (zapraszający) */
+	uint32_t version;		/**< Wersja informacji o konferencji */
+	uint32_t time;			/**< Czas zdarzenia */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_CHAT_CREATED.
+ */
+struct gg_event_chat_created {
+	uint64_t id;			/**< Identyfikator konferencji */
+	uint32_t seq;			/**< Numer sekwencyjny */
+};
+
+/**
+ * Opis zdarzenia \c GG_EVENT_CHAT_INVITE_ACK.
+ */
+struct gg_event_chat_invite_ack {
+	uint64_t id;			/**< Identyfikator konferencji */
+	uint32_t seq;			/**< Numer sekwencyjny */
+};
+
+/**
  * Unia wszystkich zdarzeń zwracanych przez funkcje \c gg_watch_fd(), 
  * \c gg_dcc_watch_fd() i \c gg_dcc7_watch_fd().
  *
@@ -1093,11 +1185,13 @@ union gg_event_union {
 	struct gg_event_notify60 *notify60;	/**< Zmiana statusu kontaktów (\c GG_EVENT_NOTIFY60) */
 	struct gg_event_msg msg;	/**< Otrzymano wiadomość (\c GG_EVENT_MSG) */
 	struct gg_event_ack ack;	/**< Potwierdzenie wiadomości (\c GG_EVENT_ACK) */
+	struct gg_event_ack110 ack110;	/**< Potwierdzenie wysłania wiadomości (11.0) (\c GG_EVENT_ACK110) */
 	struct gg_event_image_request image_request;	/**< Żądanie wysłania obrazka (\c GG_EVENT_IMAGE_REQUEST) */
 	struct gg_event_image_reply image_reply;	/**< Odpowiedź z obrazkiem (\c GG_EVENT_IMAGE_REPLY) */
 	struct gg_event_userlist userlist;	/**< Odpowiedź listy kontaktów (\c GG_EVENT_USERLIST) */
 	gg_pubdir50_t pubdir50;	/**< Odpowiedź katalogu publicznego (\c GG_EVENT_PUBDIR50_*) */
 	struct gg_event_xml_event xml_event;	/**< Zdarzenie systemowe (\c GG_EVENT_XML_EVENT) */
+	struct gg_event_json_event json_event;	/**< Zdarzenie systemowe (\c GG_EVENT_JSON_EVENT) */
 	struct gg_dcc *dcc_new;	/**< Nowe połączenie bezpośrednie (\c GG_EVENT_DCC_NEW) */
 	enum gg_error_t dcc_error;	/**< Błąd połączenia bezpośredniego (\c GG_EVENT_DCC_ERROR) */
 	struct gg_event_dcc_voice_data dcc_voice_data;	/**< Dane połączenia głosowego (\c GG_EVENT_DCC_VOICE_DATA) */
@@ -1114,6 +1208,12 @@ union gg_event_union {
 	struct gg_event_multilogon_info multilogon_info;	/**< Informacja o innych sesjach multilogowania (\c GG_EVENT_MULTILOGON_INFO) */
 	struct gg_event_userlist100_version userlist100_version;	/**< Informacja o numerze wersji listy kontaktów na serwerze (\c GG_EVENT_USERLIST100_VERSION) */
 	struct gg_event_userlist100_reply userlist100_reply;	/**< Odpowiedź listy kontaktów (10.0) (\c GG_EVENT_USERLIST100_REPLY) */
+	struct gg_event_imtoken imtoken;	/**< Ciąg IMTOKEN (11.0) (\c GG_EVENT_IMTOKEN) */
+	struct gg_event_pong110 pong110;	/**< Utrzymanie połączenia (11.0) (\c GG_EVENT_PONG110) */
+	struct gg_event_chat_info chat_info;	/**< Informacje o konferencji (11.0) (\c GG_EVENT_CHAT_INFO) */
+	struct gg_event_chat_info_update chat_info_update;	/**< Aktualizacja informacji o konferencji (11.0) (\c GG_EVENT_CHAT_INFO_UPDATE) */
+	struct gg_event_chat_created chat_created;	/**< Potwierdzenie utworzenia konferencji (11.0) (\c GG_EVENT_CHAT_CREATED) */
+	struct gg_event_chat_invite_ack chat_invite_ack;	/**< Potwierdzenie wysłania zaproszenia do konferencji (11.0) (\c GG_EVENT_CHAT_INVITE_ACK) */
 };
 
 /**
@@ -1345,6 +1445,9 @@ extern FILE *gg_debug_file;
 #define GG_DEBUG_DUMP 4		/**< Rejestracja zawartości pakietów */
 #define GG_DEBUG_FUNCTION 8	/**< Rejestracja wywołań funkcji */
 #define GG_DEBUG_MISC 16	/**< Rejestracja różnych informacji */
+#define GG_DEBUG_VERBOSE 32	/**< Rejestracja informacji szczegółowych */
+#define GG_DEBUG_WARNING 64	/**< Rejestracja ostrzeżeń */
+#define GG_DEBUG_ERROR 128	/**< Rejestracja błędów krytycznych */
 /** @} */
 
 #ifdef GG_DEBUG_DISABLE
@@ -1555,6 +1658,7 @@ struct gg_image_queue {
 	char *filename;			/**< Nazwa pliku */
 	char *image;			/**< Bufor z odebranymi danymi */
 	uint32_t done;			/**< Rozmiar odebranych danych */
+	uint32_t packet_type;		/**< \brief Rodzaj odbieranych pakietów. W niektórych przypadkach (przy multilogowaniu) serwer wysyła nam dwie kopie obrazka jako dwa różne typy pakietów */
 
 	struct gg_image_queue *next;	/**< Kolejny element listy */
 } GG_DEPRECATED;
@@ -1580,8 +1684,8 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 #define GG_HTTPS_PORT 443
 #define GG_HTTP_USERAGENT "Mozilla/4.7 [en] (Win98; I)"
 
-#define GG_DEFAULT_CLIENT_VERSION "10.1.0.11070"
-#define GG_DEFAULT_PROTOCOL_VERSION 0x2e
+#define GG_DEFAULT_CLIENT_VERSION "11.0.0.8255"
+#define GG_DEFAULT_PROTOCOL_VERSION 0x40
 #define GG_DEFAULT_TIMEOUT 30
 #define GG_HAS_AUDIO_MASK 0x40000000
 #define GG_HAS_AUDIO7_MASK 0x20000000
@@ -1737,12 +1841,17 @@ struct gg_pubdir50_reply {
 #define GG_STATUS_INVISIBLE_DESCR 0x0016
 #define GG_STATUS_BLOCKED 0x0006
 
+#define GG_STATUS_GGPLUS 0x0020
+#define GG_STATUS_NOT_SET 0x0023
+#define GG_STATUS_UNKNOWN 0x0025
+
 #define GG_STATUS_IMAGE_MASK 0x0100
 #define GG_STATUS_DESCR_MASK 0x4000
 #define GG_STATUS_FRIENDS_MASK 0x8000
 
 #define GG_STATUS_FLAG_UNKNOWN 0x00000001
 #define GG_STATUS_FLAG_VIDEO 0x00000002
+#define GG_STATUS_FLAG_INHERIT 0x00000020
 #define GG_STATUS_FLAG_MOBILE 0x00100000
 #define GG_STATUS_FLAG_SPAM 0x00800000
 
@@ -1767,6 +1876,8 @@ enum {
 	GG_STATUS_INVISIBLE,		/**< Niewidoczny (tylko własny status) */
 	GG_STATUS_INVISIBLE_DESCR,	/**< Niewidoczny z opisem (tylko własny status) */
 	GG_STATUS_BLOCKED,		/**< Zablokowany (tylko status innych) */
+	GG_STATUS_GGPLUS,		/**< Status "Korzystam z GG Plus" */
+	GG_STATUS_NOT_SET,		/**< Status nie ustawiony (przy logowaniu się do sieci) */
 	GG_STATUS_IMAGE_MASK,		/**< Flaga bitowa oznaczająca opis graficzny (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
 	GG_STATUS_DESCR_MASK,		/**< Flaga bitowa oznaczająca status z opisem (tylko jeśli wybrano \c GG_FEATURE_IMAGE_DESCR) */
 	GG_STATUS_FRIENDS_MASK,		/**< Flaga bitowa dostępności tylko dla znajomych */
@@ -1780,6 +1891,7 @@ enum {
 enum {
 	GG_STATUS_FLAG_UNKNOWN,		/**< Przeznaczenie nieznane, ale występuje zawsze */
 	GG_STATUS_FLAG_VIDEO,		/**< Klient obsługuje wideorozmowy */
+	GG_STATUS_FLAG_INHERIT,		/**< Synchronizacja statusu do innych klientów (przy logowaniu się do sieci) */
 	GG_STATUS_FLAG_MOBILE,		/**< Klient mobilny (ikona telefonu komórkowego) */
 	GG_STATUS_FLAG_SPAM,		/**< Klient chce otrzymywać linki od nieznajomych */
 };
@@ -2361,6 +2473,9 @@ struct gg_dcc7_id_reply {
 #define GG_DCC7_TIMEOUT_GET 1800	/* 30 minut */
 #define GG_DCC7_TIMEOUT_FILE_ACK 300	/* 5 minut */
 #define GG_DCC7_TIMEOUT_VOICE_ACK 300	/* 5 minut */
+
+#define GG_CHAT_INFO_UPDATE_ENTERED 0x01
+#define GG_CHAT_INFO_UPDATE_EXITED 0x03
 
 #ifdef __cplusplus
 }

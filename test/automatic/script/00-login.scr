@@ -4,7 +4,7 @@
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*140)
+expect data (31 00 00 00, auto, xx*139)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -17,7 +17,7 @@ expect disconnect
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*140)
+expect data (31 00 00 00, auto, xx*139)
 send (14 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -30,7 +30,7 @@ expect disconnect
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*140)
+expect data (31 00 00 00, auto, xx*139)
 send (09 00 00 00, auto)
 expect event GG_EVENT_CONN_FAILED
 logoff
@@ -66,7 +66,7 @@ expect disconnect
 login (uin = 0x123456, password = "", encoding = GG_ENCODING_UTF8)
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*140)
+expect data (31 00 00 00, auto, xx*139)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 
