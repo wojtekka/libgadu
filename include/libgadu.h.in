@@ -98,6 +98,9 @@ extern "C" {
 /* Defined if uintX_t types are defined in <sys/types.h>. */
 #undef GG_CONFIG_HAVE_SYS_TYPES_H
 
+/* Defined if this machine has uint64_t. */
+#undef GG_CONFIG_HAVE_UINT64_T
+
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #include <openssl/ssl.h>
 #endif
@@ -128,6 +131,10 @@ typedef unsigned int   uint32_t;
 #      endif
 #    endif
 #  endif
+#endif
+
+#ifndef GG_CONFIG_HAVE_UINT64_T
+typedef unsigned long long uint64_t;
 #endif
 
 /** \endcond */

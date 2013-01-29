@@ -1,5 +1,5 @@
 libgadu 1.12.0-pre
-(C) Copyright 2001-2011 Autorzy (pełna lista w pliku AUTHORS)
+(C) Copyright 2001-2013 Autorzy (pełna lista w pliku AUTHORS)
 
 libgadu jest biblioteką przeznaczoną do obsługi protokołu komunikatora
 Gadu-Gadu. Przez dłuższy czas była integralną częścią Eksperymentalnego
@@ -40,9 +40,6 @@ pierwsza, ponieważ użycie OpenSSL może powodować problemy z łączeniem
 z programami na licencji GPL. Minimalna wymagana wersja biblioteki
 OpenSSL to 0.9.7, a biblioteki GnuTLS 2.10.0.
 
-Do poprawnej obsługi połączeń bezpośrednich starszych wersji protokołu
-niezbędny jest kompilator obsługujący 64-bitowy typ long long.
-
 Do przechowywania listy kontaktów na serwerze niezbędna jest biblioteka
 zlib.
 
@@ -53,6 +50,8 @@ Do niektórych testów automatycznych wymagane są glibc, GnuTLS, libxml2
 i Perl. Jeśli nie są dostępne, niektóre testy nie będą uruchamiane.
 Ponadto jeden z programów do ręcznego testowania biblioteki wymaga
 bibliotek CURL, Expat i OpenSSL.
+
+Kompilator musi obsługiwać 64-bitowe zmienne typu long long.
 
 Podczas kompilacji wykrywana jest wersja biblioteki standardowej,
 ponieważ zachowanie używanych funkcji rodziny printf() zostało

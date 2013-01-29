@@ -765,7 +765,7 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 			return 0;
 		}
 
-#if defined(HAVE_UINT64_T) && (defined(HAVE__STRTOUI64) || defined(HAVE_STRTOULL))
+#if defined(HAVE__STRTOUI64) || defined(HAVE_STRTOULL)
 		{
 			uint64_t cid;
 

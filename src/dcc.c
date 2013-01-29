@@ -36,6 +36,7 @@
 
 #include "libgadu.h"
 #include "debug.h"
+#include "internal.h"
 
 /**
  * \internal Przekazuje zawartość pakietu do odpluskwiania.
@@ -83,22 +84,15 @@ int gg_dcc_request(struct gg_session *sess, uin_t uin)
  */
 static void gg_dcc_fill_filetime(uint32_t ut, uint32_t *ft)
 {
-#ifdef GG_CONFIG_HAVE_LONG_LONG
-	unsigned long long tmp;
+	uint64_t tmp;
 
 	tmp = ut;
 	tmp += 11644473600LL;
 	tmp *= 10000000LL;
 
-#ifndef GG_CONFIG_BIGENDIAN
-	ft[0] = (uint32_t) tmp;
-	ft[1] = (uint32_t) (tmp >> 32);
-#else
-	ft[0] = gg_fix32((uint32_t) (tmp >> 32));
-	ft[1] = gg_fix32((uint32_t) tmp);
-#endif
+	tmp = gg_fix64(tmp);
 
-#endif
+	memcpy(ft, &tmp, sizeof(tmp));
 }
 
 /**

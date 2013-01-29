@@ -22,7 +22,6 @@
 #define LIBGADU_INTERNAL_H
 
 #include "libgadu.h"
-#include "config.h"
 
 struct gg_dcc7_relay {
 	uint32_t addr;
@@ -40,8 +39,6 @@ void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
 int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result);
 
-#ifdef HAVE_UINT64_T
 uint64_t gg_fix64(uint64_t x);
-#endif
 
 #endif /* LIBGADU_INTERNAL_H */

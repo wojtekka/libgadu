@@ -6,7 +6,6 @@
 #include "libgadu.h"
 #include "internal.h"
 
-#ifdef HAVE_UINT64_T
 static void test_gg_fix64(void)
 {
 	const char *source = "\xff\xee\xdd\xcc\xbb\xaa\x99\x88";
@@ -19,7 +18,6 @@ static void test_gg_fix64(void)
 		exit(1);
 	}
 }
-#endif
 
 static void test_gg_fix32(void)
 {
@@ -49,9 +47,7 @@ static void test_gg_fix16(void)
 
 int main(void)
 {
-#ifdef HAVE_UINT64_T
 	test_gg_fix64();
-#endif
 	test_gg_fix32();
 	test_gg_fix16();
 

@@ -103,8 +103,7 @@ dnl
 AC_CHECK_FUNCS([_vscprintf])
 
 dnl
-dnl  Sprawdzamy, czy jest system obsługuje 64-bitowe zmienne potrzebne dla
-dnl  połączeń bezpośrednich.
+dnl  Sprawdzamy, czy jest system obsługuje zmienne 64-bitowe.
 dnl
 
 AC_MSG_CHECKING([for long long])
@@ -116,14 +115,17 @@ AC_TRY_COMPILE([],
 ], [
 	AC_MSG_RESULT([yes])
 	AC_DEFINE([GG_CONFIG_HAVE_LONG_LONG], [], [Defined if this machine supports long long.])
+], [
+	AC_MSG_RESULT([no])
+	AC_MSG_ERROR([Your system does not support 64-bit variables.])
 ])
 
 AC_CHECK_FUNCS([strtoull])
 AC_CHECK_FUNCS([_strtoui64])
 
 AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
-AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
-    AC_DEFINE([HAVE_UINT64_T], [], [Defined if this machine has uint64_t .])
+AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t_ foo],
+    AC_DEFINE([GG_CONFIG_HAVE_UINT64_T], [], [Defined if this machine has uint64_t.])
     AC_MSG_RESULT([yes]),
     AC_MSG_RESULT([no]))
 
@@ -205,7 +207,7 @@ if test "x$with_pthread" != "xno"; then
 		AC_DEFINE([GG_CONFIG_HAVE_PTHREAD], [], [Defined if libgadu was compiled and linked with pthread support.])
 	], [
 		if test "x$with_pthread" = "xyes"; then
-			AC_MSG_ERROR([Your system is not supporting pthreads])
+			AC_MSG_ERROR([Your system does not support pthreads])
 		fi
 	])
 fi
