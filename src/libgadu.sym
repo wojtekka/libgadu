@@ -13,6 +13,10 @@ gg_change_status
 gg_change_status_descr
 gg_change_status_descr_time
 gg_change_status_flags
+gg_chat_create
+gg_chat_invite
+gg_chat_leave
+gg_chat_send_message
 gg_chomp
 gg_connect
 gg_crc32

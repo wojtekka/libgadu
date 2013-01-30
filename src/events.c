@@ -133,6 +133,11 @@ void gg_event_free(struct gg_event *e)
 			free(e->event.xml_event.data);
 			break;
 
+		case GG_EVENT_JSON_EVENT:
+			free(e->event.json_event.data);
+			free(e->event.json_event.type);
+			break;
+
 		case GG_EVENT_USER_DATA:
 		{
 			unsigned int i, j;
@@ -165,6 +170,14 @@ void gg_event_free(struct gg_event *e)
 
 		case GG_EVENT_USERLIST100_REPLY:
 			free(e->event.userlist100_reply.reply);
+			break;
+
+		case GG_EVENT_IMTOKEN:
+			free(e->event.imtoken.imtoken);
+			break;
+
+		case GG_EVENT_CHAT_INFO:
+			free(e->event.chat_info.participants);
 			break;
 	}
 
@@ -758,7 +771,7 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess, struct gg_event *
 	free(auth);
 	free(client);
 
-	gg_debug_session(sess, GG_DEBUG_MISC, "// sending http query:\n%s", req);
+	gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// sending http query:\n%s", req);
 
 	res = send(sess->fd, req, req_len, 0);
 
@@ -1348,10 +1361,10 @@ static gg_action_t gg_handle_connected(struct gg_session *sess, struct gg_event 
 			return GG_ACTION_WAIT;
 		}
 
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() gg_recv_packet failed (errno=%d, %s)\n", errno, strerror(errno));
-
-		if (errno != EAGAIN)
+		if (errno != EAGAIN) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() gg_recv_packet failed (errno=%d, %s)\n", errno, strerror(errno));
 			return GG_ACTION_FAIL;
+		}
 	} else {
 		if (gg_session_handle_packet(sess, gh->type, (const char *) gh + sizeof(struct gg_header), gh->length, e) == -1) {
 			free(gh);

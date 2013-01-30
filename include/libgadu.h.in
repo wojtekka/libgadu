@@ -703,7 +703,7 @@ int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char
 int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id);
 
 int gg_chat_create(struct gg_session *gs);
-int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants, int participants_count);
+int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants, unsigned int participants_count);
 int gg_chat_leave(struct gg_session *gs, uint64_t id);
 int gg_chat_send_message(struct gg_session *gs, uint64_t id, const char *message, int is_html);
 

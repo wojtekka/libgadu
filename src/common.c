@@ -38,6 +38,7 @@
 
 #include "config.h"
 #include "libgadu.h"
+#include "internal.h"
 
 #ifndef GG_CONFIG_HAVE_VA_COPY
 #  ifdef GG_CONFIG_HAVE___VA_COPY
@@ -678,6 +679,122 @@ uint32_t gg_crc32(uint32_t crc, const unsigned char *buf, int len)
 		crc = (crc >> 8) ^ gg_crc32_table[(crc ^ *buf++) & 0xff];
 
 	return crc ^ 0xffffffffL;
+}
+
+/**
+ * \internal Parsuje identyfikator użytkownika.
+ *
+ * \param str Ciąg tekstowy, zawierający identyfikator
+ * \param len Długość identyfikatora
+ *
+ * \return Identyfikator, lub 0, jeżeli nie udało się odczytać
+ */
+uin_t gg_str_to_uin(const char *str, int len)
+{
+	char buff[11];
+	char *endptr;
+	uin_t uin;
+	
+	if (len < 0)
+		len = strlen(str);
+	if (len > 10)
+		return 0;
+	memcpy(buff, str, len);
+	buff[len] = '\0';
+	
+	errno = 0;
+	uin = strtoul(buff, &endptr, 10);
+	if (errno == ERANGE || endptr[0] != '\0')
+		return 0;
+	
+	return uin;
+}
+
+/**
+ * \internal Zamienia identyfikator użytkownika na postać tekstową.
+ *
+ * \param uin Identyfikator użytkownika
+ *
+ * \return Postać tekstowa (bufor zaalokowany statycznie).
+ */
+const char *gg_uin_to_str(uin_t uin)
+{
+	static char buff[20];
+
+	snprintf(buff, sizeof(buff), "%u", uin);
+
+	return buff;
+}
+
+/**
+ * Szuka informacji o konferencji o podanym identyfikatorze.
+ *
+ * \param sess Struktura sesji
+ * \param id   Identyfikator konferencji
+ *
+ * \return Struktura z informacjami o konferencji
+ */
+struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id)
+{
+	struct gg_chat_list *chat_list = sess->chat_list;
+
+	while (chat_list != NULL)
+	{
+		if (chat_list->id == id)
+			return chat_list;
+		chat_list = chat_list->next;
+	}
+
+	return NULL;
+}
+
+/**
+ * \internal Aktualizuje informacje o konferencji.
+ *
+ * \param sess               Struktura sesji
+ * \param id                 Identyfikator konferencji
+ * \param version            Wersja informacji o konferencji
+ * \param participants       Lista uczestników konferencji
+ * \param participants_count Ilość uczestników konferencji
+ *
+ * \return Wartość równa 0, jeżeli zakończono powodzeniem
+ */
+int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version,
+	const uin_t *participants, unsigned int participants_count)
+{
+	struct gg_chat_list *chat;
+	uin_t *participants_new;
+	
+	if (participants_count >= ~0 / sizeof(uin_t))
+		return -1;
+
+	chat = gg_chat_find(sess, id);
+
+	if (!chat) {
+		chat = malloc(sizeof(struct gg_chat_list));
+
+		if (!chat)
+			return -1;
+
+		memset(chat, 0, sizeof(struct gg_chat_list));
+		chat->id = id;
+		chat->next = sess->chat_list;
+		sess->chat_list = chat;
+	}
+
+	participants_new = realloc(chat->participants,
+		sizeof(uin_t) * participants_count);
+
+	if (participants_new == NULL)
+		return -1;
+
+	chat->version = version;
+	chat->participants = participants_new;
+	chat->participants_count = participants_count;
+	memcpy(chat->participants, participants,
+		sizeof(uin_t) * participants_count);
+
+	return 0;
 }
 
 /*
