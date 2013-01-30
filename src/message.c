@@ -896,3 +896,83 @@ size_t gg_message_html_to_text(char *dst, unsigned char *format, size_t *format_
 	
 	return len;
 }
+
+static size_t gg_message_html_to_text_110_buff(char *dst, const char *html)
+{
+	return gg_message_html_to_text(dst, NULL, NULL, html, GG_ENCODING_UTF8);
+}
+
+static size_t gg_message_text_to_html_110_buff(char *dst, const char *text,
+	ssize_t text_len)
+{
+	size_t i, dst_len;
+
+	if (text_len == -1)
+		text_len = strlen(text);
+	dst_len = 0;
+
+	gg_append(dst, &dst_len, "<span>", 6);
+
+	for (i = 0; i < text_len; i++)
+	{
+		char c = text[i];
+		if (c == '<')
+			gg_append(dst, &dst_len, "&lt;", 4);
+		else if (c == '>')
+			gg_append(dst, &dst_len, "&gt;", 4);
+		else if (c == '&')
+			gg_append(dst, &dst_len, "&amp;", 5);
+		else if (c == '"')
+			gg_append(dst, &dst_len, "&quot;", 6);
+		else if (c == '\'')
+			gg_append(dst, &dst_len, "&apos;", 6);
+		else if (c == '\n')
+			gg_append(dst, &dst_len, "<br>", 4);
+		else if (c == '\r')
+			continue;
+		else if (c == '\xc2' && text[i + 1] == '\xa0') {
+			gg_append(dst, &dst_len, "&nbsp;", 6);
+			i++;
+		} else {
+			if (dst)
+				dst[dst_len] = c;
+			dst_len++;
+		}
+	}
+
+	gg_append(dst, &dst_len, "</span>", 7);
+
+	if (dst)
+		dst[dst_len] = '\0';
+
+	return dst_len;
+}
+
+char *gg_message_html_to_text_110(const char *html)
+{
+	size_t dst_len;
+	char *dst;
+
+	dst_len = gg_message_html_to_text_110_buff(NULL, html) + 1;
+	dst = malloc(dst_len);
+	if (!dst)
+		return NULL;
+	gg_message_html_to_text_110_buff(dst, html);
+	
+	return dst;
+}
+
+char *gg_message_text_to_html_110(const char *text, ssize_t text_len)
+{
+	size_t dst_len;
+	char *dst;
+
+	dst_len = gg_message_text_to_html_110_buff(NULL, text, text_len) + 1;
+	dst = malloc(dst_len);
+	if (!dst)
+		return NULL;
+	gg_message_text_to_html_110_buff(dst, text, text_len);
+	
+	return dst;
+}
+
