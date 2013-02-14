@@ -54,7 +54,6 @@ int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version, const
 struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id);
 
 uin_t gg_str_to_uin(const char *str, int len);
-const char * gg_uin_to_str(uin_t uin);
 
 uint64_t gg_fix64(uint64_t x);
 

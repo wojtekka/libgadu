@@ -711,22 +711,6 @@ uin_t gg_str_to_uin(const char *str, int len)
 }
 
 /**
- * \internal Zamienia identyfikator użytkownika na postać tekstową.
- *
- * \param uin Identyfikator użytkownika
- *
- * \return Postać tekstowa (bufor zaalokowany statycznie).
- */
-const char *gg_uin_to_str(uin_t uin)
-{
-	static char buff[20];
-
-	snprintf(buff, sizeof(buff), "%u", uin);
-
-	return buff;
-}
-
-/**
  * Szuka informacji o konferencji o podanym identyfikatorze.
  *
  * \param sess Struktura sesji

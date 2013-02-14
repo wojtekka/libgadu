@@ -41,6 +41,8 @@
 #include "message.h"
 #include "internal.h"
 #include "deflate.h"
+#include "tvbuff.h"
+#include "tvbuilder.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -60,6 +62,190 @@ typedef struct {
 	/* Funkcja obsługująca pakiet. Patrz gg_session_handle_packet(). */
 	int (*handler)(struct gg_session *, uint32_t, const char *, size_t, struct gg_event *);
 } gg_packet_handler_t;
+
+static int gg_ack_110(struct gg_session *gs, uint8_t type, uint32_t seq, struct gg_event *ge)
+{
+	gg_tvbuilder_t *tvb;
+
+	tvb = gg_tvbuilder_new(gs, ge);
+	gg_tvbuilder_expected_size(tvb, 13);
+
+	gg_tvbuilder_write_uint8(tvb, 0x08);
+	gg_tvbuilder_write_uint8(tvb, type);
+
+	gg_tvbuilder_write_uint8(tvb, 0x10);
+	gg_tvbuilder_write_packed_uint(tvb, seq);
+
+	gg_tvbuilder_write_uint8(tvb, 0x18);
+	gg_tvbuilder_write_uint8(tvb, 0x01); /* magic */
+
+	if (!gg_tvbuilder_send(tvb, GG_ACK110))
+		return -1;
+	return 0;
+}
+
+static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
+	struct gg_event *ge)
+{
+	gg_tvbuilder_t *tvb;
+	char client_str[100];
+	uint8_t hash[64];
+	const char *client_name = GG11_VERSION;
+	const char *client_version = GG_DEFAULT_CLIENT_VERSION;
+	const char *client_target = GG11_TARGET;
+	uint8_t dummy1[4] = {0, 0, 0, 0};
+
+	tvb = gg_tvbuilder_new(gs, ge);
+	gg_tvbuilder_expected_size(tvb, 500);
+
+	if (gs->hash_type != GG_LOGIN_HASH_SHA1) {
+		gg_debug_session(gs, GG_DEBUG_ERROR, "// Unsupported hash type "
+			"for this protocol version\n");
+		gg_tvbuilder_fail(tvb, GG_FAILURE_INTERNAL);
+		return -1;
+	}
+
+	if (gg_login_hash_sha1_2(gs->password, seed, hash) == -1) {
+		gg_debug_session(gs, GG_DEBUG_ERROR, "// gg_watch_fd() "
+			"gg_login_hash_sha1_2() failed, "
+			"probably out of memory\n");
+		gg_tvbuilder_fail(tvb, GG_FAILURE_INTERNAL);
+		return -1;
+	}
+
+	if (gs->client_version != NULL && !isdigit(gs->client_version[0])) {
+		client_name = "";
+		client_target = "";
+	}
+	if (gs->client_version != NULL)
+		client_version = gs->client_version;
+	snprintf(client_str, sizeof(client_str), "%s%s%s",
+		client_name, client_version, client_target);
+	client_str[sizeof(client_str) - 1] = '\0';
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() "
+		"sending GG_LOGIN105 packet\n");
+
+	gg_tvbuilder_write_uint8(tvb, 0x0a);
+	gg_tvbuilder_write_str(tvb, GG8_LANG, -1);
+
+	gg_tvbuilder_write_uint8(tvb, 0x12);
+	gg_tvbuilder_write_uin(tvb, gs->uin, 1);
+
+	gg_tvbuilder_write_uint8(tvb, 0x1a);
+	gg_tvbuilder_write_str(tvb, (const char*)hash, 20);
+
+	gg_tvbuilder_write_uint8(tvb, 0x20);
+	gg_tvbuilder_write_uint8(tvb, 0x02);
+
+	gg_tvbuilder_write_uint8(tvb, 0x2d);
+	gg_tvbuilder_write_uint32(tvb, 0x03eeff77); /* GG11.2 */
+	/* gg_tvbuilder_write_uint32(tvb, 0x01aeff77); GG11.0 */
+	/* gg_tvbuilder_write_uint32(tvb, 0x0002e737); GG10.5 */
+
+	gg_tvbuilder_write_uint8(tvb, 0x35);
+	gg_tvbuilder_write_uint32(tvb, 0x00030014); /* GG11.0 */
+	/* gg_tvbuilder_write_uint32(tvb, 0x00000003); GG10.5 */
+
+	gg_tvbuilder_write_uint8(tvb, 0x3a);
+	gg_tvbuilder_write_str(tvb, client_str, -1);
+
+	/* flagi gg8 są różne od tych dla gg11 */
+	gg_tvbuilder_write_uint8(tvb, 0x45);
+	gg_tvbuilder_write_uint32(tvb, gs->initial_status ?
+		(gs->initial_status & 0xFF) : GG_STATUS_AVAIL);
+
+	gg_tvbuilder_write_uint8(tvb, 0x4a);
+	gg_tvbuilder_write_str(tvb,
+		(gs->initial_descr != NULL) ? gs->initial_descr : "", -1);
+
+	gg_tvbuilder_write_uint8(tvb, 0x52);
+	gg_tvbuilder_write_str(tvb, (const char*)dummy1, sizeof(dummy1));
+
+	gg_tvbuilder_write_uint8(tvb, 0x5a);
+	/* gg_tvbuilder_write_str(tvb, "avatar,StatusComments,gg_account_sdp,"
+		"edisc,bot,fanpage,pubdir,botCaps", -1); GG11.0 */
+	gg_tvbuilder_write_str(tvb, "avatar,StatusComments,ggaccount,edisc,"
+		"music_shared,bot,fanpage,pubdir,botCaps,gifts,Gift", -1);
+		/* GG11.2 */
+
+	gg_tvbuilder_expected_size(tvb, 17);
+	gg_tvbuilder_write_uint8(tvb, 0x60);
+	gg_tvbuilder_write_packed_uint(tvb, 0xff);
+
+	gg_tvbuilder_write_uint8(tvb, 0x68);
+	gg_tvbuilder_write_uint8(tvb, 0x64);
+
+	gg_tvbuilder_write_uint8(tvb, 0x75); /* GG11 only */
+	gg_tvbuilder_write_uint32(tvb, 0x7f);
+
+	gg_tvbuilder_write_uint8(tvb, 0x78); /* GG11 only */
+	gg_tvbuilder_write_uint8(tvb, 0x00);
+
+	gg_tvbuilder_write_uint8(tvb, 0x88); /* GG11 only */
+	gg_tvbuilder_write_packed_uint(tvb, 0x80);
+
+	if (!gg_tvbuilder_send(tvb, GG_LOGIN105))
+		return -1;
+
+	gs->state = GG_STATE_READING_REPLY;
+	gs->check = GG_CHECK_READ;
+	return 0;
+}
+
+static int gg_session_handle_login110_ok(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	char *somehash = NULL;
+	uint32_t server_time = 0;
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
+	ge->type = GG_EVENT_CONN_SUCCESS;
+	gs->state = GG_STATE_CONNECTED;
+	gs->check = GG_CHECK_READ;
+	gs->timeout = -1;
+	gs->status = (gs->initial_status) ? gs->initial_status : GG_STATUS_AVAIL;
+#if 0
+	free(gs->status_descr);
+	gs->status_descr = gs->initial_descr;
+#else
+	free(gs->initial_descr);
+#endif
+	gs->initial_descr = NULL;
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x08)) {
+			gg_tvbuff_expected_uint8(tvb, 0x01);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x12)) {
+			gg_tvbuff_read_str_dup(tvb, &somehash);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x18)) {
+			gg_tvbuff_skip(tvb, 4);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x25)) {
+			server_time = gg_tvbuff_read_uint32(tvb);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb)) {
+		free(somehash);
+		return -1;
+	}
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// login110_ok: "
+		"some hash=%s, server time=%u\n", somehash, server_time);
+	free(somehash);
+
+	return 0;
+}
 
 /**
  * \internal Obsługuje pakiet GG_WELCOME.
@@ -91,6 +277,9 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 
 	w = (const struct gg_welcome*) ptr;
 	seed = gg_fix32(w->key);
+
+	if (gs->protocol_version >= GG_PROTOCOL_110)
+		return gg_session_handle_welcome_110(gs, seed, ge);
 
 	memset(hash_buf, 0, sizeof(hash_buf));
 
@@ -280,6 +469,98 @@ static int gg_session_handle_send_msg_ack(struct gg_session *gs, uint32_t type, 
 	return 0;
 }
 
+static void gg_session_handle_send_msg_ack_110_data(struct gg_session *gs,
+	const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	char *link = NULL;
+	uint64_t id = 0;
+
+	tvb = gg_tvbuff_new(ptr, len);
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x09)) {
+			id = gg_tvbuff_read_uint64(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x12)) {
+			gg_tvbuff_read_str_dup(tvb, &link);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb) || !link || !id)
+		return;
+
+	gg_debug_session(gs, GG_DEBUG_MISC,
+		"// gg_session_handle_send_msg_ack_110_data() "
+		"got link (id=%llu) \"%s\"\n", id, link);
+}
+
+/**
+ * \internal Obsługuje pakiet GG_SEND_MSG_ACK110.
+ */
+static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
+	uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	uint32_t seq = 0;
+	uint32_t time = 0;
+	uint8_t msg_type = 0;
+
+	tvb = gg_tvbuff_new(ptr, len);
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x08)) {
+			msg_type = gg_tvbuff_read_uint8(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x10)) {
+			seq = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x1d)) {
+			time = gg_tvbuff_read_uint32(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x21)) {
+			gg_tvbuff_skip(tvb, 4); /* 0x __ (02|10) __ 00 */
+			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x29)) {
+			gg_tvbuff_skip(tvb, 4); /* 0x __ (02|10) (00|02) 00 */
+			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x32)) {
+			const char *buff;
+			size_t buff_len;
+
+			buff = gg_tvbuff_read_str(tvb, &buff_len);
+			if (!buff)
+				continue;
+
+			gg_session_handle_send_msg_ack_110_data(gs, buff, buff_len, ge);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x38)) {
+			gg_tvbuff_expected_uint8(tvb, 0x00);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb) || !msg_type || !time)
+		return -1;
+
+	ge->type = GG_EVENT_ACK110;
+	ge->event.ack110.msg_type = msg_type;
+	ge->event.ack110.seq = seq;
+	ge->event.ack110.time = time;
+
+	return 0;
+}
+
 /**
  * \internal Obsługuje pakiet GG_PONG.
  *
@@ -345,6 +626,77 @@ static int gg_session_handle_xml_event(struct gg_session *gs, uint32_t type, con
 	ge->event.xml_event.data[len] = 0;
 
 	return 0;
+}
+
+static int gg_session_handle_event_110(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	uint32_t seq = 0;
+	uint8_t event_type = -1;
+	char *data = NULL;
+	char *json_type = NULL;
+	uint64_t event_id = 0;
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
+		"received GG11 event\n");
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x08)) {
+			event_type = gg_tvbuff_read_uint8(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x10)) {
+			seq = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x1a)) {
+			gg_tvbuff_read_str_dup(tvb, &data);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x22)) {
+			gg_tvbuff_read_str_dup(tvb, &json_type);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x28)) {
+			event_id = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb) || seq == 0 || event_type == -1) {
+		free(json_type);
+		free(data);
+		return -1;
+	}
+
+	if (event_type == GG_EVENT110_XML) {
+		ge->type = GG_EVENT_XML_EVENT;
+		ge->event.xml_event.data = data;
+		free(json_type);
+	} else if (event_type == GG_EVENT110_JSON) {
+		ge->type = GG_EVENT_JSON_EVENT;
+		ge->event.json_event.data = data;
+		ge->event.json_event.type = json_type;
+	} else {
+		gg_debug_session(gs, GG_DEBUG_WARNING, "// handle_event110() "
+			"unsupported GG11 event type: %d (id=%llu)\n",
+			event_type, event_id);
+		free(json_type);
+		free(data);
+		gg_ack_110(gs, GG_ACK110_MPA, seq, ge);
+		return -1;
+	}
+
+#if 0
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_event_110() "
+		"magic_ts = %u, magic_fl = %u (%#x)\n",
+		magic_ts, magic_fl, magic_fl);
+#endif
+
+	return gg_ack_110(gs, GG_ACK110_MPA, seq, ge);
 }
 
 /**
@@ -479,14 +831,27 @@ static int gg_session_handle_dcc7_info(struct gg_session *gs, uint32_t type, con
  * \param len Długość bufora
  * \param sess Struktura sesji
  * \param sender Numer nadawcy
+ * \param type Typ pakietu
  */
-static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender)
+static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender, int type)
 {
 	const struct gg_msg_image_reply *i = (const void*) p;
 	struct gg_image_queue *q, *qq;
 
+	gg_debug_session(sess, GG_DEBUG_VERBOSE,
+		"// gg_image_queue_parse(%p, %p, %d, %p, %u, %d)\n",
+		e, p, len, sess, sender, type);
+
 	if (!p || !sess || !e) {
 		errno = EFAULT;
+		return;
+	}
+
+	if (i->flag == GG_MSG_OPTION_IMAGE_REQUEST) {
+		e->type = GG_EVENT_IMAGE_REQUEST;
+		e->event.image_request.sender = sender;
+		e->event.image_reply.size = i->size;
+		e->event.image_request.crc32 = i->crc32;
 		return;
 	}
 
@@ -500,42 +865,59 @@ static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int
 	}
 
 	if (!q) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.8x\n", sender, i->size, i->crc32);
+		gg_debug_session(sess, GG_DEBUG_WARNING, "// gg_image_queue_parse() unknown image from %d, size=%d, crc32=%.8x\n", sender, i->size, i->crc32);
 		return;
 	}
 
-	if (p[0] == GG_MSG_OPTION_IMAGE_REPLY) {
+	if (q->packet_type == 0)
+		q->packet_type = type;
+	if (q->packet_type != type)
+		return;
+
+	if (i->flag == GG_MSG_OPTION_IMAGE_REPLY) {
 		q->done = 0;
 
 		len -= sizeof(struct gg_msg_image_reply);
 		p += sizeof(struct gg_msg_image_reply);
 
 		if (memchr(p, 0, len) == NULL) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() malformed packet from %d, unlimited filename\n", sender);
+			gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_image_queue_parse() malformed packet from %d, unlimited filename\n", sender);
 			return;
 		}
 
 		if (!(q->filename = strdup(p))) {
-			gg_debug_session(sess, GG_DEBUG_MISC, "// gg_image_queue_parse() out of memory\n");
+			gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_image_queue_parse() out of memory\n");
 			return;
 		}
 
 		len -= strlen(p) + 1;
 		p += strlen(p) + 1;
-	} else {
+	} else if (i->flag == GG_MSG_OPTION_IMAGE_REPLY_MORE) {
 		len -= sizeof(struct gg_msg_image_reply);
 		p += sizeof(struct gg_msg_image_reply);
+	} else {
+		gg_debug_session(sess, GG_DEBUG_WARNING, "// gg_image_queue_parse() unexpected flag\n");
+		return;
 	}
 
-	if (q->done + len > q->size)
+	if (q->done + len > q->size) {
+		gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_image_queue_parse() got too much\n");
 		len = q->size - q->done;
+	}
 
 	memcpy(q->image + q->done, p, len);
 	q->done += len;
 
+	gg_debug_session(sess, GG_DEBUG_VERBOSE,
+		"// gg_image_queue_parse() got image part (done: %d of %d)\n",
+		q->done, q->size);
+
 	/* jeśli skończono odbierać obrazek, wygeneruj zdarzenie */
 
 	if (q->done >= q->size) {
+		gg_debug_session(sess, GG_DEBUG_VERBOSE,
+			"// gg_image_queue_parse() image ready\n");
+
 		e->type = GG_EVENT_IMAGE_REPLY;
 		e->event.image_reply.sender = sender;
 		e->event.image_reply.size = q->size;
@@ -678,6 +1060,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 			case GG_MSG_OPTION_IMAGE_REPLY_MORE:
 			{
 				struct gg_msg_image_reply *rep = (void*) p;
+				int type = rep->flag;
 
 				if (e->event.msg.formats != NULL || e->event.msg.recipients != NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() mixed options (2)\n");
@@ -704,7 +1087,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 				rep->size = gg_fix32(rep->size);
 				rep->crc32 = gg_fix32(rep->crc32);
-				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, sender);
+				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, sender, type);
 
 				goto handled;
 			}
@@ -988,6 +1371,181 @@ malformed:
 	free(e->event.msg.formats);
 	gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 	return 0;
+}
+
+static int gg_session_handle_recv_msg_110(struct gg_session *sess, uint32_t type, const char *packet, size_t length, struct gg_event *e)
+{
+	gg_tvbuff_t *tvb;
+	uint8_t ack_type;
+
+	uint32_t seq = 0;
+	uin_t sender = 0; /* nieobecne w GG_CHAT_RECV_OWN_MSG */
+
+	/* 09 -> archiwalna wiadomość? */
+	/* 0x00080008 -> GG w Orange */
+	uint32_t flags = 0;
+
+	uint32_t msg_time = 0;
+	const char *msg_plain = NULL, *msg_xhtml = NULL, *data = NULL;
+	size_t msg_plain_len = 0, msg_xhtml_len = 0, data_len = 0;
+	uint64_t chat_id = 0;
+
+	int succ = 1;
+
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg110(%p, %d, %p);\n", packet, length, e);
+
+	if (type == GG_CHAT_RECV_MSG || type == GG_CHAT_RECV_OWN_MSG)
+		ack_type = GG_ACK110_CHAT;
+	else
+		ack_type = GG_ACK110_MSG;
+
+	if (type == GG_CHAT_RECV_OWN_MSG)
+		sender = sess->uin;
+
+	tvb = gg_tvbuff_new(packet, length);
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x0a)) {
+			sender = gg_tvbuff_read_uin(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x10)) {
+			flags = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x18)) {
+			seq = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x25)) {
+			msg_time = gg_tvbuff_read_uint32(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x2a)) {
+			msg_plain = gg_tvbuff_read_str(tvb, &msg_plain_len);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x32)) {
+			msg_xhtml = gg_tvbuff_read_str(tvb, &msg_xhtml_len);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x3a)) {
+			data = gg_tvbuff_read_str(tvb, &data_len);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x49)) {
+			gg_tvbuff_skip(tvb, 3);
+			gg_tvbuff_expected_uint8(tvb, 0x00);
+
+			/* timestamp: taki sam czas jak czas wiadomości lub o jeden mniej */
+			gg_tvbuff_skip(tvb, 4); 
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x51)) {
+			/* type == GG_CHAT_RECV_MSG || type == GG_CHAT_RECV_OWN_MSG */
+			chat_id = gg_tvbuff_read_uint64(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x59)) {
+			/* id rozmówcy? konwersacji? */
+			gg_tvbuff_skip(tvb, 3);
+			gg_tvbuff_expected_uint8(tvb, 0x00);
+
+			/* czas początku konwersacji */
+			gg_tvbuff_skip(tvb, 4); 
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb) || !seq) {
+		if (seq)
+			gg_ack_110(sess, ack_type, seq, e);
+		return -1;
+	}
+
+	if (data != NULL && msg_plain_len == 0) {
+		if (data == NULL ||
+			data_len < sizeof(struct gg_msg_image_reply))
+			return -1;
+
+		gg_image_queue_parse(e, data, data_len, sess, sender, type);
+
+		return gg_ack_110(sess, GG_ACK110_MSG, seq, e);
+	}
+
+	if (sender)
+		e->event.msg.sender = sender;
+	e->event.msg.flags = flags;
+	e->event.msg.seq = seq;
+	e->event.msg.time = msg_time;
+	e->event.msg.message = NULL;
+	if (msg_plain)
+		e->event.msg.message = (unsigned char*)gg_encoding_convert(
+			msg_plain, GG_ENCODING_UTF8, sess->encoding,
+			msg_plain_len, -1);
+	e->event.msg.xhtml_message = NULL;
+	if (msg_xhtml)
+		e->event.msg.xhtml_message = gg_encoding_convert(msg_xhtml,
+			GG_ENCODING_UTF8, sess->encoding, msg_xhtml_len, -1);
+
+	e->event.msg.formats = NULL;
+	if (data != NULL) { /* otrzymywane tylko od gg <= 10.5 */
+		e->event.msg.formats_length = data_len;
+		e->event.msg.formats = malloc(data_len);
+		if (e->event.msg.formats == NULL)
+			succ = 0;
+		else
+			memcpy(e->event.msg.formats, data, data_len);
+	}
+
+	/* wiadomości wysłane z mobilnego gg nie posiadają wersji xhtml */
+	if (msg_plain && !msg_xhtml) {
+		e->event.msg.xhtml_message = gg_message_text_to_html_110(
+			msg_plain, msg_plain_len);
+		if (e->event.msg.xhtml_message == NULL)
+			succ = 0;
+	}
+
+	if (chat_id) {
+		struct gg_chat_list *chat;
+
+		e->event.msg.chat_id = chat_id;
+
+		chat = gg_chat_find(sess, chat_id);
+		if (chat) {
+			e->event.msg.recipients = malloc(
+				chat->participants_count * sizeof(uin_t));
+			e->event.msg.recipients_count =
+				chat->participants_count;
+			if (e->event.msg.recipients == NULL)
+				succ = 0;
+			else
+				memcpy(e->event.msg.recipients,
+					chat->participants,
+					chat->participants_count *
+						sizeof(uin_t));
+		}
+	}
+
+	if (type == GG_RECV_OWN_MSG110 || type == GG_CHAT_RECV_OWN_MSG)
+		e->type = GG_EVENT_MULTILOGON_MSG;
+	else
+		e->type = GG_EVENT_MSG;
+	e->event.msg.msgclass = GG_CLASS_CHAT;
+	e->event.msg.seq = seq;
+
+	if (seq && gg_ack_110(sess, ack_type, seq, e) != 0)
+		succ = 0;
+	
+	if (succ)
+		return 0;
+	else {
+		free(e->event.msg.message);
+		free(e->event.msg.xhtml_message);
+		free(e->event.msg.formats);
+		free(e->event.msg.recipients);
+		return -1;
+	}
 }
 
 /**
@@ -1764,6 +2322,370 @@ static int gg_session_handle_userlist_100_reply(struct gg_session *gs, uint32_t 
 	return 0;
 }
 
+static int gg_session_handle_imtoken(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	char *imtoken = NULL;
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
+		"received imtoken\n");
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	if (gg_tvbuff_match(tvb, 0x0a))
+		gg_tvbuff_read_str_dup(tvb, &imtoken);
+
+	if (!gg_tvbuff_close(tvb) || imtoken == NULL) {
+		free(imtoken);
+		return -1;
+	}
+
+	if (imtoken[0] == '\0') {
+		free(imtoken);
+		imtoken = NULL;
+	}
+
+	ge->type = GG_EVENT_IMTOKEN;
+	ge->event.imtoken.imtoken = imtoken;
+	return 0;
+}
+
+static int gg_session_handle_pong_110(struct gg_session *gs, uint32_t type,
+	const char *ptr, size_t len, struct gg_event *ge)
+{
+	const struct gg_pong110 *pong = (const struct gg_pong110*)ptr;
+	
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
+		"received pong110\n");
+	
+	ge->type = GG_EVENT_PONG110;
+	ge->event.pong110.time = gg_fix32(pong->time);
+	
+	return 0;
+}
+
+static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	int i;
+
+	uint64_t id;
+	uint32_t version;
+	uint32_t dummy1;
+	uint32_t participants_count;
+	uin_t *participants = NULL;
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	id = gg_tvbuff_read_uint64(tvb);
+	gg_tvbuff_expected_uint32(tvb, 0); /* unknown */
+	version = gg_tvbuff_read_uint32(tvb);
+	dummy1 = gg_tvbuff_read_uint32(tvb);
+	if (gg_tvbuff_is_valid(tvb) && dummy1 == 1) {
+		uint32_t name_length;
+
+		name_length = gg_tvbuff_read_uint32(tvb);
+		gg_tvbuff_skip(tvb, name_length);
+
+		gg_tvbuff_expected_uint32(tvb, 0); /* unknown */
+		gg_tvbuff_expected_uint32(tvb, 2); /* unknown */
+	}
+	participants_count = gg_tvbuff_read_uint32(tvb);
+
+	if (gg_tvbuff_is_valid(tvb) && participants_count > 0) {
+		participants = malloc(sizeof(uin_t) * participants_count);
+		if (participants == NULL) {
+			gg_tvbuff_close(tvb);
+			return -1;
+		}
+	}
+
+	for (i = 0; i < participants_count && gg_tvbuff_is_valid(tvb); i++)
+	{
+		participants[i] = gg_tvbuff_read_uint32(tvb);
+		gg_tvbuff_read_uint32(tvb); /* 0x1e lub 0x18 */
+	}
+
+	if (!gg_tvbuff_close(tvb)) {
+		free(participants);
+		return -1;
+	}
+
+	if (id == 0) {
+		ge->type = GG_EVENT_CHAT_INFO_GOT_ALL;
+		return 0;
+	}
+
+	if (0 != gg_chat_update(gs, id, version, participants,
+		participants_count)) {
+		free(participants);
+		return -1;
+	}
+
+	ge->type = GG_EVENT_CHAT_INFO;
+	ge->event.chat_info.id = id;
+	ge->event.chat_info.version = version;
+	ge->event.chat_info.participants_count = participants_count;
+	ge->event.chat_info.participants = participants;
+	
+	return 0;
+}
+
+static int gg_session_handle_chat_info_update(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+	struct gg_chat_list *chat;
+
+	uint64_t id = 0;
+	uint32_t update_type = 0;
+	uin_t participant = 0, inviter = 0;
+	uint32_t version = 0;
+	uint32_t time = 0;
+
+	tvb = gg_tvbuff_new(ptr, len);
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x0a)) {
+			participant = gg_tvbuff_read_uin(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x12)) {
+			inviter = gg_tvbuff_read_uin(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x1d)) {
+			update_type = gg_tvbuff_read_uint32(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x25)) {
+			time = gg_tvbuff_read_uint32(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x2d)) {
+			gg_tvbuff_read_uint32(tvb); /* unknown */
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x30)) {
+			version = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x38)) {
+			gg_tvbuff_skip(tvb, 1);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x49)) {
+			gg_tvbuff_skip(tvb, 4); /* 0x 0_ 10 0_ 00 */
+			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x51)) {
+			id = gg_tvbuff_read_uint64(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x59)) {
+			gg_tvbuff_skip(tvb, 4); /* 0x 0_ 10 00 00 */
+			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb) || !id || !update_type || !participant)
+		return -1;
+
+	ge->type = GG_EVENT_CHAT_INFO_UPDATE;
+	ge->event.chat_info_update.id = id;
+	ge->event.chat_info_update.type = update_type;
+	ge->event.chat_info_update.participant = participant;
+	ge->event.chat_info_update.inviter = inviter;
+	ge->event.chat_info_update.version = version;
+	ge->event.chat_info_update.time = time;
+
+	chat = gg_chat_find(gs, id);
+	if (!chat)
+		return 0;
+
+	chat->version = version;
+	if (update_type == GG_CHAT_INFO_UPDATE_ENTERED) {
+		chat->participants_count++;
+		chat->participants = realloc(chat->participants, sizeof(uin_t) * chat->participants_count);
+		chat->participants[chat->participants_count - 1] = participant;
+	} else if (update_type == GG_CHAT_INFO_UPDATE_EXITED) {
+		int idx;
+		for (idx = 0; idx < chat->participants_count; idx++)
+			if (chat->participants[idx] == participant)
+				break;
+		if (chat->participants_count > 1 &&
+			idx < chat->participants_count)
+			chat->participants[idx] = chat->participants[chat->participants_count - 1];
+		if (idx < chat->participants_count) {
+			chat->participants_count--;
+			if (chat->participants_count == 0) {
+				free(chat->participants);
+				chat->participants = NULL;
+			} else {
+				chat->participants = realloc(chat->participants, sizeof(uin_t) * chat->participants_count);
+			}
+		}
+	}
+
+	return 0;
+}
+
+static int gg_session_handle_chat_created(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	const struct gg_chat_created *p = (const struct gg_chat_created *)ptr;
+
+	if (0 != gg_chat_update(gs, gg_fix64(p->id), 0, &gs->uin, 1))
+		return -1;
+
+	ge->type = GG_EVENT_CHAT_CREATED;
+	ge->event.chat_created.id = gg_fix64(p->id);
+	ge->event.chat_created.seq = gg_fix32(p->seq);
+	return 0;
+}
+
+static int gg_session_handle_chat_invite_ack(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	const struct gg_chat_invite_ack *p =
+		(const struct gg_chat_invite_ack *)ptr;
+
+	ge->type = GG_EVENT_CHAT_INVITE_ACK;
+	ge->event.chat_invite_ack.id = gg_fix64(p->id);
+	ge->event.chat_invite_ack.seq = gg_fix32(p->seq);
+	
+	return 0;
+}
+
+static int gg_session_handle_chat_left(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	const struct gg_chat_left *p = (const struct gg_chat_left *)ptr;
+
+	ge->type = GG_EVENT_CHAT_INFO_UPDATE;
+	ge->event.chat_info_update.id = gg_fix64(p->id);
+	ge->event.chat_info_update.type = GG_CHAT_INFO_UPDATE_EXITED;
+	/* Właściwie, to nie wiadomo, czy to jest "osoba wychodząca", czy
+	 * "osoba wyrzucająca nas" z konferencji. */
+	ge->event.chat_info_update.participant = gg_fix32(p->uin);
+	ge->event.chat_info_update.inviter = gg_fix32(p->uin);
+	ge->event.chat_info_update.version = 0;
+	ge->event.chat_info_update.time = time(NULL);
+
+	return 0;
+}
+
+static void gg_session_handle_option(struct gg_session *gs, const char *ptr, size_t len)
+{
+	gg_tvbuff_t *tvb;
+	char *option_name = NULL;
+	char *option_value = NULL;
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x0a)) {
+			gg_tvbuff_read_str_dup(tvb, &option_name);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x12)) {
+			gg_tvbuff_read_str_dup(tvb, &option_value);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb)) {
+		gg_debug_session(gs, GG_DEBUG_WARNING,
+			"// gg_session_handle_option() failed\n");
+	}
+
+	gg_debug_session(gs, GG_DEBUG_MISC,
+		"// gg_session_handle_option() \"%s\" = \"%s\"\n",
+			option_name ? option_name : "?",
+			option_value ? option_value : "?");
+
+	free(option_name);
+	free(option_value);
+}
+
+static int gg_session_handle_options(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x0a)) {
+			const char *buff;
+			size_t buff_len;
+			
+			buff = gg_tvbuff_read_str(tvb, &buff_len);
+			if (!buff)
+				continue;
+			gg_session_handle_option(gs, buff, buff_len);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x10)) {
+			gg_tvbuff_expected_uint8(tvb, 0x00);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb)) {
+		gg_debug_session(gs, GG_DEBUG_WARNING,
+			"// gg_session_handle_options() failed\n");
+	}
+
+	return 0;
+}
+
+static int gg_session_handle_access_dates(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	gg_tvbuff_t *tvb;
+
+	uint8_t dummy1 = 0, dummy2 = 0;
+	uint32_t last_message = 0, last_transfer = 0, last_conference_ch = 0;
+
+	tvb = gg_tvbuff_new(ptr, len);
+
+	while (gg_tvbuff_get_remaining(tvb)) {
+		if (gg_tvbuff_match(tvb, 0x08)) {
+			dummy1 = gg_tvbuff_read_uint8(tvb); /* 0x01 */
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x10)) {
+			dummy2 = gg_tvbuff_read_uint8(tvb); /* 0x02 lub 0x01 (stare numery?)*/
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x18)) {
+			last_message = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x20)) {
+			last_transfer = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		if (gg_tvbuff_match(tvb, 0x28)) {
+			last_conference_ch = gg_tvbuff_read_packed_uint(tvb);
+			continue;
+		}
+		break;
+	}
+
+	if (!gg_tvbuff_close(tvb)) {
+		gg_debug_session(gs, GG_DEBUG_WARNING,
+			"// gg_session_handle_access_dates() failed\n");
+	}
+
+	gg_debug_session(gs, GG_DEBUG_MISC,
+		"// gg_session_handle_access_dates() dummy[%02x, %02x], "
+		"last[message=%lu, transfer=%lu, conference_ch=%lu]\n",
+		dummy1, dummy2, last_message, last_transfer,
+		last_conference_ch);
+
+	return 0;
+}
+
 /**
  * \internal Tablica obsługiwanych pakietów
  */
@@ -1772,14 +2694,17 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_WELCOME, GG_STATE_READING_KEY, 0, gg_session_handle_welcome },
 	{ GG_LOGIN_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
 	{ GG_LOGIN80_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
+	{ GG_LOGIN110_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login110_ok },
 	{ GG_NEED_EMAIL, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
 	{ GG_LOGIN_FAILED, GG_STATE_READING_REPLY, 0, gg_session_handle_login_failed },
 	{ GG_LOGIN80_FAILED, GG_STATE_READING_REPLY, 0, gg_session_handle_login_failed },
 	{ GG_SEND_MSG_ACK, GG_STATE_CONNECTED, sizeof(struct gg_send_msg_ack), gg_session_handle_send_msg_ack },
+	{ GG_SEND_MSG_ACK110, GG_STATE_CONNECTED, 0, gg_session_handle_send_msg_ack_110 },
 	{ GG_PONG, GG_STATE_CONNECTED, 0, gg_session_handle_pong },
 	{ GG_DISCONNECTING, GG_STATE_CONNECTED, 0, gg_session_handle_disconnecting },
 	{ GG_DISCONNECT_ACK, GG_STATE_DISCONNECTING, 0, gg_session_handle_disconnect_ack },
 	{ GG_XML_EVENT, GG_STATE_CONNECTED, 0, gg_session_handle_xml_event },
+	{ GG_EVENT110, GG_STATE_CONNECTED, 0, gg_session_handle_event_110 },
 	{ GG_PUBDIR50_REPLY, GG_STATE_CONNECTED, 0, gg_session_handle_pubdir50_reply },
 	{ GG_USERLIST_REPLY, GG_STATE_CONNECTED, 0, gg_session_handle_userlist_reply },
 	{ GG_DCC7_ID_REPLY, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_id_reply), gg_session_handle_dcc7_id_reply },
@@ -1789,6 +2714,8 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_DCC7_INFO, GG_STATE_CONNECTED, sizeof(struct gg_dcc7_info), gg_session_handle_dcc7_info },
 	{ GG_RECV_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg), gg_session_handle_recv_msg },
 	{ GG_RECV_MSG80, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
+	{ GG_RECV_MSG110, GG_STATE_CONNECTED, 0, gg_session_handle_recv_msg_110 },
+	{ GG_RECV_OWN_MSG110, GG_STATE_CONNECTED, 0, gg_session_handle_recv_msg_110 },
 	{ GG_STATUS, GG_STATE_CONNECTED, sizeof(struct gg_status), gg_session_handle_status },
 	{ GG_STATUS60, GG_STATE_CONNECTED, sizeof(struct gg_status60), gg_session_handle_status_60_77_80beta },
 	{ GG_STATUS77, GG_STATE_CONNECTED, sizeof(struct gg_status77), gg_session_handle_status_60_77_80beta },
@@ -1806,6 +2733,17 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_RECV_OWN_MSG, GG_STATE_CONNECTED, sizeof(struct gg_recv_msg80), gg_session_handle_recv_msg_80 },
 	{ GG_USERLIST100_VERSION, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_version), gg_session_handle_userlist_100_version },
 	{ GG_USERLIST100_REPLY, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_reply), gg_session_handle_userlist_100_reply },
+	{ GG_IMTOKEN, GG_STATE_CONNECTED, 0, gg_session_handle_imtoken },
+	{ GG_PONG110, GG_STATE_CONNECTED, sizeof(struct gg_pong110), gg_session_handle_pong_110 },
+	{ GG_CHAT_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_chat_info },
+	{ GG_CHAT_INFO_UPDATE, GG_STATE_CONNECTED, 0, gg_session_handle_chat_info_update },
+	{ GG_CHAT_CREATED, GG_STATE_CONNECTED, sizeof(struct gg_chat_created), gg_session_handle_chat_created },
+	{ GG_CHAT_INVITE_ACK, GG_STATE_CONNECTED, sizeof(struct gg_chat_invite_ack), gg_session_handle_chat_invite_ack },
+	{ GG_CHAT_RECV_MSG, GG_STATE_CONNECTED, 0, gg_session_handle_recv_msg_110 },
+	{ GG_CHAT_RECV_OWN_MSG, GG_STATE_CONNECTED, 0, gg_session_handle_recv_msg_110 },
+	{ GG_CHAT_LEFT, GG_STATE_CONNECTED, sizeof(struct gg_chat_left), gg_session_handle_chat_left },
+	{ GG_OPTIONS, GG_STATE_CONNECTED, 0, gg_session_handle_options },
+	{ GG_ACCESS_DATES, GG_STATE_CONNECTED, 0, gg_session_handle_access_dates }
 };
 
 /**
@@ -1823,7 +2761,7 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 {
 	unsigned int i;
 
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet(%d, %p, %d)\n", type, ptr, len);
+	gg_debug_session(gs, GG_DEBUG_FUNCTION, "// gg_session_handle_packet(%d, %p, %d)\n", type, ptr, len);
 
 	gs->last_event = time(NULL);
 
@@ -1834,7 +2772,7 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 		tmp = malloc(len);
 
 		if (tmp == NULL) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() out of memory (%d bytes)\n", len);
+			gg_debug_session(gs, GG_DEBUG_ERROR, "// gg_session_handle_packet() out of memory (%d bytes)\n", len);
 			return -1;
 		}
 
@@ -1854,19 +2792,19 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 			continue;
 
 		if (handlers[i].state != 0 && handlers[i].state != (enum gg_state_t) gs->state) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() packet 0x%02x unexpected in state %d\n", type, gs->state);
+			gg_debug_session(gs, GG_DEBUG_WARNING, "// gg_session_handle_packet() packet 0x%02x unexpected in state %d\n", type, gs->state);
 			continue;
 		}
 
 		if (len < handlers[i].min_length) {
-			gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() packet 0x%02x too short (%d bytes)\n", type, len);
+			gg_debug_session(gs, GG_DEBUG_ERROR, "// gg_session_handle_packet() packet 0x%02x too short (%d bytes)\n", type, len);
 			continue;
 		}
 
 		return (*handlers[i].handler)(gs, type, ptr, len, ge);
 	}
 
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_packet() unhandled packet 0x%02x, len %d, state %d\n", type, len, gs->state);
+	gg_debug_session(gs, GG_DEBUG_WARNING, "// gg_session_handle_packet() unhandled packet 0x%02x, len %d, state %d\n", type, len, gs->state);
 
 	return 0;
 }

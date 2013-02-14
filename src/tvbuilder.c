@@ -416,21 +416,13 @@ void gg_tvbuilder_write_str(gg_tvbuilder_t *tvb, const char *buffer,
  */
 void gg_tvbuilder_write_uin(gg_tvbuilder_t *tvb, uin_t uin, int variant_long)
 {
-	const char *uin_s;
+	char uin_str[16];
 	int uin_len;
 
-	uin_s = gg_uin_to_str(uin);
-	uin_len = strlen(uin_s);
-
-	if (uin_len > 0x7F) {
-		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuilder_write_uin() "
-			"uin too big\n");
-		tvb->valid = 0;
-		return;
-	}
+	uin_len = snprintf(uin_str, sizeof(uin_str), "%u", uin);
 
 	if (variant_long)
 		gg_tvbuilder_write_uint8(tvb, uin_len + 2);
 	gg_tvbuilder_write_uint8(tvb, 0x00);
-	gg_tvbuilder_write_str(tvb, uin_s, uin_len);
+	gg_tvbuilder_write_str(tvb, uin_str, uin_len);
 }
