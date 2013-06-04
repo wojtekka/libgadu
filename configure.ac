@@ -124,7 +124,7 @@ AC_CHECK_FUNCS([strtoull])
 AC_CHECK_FUNCS([_strtoui64])
 
 AC_MSG_CHECKING([if <$STDINT_H> has uint64_t])
-AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t_ foo],
+AC_TRY_COMPILE([#include <$STDINT_H>], [uint64_t foo],
     AC_DEFINE([GG_CONFIG_HAVE_UINT64_T], [], [Defined if this machine has uint64_t.])
     AC_MSG_RESULT([yes]),
     AC_MSG_RESULT([no]))
