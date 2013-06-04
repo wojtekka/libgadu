@@ -276,86 +276,48 @@ dnl
 dnl  Testy
 dnl
 
-AC_SUBST([SUBDIRS_TEST])
-AC_SUBST([OPTIONAL_TESTS_AUTOMATIC_GLIBC])
-AC_SUBST([OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS])
-AC_SUBST([OPTIONAL_TESTS_MANUAL_GLIBC])
-AC_SUBST([OPTIONAL_TESTS_PERL])
-AC_SUBST([OPTIONAL_TESTS_VOICE7])
-AC_SUBST([OPTIONAL_TESTS_SEARCH])
-SUBDIRS_TEST=""
-OPTIONAL_TESTS_AUTOMATIC_GLIBC=""
-OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS=""
-OPTIONAL_TESTS_MANUAL_GLIBC=""
-OPTIONAL_TESTS_PERL=""
-OPTIONAL_TESTS_VOICE7=""
-OPTIONAL_TESTS_SEARCH=""
-
 AC_ARG_ENABLE(tests,
         [  --disable-tests         do not compile tests])
 
-if test "x$enable_tests" != "xno"; then
-	SUBDIRS_TEST="test"
+AM_CONDITIONAL([ENABLE_TESTS], [test "x$enable_tests" != "xno"])
 
+if test "x$enable_tests" != "xno"; then
 	dnl
 	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
-	dnl 
-
-	have_glibc=""
+	dnl
 
 	AC_CHECK_LIB(c, __connect, [have_glibc="yes"])
-	
-	if test "x$have_glibc" = "xyes"; then
-		OPTIONAL_TESTS_AUTOMATIC_GLIBC="resolver packet"
-		OPTIONAL_TESTS_MANUAL_GLIBC="dcc7"
-		
-		dnl For tests always try to use GnuTLS if available
-		if test "x$have_gnutls" != "xyes"; then
-			PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
-				AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
-				have_gnutls="yes"
-			], [:])
-		fi
 
-		if test "x$have_gnutls" = "xyes"; then
-			OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS="connect"
-		fi
+	dnl
+	dnl  GnuTLS dla connect
+	dnl
+
+	dnl Dla testów zawsze używaj GnuTLS, o ile tylko jest dostępne.
+	if test "x$have_gnutls" != "xyes"; then
+		PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
+			AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
+			have_gnutls="yes"
+		], [:])
 	fi
-
-	dnl
-	dnl  libgsm i libspeex dla voice7 (obecnie wyłączone)
-	dnl
-
-dnl	tmp=x
-dnl	AC_CHECK_LIB(speex, speex_encoder_init, [tmp="x$tmp"])
-dnl	AC_CHECK_HEADERS(speex/speex.h, [tmp="x$tmp"])
-dnl	AC_CHECK_LIB(gsm, gsm_create, [tmp="x$tmp"])
-dnl	AC_CHECK_HEADERS(gsm/gsm.h, [tmp="x$tmp"])
-dnl
-dnl	if test "x$tmp" = "xxxxxx"; then
-dnl		OPTIONAL_TESTS_VOICE7="voice7"
-dnl	fi
 
 	dnl
 	dnl  curl, expat i OpenSSL dla search
 	dnl
 
-	tmp=x
-	AC_CHECK_LIB(curl, curl_easy_init, [tmp="x$tmp"])
-	AC_CHECK_HEADERS(curl/curl.h, [tmp="x$tmp"])
-	AC_CHECK_LIB(expat, XML_ParserCreate, [tmp="x$tmp"])
-	AC_CHECK_HEADERS(expat.h, [tmp="x$tmp"])
+	AC_CHECK_LIB(curl, curl_easy_init, [have_curl="yes"])
+	if test "x$have_curl" = "xyes"; then
+		AC_CHECK_HEADERS(curl/curl.h, [], [have_curl="no"])
+	fi
 
-	if test "x$tmp" = "xxxxxx"; then
-		dnl For tests always try to use OpenSSL if available
-		if test "x$have_openssl" != "xyes"; then
-			force_openssl="yes"
-			AC_CHECK_OPENSSL
-		fi
+	AC_CHECK_LIB(expat, XML_ParserCreate, [have_expat="yes"])
+	if test "x$have_expat" = "xyes"; then
+		AC_CHECK_HEADERS(expat.h, [have_expat="no"])
+	fi
 
-		if test "x$have_openssl" = "xyes"; then
-			OPTIONAL_TESTS_SEARCH="search"
-		fi
+	dnl Dla testów zawsze używaj OpenSSL, o ile tylko jest dostępne.
+	if test "x$have_openssl" != "xyes"; then
+		force_openssl="yes"
+		AC_CHECK_OPENSSL
 	fi
 
 	dnl
@@ -364,18 +326,22 @@ dnl	fi
 
 	AC_CHECK_PROG([PERL], [perl], [perl], [:])
 	if test "x$PERL" != "x:"; then
-		OPTIONAL_TESTS_PERL="protocol"
+		have_perl="yes"
 	fi
 
 	dnl
 	dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
 	dnl
-	AC_SUBST([LIBXML2_CFLAGS])
-	AC_SUBST([LIBXML2_LIBS])
+
 	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
 		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
 	], [:])
 fi
+
+AM_CONDITIONAL([HAVE_GLIBC], [test "x$have_glibc" = "xyes"])
+AM_CONDITIONAL([HAVE_GNUTLS_TESTS], [test "x$have_gnutls" = "xyes"])
+AM_CONDITIONAL([HAVE_CURL_AND_EXPAT_AND_OPENSSL], [test "x$have_curl" = "xyes" -a "x$have_expat" = "xyes" -a "x$have_openssl" = "xyes"])
+AM_CONDITIONAL([HAVE_PERL], [test "x$have_perl" = "xyes"])
 
 dnl
 dnl  Sprawdź, czy mamy czym generować dokumentację
@@ -405,6 +371,16 @@ case "$host" in
 esac
 AC_SUBST([MINGW_LDFLAGS])
 
-AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile test/Makefile test/automatic/Makefile test/automatic/script/Makefile test/manual/Makefile test/manual/lib/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile])
+
+AM_COND_IF([ENABLE_TESTS],
+	[AC_CONFIG_FILES([
+		test/Makefile
+		test/automatic/Makefile
+		test/automatic/script/Makefile
+		test/manual/Makefile
+		test/manual/lib/Makefile
+	])]
+)
 
 AC_OUTPUT

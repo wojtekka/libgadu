@@ -1,6 +1,16 @@
-TESTS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_AUTOMATIC_GLIBC) $(OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
-check_PROGRAMS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_AUTOMATIC_GLIBC) $(OPTIONAL_TESTS_AUTOMATIC_GLIBC_GNUTLS) $(OPTIONAL_TESTS_PERL)
-EXTRA_PROGRAMS = convert endian1 message2 message1 hash connect packet resolver protocol
+TESTS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_PERL)
+if HAVE_GLIBC
+TESTS += resolver packet
+if HAVE_GNUTLS_TESTS
+TESTS += connect
+endif
+endif
+if HAVE_PERL
+TESTS += protocol
+endif
+
+check_PROGRAMS = $(TESTS)
+EXTRA_PROGRAMS = convert endian1 message2 message1 hash resolver packet connect protocol
 
 CFLAGS += -DGG_IGNORE_DEPRECATED
 AM_LDFLAGS = -no-install
@@ -22,7 +32,8 @@ hash_SOURCES = hash.c $(top_builddir)/src/sha1.c $(top_builddir)/src/endian.c
 
 endian1_SOURCES = endian1.c $(top_builddir)/src/endian.c
 
-connect_LDADD = $(top_builddir)/src/libgadu.la -lgnutls
+connect_LDADD = $(top_builddir)/src/libgadu.la @GNUTLS_LIBS@
+connect_CFLAGS = @GNUTLS_CFLAGS@
 
 packet_LDADD = $(top_builddir)/src/libgadu.la
 

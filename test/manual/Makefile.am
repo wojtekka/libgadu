@@ -1,5 +1,16 @@
-check_PROGRAMS = client userlist $(OPTIONAL_TESTS_SEARCH) $(OPTIONAL_TESTS_VOICE7) $(OPTIONAL_TESTS_MANUAL_GLIBC)
-EXTRA_PROGRAMS = client userlist search voice7 dcc7
+check_PROGRAMS = client userlist
+if HAVE_GLIBC
+check_PROGRAMS += dcc7
+endif
+if HAVE_CURL_AND_EXPAT_AND_OPENSSL
+check_PROGRAMS += search
+endif
+# Wyłączone.
+# if HAVE_SPEEX_AND_GSM
+# check_PROGRAMS += voice7
+# endif
+
+EXTRA_PROGRAMS = client userlist dcc7 search voice7
 
 CFLAGS = -DGG_IGNORE_DEPRECATED
 AM_LDFLAGS = -no-install

@@ -1,5 +1,9 @@
-SUBDIRS = include src pkgconfig test examples @SUBDIRS_DOXYGEN@
-DIST_SUBDIRS = include src pkgconfig test examples docs
+SUBDIRS = include src pkgconfig examples @SUBDIRS_DOXYGEN@
+if ENABLE_TESTS
+SUBDIRS += test
+endif
+
+DIST_SUBDIRS = include src pkgconfig examples docs test
 
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
