@@ -293,6 +293,7 @@ static int gg_session_init_ssl(struct gg_session *gs)
 		}
 
 		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
+		SSL_CTX_set_default_verify_paths(gs->ssl_ctx);
 	}
 
 	if (gs->ssl != NULL)
@@ -1150,14 +1151,33 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 
 	if (peer == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING! unable to get peer certificate!\n");
+
+		if (sess->ssl_flag == GG_SSL_REQUIRED) {
+			e->event.failure = GG_FAILURE_TLS;
+			return GG_ACTION_FAIL;
+		}
 	} else {
 		char buf[256];
+		long res;
 
 		X509_NAME_oneline(X509_get_subject_name(peer), buf, sizeof(buf));
 		gg_debug_session(sess, GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
 
 		X509_NAME_oneline(X509_get_issuer_name(peer), buf, sizeof(buf));
 		gg_debug_session(sess, GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
+
+		res = SSL_get_verify_result(GG_SESSION_OPENSSL(sess));
+
+		if (res != X509_V_OK) {
+			gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify peer certificate! res=%ld\n", res);
+
+			if (sess->ssl_flag == GG_SSL_REQUIRED) {
+				e->event.failure = GG_FAILURE_TLS;
+				return GG_ACTION_FAIL;
+			}
+		} else {
+			gg_debug_session(sess, GG_DEBUG_MISC, "//   verified peer certificate\n");
+		}
 	}
 
 	sess->state = next_state;
