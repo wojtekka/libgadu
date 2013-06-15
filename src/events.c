@@ -39,6 +39,7 @@
 #include "debug.h"
 #include "session.h"
 #include "resolver.h"
+#include "config.h"
 
 #include <errno.h>
 #include <string.h>
@@ -254,6 +255,13 @@ static int gg_session_init_ssl(struct gg_session *gs)
 
 		gnutls_global_init();
 		gnutls_certificate_allocate_credentials(&tmp->xcred);
+#ifdef GG_CONFIG_SSL_SYSTEM_TRUST
+#ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST
+		gnutls_certificate_set_x509_system_trust(tmp->xcred);
+#else
+		gnutls_certificate_set_x509_trust_file(tmp->xcred, GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE, GNUTLS_X509_FMT_PEM);
+#endif
+#endif
 	} else {
 		gnutls_deinit(tmp->session);
 	}
@@ -293,7 +301,9 @@ static int gg_session_init_ssl(struct gg_session *gs)
 		}
 
 		SSL_CTX_set_verify(gs->ssl_ctx, SSL_VERIFY_NONE, NULL);
+#ifdef GG_CONFIG_SSL_SYSTEM_TRUST
 		SSL_CTX_set_default_verify_paths(gs->ssl_ctx);
+#endif
 	}
 
 	if (gs->ssl != NULL)
@@ -1029,6 +1039,8 @@ static gg_action_t gg_handle_send_proxy_gg(struct gg_session *sess, struct gg_ev
 static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
 {
 #ifdef GG_CONFIG_HAVE_GNUTLS
+	unsigned int status;
+	int valid_hostname = 0;
 	int res;
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
@@ -1088,11 +1100,36 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 					size = sizeof(buf);
 					gnutls_x509_crt_get_issuer_dn(cert, buf, &size);
 					gg_debug_session(sess, GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
+
+					if (gnutls_x509_crt_check_hostname(cert, sess->connect_host) != 0)
+						valid_hostname = 1;
 				}
 			}
 
 			gnutls_x509_crt_deinit(cert);
 		}
+	}
+
+	if (!valid_hostname) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify hostname\n");
+
+		if (sess->ssl_flag == GG_SSL_REQUIRED) {
+			e->event.failure = GG_FAILURE_TLS;
+			return GG_ACTION_FAIL;
+		}
+	}
+
+	res = gnutls_certificate_verify_peers2(GG_SESSION_GNUTLS(sess), &status);
+
+	if (res != 0) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify peer certificate: %d, %s\n", res, gnutls_strerror(res));
+
+		if (sess->ssl_flag == GG_SSL_REQUIRED) {
+			e->event.failure = GG_FAILURE_TLS;
+			return GG_ACTION_FAIL;
+		}
+	} else {
+		gg_debug_session(sess, GG_DEBUG_MISC, "//   verified peer certificate\n");
 	}
 
 	sess->state = next_state;

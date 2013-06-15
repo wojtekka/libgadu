@@ -252,6 +252,47 @@ if test "x$with_gnutls" != "xno"; then
 fi
 
 dnl
+dnl  Sprawdzamy czy mamy używać systemowych certyfikatów
+dnl
+
+AC_ARG_ENABLE(ssl-system-trust,
+       	[  --disable-ssl-system-trust  disable the use of system default trusted CAs])
+
+AC_ARG_WITH([gnutls-system-trust-store],
+	[  --with-gnutls-system-trust-store=FILE  provide alternative path of system default trust store for GnuTLS versions <= 3.x])
+
+if test "x$enable_ssl_system_trust" != "xno"; then
+	AC_DEFINE([GG_CONFIG_SSL_SYSTEM_TRUST], [], [Defined if libgadu uses system defalt trusted CAs])
+
+	if test "x$have_gnutls" = "xyes"; then
+		AC_CHECK_FUNCS([gnutls_certificate_set_x509_system_trust], [have_gnutls_certificate_set_x509_system_trust=yes], [have_gnutls_certificate_set_x509_system_trust=no])
+
+		if test "x$with_gnutls_system_trust_store" = "x"; then
+			# Lista certyfikatów skopiowana z GnuTLS (https://gitorious.org/gnutls/gnutls/blobs/c59329a089a9ed108692066de95f533f482b5422/configure.ac)
+			for i in /etc/ssl/ca-bundle.pem \
+				/etc/ssl/certs/ca-certificates.crt \
+				/etc/pki/tls/cert.pem \
+				/usr/local/share/certs/ca-root-nss.crt \
+				/etc/ssl/cert.pem
+				do	
+				if test -e $i; then
+					with_gnutls_system_trust_store="$i"
+					break
+				fi
+			done
+		fi
+
+		if test "x$with_gnutls_system_trust_store" = "xno";then
+			with_gnutls_system_trust_store=""
+		fi
+
+		if test "x$with_gnutls_system_trust_store" != "x"; then
+			AC_DEFINE_UNQUOTED([GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE], ["$with_gnutls_system_trust_store"], [use the given file as GnuTLS default trust store])
+		fi
+	fi
+fi
+
+dnl
 dnl  Sprawdzamy OpenSSL, jeśli nie ma GnuTLS
 dnl
 
