@@ -361,7 +361,7 @@ static int client_func(const test_param_t *test)
 		glp.server_addr = inet_addr(HOST_LOCAL);
 
 	if (test->ssl_mode)
-		glp.tls = GG_SSL_REQUIRED;
+		glp.tls = GG_SSL_ENABLED;
 
 	while (read(timeout_pipe[0], &tmp, 1) != -1);
 
