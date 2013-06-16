@@ -6,7 +6,7 @@ call {
 	gg_notify(session, NULL, 0);
 }
 
-expect data (12 00 00 00, auto)
+expect data (79 00 00 00, auto)
 
 #-----------------------------------------------------------------------------
 
@@ -14,65 +14,67 @@ call {
 	gg_notify_ex(session, NULL, NULL, 0);
 }
 
-expect data (12 00 00 00, auto)
+expect data (79 00 00 00, auto)
 
 #-----------------------------------------------------------------------------
 # Small contact list
 #-----------------------------------------------------------------------------
 
 call {
-	uint32_t uins[3] = { 0x111111, 0x222222, 0x333333 };
+	uint32_t uins[3] = { 111111, 222222, 333333 };
 	gg_notify(session, uins, 3);
 }
 
-expect data (10 00 00 00, auto, 11 11 11 00 03, 22 22 22 00 03, 33 33 33 00 03)
+expect data (78 00 00 00, auto, 00 06 "111111" 03, 00 06 "222222" 03, 00 06 "333333" 03)
 
 #-----------------------------------------------------------------------------
 
 call {
-	uint32_t uins[3] = { 0x111111, 0x222222, 0x333333 };
+	uint32_t uins[3] = { 111111, 222222, 333333 };
 	char types[3] = { GG_USER_NORMAL, GG_USER_OFFLINE, GG_USER_BLOCKED };
 	gg_notify_ex(session, uins, types, 3);
 }
 
-expect data (10 00 00 00, auto, 11 11 11 00 03, 22 22 22 00 01, 33 33 33 00 04)
+expect data (78 00 00 00, auto, 00 06 "111111" 03, 00 06 "222222" 01, 00 06 "333333" 04)
 
 #-----------------------------------------------------------------------------
 # Large contact list (> 400 contacts)
 #-----------------------------------------------------------------------------
 
 call {
-	uint32_t uins[401];
+	const unsigned int count = 228;
+	uint32_t uins[count];
 	int i;
 
-	for (i = 0; i < 401; i++)
-		uins[i] = 0x03030303;
+	for (i = 0; i < count; i++)
+		uins[i] = 444444;
 
-	gg_notify(session, uins, 401);
+	gg_notify(session, uins, count);
 }
 
-expect data (0f 00 00 00, auto, 03*2000)
+expect data (77 00 00 00, auto, 00 06 "444444" 03, xx*2025, 00 06 "444444" 03)
 
-expect data (10 00 00 00, auto, 03 03 03 03 03)
+expect data (78 00 00 00, auto, 00 06 "444444" 03)
 
 #-----------------------------------------------------------------------------
 
 call {
-	uint32_t uins[401];
-	char types[401];
+	const unsigned int count = 228;
+	uint32_t uins[count];
+	char types[count];
 	int i;
 
-	for (i = 0; i < 401; i++) {
-		uins[i] = 0x01010101;
+	for (i = 0; i < count; i++) {
+		uins[i] = 555555;
 		types[i] = 0x01;
 	}
 
-	gg_notify_ex(session, uins, types, 401);
+	gg_notify_ex(session, uins, types, count);
 }
 
-expect data (0f 00 00 00, auto, 01*2000)
+expect data (77 00 00 00, auto, 00 06 "555555" 01, xx*2025, 00 06 "555555" 01)
 
-expect data (10 00 00 00, auto, 01 01 01 01 01)
+expect data (78 00 00 00, auto, 00 06 "555555" 01)
 
 #-----------------------------------------------------------------------------
 # Status change (pre-6.0)

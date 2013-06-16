@@ -4,7 +4,7 @@
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*139)
+expect data (83 00 00 00, auto, xx*185)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -17,7 +17,7 @@ expect disconnect
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*139)
+expect data (83 00 00 00, auto, xx*185)
 send (14 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -30,7 +30,7 @@ expect disconnect
 login (uin = 1, password = "")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*139)
+expect data (83 00 00 00, auto, xx*185)
 send (09 00 00 00, auto)
 expect event GG_EVENT_CONN_FAILED
 logoff
@@ -39,10 +39,10 @@ expect disconnect
 #-----------------------------------------------------------------------------
 # Login with parameters
 #-----------------------------------------------------------------------------
-login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "Test", has_audio = 1, image_size = 255, hash_type = GG_LOGIN_HASH_GG32, external_addr = 127.0.0.1, external_port = 0x1234, status_flags = 0x11223344, client_version = "1.2.3.4")
+login (uin = 0x123456, password = "ABC", status = GG_STATUS_INVISIBLE_DESCR, status_descr = "Test", has_audio = 1, image_size = 255, external_addr = 127.0.0.1, external_port = 0x1234, status_flags = 0x11223344, client_version = "1.2.3.4")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, 56 34 12 00, "pl", 01, 09 ad 7d 58 00*60, 16 00 00 00, 44 33 22 11, 37 27 00 00, 00 00 00 00, 00 00, 00 00 00 00, 00 00, ff, 64, 1e 00 00 00, "Gadu-Gadu", 20, "Client", 20, "Build", 20, "1.2.3.4", 04 00 00 00, "Test")
+expect data (83 00 00 00, auto, 0a 02 "pl", 12 09 00 07 "1193046", 1a 14 xx*20, 20 02, 2d 77 ff ee 03, 35 14 00 03 00, 3a 10 "GG" 20 "1.2.3.4" 20 "WINNT", 45 16 00 00 00, 4a 04 "Test", 52 04 00 00 00 00, 5a 58 "avatar" 2c "StatusComments" 2c "ggaccount" 2c "edisc" 2c "music_shared" 2c "bot" 2c "fanpage" 2c "pubdir" 2c "botCaps" 2c "gifts" 2c "Gift", 60 ff 01, 68 64, 75 7f 00 00 00, 78 00, 88 80 01)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -54,7 +54,7 @@ expect disconnect
 login (uin = 1, password = "", client_version = "Foobar 1.2.3.4")
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*97, 0e 00 00 00, "Foobar", 20, "1.2.3.4", 00 00 00 00)
+expect data (83 00 00 00, auto, xx*43, 3a 0e "Foobar", 20, "1.2.3.4", xx*118)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 logoff
@@ -66,7 +66,7 @@ expect disconnect
 login (uin = 0x123456, password = "", encoding = GG_ENCODING_UTF8)
 expect connect
 send (01 00 00 00, auto, 12 34 56 78)
-expect data (31 00 00 00, auto, xx*139)
+expect data (83 00 00 00, auto, xx*191)
 send (03 00 00 00, auto)
 expect event GG_EVENT_CONN_SUCCESS
 
