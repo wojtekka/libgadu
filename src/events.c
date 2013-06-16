@@ -1038,9 +1038,10 @@ static gg_action_t gg_handle_send_proxy_gg(struct gg_session *sess, struct gg_ev
 
 static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
 {
+	int valid_hostname = 0;
+
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	unsigned int status;
-	int valid_hostname = 0;
 	int res;
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() GG_STATE_TLS_NEGOTIATION\n");
@@ -1110,15 +1111,6 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 		}
 	}
 
-	if (!valid_hostname) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify hostname\n");
-
-		if (sess->ssl_flag == GG_SSL_REQUIRED) {
-			e->event.failure = GG_FAILURE_TLS;
-			return GG_ACTION_FAIL;
-		}
-	}
-
 	res = gnutls_certificate_verify_peers2(GG_SESSION_GNUTLS(sess), &status);
 
 	if (res != 0) {
@@ -1132,12 +1124,7 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 		gg_debug_session(sess, GG_DEBUG_MISC, "//   verified peer certificate\n");
 	}
 
-	sess->state = next_state;
-	sess->check = GG_CHECK_READ;
-	sess->timeout = GG_DEFAULT_TIMEOUT;
 
-	return GG_ACTION_WAIT;
-	
 #elif defined GG_CONFIG_HAVE_OPENSSL
 
 	X509 *peer;
@@ -1215,13 +1202,22 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 		} else {
 			gg_debug_session(sess, GG_DEBUG_MISC, "//   verified peer certificate\n");
 		}
+
+		if (X509_NAME_get_text_by_NID(X509_get_subject_name(peer), NID_commonName, buf, sizeof(buf)) == -1)
+			buf[0] = 0;
+
+		/* Obsługa certyfikatów z wieloznacznikiem */
+		if (strchr(buf, '*') == buf && strchr(buf + 1, '*') == NULL) {
+			char *tmp;
+
+			tmp = strchr(sess->connect_host, '.');
+
+			if (tmp != NULL)
+				valid_hostname = (strcasecmp(tmp, buf + 1) == 0);
+		} else {
+			valid_hostname = (strcasecmp(sess->connect_host, buf) == 0);
+		}
 	}
-
-	sess->state = next_state;
-	sess->check = GG_CHECK_READ;
-	sess->timeout = GG_DEFAULT_TIMEOUT;
-
-	return GG_ACTION_WAIT;
 
 #else
 
@@ -1230,6 +1226,21 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 	return GG_ACTION_FAIL;
 
 #endif
+
+	if (!valid_hostname) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify hostname\n");
+
+		if (sess->ssl_flag == GG_SSL_REQUIRED) {
+			e->event.failure = GG_FAILURE_TLS;
+			return GG_ACTION_FAIL;
+		}
+	}
+
+	sess->state = next_state;
+	sess->check = GG_CHECK_READ;
+	sess->timeout = GG_DEFAULT_TIMEOUT;
+
+	return GG_ACTION_WAIT;
 }
 
 static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
