@@ -1048,6 +1048,7 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 	struct gg_new_status80 p;
 	char *gen_descr = NULL;
 	int descr_len = 0;
+	int descr_null_len = 0;
 	int res;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_change_status_descr(%p, %d, \"%s\");\n", sess, status, descr);
@@ -1088,12 +1089,13 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 
 	if (sess->protocol_version >= GG_PROTOCOL_110) {
 		p.flags = gg_fix32(0x00000014);
-		descr_len++; /* dodaj \0 na końcu */
+		descr_null_len = 1;
 	}
 
 	res = gg_send_packet(sess, GG_NEW_STATUS80, 
 			&p, sizeof(p), 
 			descr, descr_len,
+			"\x00", descr_null_len,
 			NULL);
 
 	free(gen_descr);
