@@ -1113,8 +1113,8 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess, struct gg_
 
 	res = gnutls_certificate_verify_peers2(GG_SESSION_GNUTLS(sess), &status);
 
-	if (res != 0) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify peer certificate: %d, %s\n", res, gnutls_strerror(res));
+	if (res != 0 || status != 0) {
+		gg_debug_session(sess, GG_DEBUG_MISC, "//   WARNING!  unable to verify peer certificate: 0x%x, %d, %s\n", status, res, gnutls_strerror(res));
 
 		if (sess->ssl_flag == GG_SSL_REQUIRED) {
 			e->event.failure = GG_FAILURE_TLS;
