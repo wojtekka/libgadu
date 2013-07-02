@@ -1,6 +1,10 @@
 noinst_PROGRAMS = send httphash conn-async register-sync register-async remind-sync remind-async status token-sync token-async
 LDADD = ../src/libgadu.la
+if HAVE_WIN32
+AM_LDFLAGS = -no-fast-install
+else
 AM_LDFLAGS = -no-install
+endif
 
 httphash_CFLAGS = -DGG_IGNORE_DEPRECATED
 

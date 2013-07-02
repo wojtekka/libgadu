@@ -8,9 +8,13 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <sys/time.h>
+#ifdef WIN32
+#  include <winsock2.h>
+#else
+#  include <sys/wait.h>
+#  include <sys/time.h>
+#  include <sys/socket.h>
+#endif
 #include <time.h>
 #include "libgadu.h"
 
