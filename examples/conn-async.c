@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#ifdef WIN32
+#ifdef _WIN32
 #  include <winsock2.h>
 #else
 #  include <sys/wait.h>

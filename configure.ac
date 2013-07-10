@@ -405,15 +405,15 @@ dnl
 case "$host" in
 	*-*-mingw* | *-*-cygwin*)
 		MINGW_LDFLAGS="-no-undefined -lws2_32"
-		platform="win32"
+		LDFLAGS_NO_INSTALL="-no-fast-install"
 		;;
 	*)
 		MINGW_LDFLAGS=""
-		platform="linux/other"
+		LDFLAGS_NO_INSTALL="-no-install"
 		;;
 esac
-AM_CONDITIONAL(HAVE_WIN32, test "x$platform" = "xwin32")
 AC_SUBST([MINGW_LDFLAGS])
+AC_SUBST([LDFLAGS_NO_INSTALL])
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile])
 
