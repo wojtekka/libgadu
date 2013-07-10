@@ -6,16 +6,22 @@
 
 #ifdef ASYNC
 
-#include <sys/select.h>
-#include <sys/wait.h>
+#ifdef _WIN32
+#  include <winsock2.h>
+#else
+#  include <sys/select.h>
+#  include <sys/wait.h>
+#endif
 #include <signal.h>
 #include <errno.h>
 
+#ifndef _WIN32
 static void sigchld(int sig)
 {
 	wait(NULL);
 	signal(SIGCHLD, sigchld);
 }
+#endif
 
 #endif
 
@@ -48,7 +54,9 @@ int main(int argc, char **argv)
 
 #else
 
+#ifndef _WIN32
 	signal(SIGCHLD, sigchld);
+#endif
 
 	if (!(h = gg_register3(email, password, tokenid, tokenval, 1)))
 		return 1;
