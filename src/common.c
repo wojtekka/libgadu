@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "config.h"
 #include "libgadu.h"
@@ -779,6 +780,36 @@ int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version,
 		sizeof(uin_t) * participants_count);
 
 	return 0;
+}
+
+void gg_connection_failure(struct gg_session *gs, struct gg_event *ge,
+	enum gg_failure_t failure)
+{
+	int errno_copy;
+
+	errno_copy = errno;
+	close(gs->fd);
+	gs->fd = -1;
+	errno = errno_copy;
+
+	if (ge != NULL) {
+		ge->type = GG_EVENT_CONN_FAILED;
+		ge->event.failure = failure;
+	}
+	gs->state = GG_STATE_IDLE;
+}
+
+time_t gg_server_time(struct gg_session *gs)
+{
+	time_t now = time(NULL);
+
+	if (gs == NULL || gs->private_data == NULL) {
+		gg_debug_session(gs, GG_DEBUG_ERROR, "time diff data is not "
+			"accessible\n");
+		return now;
+	}
+
+	return now + gs->private_data->time_diff;
 }
 
 /*

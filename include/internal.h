@@ -23,7 +23,8 @@
 
 #include "libgadu.h"
 
-#define GG_PROTOCOL_110 0x40
+#define GG_DEFAULT_CLIENT_VERSION_100 "10.1.0.11070"
+#define GG_DEFAULT_CLIENT_VERSION_110 "11.3.42.10585"
 
 struct gg_dcc7_relay {
 	uint32_t addr;
@@ -38,6 +39,10 @@ struct gg_chat_list {
 	uin_t *participants;
 
 	struct gg_chat_list *next;
+};
+
+struct gg_session_private {
+	int time_diff;
 };
 
 typedef struct gg_dcc7_relay gg_dcc7_relay_t;
@@ -56,5 +61,9 @@ struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id);
 uin_t gg_str_to_uin(const char *str, int len);
 
 uint64_t gg_fix64(uint64_t x);
+void gg_connection_failure(struct gg_session *gs, struct gg_event *ge,
+	enum gg_failure_t failure);
+
+time_t gg_server_time(struct gg_session *gs);
 
 #endif /* LIBGADU_INTERNAL_H */

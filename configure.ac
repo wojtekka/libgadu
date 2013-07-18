@@ -230,6 +230,17 @@ if test "x$have_zlib" = "xyes" -a "x$have_zlib_h" = "xyes"; then
 fi
 
 dnl
+dnl  Sprawdzamy libprotobuf-c
+dnl
+
+AC_CHECK_LIB(protobuf-c, protobuf_c_message_pack, [have_protobuf_c=yes], [have_protobuf_c=no])
+if test "x$have_protobuf_c" = "xyes"; then
+	LIBS_PRIVATE="$LIBS_PRIVATE -lprotobuf-c"
+	AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
+fi
+AM_CONDITIONAL([HAVE_PROTOBUF_C], [test "x$have_protobuf_c" = "xyes"])
+
+dnl
 dnl  Sprawdzamy GnuTLS
 dnl
 
