@@ -45,8 +45,8 @@
 #define GG8_LANG	"pl"
 #define GG8_VERSION	"Gadu-Gadu Client Build "
 
-#define GG11_VERSION	"GG "
-#define GG11_TARGET	" WINNT"
+#define GG11_VERSION	"GG-Phoenix/"
+#define GG11_TARGET	" (BUILD;WINNT_x86-msvc;rv:11.0,pl;release;standard) (OS;Windows;Windows NT 6.1)"
 
 struct gg_login80 {
 	uint32_t uin;			/* mój numerek */
@@ -374,7 +374,7 @@ struct gg_chat_left {
 #define GG_REMOVE_NOTIFY105 0x007c
 #define GG_EVENT110 0x0084
 #define GG_IMTOKEN 0x008c
-#define GG_ACCESS_DATES 0x008f
+#define GG_ACCESS_INFO 0x008f
 #define GG_NOTIFY105_FIRST 0x0077
 #define GG_NOTIFY105_LAST 0x0078
 #define GG_NOTIFY105_LIST_EMPTY 0x0079
@@ -387,14 +387,6 @@ struct gg_chat_left {
 #define GG_ACK110 0x0086
 #define GG_SEND_MSG_ACK110 0x0087
 
-#define GG_ACK110_MSG 0x01
-#define GG_ACK110_CHAT 0x02
-#define GG_ACK110_CHAT_INFO 0x03
-#define GG_ACK110_MPA 0x06
-
-#define GG_EVENT110_XML 0x00
-#define GG_EVENT110_JSON 0x02
-
 #define GG_CHAT_INFO 0x0093
 #define GG_CHAT_INFO_UPDATE 0x009e
 #define GG_CHAT_CREATED 0x0045
@@ -406,6 +398,9 @@ struct gg_chat_left {
 #define GG_CHAT_LEAVE 0x0052
 #define GG_CHAT_LEFT 0x0066
 #define GG_CHAT_SEND_MSG 0x008d
+
+#define GG_UIN_INFO 0x007a
+#define GG_TRANSFER_INFO 0x00a0
 
 #ifdef _WIN32
 #pragma pack(pop)

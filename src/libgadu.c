@@ -44,6 +44,8 @@
 #include "message.h"
 #include "deflate.h"
 #include "tvbuilder.h"
+#include "protobuf.h"
+#include "packets.pb-c.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -654,6 +656,7 @@ static int gg_session_callback(struct gg_session *sess)
 struct gg_session *gg_login(const struct gg_login_params *p)
 {
 	struct gg_session *sess = NULL;
+	struct gg_session_private *sess_private = NULL;
 
 	if (p == NULL) {
 		gg_debug(GG_DEBUG_FUNCTION, "** gg_login(%p);\n", p);
@@ -671,6 +674,16 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 
 	memset(sess, 0, sizeof(struct gg_session));
+
+	sess_private = malloc(sizeof(struct gg_session_private));
+
+	if (sess_private == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_login() not enough memory for session private data\n");
+		goto fail;
+	}
+
+	memset(sess_private, 0, sizeof(struct gg_session_private));
+	sess->private_data = sess_private;
 
 	if (p->password == NULL || p->uin == 0) {
 		gg_debug(GG_DEBUG_MISC, "// gg_login() invalid arguments. uin and password needed\n");
@@ -1012,6 +1025,8 @@ void gg_free_session(struct gg_session *sess)
 		chat = next;
 	}
 
+	free(sess->private_data);
+
 	free(sess);
 }
 
@@ -1087,7 +1102,7 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 	p.flags			= gg_fix32(sess->status_flags);
 	p.description_size	= gg_fix32(descr_len);
 
-	if (sess->protocol_version >= GG_PROTOCOL_110) {
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110) {
 		p.flags = gg_fix32(0x00000014);
 		descr_null_len = 1;
 	}
@@ -1160,10 +1175,12 @@ static int gg_send_message_110(struct gg_session *sess,
 	uin_t recipient, uint64_t chat_id,
 	const char *message, int is_html)
 {
-	gg_tvbuilder_t *tvb;
-	char *html_message_gen = NULL, *plain_message_gen = NULL;
+	GG110SendMessage msg = GG110_SEND_MESSAGE__INIT;
+	int packet_type = recipient ? GG_SEND_MSG110 : GG_CHAT_SEND_MSG;
 	int seq;
+	char *html_message_gen = NULL, *plain_message_gen = NULL;
 	const char *html_message, *plain_message;
+	int succ = 1;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION,
 		"** gg_send_message_110(%p, %u, %llu, %p, %d);\n",
@@ -1213,42 +1230,30 @@ static int gg_send_message_110(struct gg_session *sess,
 
 	seq = ++sess->seq;
 
-	tvb = gg_tvbuilder_new(sess, NULL);
-	gg_tvbuilder_expected_size(tvb, 50 + 2 * strlen(html_message));
-
 	if (recipient) {
-		gg_tvbuilder_write_uint8(tvb, 0x0a);
-		gg_tvbuilder_write_uin(tvb, recipient, 1);
+		msg.has_recipient = 1;
+		msg.recipient = gg_protobuf_set_uin(recipient, NULL);
 	}
 
-	gg_tvbuilder_write_uint8(tvb, 0x10);
-	gg_tvbuilder_write_uint8(tvb, 0x08); /* magic */
+	msg.seq = seq;
 
-	gg_tvbuilder_write_uint8(tvb, 0x18);
-	gg_tvbuilder_write_packed_uint(tvb, seq);
-
-	gg_tvbuilder_write_uint8(tvb, 0x2a);
-	gg_tvbuilder_write_str(tvb, plain_message, -1);
-
-	gg_tvbuilder_write_uint8(tvb, 0x32);
-	gg_tvbuilder_write_str(tvb, html_message, -1);
+	/* rzutujemy z const, ale msg i tak nie będzie modyfikowany */
+	msg.msg_plain = (char*)plain_message;
+	msg.msg_xhtml = (char*)html_message;
 
 	if (chat_id) {
-		gg_tvbuilder_write_uint8(tvb, 0x3a);
-		gg_tvbuilder_write_str(tvb, "", 0); /* magic */
-
-		gg_tvbuilder_write_uint8(tvb, 0x51);
-		gg_tvbuilder_write_uint64(tvb, chat_id);
+		msg.dummy3 = "";
+		msg.has_chat_id = 1;
+		msg.chat_id = chat_id;
 	}
+
+	if (!GG_PROTOBUF_SEND(sess, NULL, packet_type, gg110_send_message, msg))
+		succ = 0;
 
 	free(html_message_gen);
 	free(plain_message_gen);
 
-	if (!gg_tvbuilder_send(tvb, recipient ?
-		GG_SEND_MSG110 : GG_CHAT_SEND_MSG))
-		return -1;
-
-	return seq;
+	return succ ? seq : -1;
 }
 
 /**
@@ -1295,7 +1300,7 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass, int rec
 		return -1;
 	}
 
-	if (sess->protocol_version >= GG_PROTOCOL_110 && recipients_count == 1)
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110 && recipients_count == 1)
 	{
 		int is_html = (html_message != NULL);
 		seq_no = gg_send_message_110(sess, recipients[0], 0,
@@ -1833,7 +1838,7 @@ static int gg_notify105_ex(struct gg_session *sess, uin_t *userlist, char *types
 
 		while (i < count) {
 			size_t prev_size = gg_tvbuilder_get_size(tvb);
-			gg_tvbuilder_write_uin(tvb, userlist[i], 0);
+			gg_tvbuilder_write_uin(tvb, userlist[i]);
 			gg_tvbuilder_write_uint8(tvb,
 				(types == NULL) ? GG_USER_NORMAL : types[i]);
 
@@ -1895,7 +1900,7 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 		return -1;
 	}
 
-	if (sess->protocol_version >= GG_PROTOCOL_110)
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110)
 		return gg_notify105_ex(sess, userlist, types, count);
 
 	if (!userlist || !count)
@@ -1988,11 +1993,11 @@ int gg_add_notify_ex(struct gg_session *sess, uin_t uin, char type)
 		return -1;
 	}
 
-	if (sess->protocol_version >= GG_PROTOCOL_110) {
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110) {
 		gg_tvbuilder_t *tvb = gg_tvbuilder_new(sess, NULL);
 		gg_tvbuilder_expected_size(tvb, 16);
 
-		gg_tvbuilder_write_uin(tvb, uin, 0);
+		gg_tvbuilder_write_uin(tvb, uin);
 		gg_tvbuilder_write_uint8(tvb, type);
 
 		if (!gg_tvbuilder_send(tvb, GG_ADD_NOTIFY105))
@@ -2053,11 +2058,11 @@ int gg_remove_notify_ex(struct gg_session *sess, uin_t uin, char type)
 		return -1;
 	}
 
-	if (sess->protocol_version >= GG_PROTOCOL_110) {
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110) {
 		gg_tvbuilder_t *tvb = gg_tvbuilder_new(sess, NULL);
 		gg_tvbuilder_expected_size(tvb, 16);
 
-		gg_tvbuilder_write_uin(tvb, uin, 0);
+		gg_tvbuilder_write_uin(tvb, uin);
 		gg_tvbuilder_write_uint8(tvb, type);
 
 		if (!gg_tvbuilder_send(tvb, GG_REMOVE_NOTIFY105))

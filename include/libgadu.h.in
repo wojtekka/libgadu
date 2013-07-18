@@ -188,6 +188,8 @@ struct gg_dcc7_relay;
 
 struct gg_chat_list;
 
+struct gg_session_private;
+
 /**
  * Sposób rozwiązywania nazw serwerów.
  */
@@ -321,6 +323,8 @@ struct gg_session {
 	gg_ssl_t ssl_flag;			/**< Flaga połączenia szyfrowanego */
 
 	struct gg_chat_list *chat_list;		/**< Lista konferencji, w których bierzemy udział */
+
+	struct gg_session_private *private_data;	/**< Prywatne dane sesji, nie udostępnione w API */
 };
 
 /**
@@ -1684,8 +1688,14 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 #define GG_HTTPS_PORT 443
 #define GG_HTTP_USERAGENT "Mozilla/4.7 [en] (Win98; I)"
 
-#define GG_DEFAULT_CLIENT_VERSION "11.2.36.10334"
-#define GG_DEFAULT_PROTOCOL_VERSION 0x40
+/* TODO: czy 0x2e to dokładnie GG10.0? */
+#define GG_PROTOCOL_VERSION_100 0x2e
+#define GG_PROTOCOL_VERSION_110 0x40
+
+/* GG_DEPRECATED */
+#define GG_DEFAULT_CLIENT_VERSION "10.1.0.11070"
+
+#define GG_DEFAULT_PROTOCOL_VERSION GG_PROTOCOL_VERSION_110
 #define GG_DEFAULT_TIMEOUT 30
 #define GG_HAS_AUDIO_MASK 0x40000000
 #define GG_HAS_AUDIO7_MASK 0x20000000

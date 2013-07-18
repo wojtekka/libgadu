@@ -121,8 +121,8 @@ void gg_tvbuilder_fail(gg_tvbuilder_t *tvb, enum gg_failure_t failure)
 	if (tvb->ge) {
 		tvb->ge->type = GG_EVENT_CONN_FAILED;
 		tvb->ge->event.failure = failure;
-		tvb->gs->state = GG_STATE_IDLE;
 	}
+	tvb->gs->state = GG_STATE_IDLE;
 
 	gg_tvbuilder_free(tvb);
 }
@@ -159,7 +159,7 @@ int gg_tvbuilder_send(gg_tvbuilder_t *tvb, int type)
 			gg_debug_session(tvb->gs, GG_DEBUG_ERROR,
 				"// gg_tvbuilder_send() "
 				"sending packet %#x failed. (errno=%d, %s)\n",
-				errno, strerror(errno));
+				type, errno, strerror(errno));
 		}
 	}
 
@@ -411,18 +411,14 @@ void gg_tvbuilder_write_str(gg_tvbuilder_t *tvb, const char *buffer,
  *
  * \param tvb          Bufor
  * \param uin          Identyfikator użytkownika
- * \param variant_long 1, jeżeli przed blokiem identyfikatora ma być zapisana
- *                     jego długość, 0 w p.p.
  */
-void gg_tvbuilder_write_uin(gg_tvbuilder_t *tvb, uin_t uin, int variant_long)
+void gg_tvbuilder_write_uin(gg_tvbuilder_t *tvb, uin_t uin)
 {
 	char uin_str[16];
 	int uin_len;
 
 	uin_len = snprintf(uin_str, sizeof(uin_str), "%u", uin);
 
-	if (variant_long)
-		gg_tvbuilder_write_uint8(tvb, uin_len + 2);
 	gg_tvbuilder_write_uint8(tvb, 0x00);
 	gg_tvbuilder_write_str(tvb, uin_str, uin_len);
 }

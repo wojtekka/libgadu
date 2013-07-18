@@ -1,6 +1,7 @@
 #!/bin/sh
 # $Id$
 
+echo protobuf && ./protobufgen.sh || exit 1
 echo aclocal && aclocal -I m4 || exit 1
 echo autoheader && autoheader || exit 1
 echo libtoolize && libtoolize --copy || exit 1
