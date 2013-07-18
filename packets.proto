@@ -1,0 +1,226 @@
+// server -> client
+message GG110LoginOK
+{
+	required int32 dummy1 = 1 [default = 1];
+	required string dummyhash = 2;
+	required uint32 uin = 3;
+	required fixed32 server_time = 4;
+}
+
+// client -> server
+message GG110Ack
+{
+	enum Type
+	{
+		MSG = 1;
+		CHAT = 2;
+		CHAT_INFO = 3;
+		MPA = 6;
+		TRANSFER_INFO = 7;
+	}
+
+	required Type type = 1;
+	required uint32 seq = 2;
+	required uint32 dummy1 = 3 [default = 1];
+}
+
+// client -> server
+message GG105Login
+{
+	required string lang = 1;
+	required bytes uin = 2;
+	required bytes hash = 3;
+	required string client = 7;
+	required fixed32 initial_status = 8 [default = 0x2023]; // GG_STATUS_NOT_SET | USE_LAST_STATUS
+	required string initial_descr = 9 [default = ""];
+	required string supported_features = 11;
+
+	/**
+	 * GG11.2: 0x02
+	 * GG11.3: 0x04
+	 */
+	required int32 dummy1 = 4 [default = 4];
+
+	/* GG10.5: 0x0002e737
+	 * GG11.0: 0x01aeff77
+	 * GG11.2: 0x03eeff77
+	 */
+	required fixed32 dummy2 = 5 [default = 0x03eeff77];
+
+	/* privacy flag: 0x00000600
+	 * GG11.0:       0x00030014
+	 * GG10.5:       0x00000003
+	 */
+	required fixed32 dummy3 = 6 [default = 0x00030614];
+
+	required bytes dummy4 = 10; // 4x 0x00
+	required int32 dummy5 = 12 [default = 0xFF];
+	required int32 dummy6 = 13 [default = 100];
+	optional fixed32 dummy7 = 14 [default = 0x7F]; // GG11.0+
+	optional int32 dummy8 = 15 [default = 0]; // GG11.0+
+	//optional unknown_type dummy9 = 16;
+	optional uint32 dummy10 = 17 [default = 0]; // GG11.0+
+}
+
+// komponent GG110MessageAck
+message GG110MessageAckLink
+{
+	required fixed64 id = 1;
+	required string url = 2;
+}
+
+// server -> client
+message GG110MessageAck
+{
+	required uint32 msg_type = 1;
+	required uint32 seq = 2;
+	required fixed32 time = 3;
+	required fixed64 msg_id = 4;
+	required fixed64 conv_id = 5;
+	repeated GG110MessageAckLink links = 6;
+	required uint32 dummy1 = 7 [default = 0];
+}
+
+// server -> client
+message GG110Event
+{
+	enum Type
+	{
+		XML = 0;
+		JSON = 2;
+	}
+
+	required Type type = 1;
+	required uint32 seq = 2;
+	required string data = 3;
+	required string subtype = 4;
+	optional uint64 id = 5;
+}
+
+// server -> client
+message GG110RecvMessage
+{
+	optional bytes sender = 1; // nieobecne w GG_CHAT_RECV_OWN_MSG
+
+	/*       0x09: archiwalna wiadomość
+	 *     0x4040: odbierany obrazek
+	 * 0x00080008: GG w orange
+	 */
+	required uint32 flags = 2;
+
+	required uint32 seq = 3;
+	required fixed32 time = 4;
+	required string msg_plain = 5 [default = ""];
+	optional string msg_xhtml = 6;
+	optional bytes data = 7;
+	//optional unknown_type dummy1 = 8;
+	optional fixed64 msg_id = 9;
+	optional fixed64 chat_id = 10; // tylko w GG_CHAT_RECV_MSG i GG_CHAT_RECV_OWN_MSG
+	optional fixed64 conv_id = 11;
+}
+
+// client -> server
+// bardzo podobne do GG110RecvMessage
+message GG110SendMessage
+{
+	optional bytes recipient = 1;
+	required uint32 dummy1 = 2 [default = 0x08];
+	required uint32 seq = 3;
+	//optional unknown_type dummy2 = 4;
+	required string msg_plain = 5;
+	required string msg_xhtml = 6;
+	optional string dummy3 = 7 [default = ""]; // tylko, gdy chat_id jest ustawiony
+	//optional uknown_type dummy4 = 8;
+	//optional uknown_type dummy5 = 9;
+	optional fixed64 chat_id = 10;
+}
+
+// server -> client
+message GG110Imtoken
+{
+	required string imtoken = 1;
+}
+
+// server -> client
+message GG110ChatInfoUpdate
+{
+	required bytes participant = 1;
+	required bytes inviter = 2;
+	required fixed32 update_type = 3;
+	required fixed32 time = 4;
+	required fixed32 dummy1 = 5;
+	required uint32 version = 6;
+	required uint32 dummy2 = 7;
+	//optional unknown_type dummy3 = 8;
+	required fixed64 msg_id = 9;
+	required fixed64 chat_id = 10;
+	required fixed64 conv_id = 11;
+}
+
+message ProtobufKVP
+{
+	required string key = 1;
+	required string value = 2;
+}
+
+/* aol_enabled: zawsze 1
+ * expires_at: 0 lub data (z przeszłości?) powiązana z kontem
+ * state: 1 (jeżeli expires_at=0) lub 2
+ * subnet: zawsze 1
+ */
+// server -> client
+message GG110Options
+{
+	repeated ProtobufKVP options = 1;
+	required uint32 dummy1 = 2 [default = 0];
+}
+
+// server -> client
+message GG110AccessInfo
+{
+	required uint32 dummy1 = 1 [default = 1];
+	required uint32 dummy2 = 2; // 1 - stare numery, 2 - nowsze
+	required uint32 last_message = 3;
+	required uint32 last_file_transfer = 4;
+	required uint32 last_conference_ch = 5;
+}
+
+// komponent GG112TransferInfo
+message GG112TransferInfoUin
+{
+	required uint32 dummy1 = 1 [default = 1];
+	required bytes uin = 2;
+}
+
+// komponent GG112TransferInfo
+message GG112TransferInfoFile
+{
+	required string type = 1 [default = "other"]; // other, image
+	required string url = 2; // drive://...
+	// nieznane pola: 3-5
+	required string content_type = 6;
+	required string filename = 7;
+	required uint32 filesize = 8;
+	required fixed64 msg_id = 1001;
+}
+
+/* tablica data:
+ *  contentType
+ *  deliveryStatus = delivered
+ *  fileName
+ *  fileSize
+ *  fileUrl
+ */
+// server -> client
+message GG112TransferInfo
+{
+	required uint32 dummy1 = 1 [default = 6];
+	required GG112TransferInfoUin peer = 2; // osoba, z którą się wymieniamy plikiem
+	required GG112TransferInfoUin sender = 4; // nadawca (my, albo peer)
+	required fixed32 time = 3;
+	repeated ProtobufKVP data = 5;
+	required GG112TransferInfoFile file = 6;
+	required uint32 seq = 7;
+	required fixed64 msg_id = 1001;
+	required fixed64 conv_id = 1002;
+}

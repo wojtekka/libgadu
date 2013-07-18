@@ -42,7 +42,8 @@
 #include "internal.h"
 #include "deflate.h"
 #include "tvbuff.h"
-#include "tvbuilder.h"
+#include "protobuf.h"
+#include "packets.pb-c.h"
 
 #include <errno.h>
 #include <stdlib.h>
@@ -63,45 +64,46 @@ typedef struct {
 	int (*handler)(struct gg_session *, uint32_t, const char *, size_t, struct gg_event *);
 } gg_packet_handler_t;
 
-static int gg_ack_110(struct gg_session *gs, uint8_t type, uint32_t seq, struct gg_event *ge)
+static int gg_ack_110(struct gg_session *gs, GG110Ack__Type type, uint32_t seq, struct gg_event *ge)
 {
-	gg_tvbuilder_t *tvb;
+	GG110Ack msg = GG110_ACK__INIT;
 
-	tvb = gg_tvbuilder_new(gs, ge);
-	gg_tvbuilder_expected_size(tvb, 13);
+	msg.type = type;
+	msg.seq = seq;
 
-	gg_tvbuilder_write_uint8(tvb, 0x08);
-	gg_tvbuilder_write_uint8(tvb, type);
-
-	gg_tvbuilder_write_uint8(tvb, 0x10);
-	gg_tvbuilder_write_packed_uint(tvb, seq);
-
-	gg_tvbuilder_write_uint8(tvb, 0x18);
-	gg_tvbuilder_write_uint8(tvb, 0x01); /* magic */
-
-	if (!gg_tvbuilder_send(tvb, GG_ACK110))
+	if (!GG_PROTOBUF_SEND(gs, ge, GG_ACK110, gg110_ack, msg))
 		return -1;
 	return 0;
+}
+
+static void gg_sync_time(struct gg_session *gs, time_t server_time)
+{
+	time_t local_time = time(NULL);
+	int time_diff = server_time - local_time;
+
+	if (gs->private_data->time_diff == time_diff)
+		return;
+
+	gs->private_data->time_diff = time_diff;
+	gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_VERBOSE,
+		"// time synchronized (diff = %d)\n", time_diff);
 }
 
 static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
 	struct gg_event *ge)
 {
-	gg_tvbuilder_t *tvb;
-	char client_str[100];
+	GG105Login msg = GG105_LOGIN__INIT;
+	char client_str[1000];
 	uint8_t hash[64];
 	const char *client_name = GG11_VERSION;
-	const char *client_version = GG_DEFAULT_CLIENT_VERSION;
+	const char *client_version = GG_DEFAULT_CLIENT_VERSION_110;
 	const char *client_target = GG11_TARGET;
-	uint8_t dummy1[4] = {0, 0, 0, 0};
-
-	tvb = gg_tvbuilder_new(gs, ge);
-	gg_tvbuilder_expected_size(tvb, 500);
+	uint8_t dummy4[4] = {0, 0, 0, 0};
 
 	if (gs->hash_type != GG_LOGIN_HASH_SHA1) {
 		gg_debug_session(gs, GG_DEBUG_ERROR, "// Unsupported hash type "
 			"for this protocol version\n");
-		gg_tvbuilder_fail(tvb, GG_FAILURE_INTERNAL);
+		gg_connection_failure(gs, ge, GG_FAILURE_INTERNAL);
 		return -1;
 	}
 
@@ -109,7 +111,7 @@ static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
 		gg_debug_session(gs, GG_DEBUG_ERROR, "// gg_watch_fd() "
 			"gg_login_hash_sha1_2() failed, "
 			"probably out of memory\n");
-		gg_tvbuilder_fail(tvb, GG_FAILURE_INTERNAL);
+		gg_connection_failure(gs, ge, GG_FAILURE_INTERNAL);
 		return -1;
 	}
 
@@ -126,66 +128,35 @@ static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() "
 		"sending GG_LOGIN105 packet\n");
 
-	gg_tvbuilder_write_uint8(tvb, 0x0a);
-	gg_tvbuilder_write_str(tvb, GG8_LANG, -1);
-
-	gg_tvbuilder_write_uint8(tvb, 0x12);
-	gg_tvbuilder_write_uin(tvb, gs->uin, 1);
-
-	gg_tvbuilder_write_uint8(tvb, 0x1a);
-	gg_tvbuilder_write_str(tvb, (const char*)hash, 20);
-
-	gg_tvbuilder_write_uint8(tvb, 0x20);
-	gg_tvbuilder_write_uint8(tvb, 0x02);
-
-	gg_tvbuilder_write_uint8(tvb, 0x2d);
-	gg_tvbuilder_write_uint32(tvb, 0x03eeff77); /* GG11.2 */
-	/* gg_tvbuilder_write_uint32(tvb, 0x01aeff77); GG11.0 */
-	/* gg_tvbuilder_write_uint32(tvb, 0x0002e737); GG10.5 */
-
-	gg_tvbuilder_write_uint8(tvb, 0x35);
-	gg_tvbuilder_write_uint32(tvb, 0x00030014); /* GG11.0 */
-	/* gg_tvbuilder_write_uint32(tvb, 0x00000003); GG10.5 */
-
-	gg_tvbuilder_write_uint8(tvb, 0x3a);
-	gg_tvbuilder_write_str(tvb, client_str, -1);
+	msg.lang = GG8_LANG;
+	msg.uin = gg_protobuf_set_uin(gs->uin, NULL);
+	msg.hash.len = 20;
+	msg.hash.data = hash;
+	msg.client = client_str;
 
 	/* flagi gg8 są różne od tych dla gg11 */
-	gg_tvbuilder_write_uint8(tvb, 0x45);
-	gg_tvbuilder_write_uint32(tvb, gs->initial_status ?
-		(gs->initial_status & 0xFF) : GG_STATUS_AVAIL);
+	msg.initial_status = gs->initial_status ?
+		(gs->initial_status & 0xFF) : GG_STATUS_AVAIL;
 
-	gg_tvbuilder_write_uint8(tvb, 0x4a);
-	gg_tvbuilder_write_str(tvb,
-		(gs->initial_descr != NULL) ? gs->initial_descr : "", -1);
+	if (gs->initial_descr != NULL) {
+		msg.initial_descr = gs->initial_descr;
+	}
 
-	gg_tvbuilder_write_uint8(tvb, 0x52);
-	gg_tvbuilder_write_str(tvb, (const char*)dummy1, sizeof(dummy1));
+	/* GG11.0
+	msg.supported_features = "avatar,StatusComments,gg_account_sdp,"
+		"edisc,bot,fanpage,pubdir,botCaps"; */
+	/* GG11.2 */
+	msg.supported_features = "avatar,StatusComments,ggaccount,edisc,"
+		"music_shared,bot,fanpage,pubdir,botCaps,gifts,Gift";
 
-	gg_tvbuilder_write_uint8(tvb, 0x5a);
-	/* gg_tvbuilder_write_str(tvb, "avatar,StatusComments,gg_account_sdp,"
-		"edisc,bot,fanpage,pubdir,botCaps", -1); GG11.0 */
-	gg_tvbuilder_write_str(tvb, "avatar,StatusComments,ggaccount,edisc,"
-		"music_shared,bot,fanpage,pubdir,botCaps,gifts,Gift", -1);
-		/* GG11.2 */
+	msg.dummy4.len = sizeof(dummy4);
+	msg.dummy4.data = dummy4;
 
-	gg_tvbuilder_expected_size(tvb, 17);
-	gg_tvbuilder_write_uint8(tvb, 0x60);
-	gg_tvbuilder_write_packed_uint(tvb, 0xff);
+	msg.has_dummy7 = 1;
+	msg.has_dummy8 = 1;
+	msg.has_dummy10 = 1;
 
-	gg_tvbuilder_write_uint8(tvb, 0x68);
-	gg_tvbuilder_write_uint8(tvb, 0x64);
-
-	gg_tvbuilder_write_uint8(tvb, 0x75); /* GG11 only */
-	gg_tvbuilder_write_uint32(tvb, 0x7f);
-
-	gg_tvbuilder_write_uint8(tvb, 0x78); /* GG11 only */
-	gg_tvbuilder_write_uint8(tvb, 0x00);
-
-	gg_tvbuilder_write_uint8(tvb, 0x88); /* GG11 only */
-	gg_tvbuilder_write_packed_uint(tvb, 0x80);
-
-	if (!gg_tvbuilder_send(tvb, GG_LOGIN105))
+	if (!GG_PROTOBUF_SEND(gs, ge, GG_LOGIN105, gg105_login, msg))
 		return -1;
 
 	gs->state = GG_STATE_READING_REPLY;
@@ -195,11 +166,19 @@ static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
 
 static int gg_session_handle_login110_ok(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
-	char *somehash = NULL;
-	uint32_t server_time = 0;
+	GG110LoginOK *msg = gg110_login_ok__unpack(NULL, len, (uint8_t*)ptr);
 
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
+	if (!GG_PROTOBUF_VALID(gs, "GG110LoginOK", msg))
+		return -1;
+
+	gg_protobuf_expected(gs, "GG110LoginOK.dummy1", msg->dummy1, 1);
+	gg_sync_time(gs, msg->server_time);
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// login110_ok: "
+		"uin=%u, dummyhash=%s\n", msg->uin, msg->dummyhash);
+
+	gg110_login_ok__free_unpacked(msg, NULL);
+
 	ge->type = GG_EVENT_CONN_SUCCESS;
 	gs->state = GG_STATE_CONNECTED;
 	gs->check = GG_CHECK_READ;
@@ -212,37 +191,6 @@ static int gg_session_handle_login110_ok(struct gg_session *gs, uint32_t type, c
 	free(gs->initial_descr);
 #endif
 	gs->initial_descr = NULL;
-
-	tvb = gg_tvbuff_new(ptr, len);
-
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x08)) {
-			gg_tvbuff_expected_uint8(tvb, 0x01);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x12)) {
-			gg_tvbuff_read_str_dup(tvb, &somehash);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x18)) {
-			gg_tvbuff_skip(tvb, 4);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x25)) {
-			server_time = gg_tvbuff_read_uint32(tvb);
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb)) {
-		free(somehash);
-		return -1;
-	}
-
-	gg_debug_session(gs, GG_DEBUG_MISC, "// login110_ok: "
-		"some hash=%s, server time=%u\n", somehash, server_time);
-	free(somehash);
 
 	return 0;
 }
@@ -278,7 +226,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 	w = (const struct gg_welcome*) ptr;
 	seed = gg_fix32(w->key);
 
-	if (gs->protocol_version >= GG_PROTOCOL_110)
+	if (gs->protocol_version >= GG_PROTOCOL_VERSION_110)
 		return gg_session_handle_welcome_110(gs, seed, ge);
 
 	memset(hash_buf, 0, sizeof(hash_buf));
@@ -369,7 +317,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		client_name_len = strlen(GG8_VERSION);
 	}
 
-	version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION;
+	version = (gs->client_version != NULL) ? gs->client_version : GG_DEFAULT_CLIENT_VERSION_100;
 	version_len = gg_fix32(client_name_len + strlen(version));
 
 	descr = (gs->initial_descr != NULL) ? gs->initial_descr : "";
@@ -469,94 +417,39 @@ static int gg_session_handle_send_msg_ack(struct gg_session *gs, uint32_t type, 
 	return 0;
 }
 
-static void gg_session_handle_send_msg_ack_110_data(struct gg_session *gs,
-	const char *ptr, size_t len, struct gg_event *ge)
-{
-	gg_tvbuff_t *tvb;
-	char *link = NULL;
-	uint64_t id = 0;
-
-	tvb = gg_tvbuff_new(ptr, len);
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x09)) {
-			id = gg_tvbuff_read_uint64(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x12)) {
-			gg_tvbuff_read_str_dup(tvb, &link);
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb) || !link || !id)
-		return;
-
-	gg_debug_session(gs, GG_DEBUG_MISC,
-		"// gg_session_handle_send_msg_ack_110_data() "
-		"got link (id=%llu) \"%s\"\n", id, link);
-}
-
 /**
  * \internal Obsługuje pakiet GG_SEND_MSG_ACK110.
  */
 static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 	uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
-	uint32_t seq = 0;
-	uint32_t time = 0;
-	uint8_t msg_type = 0;
+	GG110MessageAck *msg = gg110_message_ack__unpack(NULL, len, (uint8_t*)ptr);
+	size_t i;
 
-	tvb = gg_tvbuff_new(ptr, len);
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x08)) {
-			msg_type = gg_tvbuff_read_uint8(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x10)) {
-			seq = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x1d)) {
-			time = gg_tvbuff_read_uint32(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x21)) {
-			gg_tvbuff_skip(tvb, 4); /* 0x __ (02|10) __ 00 */
-			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x29)) {
-			gg_tvbuff_skip(tvb, 4); /* 0x __ (02|10) (00|02) 00 */
-			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x32)) {
-			const char *buff;
-			size_t buff_len;
-
-			buff = gg_tvbuff_read_str(tvb, &buff_len);
-			if (!buff)
-				continue;
-
-			gg_session_handle_send_msg_ack_110_data(gs, buff, buff_len, ge);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x38)) {
-			gg_tvbuff_expected_uint8(tvb, 0x00);
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb) || !msg_type || !time)
+	if (!GG_PROTOBUF_VALID(gs, "GG110MessageAck", msg))
 		return -1;
 
+	gg_protobuf_expected(gs, "GG110MessageAck.dummy1", msg->dummy1, 0);
+
+	gg_debug_session(gs, GG_DEBUG_VERBOSE,
+		"// gg_session_handle_send_msg_ack_110() "
+		"msg_id=%016llx conv_id=%016llx\n", msg->msg_id, msg->conv_id);
+
+	for (i = 0; i < msg->n_links; i++) {
+		GG110MessageAckLink *link = msg->links[i];
+		if (!GG_PROTOBUF_VALID(gs, "GG110MessageAckLink", link))
+			continue;
+		gg_debug_session(gs, GG_DEBUG_MISC,
+			"// gg_session_handle_send_msg_ack_110() "
+			"got link (id=%llu) \"%s\"\n", link->id, link->url);
+	}
+
 	ge->type = GG_EVENT_ACK110;
-	ge->event.ack110.msg_type = msg_type;
-	ge->event.ack110.seq = seq;
-	ge->event.ack110.time = time;
+	ge->event.ack110.msg_type = msg->msg_type;
+	ge->event.ack110.seq = msg->seq;
+	ge->event.ack110.time = msg->time;
+
+	gg110_message_ack__free_unpacked(msg, NULL);
 
 	return 0;
 }
@@ -630,73 +523,39 @@ static int gg_session_handle_xml_event(struct gg_session *gs, uint32_t type, con
 
 static int gg_session_handle_event_110(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
-	uint32_t seq = 0;
-	uint8_t event_type = -1;
-	char *data = NULL;
-	char *json_type = NULL;
-	uint64_t event_id = 0;
+	GG110Event *msg = gg110_event__unpack(NULL, len, (uint8_t*)ptr);
+	int succ = 1;
 
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
-		"received GG11 event\n");
-
-	tvb = gg_tvbuff_new(ptr, len);
-
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x08)) {
-			event_type = gg_tvbuff_read_uint8(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x10)) {
-			seq = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x1a)) {
-			gg_tvbuff_read_str_dup(tvb, &data);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x22)) {
-			gg_tvbuff_read_str_dup(tvb, &json_type);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x28)) {
-			event_id = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb) || seq == 0 || event_type == -1) {
-		free(json_type);
-		free(data);
+	if (!GG_PROTOBUF_VALID(gs, "GG110Event", msg))
 		return -1;
-	}
 
-	if (event_type == GG_EVENT110_XML) {
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_event_110: "
+		"received GG11 event (type=%d, id=%llx)\n", msg->type, msg->id);
+
+	if (msg->type == GG110_EVENT__TYPE__XML) {
 		ge->type = GG_EVENT_XML_EVENT;
-		ge->event.xml_event.data = data;
-		free(json_type);
-	} else if (event_type == GG_EVENT110_JSON) {
+		ge->event.xml_event.data = strdup(msg->data);
+		succ &= (ge->event.xml_event.data != NULL);
+	} else if (msg->type == GG110_EVENT__TYPE__JSON) {
 		ge->type = GG_EVENT_JSON_EVENT;
-		ge->event.json_event.data = data;
-		ge->event.json_event.type = json_type;
+		ge->event.json_event.data = strdup(msg->data);
+		succ &= (ge->event.json_event.data != NULL);
+		ge->event.json_event.type = strdup(msg->subtype);
+		succ &= (ge->event.json_event.type != NULL);
 	} else {
-		gg_debug_session(gs, GG_DEBUG_WARNING, "// handle_event110() "
-			"unsupported GG11 event type: %d (id=%llu)\n",
-			event_type, event_id);
-		free(json_type);
-		free(data);
-		gg_ack_110(gs, GG_ACK110_MPA, seq, ge);
-		return -1;
+		gg_debug_session(gs, GG_DEBUG_WARNING,
+			"// gg_session_handle_event_110: "
+			"unsupported GG11 event type: %d\n", msg->type);
+		succ = 0;
 	}
 
-#if 0
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_event_110() "
-		"magic_ts = %u, magic_fl = %u (%#x)\n",
-		magic_ts, magic_fl, magic_fl);
-#endif
+	if (gg_ack_110(gs, GG110_ACK__TYPE__MPA, msg->seq, ge) != 0) {
+		succ = 0;
+	}
 
-	return gg_ack_110(gs, GG_ACK110_MPA, seq, ge);
+	gg110_event__free_unpacked(msg, NULL);
+
+	return succ ? 0 : -1;
 }
 
 /**
@@ -1373,177 +1232,142 @@ malformed:
 	return 0;
 }
 
-static int gg_session_handle_recv_msg_110(struct gg_session *sess, uint32_t type, const char *packet, size_t length, struct gg_event *e)
+static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
+	GG110RecvMessage *msg = gg110_recv_message__unpack(NULL, len, (uint8_t*)ptr);
 	uint8_t ack_type;
-
-	uint32_t seq = 0;
-	uin_t sender = 0; /* nieobecne w GG_CHAT_RECV_OWN_MSG */
-
-	/* 09 -> archiwalna wiadomość? */
-	/* 0x00080008 -> GG w Orange */
-	uint32_t flags = 0;
-
-	uint32_t msg_time = 0;
-	const char *msg_plain = NULL, *msg_xhtml = NULL, *data = NULL;
-	size_t msg_plain_len = 0, msg_xhtml_len = 0, data_len = 0;
-	uint64_t chat_id = 0;
-
+	uin_t sender = 0;
+	uint32_t seq;
 	int succ = 1;
+	struct gg_event_msg *ev = &ge->event.msg;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg110(%p, %d, %p);\n", packet, length, e);
+	gg_debug_session(gs, GG_DEBUG_FUNCTION,
+		"** gg_session_handle_recv_msg_110(%p, %d, %p);\n",
+		ptr, len, ge);
 
-	if (type == GG_CHAT_RECV_MSG || type == GG_CHAT_RECV_OWN_MSG)
-		ack_type = GG_ACK110_CHAT;
-	else
-		ack_type = GG_ACK110_MSG;
-
-	if (type == GG_CHAT_RECV_OWN_MSG)
-		sender = sess->uin;
-
-	tvb = gg_tvbuff_new(packet, length);
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x0a)) {
-			sender = gg_tvbuff_read_uin(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x10)) {
-			flags = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x18)) {
-			seq = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x25)) {
-			msg_time = gg_tvbuff_read_uint32(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x2a)) {
-			msg_plain = gg_tvbuff_read_str(tvb, &msg_plain_len);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x32)) {
-			msg_xhtml = gg_tvbuff_read_str(tvb, &msg_xhtml_len);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x3a)) {
-			data = gg_tvbuff_read_str(tvb, &data_len);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x49)) {
-			gg_tvbuff_skip(tvb, 3);
-			gg_tvbuff_expected_uint8(tvb, 0x00);
-
-			/* timestamp: taki sam czas jak czas wiadomości lub o jeden mniej */
-			gg_tvbuff_skip(tvb, 4); 
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x51)) {
-			/* type == GG_CHAT_RECV_MSG || type == GG_CHAT_RECV_OWN_MSG */
-			chat_id = gg_tvbuff_read_uint64(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x59)) {
-			/* id rozmówcy? konwersacji? */
-			gg_tvbuff_skip(tvb, 3);
-			gg_tvbuff_expected_uint8(tvb, 0x00);
-
-			/* czas początku konwersacji */
-			gg_tvbuff_skip(tvb, 4); 
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb) || !seq) {
-		if (seq)
-			gg_ack_110(sess, ack_type, seq, e);
+	if (!GG_PROTOBUF_VALID(gs, "GG110RecvMessage", msg))
 		return -1;
+
+	seq = msg->seq;
+	if (type == GG_CHAT_RECV_MSG || type == GG_CHAT_RECV_OWN_MSG)
+		ack_type = GG110_ACK__TYPE__CHAT;
+	else
+		ack_type = GG110_ACK__TYPE__MSG;
+
+	if (msg->has_msg_id || msg->has_conv_id) {
+		msg->msg_id = msg->has_msg_id ? msg->msg_id : 0;
+		msg->conv_id = msg->has_conv_id ? msg->conv_id : 0;
+		gg_debug_session(gs, GG_DEBUG_VERBOSE,
+			"// gg_session_handle_recv_msg_110() "
+			"msg_id=%016llx conv_id=%016llx\n",
+			msg->msg_id, msg->conv_id);
 	}
 
-	if (data != NULL && msg_plain_len == 0) {
-		if (data == NULL ||
-			data_len < sizeof(struct gg_msg_image_reply))
+	if (msg->has_sender)
+		sender = gg_protobuf_get_uin(msg->sender);
+	else if (type == GG_CHAT_RECV_OWN_MSG)
+		sender = gs->uin;
+
+	if (msg->has_data && msg->msg_plain[0] == '\0') {
+		if (msg->data.len < sizeof(struct gg_msg_image_reply)) {
+			gg_debug_session(gs, GG_DEBUG_ERROR,
+				"// gg_session_handle_recv_msg_110() "
+				"packet too small\n");
 			return -1;
-
-		gg_image_queue_parse(e, data, data_len, sess, sender, type);
-
-		return gg_ack_110(sess, GG_ACK110_MSG, seq, e);
-	}
-
-	if (sender)
-		e->event.msg.sender = sender;
-	e->event.msg.flags = flags;
-	e->event.msg.seq = seq;
-	e->event.msg.time = msg_time;
-	e->event.msg.message = NULL;
-	if (msg_plain)
-		e->event.msg.message = (unsigned char*)gg_encoding_convert(
-			msg_plain, GG_ENCODING_UTF8, sess->encoding,
-			msg_plain_len, -1);
-	e->event.msg.xhtml_message = NULL;
-	if (msg_xhtml)
-		e->event.msg.xhtml_message = gg_encoding_convert(msg_xhtml,
-			GG_ENCODING_UTF8, sess->encoding, msg_xhtml_len, -1);
-
-	e->event.msg.formats = NULL;
-	if (data != NULL) { /* otrzymywane tylko od gg <= 10.5 */
-		e->event.msg.formats_length = data_len;
-		e->event.msg.formats = malloc(data_len);
-		if (e->event.msg.formats == NULL)
-			succ = 0;
-		else
-			memcpy(e->event.msg.formats, data, data_len);
-	}
-
-	/* wiadomości wysłane z mobilnego gg nie posiadają wersji xhtml */
-	if (msg_plain && !msg_xhtml) {
-		e->event.msg.xhtml_message = gg_message_text_to_html_110(
-			msg_plain, msg_plain_len);
-		if (e->event.msg.xhtml_message == NULL)
-			succ = 0;
-	}
-
-	if (chat_id) {
-		struct gg_chat_list *chat;
-
-		e->event.msg.chat_id = chat_id;
-
-		chat = gg_chat_find(sess, chat_id);
-		if (chat) {
-			e->event.msg.recipients = malloc(
-				chat->participants_count * sizeof(uin_t));
-			e->event.msg.recipients_count =
-				chat->participants_count;
-			if (e->event.msg.recipients == NULL)
-				succ = 0;
-			else
-				memcpy(e->event.msg.recipients,
-					chat->participants,
-					chat->participants_count *
-						sizeof(uin_t));
 		}
+
+		gg_image_queue_parse(ge, (char *)msg->data.data, msg->data.len,
+			gs, sender, type);
+
+		gg110_recv_message__free_unpacked(msg, NULL);
+		return gg_ack_110(gs, GG110_ACK__TYPE__MSG, seq, ge);
 	}
 
 	if (type == GG_RECV_OWN_MSG110 || type == GG_CHAT_RECV_OWN_MSG)
-		e->type = GG_EVENT_MULTILOGON_MSG;
+		ge->type = GG_EVENT_MULTILOGON_MSG;
 	else
-		e->type = GG_EVENT_MSG;
-	e->event.msg.msgclass = GG_CLASS_CHAT;
-	e->event.msg.seq = seq;
+		ge->type = GG_EVENT_MSG;
+	ev->msgclass = GG_CLASS_CHAT;
+	ev->seq = seq;
+	ev->sender = sender;
+	ev->flags = msg->flags;
+	ev->seq = seq;
+	ev->time = msg->time;
 
-	if (seq && gg_ack_110(sess, ack_type, seq, e) != 0)
+	if (abs(msg->time - gg_server_time(gs)) > 2)
+		ev->msgclass |= GG_CLASS_QUEUED;
+
+	ev->message = NULL;
+	if (msg->msg_plain[0] != '\0') {
+		ev->message = (unsigned char*)gg_encoding_convert(
+			msg->msg_plain, GG_ENCODING_UTF8, gs->encoding, -1, -1);
+		succ &= (ev->message != NULL);
+	}
+	ev->xhtml_message = NULL;
+	if (msg->msg_xhtml != NULL) {
+		ev->xhtml_message = gg_encoding_convert(
+			msg->msg_xhtml, GG_ENCODING_UTF8, gs->encoding, -1, -1);
+		succ &= (ev->xhtml_message != NULL);
+	}
+
+	/* wiadomości wysłane z mobilnego gg nie posiadają wersji xhtml */
+	if (ev->message == NULL && ev->xhtml_message == NULL) {
+		ev->message = (unsigned char*)strdup("");
+		succ &= (ev->message != NULL);
+	} else if (ev->message == NULL) {
+		ev->message = (unsigned char*)gg_message_html_to_text_110(
+			ev->xhtml_message);
+		succ &= (ev->message != NULL);
+	} else if (ev->xhtml_message == NULL) {
+		ev->xhtml_message = gg_message_text_to_html_110(
+			(char*)ev->message, -1);
+		succ &= (ev->xhtml_message != NULL);
+	}
+
+	/* otrzymywane tylko od gg <= 10.5 */
+	ev->formats = NULL;
+	ev->formats_length = 0;
+	if (msg->has_data && succ) {
+		ev->formats_length = msg->data.len;
+		ev->formats = malloc(msg->data.len);
+		if (ev->formats == NULL)
+			succ = 0;
+		else
+			memcpy(ev->formats, msg->data.data, msg->data.len);
+	}
+
+	if (msg->has_chat_id && succ) {
+		struct gg_chat_list *chat;
+
+		ev->chat_id = msg->chat_id;
+
+		chat = gg_chat_find(gs, msg->chat_id);
+		if (chat) {
+			size_t rcpt_size = chat->participants_count *
+				sizeof(uin_t);
+			ev->recipients = malloc(rcpt_size);
+			ev->recipients_count = chat->participants_count;
+			if (ev->recipients == NULL)
+				succ = 0;
+			else {
+				memcpy(ev->recipients, chat->participants,
+					rcpt_size);
+			}
+		}
+	}
+
+	gg110_recv_message__free_unpacked(msg, NULL);
+
+	if (gg_ack_110(gs, ack_type, seq, ge) != 0)
 		succ = 0;
-	
+
 	if (succ)
 		return 0;
 	else {
-		free(e->event.msg.message);
-		free(e->event.msg.xhtml_message);
-		free(e->event.msg.formats);
-		free(e->event.msg.recipients);
+		free(ev->message);
+		free(ev->xhtml_message);
+		free(ev->formats);
+		free(ev->recipients);
 		return -1;
 	}
 }
@@ -2324,43 +2148,45 @@ static int gg_session_handle_userlist_100_reply(struct gg_session *gs, uint32_t 
 
 static int gg_session_handle_imtoken(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
+	GG110Imtoken *msg = gg110_imtoken__unpack(NULL, len, (uint8_t*)ptr);
 	char *imtoken = NULL;
+	int succ = 1;
+
+	if (!GG_PROTOBUF_VALID(gs, "GG110Imtoken", msg))
+		return -1;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
 		"received imtoken\n");
 
-	tvb = gg_tvbuff_new(ptr, len);
-
-	if (gg_tvbuff_match(tvb, 0x0a))
-		gg_tvbuff_read_str_dup(tvb, &imtoken);
-
-	if (!gg_tvbuff_close(tvb) || imtoken == NULL) {
-		free(imtoken);
-		return -1;
+	if (msg->imtoken[0] != '\0') {
+		imtoken = strdup(msg->imtoken);
+		succ &= (imtoken != NULL);
 	}
 
-	if (imtoken[0] == '\0') {
-		free(imtoken);
-		imtoken = NULL;
-	}
+	gg110_imtoken__free_unpacked(msg, NULL);
 
 	ge->type = GG_EVENT_IMTOKEN;
 	ge->event.imtoken.imtoken = imtoken;
-	return 0;
+
+	return succ ? 0 : -1;
 }
 
 static int gg_session_handle_pong_110(struct gg_session *gs, uint32_t type,
 	const char *ptr, size_t len, struct gg_event *ge)
 {
 	const struct gg_pong110 *pong = (const struct gg_pong110*)ptr;
-	
+	uint32_t server_time;
+
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
 		"received pong110\n");
-	
+
+	server_time = gg_fix32(pong->time);
+
 	ge->type = GG_EVENT_PONG110;
-	ge->event.pong110.time = gg_fix32(pong->time);
-	
+	ge->event.pong110.time = server_time;
+
+	gg_sync_time(gs, server_time);
+
 	return 0;
 }
 
@@ -2433,83 +2259,37 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, con
 
 static int gg_session_handle_chat_info_update(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
+	GG110ChatInfoUpdate *msg = gg110_chat_info_update__unpack(NULL, len, (uint8_t*)ptr);
 	struct gg_chat_list *chat;
+	uin_t participant;
 
-	uint64_t id = 0;
-	uint32_t update_type = 0;
-	uin_t participant = 0, inviter = 0;
-	uint32_t version = 0;
-	uint32_t time = 0;
-
-	tvb = gg_tvbuff_new(ptr, len);
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x0a)) {
-			participant = gg_tvbuff_read_uin(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x12)) {
-			inviter = gg_tvbuff_read_uin(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x1d)) {
-			update_type = gg_tvbuff_read_uint32(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x25)) {
-			time = gg_tvbuff_read_uint32(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x2d)) {
-			gg_tvbuff_read_uint32(tvb); /* unknown */
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x30)) {
-			version = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x38)) {
-			gg_tvbuff_skip(tvb, 1);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x49)) {
-			gg_tvbuff_skip(tvb, 4); /* 0x 0_ 10 0_ 00 */
-			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x51)) {
-			id = gg_tvbuff_read_uint64(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x59)) {
-			gg_tvbuff_skip(tvb, 4); /* 0x 0_ 10 00 00 */
-			gg_tvbuff_skip(tvb, 4); /* unknown timestamp */
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb) || !id || !update_type || !participant)
+	if (!GG_PROTOBUF_VALID(gs, "GG110ChatInfoUpdate", msg))
 		return -1;
 
+	gg_debug_session(gs, GG_DEBUG_VERBOSE,
+		"// gg_session_handle_chat_info_update() "
+		"msg_id=%016llx conv_id=%016llx\n", msg->msg_id, msg->conv_id);
+
 	ge->type = GG_EVENT_CHAT_INFO_UPDATE;
-	ge->event.chat_info_update.id = id;
-	ge->event.chat_info_update.type = update_type;
-	ge->event.chat_info_update.participant = participant;
-	ge->event.chat_info_update.inviter = inviter;
-	ge->event.chat_info_update.version = version;
-	ge->event.chat_info_update.time = time;
+	ge->event.chat_info_update.id = msg->chat_id;
+	ge->event.chat_info_update.type = msg->update_type;
+	ge->event.chat_info_update.participant = participant = gg_protobuf_get_uin(msg->participant);
+	ge->event.chat_info_update.inviter = gg_protobuf_get_uin(msg->inviter);
+	ge->event.chat_info_update.version = msg->version;
+	ge->event.chat_info_update.time = msg->time;
 
-	chat = gg_chat_find(gs, id);
-	if (!chat)
+	chat = gg_chat_find(gs, msg->chat_id);
+	if (!chat) {
+		gg110_chat_info_update__free_unpacked(msg, NULL);
 		return 0;
+	}
 
-	chat->version = version;
-	if (update_type == GG_CHAT_INFO_UPDATE_ENTERED) {
+	chat->version = msg->version;
+	if (msg->update_type == GG_CHAT_INFO_UPDATE_ENTERED) {
 		chat->participants_count++;
 		chat->participants = realloc(chat->participants, sizeof(uin_t) * chat->participants_count);
 		chat->participants[chat->participants_count - 1] = participant;
-	} else if (update_type == GG_CHAT_INFO_UPDATE_EXITED) {
+	} else if (msg->update_type == GG_CHAT_INFO_UPDATE_EXITED) {
 		int idx;
 		for (idx = 0; idx < chat->participants_count; idx++)
 			if (chat->participants[idx] == participant)
@@ -2528,6 +2308,7 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs, uint32_t ty
 		}
 	}
 
+	gg110_chat_info_update__free_unpacked(msg, NULL);
 	return 0;
 }
 
@@ -2573,117 +2354,136 @@ static int gg_session_handle_chat_left(struct gg_session *gs, uint32_t type, con
 	return 0;
 }
 
-static void gg_session_handle_option(struct gg_session *gs, const char *ptr, size_t len)
-{
-	gg_tvbuff_t *tvb;
-	char *option_name = NULL;
-	char *option_value = NULL;
-
-	tvb = gg_tvbuff_new(ptr, len);
-
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x0a)) {
-			gg_tvbuff_read_str_dup(tvb, &option_name);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x12)) {
-			gg_tvbuff_read_str_dup(tvb, &option_value);
-			continue;
-		}
-		break;
-	}
-
-	if (!gg_tvbuff_close(tvb)) {
-		gg_debug_session(gs, GG_DEBUG_WARNING,
-			"// gg_session_handle_option() failed\n");
-	}
-
-	gg_debug_session(gs, GG_DEBUG_MISC,
-		"// gg_session_handle_option() \"%s\" = \"%s\"\n",
-			option_name ? option_name : "?",
-			option_value ? option_value : "?");
-
-	free(option_name);
-	free(option_value);
-}
-
 static int gg_session_handle_options(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_tvbuff_t *tvb;
+	GG110Options *msg = gg110_options__unpack(NULL, len, (uint8_t*)ptr);
+	size_t i;
 
-	tvb = gg_tvbuff_new(ptr, len);
+	if (!GG_PROTOBUF_VALID(gs, "GG110Options", msg))
+		return -1;
 
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x0a)) {
-			const char *buff;
-			size_t buff_len;
-			
-			buff = gg_tvbuff_read_str(tvb, &buff_len);
-			if (!buff)
-				continue;
-			gg_session_handle_option(gs, buff, buff_len);
+	gg_protobuf_expected(gs, "GG110Options.dummy1", msg->dummy1, 0);
+
+	for (i = 0; i < msg->n_options; i++) {
+		ProtobufKVP *kvp = msg->options[i];
+		if (!GG_PROTOBUF_VALID(gs, "ProtobufKVP", kvp))
 			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x10)) {
-			gg_tvbuff_expected_uint8(tvb, 0x00);
-			continue;
-		}
-		break;
+		gg_debug_session(gs, GG_DEBUG_MISC,
+			"// gg_session_handle_options[%s] = \"%s\"\n",
+			kvp->key, kvp->value);
 	}
 
-	if (!gg_tvbuff_close(tvb)) {
-		gg_debug_session(gs, GG_DEBUG_WARNING,
-			"// gg_session_handle_options() failed\n");
-	}
+	gg110_options__free_unpacked(msg, NULL);
 
 	return 0;
 }
 
-static int gg_session_handle_access_dates(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+static int gg_session_handle_access_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	GG110AccessInfo *msg = gg110_access_info__unpack(NULL, len, (uint8_t*)ptr);
+
+	if (!GG_PROTOBUF_VALID(gs, "GG110AccessInfo", msg))
+		return -1;
+
+	gg_debug_session(gs, GG_DEBUG_MISC,
+		"// gg_session_handle_access_info: dummy[%02x, %02x], "
+		"last[message=%lu, file_transfer=%lu, conference_ch=%lu]\n",
+		msg->dummy1, msg->dummy2, msg->last_message,
+		msg->last_file_transfer, msg->last_conference_ch);
+
+	gg110_access_info__free_unpacked(msg, NULL);
+
+	return 0;
+}
+
+/* ten pakiet jest odbierany tylko, jeżeli przy logowaniu użyliśmy identyfikatora typu 0x01 */
+static int gg_session_handle_uin_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	gg_tvbuff_t *tvb;
-
-	uint8_t dummy1 = 0, dummy2 = 0;
-	uint32_t last_message = 0, last_transfer = 0, last_conference_ch = 0;
+	char *uin1 = NULL, *uin2 = NULL;
 
 	tvb = gg_tvbuff_new(ptr, len);
 
-	while (gg_tvbuff_get_remaining(tvb)) {
-		if (gg_tvbuff_match(tvb, 0x08)) {
-			dummy1 = gg_tvbuff_read_uint8(tvb); /* 0x01 */
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x10)) {
-			dummy2 = gg_tvbuff_read_uint8(tvb); /* 0x02 lub 0x01 (stare numery?)*/
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x18)) {
-			last_message = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x20)) {
-			last_transfer = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		if (gg_tvbuff_match(tvb, 0x28)) {
-			last_conference_ch = gg_tvbuff_read_packed_uint(tvb);
-			continue;
-		}
-		break;
-	}
+	gg_tvbuff_expected_uint32(tvb, 1); /* unknown */
+	gg_tvbuff_expected_uint32(tvb, 2); /* unknown */
+
+	/* podstawowy identyfikator (numer GG) */
+	gg_tvbuff_expected_uint8(tvb, 0);
+	gg_tvbuff_read_str_dup(tvb, &uin1);
+
+	/* identyfikator użyty przy logowaniu (numer GG lub email) */
+	gg_tvbuff_expected_uint8(tvb, 1);
+	gg_tvbuff_read_str_dup(tvb, &uin2);
 
 	if (!gg_tvbuff_close(tvb)) {
-		gg_debug_session(gs, GG_DEBUG_WARNING,
-			"// gg_session_handle_access_dates() failed\n");
+		free(uin1);
+		free(uin2);
+		return -1;
+	}
+
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_uin_info: "
+		"uin1=\"%s\", uin2=\"%s\"\n", uin1, uin2);
+
+	free(uin1);
+	free(uin2);
+
+	return 0;
+}
+
+static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
+{
+	GG112TransferInfo *msg = gg112_transfer_info__unpack(NULL, len, (uint8_t*)ptr);
+	int succ = 1, i;
+	uin_t peer = 0, sender = 0;
+
+	if (!GG_PROTOBUF_VALID(gs, "GG112TransferInfo", msg))
+		return -1;
+
+	gg_protobuf_expected(gs, "GG112TransferInfo.dummy1", msg->dummy1, 6);
+
+	if (GG_PROTOBUF_VALID(gs, "GG112TransferInfoUin", msg->peer)) {
+		gg_protobuf_expected(gs, "GG112TransferInfoUin.dummy1",
+			msg->peer->dummy1, 1);
+		peer = gg_protobuf_get_uin(msg->peer->uin);
+	}
+	if (GG_PROTOBUF_VALID(gs, "GG112TransferInfoUin", msg->sender)) {
+		gg_protobuf_expected(gs, "GG112TransferInfoUin.dummy1",
+			msg->sender->dummy1, 1);
+		sender = gg_protobuf_get_uin(msg->sender->uin);
 	}
 
 	gg_debug_session(gs, GG_DEBUG_MISC,
-		"// gg_session_handle_access_dates() dummy[%02x, %02x], "
-		"last[message=%lu, transfer=%lu, conference_ch=%lu]\n",
-		dummy1, dummy2, last_message, last_transfer,
-		last_conference_ch);
+		"// gg_session_handle_transfer_info: dummy1=%#x, time=%u, "
+			"sender=%u, peer=%u, msg_id=%#016llx, "
+			"conv_id=%#016llx\n",
+		msg->dummy1, msg->time, sender, peer, msg->msg_id,
+		msg->conv_id);
 
-	return 0;
+	for (i = 0; i < msg->n_data; i++) {
+		ProtobufKVP *kvp = msg->data[i];
+		if (!GG_PROTOBUF_VALID(gs, "ProtobufKVP", kvp))
+			continue;
+		gg_debug_session(gs, GG_DEBUG_MISC,
+			"// gg_session_handle_transfer_info[%s] = \"%s\"\n",
+			kvp->key, kvp->value);
+	}
+
+	if (GG_PROTOBUF_VALID(gs, "GG112TransferInfoFile", msg->file)) {
+		GG112TransferInfoFile *file = msg->file;
+		gg_debug_session(gs, GG_DEBUG_MISC,
+			"// gg_session_handle_transfer_info file: "
+			"type=\"%s\", content_type=\"%s\", filename=\"%s\", "
+			"filesize=%u, msg_id=%#016llx url=\"%s\"\n",
+			file->type, file->content_type, file->filename,
+			file->filesize, file->msg_id, file->url);
+	}
+
+	succ = (gg_ack_110(gs, GG110_ACK__TYPE__TRANSFER_INFO,
+		msg->seq, ge) == 0);
+
+	gg112_transfer_info__free_unpacked(msg, NULL);
+
+	return succ ? 0 : -1;
 }
 
 /**
@@ -2743,7 +2543,9 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_CHAT_RECV_OWN_MSG, GG_STATE_CONNECTED, 0, gg_session_handle_recv_msg_110 },
 	{ GG_CHAT_LEFT, GG_STATE_CONNECTED, sizeof(struct gg_chat_left), gg_session_handle_chat_left },
 	{ GG_OPTIONS, GG_STATE_CONNECTED, 0, gg_session_handle_options },
-	{ GG_ACCESS_DATES, GG_STATE_CONNECTED, 0, gg_session_handle_access_dates }
+	{ GG_ACCESS_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_access_info },
+	{ GG_UIN_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_uin_info },
+	{ GG_TRANSFER_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_transfer_info }
 };
 
 /**

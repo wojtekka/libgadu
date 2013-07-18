@@ -45,6 +45,6 @@ void gg_tvbuilder_write_packed_uint(gg_tvbuilder_t *tvb, uint64_t value);
 void gg_tvbuilder_write_buff(gg_tvbuilder_t *tvb, const char *buffer, size_t length);
 void gg_tvbuilder_write_str(gg_tvbuilder_t *tvb, const char *buffer, ssize_t length);
 
-void gg_tvbuilder_write_uin(gg_tvbuilder_t *tvb, uin_t uin, int variant_long);
+void gg_tvbuilder_write_uin(gg_tvbuilder_t *tvb, uin_t uin);
 
 #endif /* LIBGADU_TVBUILDER_H */
