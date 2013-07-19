@@ -102,12 +102,12 @@ int gg_protobuf_send_ex(struct gg_session *gs, struct gg_event *ge, int type,
 	return succ;
 }
 
-ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff *buff)
+ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff_t *buff)
 {
 	char *uin_str;
 	int uin_len;
 	ProtobufCBinaryData ret;
-	static gg_protobuf_uin_buff static_buffer;
+	static gg_protobuf_uin_buff_t static_buffer;
 
 	if (buff == NULL) {
 		buff = &static_buffer;
