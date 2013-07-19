@@ -38,7 +38,7 @@
 typedef size_t (*gg_protobuf_size_cb_t)(const void *message);
 typedef size_t (*gg_protobuf_pack_cb_t)(const void *message, uint8_t *out);
 
-typedef struct _gg_protobuf_uin_buff gg_protobuf_uin_buff;
+typedef struct _gg_protobuf_uin_buff gg_protobuf_uin_buff_t;
 
 #define GG_PROTOBUF_VALID(gs, name, msg) \
 	(gg_protobuf_valid_chknull(gs, name, msg == NULL) && \
@@ -61,7 +61,7 @@ int gg_protobuf_send_ex(struct gg_session *gs, struct gg_event *ge, int type,
 	void *msg, gg_protobuf_size_cb_t size_cb,
 	gg_protobuf_pack_cb_t pack_cb);
 
-ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff *buff);
+ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff_t *buff);
 uin_t gg_protobuf_get_uin(ProtobufCBinaryData uin_data);
 
 #endif /* LIBGADU_PROTOBUF_H */
