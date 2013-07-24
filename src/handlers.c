@@ -535,13 +535,13 @@ static int gg_session_handle_event_110(struct gg_session *gs, uint32_t type, con
 	if (msg->type == GG110_EVENT__TYPE__XML) {
 		ge->type = GG_EVENT_XML_EVENT;
 		ge->event.xml_event.data = strdup(msg->data);
-		succ &= (ge->event.xml_event.data != NULL);
+		succ = succ && (ge->event.xml_event.data != NULL);
 	} else if (msg->type == GG110_EVENT__TYPE__JSON) {
 		ge->type = GG_EVENT_JSON_EVENT;
 		ge->event.json_event.data = strdup(msg->data);
-		succ &= (ge->event.json_event.data != NULL);
+		succ = succ && (ge->event.json_event.data != NULL);
 		ge->event.json_event.type = strdup(msg->subtype);
-		succ &= (ge->event.json_event.type != NULL);
+		succ = succ && (ge->event.json_event.type != NULL);
 	} else {
 		gg_debug_session(gs, GG_DEBUG_WARNING,
 			"// gg_session_handle_event_110: "
@@ -1301,27 +1301,27 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type, 
 	if (msg->msg_plain[0] != '\0') {
 		ev->message = (unsigned char*)gg_encoding_convert(
 			msg->msg_plain, GG_ENCODING_UTF8, gs->encoding, -1, -1);
-		succ &= (ev->message != NULL);
+		succ = succ && (ev->message != NULL);
 	}
 	ev->xhtml_message = NULL;
 	if (msg->msg_xhtml != NULL) {
 		ev->xhtml_message = gg_encoding_convert(
 			msg->msg_xhtml, GG_ENCODING_UTF8, gs->encoding, -1, -1);
-		succ &= (ev->xhtml_message != NULL);
+		succ = succ && (ev->xhtml_message != NULL);
 	}
 
 	/* wiadomości wysłane z mobilnego gg nie posiadają wersji xhtml */
 	if (ev->message == NULL && ev->xhtml_message == NULL) {
 		ev->message = (unsigned char*)strdup("");
-		succ &= (ev->message != NULL);
+		succ = succ && (ev->message != NULL);
 	} else if (ev->message == NULL) {
 		ev->message = (unsigned char*)gg_message_html_to_text_110(
 			ev->xhtml_message);
-		succ &= (ev->message != NULL);
+		succ = succ && (ev->message != NULL);
 	} else if (ev->xhtml_message == NULL) {
 		ev->xhtml_message = gg_message_text_to_html_110(
 			(char*)ev->message, -1);
-		succ &= (ev->xhtml_message != NULL);
+		succ = succ && (ev->xhtml_message != NULL);
 	}
 
 	/* otrzymywane tylko od gg <= 10.5 */
@@ -2160,7 +2160,7 @@ static int gg_session_handle_imtoken(struct gg_session *gs, uint32_t type, const
 
 	if (msg->imtoken[0] != '\0') {
 		imtoken = strdup(msg->imtoken);
-		succ &= (imtoken != NULL);
+		succ = succ && (imtoken != NULL);
 	}
 
 	gg110_imtoken__free_unpacked(msg, NULL);
