@@ -24,7 +24,7 @@
 #include "libgadu.h"
 
 #define GG_DEFAULT_CLIENT_VERSION_100 "10.1.0.11070"
-#define GG_DEFAULT_CLIENT_VERSION_110 "11.3.42.10585"
+#define GG_DEFAULT_CLIENT_VERSION_110 "11.3.45.10771"
 
 struct gg_dcc7_relay {
 	uint32_t addr;

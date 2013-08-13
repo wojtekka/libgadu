@@ -671,6 +671,7 @@ static gg_action_t gg_handle_connect_gg(struct gg_session *sess, struct gg_event
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connecting to %s:%d\n", inet_ntoa(addr), port);
 
+	sess->server_addr = addr.s_addr;
 	sess->fd = gg_connect(&addr, port, sess->async);
 
 	if (sess->fd == -1) {
@@ -945,6 +946,8 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 	}
 
 	addr.s_addr = inet_addr(host);
+	if (addr.s_addr == INADDR_NONE)
+		addr.s_addr = 0;
 	sess->server_addr = addr.s_addr;
 
 	free(sess->recv_buf);
