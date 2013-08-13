@@ -2,6 +2,51 @@
 
 use vars qw(@script $test);
 
+sub split_string
+{
+	my ($string) = @_;
+	my $i = 0;
+	my @result = ();
+	my $word = "";
+	my $in_string = 0;
+
+	for ($i = 0; $i < length($string); $i++) {
+		$ch = substr($string, $i, 1);
+
+		if ($in_string) {
+			if ($ch eq '"') {
+				push(@result, $word . '"');
+				$in_string = 0;
+				$word = "";
+			} else {
+				$word .= $ch;
+			}
+		} else {
+			if ($ch eq ' ' || $ch eq ',') {
+				if ($word) {
+					push (@result, $word);
+					$word = "";
+				}
+			} elsif ($ch eq '"') {
+				if ($word) {
+					push (@result, $word);
+					$word = "";
+				}
+				$word = '"';
+				$in_string = 1;
+			} else {
+				$word .= $ch;
+			}
+		}
+	}
+
+	if ($word) {
+		push (@result, $word);
+	}
+	
+	return @result;
+}
+
 sub parse
 {
 	my ($filename) = @_;
@@ -175,7 +220,7 @@ sub parse
 		}
 
 		if (/^expect\s+data\s+\((.+)\)\s*$/) {
-			@data = split(/[\s,]+/, $1);
+			@data = split_string($1);
 			@data_new = ();
 			@data_mask = ();
 			$auto = 0;
@@ -258,7 +303,7 @@ sub parse
 		}
 
 		if (/^send\s+\((.+)\)\s*$/) {
-			@data = split(/[\s,]+/, $1);
+			@data = split_string($1);
 			@data_new = ();
 			$auto = 0;
 
