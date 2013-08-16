@@ -41,4 +41,9 @@ test/automatic/packet
 test/automatic/protocol
 test/automatic/resolver
 test/automatic/script/script.c
+test/automatic/*-valgrind
+test/manual/client
+test/manual/dcc7
+test/manual/userlist
+test/manual/*-valgrind
 
