@@ -31,8 +31,6 @@ examples/send
 examples/status
 examples/token-async
 examples/token-sync
-test/automatic/script/script.c
-test/automatic/*-valgrind
 test/automatic/connect
 test/automatic/convert
 test/automatic/endian1
@@ -42,6 +40,8 @@ test/automatic/message2
 test/automatic/packet
 test/automatic/protocol
 test/automatic/resolver
+test/automatic/script/script.c
+test/automatic/*-valgrind
 test/manual/client
 test/manual/dcc7
 test/manual/userlist
