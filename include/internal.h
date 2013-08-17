@@ -27,7 +27,8 @@
 #define GG_DEFAULT_CLIENT_VERSION_110 "11.3.45.10771"
 
 #define GG_LOGIN_PARAMS_HAS_FIELD(glp, member) \
-	(offsetof(struct gg_login_params, member) < (glp)->struct_size)
+	(offsetof(struct gg_login_params, member) < (glp)->struct_size || \
+	offsetof(struct gg_login_params, member) <= offsetof(struct gg_login_params, struct_size))
 
 struct gg_dcc7_relay {
 	uint32_t addr;

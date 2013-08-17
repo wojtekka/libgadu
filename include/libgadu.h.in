@@ -661,9 +661,9 @@ struct gg_login_params {
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
 	int status_flags;		/**< Flagi statusu (flagi GG_STATUS_FLAG_*, patrz \ref status). */
 
-	int struct_size;		/**< Rozmiar struktury. To pole powinno być inicjowane sizeof(struct gg_login_params). Pozwala na rozszerzanie struktury bez łamania ABI. */
+	int struct_size;		/**< Rozmiar struktury. To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. */
 
-	char *connect_host;		/**< Nazwa hosta serwera Gadu-Gadu (domyślnie pobierany automatycznie). */
+	char *connect_host;		/**< Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). */
 };
 
 struct gg_session *gg_login(const struct gg_login_params *p);
