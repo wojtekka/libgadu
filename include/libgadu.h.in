@@ -661,12 +661,9 @@ struct gg_login_params {
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
 	int status_flags;		/**< Flagi statusu (flagi GG_STATUS_FLAG_*, patrz \ref status). */
 
-#ifndef DOXYGEN
-	char dummy[1 * sizeof(int)];	/**< \internal Miejsce na kilka kolejnych
-					  parametrów, żeby wraz z dodawaniem kolejnych
-					  parametrów nie zmieniał się rozmiar struktury */
-#endif
+	int struct_size;		/**< Rozmiar struktury. To pole powinno być inicjowane sizeof(struct gg_login_params). Pozwala na rozszerzanie struktury bez łamania ABI. */
 
+	char *connect_host;		/**< Nazwa hosta serwera Gadu-Gadu (domyślnie pobierany automatycznie). */
 };
 
 struct gg_session *gg_login(const struct gg_login_params *p);
