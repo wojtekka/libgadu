@@ -718,6 +718,23 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->client_addr = p->client_addr;
 	sess->client_port = p->client_port;
 
+	if (GG_LOGIN_PARAMS_HAS_FIELD(p, connect_host) && p->connect_host != NULL) {
+		int port = 0;
+		char *colon;
+
+		sess->connect_host = strdup(p->connect_host);
+		if (sess->connect_host == NULL)
+			goto fail;
+
+		colon = strchr(sess->connect_host, ':');
+		if (colon != NULL) {
+			colon[0] = '\0';
+			port = atoi(colon + 1);
+		}
+		if (port > 0)
+			sess->port = port;
+	}
+
 	if (p->protocol_features == 0) {
 		sess->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80 | GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR | GG_FEATURE_UNKNOWN_100 | GG_FEATURE_USER_DATA | GG_FEATURE_MSG_ACK | GG_FEATURE_TYPING_NOTIFICATION;
 	} else {
@@ -785,7 +802,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	else
 		sess->hash_type = GG_LOGIN_HASH_SHA1;
 
-	if (sess->server_addr == 0) {
+	if (sess->server_addr == 0 && sess->connect_host == NULL) {
 		if (gg_proxy_enabled) {
 			sess->resolver_host = gg_proxy_host;
 			sess->proxy_port = gg_proxy_port;
@@ -796,10 +813,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			sess->state = (sess->async) ? GG_STATE_RESOLVE_HUB_ASYNC : GG_STATE_RESOLVE_HUB_SYNC;
 		}
 	} else {
-		// XXX inet_ntoa i wielowątkowość
-		sess->connect_host = strdup(inet_ntoa(*(struct in_addr*) &sess->server_addr));
-		if (sess->connect_host == NULL)
-			goto fail;
+		if (sess->connect_host != NULL)
+			sess->server_addr = 0;
+		else {
+			// XXX inet_ntoa i wielowątkowość
+			sess->connect_host = strdup(inet_ntoa(*(struct in_addr*) &sess->server_addr));
+			if (sess->connect_host == NULL)
+				goto fail;
+		}
 		sess->connect_index = 0;
 
 		if (gg_proxy_enabled) {
