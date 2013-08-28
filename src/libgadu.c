@@ -194,6 +194,7 @@ unsigned int gg_login_hash(const unsigned char *password, unsigned int seed)
  */
 int gg_read(struct gg_session *sess, char *buf, int length)
 {
+	struct gg_session_private *p = sess->private_data;
 	int res;
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
@@ -243,6 +244,30 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 	}
 #endif
 
+	if (p->socket_handle != NULL) {
+		if (p->socket_manager.read == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_read() socket_manager.read callback is "
+				"empty\n");
+			errno = EINVAL;
+			return -1;
+		}
+
+		do {
+			res = p->socket_manager.read(p->socket_manager.cb_data,
+				p->socket_handle, (unsigned char*)buf, length);
+		} while (res < 0 && errno == EINTR);
+
+		if (res < 0) {
+			if (errno == EAGAIN)
+				return -1;
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_read() unexpected errno=%d\n", errno);
+			errno = EINVAL;
+		}
+		return res;
+	}
+
 	for (;;) {
 		res = recv(sess->fd, buf, length, 0);
 
@@ -271,6 +296,7 @@ int gg_read(struct gg_session *sess, char *buf, int length)
  */
 static int gg_write_common(struct gg_session *sess, const char *buf, int length)
 {
+	struct gg_session_private *p = sess->private_data;
 	int res;
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
@@ -320,6 +346,32 @@ static int gg_write_common(struct gg_session *sess, const char *buf, int length)
 		}
 	}
 #endif
+
+	if (p->socket_handle != NULL) {
+		if (p->socket_manager.write == NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_write_common() socket_manager.write "
+				"callback is empty\n");
+			errno = EINVAL;
+			return -1;
+		}
+
+		do {
+			res = p->socket_manager.write(p->socket_manager.cb_data,
+				p->socket_handle, (const unsigned char*)buf,
+				length);
+		} while (res < 0 && errno == EINTR);
+
+		if (res < 0) {
+			if (errno == EAGAIN)
+				return -1;
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_read() unexpected errno=%d\n", errno);
+			errno = EINVAL;
+		}
+
+		return res;
+	}
 
 	for (;;) {
 		res = send(sess->fd, buf, length, 0);
@@ -387,6 +439,28 @@ int gg_write(struct gg_session *sess, const char *buf, int length)
 	}
 
 	return res;
+}
+
+void gg_close(struct gg_session *sess)
+{
+	struct gg_session_private *p = sess->private_data;
+	int errno_copy;
+
+	errno_copy = errno;
+
+	if (p->socket_manager_type == GG_SOCKET_MANAGER_TYPE_INTERNAL) {
+		if (sess->fd != -1)
+			close(sess->fd);
+	} else {
+		if (p->socket_handle != NULL) {
+			p->socket_manager.close(p->socket_manager.cb_data,
+				p->socket_handle);
+		}
+	}
+	sess->fd = -1;
+	p->socket_handle = NULL;
+
+	errno = errno_copy;
 }
 
 /**
@@ -674,6 +748,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	}
 
 	memset(sess, 0, sizeof(struct gg_session));
+	sess->fd = -1;
 
 	sess_private = malloc(sizeof(struct gg_session_private));
 
@@ -733,6 +808,30 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		}
 		if (port > 0)
 			sess->port = port;
+	}
+
+	if (GG_LOGIN_PARAMS_HAS_FIELD(p, socket_manager_type) &&
+		GG_LOGIN_PARAMS_HAS_FIELD(p, socket_manager) &&
+		p->socket_manager_type != GG_SOCKET_MANAGER_TYPE_INTERNAL)
+	{
+		if (p->socket_manager_type < GG_SOCKET_MANAGER_TYPE_INTERNAL ||
+			p->socket_manager_type > GG_SOCKET_MANAGER_TYPE_TLS)
+		{
+			gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_login()"
+				" invalid arguments. unknown socket manager "
+				"type (%d)\n", p->socket_manager_type);
+			errno = EFAULT;
+			goto fail;
+		} else {
+			sess_private->socket_manager_type =
+				p->socket_manager_type;
+			memcpy(&sess_private->socket_manager,
+				&p->socket_manager,
+				sizeof(struct gg_socket_manager));
+		}
+	} else {
+		sess_private->socket_manager_type =
+			GG_SOCKET_MANAGER_TYPE_INTERNAL;
 	}
 
 	if (p->protocol_features == 0) {
@@ -964,10 +1063,7 @@ void gg_logoff(struct gg_session *sess)
 
 	sess->resolver_cleanup(&sess->resolver, 1);
 
-	if (sess->fd != -1) {
-		close(sess->fd);
-		sess->fd = -1;
-	}
+	gg_close(sess);
 
 	if (sess->send_buf) {
 		free(sess->send_buf);
@@ -1027,8 +1123,7 @@ void gg_free_session(struct gg_session *sess)
 
 	sess->resolver_cleanup(&sess->resolver, 1);
 
-	if (sess->fd != -1)
-		close(sess->fd);
+	gg_close(sess);
 
 	while (sess->images)
 		gg_image_queue_remove(sess, sess->images, 1);
@@ -2448,6 +2543,67 @@ int gg_libgadu_check_feature(gg_libgadu_feature_t feature)
 	}
 
 	return 0;
+}
+
+/**
+ * Odbiera nowo utworzone gniazdo TCP/TLS.
+ *
+ * Jeżeli gniazdo nie zostanie obsłużone, należy je zniszczyć. Jeżeli zaś
+ * wszystko przebiegnie pomyślnie, należy zacząć obserwować jego deskryptor.
+ *
+ * \param handle Uchwyt gniazda
+ * \param priv Dane prywatne biblioteki libgadu
+ * \param fd Deskryptor nowo utworzonego gniazda, lub -1 w przypadku błędu
+ *
+ * \return Wartość różna od zera, jeżeli gniazdo zostało obsłużone, 0 w przeciwnym przypadku
+ *
+ * \ingroup socketmanager
+ */
+int gg_socket_manager_connected(void *handle, void *priv, int fd)
+{
+	struct gg_session *sess = priv;
+	struct gg_session_private *p = sess->private_data;
+
+	if (p->socket_handle != handle) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_socket_manager_connected() invalid handle\n");
+		return 0;
+	}
+
+	sess->fd = -1;
+
+	if (fd < 0) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_socket_manager_connected() connection error\n");
+		/* TODO: jak wywołać tutaj event błędu dla async? */
+		p->socket_error = 1;
+		p->socket_handle = NULL;
+		return 0;
+	}
+
+	if (p->socket_next_state == GG_STATE_TLS_NEGOTIATION) {
+		if (gg_session_init_ssl(sess) == -1) {
+			//e->event.failure = GG_FAILURE_TLS;
+			//TODO: tutaj też nie wiem jak wywołać event błędu
+			p->socket_error = 1;
+			p->socket_handle = NULL;
+			return 0;
+		}
+	}
+
+	sess->fd = fd;
+	sess->timeout = GG_DEFAULT_TIMEOUT;
+	sess->state = p->socket_next_state;
+
+	gg_debug_session(sess, GG_DEBUG_MISC, "// next state=%s\n",
+		gg_debug_state(p->socket_next_state));
+
+	if (p->socket_next_state == GG_STATE_READING_KEY)
+		sess->check = GG_CHECK_READ;
+	else
+		sess->check = GG_CHECK_WRITE;
+
+	return 1;
 }
 
 /*

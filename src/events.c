@@ -234,7 +234,7 @@ int gg_image_queue_remove(struct gg_session *s, struct gg_image_queue *q, int fr
  *
  * \return 0 jeśli się powiodło, -1 jeśli wystąpił błąd
  */
-static int gg_session_init_ssl(struct gg_session *gs)
+int gg_session_init_ssl(struct gg_session *gs)
 {
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	gg_session_gnutls_t *tmp;
@@ -420,9 +420,91 @@ typedef struct
 	enum gg_state_t alt2_state;
 } gg_state_transition_t;
 
+/* zwraca:
+ * -1 w przypadku błędu
+ * 0 jeżeli nie ma ustawionego specjalnego managera gniazdek
+ * 1 w przypadku powodzenia
+ */
+static int gg_handle_resolve_custom(struct gg_session *sess, enum gg_state_t next_state)
+{
+	struct gg_session_private *p = sess->private_data;
+	int is_tls = 0;
+	int port;
+
+	if (p->socket_manager_type == GG_SOCKET_MANAGER_TYPE_INTERNAL)
+		return 0;
+
+	if (p->socket_manager.connect == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_handle_resolve_custom() socket_manager.connect "
+			"callback is empty\n");
+		return -1;
+	}
+
+	if (p->socket_handle != NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_handle_resolve_custom() socket_handle is not "
+			"NULL\n");
+		return -1;
+	}
+
+	port = sess->connect_port[sess->connect_index];
+	if (next_state == GG_STATE_SEND_HUB)
+		port = GG_APPMSG_PORT;
+
+	if (sess->ssl_flag != GG_SSL_DISABLED &&
+		next_state == GG_STATE_READING_KEY)
+	{
+		/* XXX: w tej chwili nie ma możliwości łączenia się do HUBa po
+		 * SSL, ale może będzie w przyszłości */
+		is_tls = 1;
+	}
+
+	if (is_tls && p->socket_manager_type == GG_SOCKET_MANAGER_TYPE_TCP) {
+		is_tls = 0;
+		next_state = GG_STATE_TLS_NEGOTIATION;
+	}
+
+	if (port <= 0) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_handle_resolve_custom() port <= 0\n");
+		return -1;
+	}
+
+	p->socket_error = 0;
+	p->socket_next_state = next_state;
+	p->socket_handle = p->socket_manager.connect(p->socket_manager.cb_data,
+		sess->resolver_host, port, is_tls, sess->async, sess);
+
+	if (p->socket_error) {
+		if (p->socket_handle != NULL) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+				"// gg_handle_resolve_custom() handle should be"
+				" empty on error\n");
+		}
+		return -1;
+	}
+
+	if (p->socket_handle == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_handle_resolve_custom() returned empty "
+			"handle\n");
+		return -1;
+	}
+
+	return 1;
+}
+
 static gg_action_t gg_handle_resolve_sync(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
 {
 	struct in_addr addr;
+	int res;
+
+	res = gg_handle_resolve_custom(sess, alt_state);
+	if (res == 1)
+		return GG_ACTION_NEXT;
+	else if (res == -1)
+		return GG_ACTION_FAIL;
 
 	addr.s_addr = inet_addr(sess->resolver_host);
 	
@@ -460,6 +542,14 @@ static gg_action_t gg_handle_resolve_sync(struct gg_session *sess, struct gg_eve
 
 static gg_action_t gg_handle_resolve_async(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
 {
+	int res;
+
+	res = gg_handle_resolve_custom(sess, alt_state);
+	if (res == 1)
+		return GG_ACTION_WAIT;
+	else if (res == -1)
+		return GG_ACTION_FAIL;
+
 	if (sess->resolver_start(&sess->fd, &sess->resolver, sess->resolver_host) == -1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() resolving failed (errno=%d, %s)\n", errno, strerror(errno));
 		e->event.failure = GG_FAILURE_RESOLVING;
@@ -572,8 +662,7 @@ static gg_action_t gg_handle_resolving(struct gg_session *sess, struct gg_event 
 	}
 #endif
 
-	close(sess->fd);
-	sess->fd = -1;
+	gg_close(sess);
 
 	sess->state = next_state;
 	sess->resolver_result = (struct in_addr*) sess->recv_buf;
@@ -631,8 +720,7 @@ static gg_action_t gg_handle_connecting(struct gg_session *sess, struct gg_event
 
 	if (gg_async_connect_failed(sess, &res)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
-		close(sess->fd);
-		sess->fd = -1;
+		gg_close(sess);
 		sess->resolver_index++;
 		sess->state = alt_state;
 	} else {
@@ -697,8 +785,7 @@ static gg_action_t gg_handle_connecting_gg(struct gg_session *sess, struct gg_ev
 	/* jeśli wystąpił błąd podczas łączenia się... */
 	if (gg_async_connect_failed(sess, &res)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() connection failed (errno=%d, %s)\n", res, strerror(res));
-		close(sess->fd);
-		sess->fd = -1;
+		gg_close(sess);
 		sess->connect_index++;
 		sess->state = alt_state;
 		return GG_ACTION_NEXT;
@@ -929,8 +1016,7 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 		}
 	}
 
-	close(sess->fd);
-	sess->fd = -1;
+	gg_close(sess);
 
 	tmp = strchr(host, ':');
 
@@ -1458,15 +1544,15 @@ static gg_action_t gg_handle_connected(struct gg_session *sess, struct gg_event 
 
 static const gg_state_transition_t handlers[] =
 {
-	{ GG_STATE_RESOLVE_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_HUB, 0, 0 },
-	{ GG_STATE_RESOLVE_GG_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_GG, 0, 0 },
-	{ GG_STATE_RESOLVE_PROXY_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_PROXY_HUB, 0, 0 },
-	{ GG_STATE_RESOLVE_PROXY_GG_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_PROXY_GG, 0, 0 },
+	{ GG_STATE_RESOLVE_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_HUB, GG_STATE_SEND_HUB, 0 },
+	{ GG_STATE_RESOLVE_GG_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_GG, GG_STATE_READING_KEY, 0 },
+	{ GG_STATE_RESOLVE_PROXY_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_PROXY_HUB, GG_STATE_SEND_PROXY_HUB, 0 },
+	{ GG_STATE_RESOLVE_PROXY_GG_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_PROXY_GG, GG_STATE_SEND_PROXY_GG, 0 },
 
-	{ GG_STATE_RESOLVE_HUB_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_HUB, 0, 0 },
-	{ GG_STATE_RESOLVE_GG_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_GG, 0, 0 },
-	{ GG_STATE_RESOLVE_PROXY_HUB_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_PROXY_HUB, 0, 0 },
-	{ GG_STATE_RESOLVE_PROXY_GG_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_PROXY_GG, 0, 0 },
+	{ GG_STATE_RESOLVE_HUB_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_HUB, GG_STATE_SEND_HUB, 0 },
+	{ GG_STATE_RESOLVE_GG_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_GG, GG_STATE_READING_KEY, 0 },
+	{ GG_STATE_RESOLVE_PROXY_HUB_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_PROXY_HUB, GG_STATE_SEND_PROXY_HUB, 0 },
+	{ GG_STATE_RESOLVE_PROXY_GG_ASYNC, gg_handle_resolve_async, GG_STATE_RESOLVING_PROXY_GG, GG_STATE_SEND_PROXY_GG, 0 },
 
 	{ GG_STATE_RESOLVING_HUB, gg_handle_resolving, GG_STATE_CONNECT_HUB, 0, 0 },
 	{ GG_STATE_RESOLVING_GG, gg_handle_resolving, GG_STATE_CONNECT_GG, 0, 0 },
@@ -1570,14 +1656,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			case GG_ACTION_FAIL:
 				sess->state = GG_STATE_IDLE;
 
-				if (sess->fd != -1) {
-					int errno2;
-
-					errno2 = errno;
-					close(sess->fd);
-					errno = errno2;
-					sess->fd = -1;
-				}
+				gg_close(sess);
 
 				if (ge->event.failure != 0) {
 					ge->type = GG_EVENT_CONN_FAILED;

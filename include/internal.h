@@ -46,6 +46,12 @@ struct gg_chat_list {
 };
 
 struct gg_session_private {
+	gg_socket_manager_type_t socket_manager_type;
+	struct gg_socket_manager socket_manager;
+	void *socket_handle;
+	int socket_next_state;
+	int socket_error;
+
 	int time_diff;
 };
 
@@ -69,5 +75,8 @@ void gg_connection_failure(struct gg_session *gs, struct gg_event *ge,
 	enum gg_failure_t failure);
 
 time_t gg_server_time(struct gg_session *gs);
+
+int gg_session_init_ssl(struct gg_session *gs);
+void gg_close(struct gg_session *gs);
 
 #endif /* LIBGADU_INTERNAL_H */

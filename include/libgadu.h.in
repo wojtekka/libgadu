@@ -627,6 +627,96 @@ enum gg_check_t {
 };
 
 /**
+ * Metody nawiązywania połączeń TCP/TLS.
+ *
+ * \ingroup socketmanager
+ */
+typedef enum {
+	GG_SOCKET_MANAGER_TYPE_INTERNAL = 0, /**< Wewnętrzna obsługa gniazd (domyślne). */
+	GG_SOCKET_MANAGER_TYPE_TCP, /**< Dostarczona przez aplikację - tylko obsługa TCP. */
+	GG_SOCKET_MANAGER_TYPE_TLS /**< Dostarczona przez aplikację - obsługa zarówno TCP, jak i TLS. */
+} gg_socket_manager_type_t;
+
+/**
+ * Funkcja dostarczona przez aplikację, tworząca nowe gniazdo TCP/TLS.
+ *
+ * Po nawiązaniu połączenia aplikacja musi wywołać gg_socket_manager_connected.
+ * Jeżeli połączenie jest asynchroniczne, wywołanie musi nastąpić po wyjściu z
+ * kontekstu tej funkcji. Dla połączeń synchronicznych z kolei, musi nastąpić
+ * jeszcze przed wyjściem z kontekstu.
+ *
+ * \param cb_data Dane prywatne aplikacji
+ * \param host Nazwa hosta
+ * \param port Numer portu
+ * \param is_tls Flaga określająca, czy ma zostać nawiązane połączenie TLS
+ * \param is_async Flaga określająca połączenie asynchroniczne (patrz szczegółowy powyżej)
+ * \param priv Dane prywatne biblioteki libgadu (do przekazania do gg_socket_manager_connected)
+ *
+ * \return Uchwyt gniazda
+ *
+ * \ingroup socketmanager
+ */
+typedef void* (*gg_socket_manager_connect_cb_t)(void *cb_data, const char *host, int port, int is_tls, int is_async, void *priv);
+
+/**
+ * Niszczy gniazdo i zwalnia wszystkie powiązane z nim zasoby.
+ *
+ * \param cb_data Dane prywatne aplikacji
+ * \param handle Uchwyt gniazda
+ *
+ * \ingroup socketmanager
+ */
+typedef void (*gg_socket_manager_close_cb_t)(void *cb_data, void *handle);
+
+/**
+ * Odbiera z gniazda dane binarne.
+ *
+ * Funkcja powinna zajmować się obsługą TLS, jeżeli gniazdo jest w takim trybie.
+ *
+ * \param cb_data Dane prywatne aplikacji
+ * \param handle Uchwyt gniazda
+ * \param buffer Bufor do zapisu danych
+ * \param bufsize Rozmiar bufora
+ *
+ * \return Ilość zapisanych danych, lub -1 (oraz ustawiony errno) w przypadku niepowodzenia
+ *
+ * \ingroup socketmanager
+ */
+typedef ssize_t (*gg_socket_manager_read_cb_t)(void *cb_data, void *handle, unsigned char *buffer, size_t bufsize);
+
+/**
+ * Wysyła przez gniazdo dane binarne.
+ *
+ * Funkcja powinna zajmować się obsługą TLS, jeżeli gniazdo jest w takim trybie.
+ *
+ * \param cb_data Dane prywatne aplikacji
+ * \param handle Uchwyt gniazda
+ * \param data Dane do wysłania
+ * \param length Rozmiar danych
+ *
+ * \return Ilość wysłanych danych, lub -1 (oraz ustawiony errno) w przypadku niepowodzenia
+ *
+ * \ingroup socketmanager
+ */
+typedef ssize_t (*gg_socket_manager_write_cb_t)(void *cb_data, void *handle, const unsigned char *data, size_t length);
+
+/**
+ * Struktura opisująca funkcje zarządzające gniazdami, jeżeli aplikacja sama je
+ * obsługuje.
+ *
+ * \ingroup socketmanager
+ */
+struct gg_socket_manager {
+	void *cb_data; /**< Dane prywatne aplikacji */
+	gg_socket_manager_connect_cb_t connect; /**< Funkcja tworząca nowe gniazdo */
+	gg_socket_manager_close_cb_t close; /**< Funkcja niszcząca gniazdo */
+	gg_socket_manager_read_cb_t read; /**< Funkcja odczytująca dane z gniazda */
+	gg_socket_manager_write_cb_t write; /**< Funkcja wysyłająca dane przez gniazdo */
+};
+
+int gg_socket_manager_connected(void *handle, void *priv, int fd);
+
+/**
  * Parametry połączenia z serwerem Gadu-Gadu. Parametry zostały przeniesione
  * do struktury, by uniknąć zmian API po rozszerzeniu protokołu i dodaniu
  * kolejnych opcji połączenia. Część parametrów, które nie są już aktualne
@@ -664,6 +754,9 @@ struct gg_login_params {
 	int struct_size;		/**< Rozmiar struktury. To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. */
 
 	char *connect_host;		/**< Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). */
+
+	gg_socket_manager_type_t socket_manager_type; /**< Wybrana metoda nawiązywania połączeń TCP/TLS (domyślnie wewnętrzna) */
+	struct gg_socket_manager socket_manager; /**< Jeżeli wybrano metodę zewnętrzną - konfiguracja jej */
 };
 
 struct gg_session *gg_login(const struct gg_login_params *p);
