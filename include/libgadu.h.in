@@ -712,6 +712,12 @@ struct gg_socket_manager {
 	gg_socket_manager_close_cb_t close; /**< Funkcja niszcząca gniazdo */
 	gg_socket_manager_read_cb_t read; /**< Funkcja odczytująca dane z gniazda */
 	gg_socket_manager_write_cb_t write; /**< Funkcja wysyłająca dane przez gniazdo */
+#ifndef DOXYGEN
+	void *reserved1;
+	void *reserved2;
+	void *reserved3;
+	void *reserved4;
+#endif
 };
 
 int gg_socket_manager_connected(void *handle, void *priv, int fd);
