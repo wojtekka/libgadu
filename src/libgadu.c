@@ -827,7 +827,7 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 				p->socket_manager_type;
 			memcpy(&sess_private->socket_manager,
 				&p->socket_manager,
-				sizeof(struct gg_socket_manager));
+				sizeof(gg_socket_manager_t));
 		}
 	} else {
 		sess_private->socket_manager_type =

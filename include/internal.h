@@ -47,7 +47,7 @@ struct gg_chat_list {
 
 struct gg_session_private {
 	gg_socket_manager_type_t socket_manager_type;
-	struct gg_socket_manager socket_manager;
+	gg_socket_manager_t socket_manager;
 	void *socket_handle;
 	int socket_next_state;
 	int socket_error;

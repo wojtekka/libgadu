@@ -649,7 +649,7 @@ typedef enum {
  * \param host Nazwa hosta
  * \param port Numer portu
  * \param is_tls Flaga określająca, czy ma zostać nawiązane połączenie TLS
- * \param is_async Flaga określająca połączenie asynchroniczne (patrz szczegółowy powyżej)
+ * \param is_async Flaga określająca połączenie asynchroniczne (patrz szczegóły powyżej)
  * \param priv Dane prywatne biblioteki libgadu (do przekazania do gg_socket_manager_connected)
  *
  * \return Uchwyt gniazda
@@ -706,7 +706,7 @@ typedef ssize_t (*gg_socket_manager_write_cb_t)(void *cb_data, void *handle, con
  *
  * \ingroup socketmanager
  */
-struct gg_socket_manager {
+typedef struct {
 	void *cb_data; /**< Dane prywatne aplikacji */
 	gg_socket_manager_connect_cb_t connect; /**< Funkcja tworząca nowe gniazdo */
 	gg_socket_manager_close_cb_t close; /**< Funkcja niszcząca gniazdo */
@@ -718,7 +718,7 @@ struct gg_socket_manager {
 	void *reserved3;
 	void *reserved4;
 #endif
-};
+} gg_socket_manager_t;
 
 int gg_socket_manager_connected(void *handle, void *priv, int fd);
 
@@ -762,7 +762,7 @@ struct gg_login_params {
 	char *connect_host;		/**< Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). */
 
 	gg_socket_manager_type_t socket_manager_type; /**< Wybrana metoda nawiązywania połączeń TCP/TLS (domyślnie wewnętrzna) */
-	struct gg_socket_manager socket_manager; /**< Jeżeli wybrano metodę zewnętrzną - konfiguracja jej */
+	gg_socket_manager_t socket_manager; /**< Jeżeli wybrano metodę zewnętrzną - konfiguracja jej */
 };
 
 struct gg_session *gg_login(const struct gg_login_params *p);
