@@ -138,6 +138,7 @@ gg_send_packet
 gg_session_get_resolver
 gg_session_set_custom_resolver
 gg_session_set_resolver
+gg_socket_manager_connected
 gg_token
 gg_token_free
 gg_token_watch_fd
