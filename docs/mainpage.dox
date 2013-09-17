@@ -19,7 +19,7 @@ POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu 
 istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach
 konsolowych, jak i graficznych GTK+ i Qt.
 
-Strona projektu znajduje się pod adresem http://toxygen.net/libgadu/.
+Strona projektu znajduje się pod adresem http://libgadu.net/.
 Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
 <a href="http://lists.ziew.org/mailman/listinfo/libgadu-devel">libgadu-devel</a>
 poświęconą rozwojowi biblioteki, programowaniu przy jej użyciu oraz protokołowi
