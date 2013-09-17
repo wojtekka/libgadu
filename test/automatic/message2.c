@@ -24,7 +24,7 @@ struct test_data
 const struct test_data text_to_html[] =
 {
 	/* Typowa wiadomość */
-	{ "<bzdura>\n\"ala&ma'kota\"", SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), GG_ENCODING_UTF8 },
+	{ "<bzdura>\n\"ala&ma'kota\"", SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Obrazek na początku tekstu */
 	{ " test", "<img name=\"8877665544332211\">" SPAN("test"), GG_ENCODING_UTF8, "\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 13 },
@@ -122,7 +122,7 @@ const struct test_data text_to_html[] =
 	/* Pusty tekst. Oryginalny klient co prawda nie wysyła pustego tekstu,
 	 * ale przy wiadomości zawierającej jedynie obrazek, nie dokleja tagów
 	 * <span>, więc improwizujemy. */
-	{ "", "" },
+	{ "", "", GG_ENCODING_UTF8, NULL, 0 },
 };
 
 const struct test_data html_to_text[] =
@@ -131,28 +131,28 @@ const struct test_data html_to_text[] =
 	{ SPAN("&lt;bzdura&gt;<br>&quot;ala&amp;ma&apos;kota&quot;"), "<bzdura>\n\"ala&ma'kota\"", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00", 6 },
 
 	/* Niepoprawny tag */
-	{ "<<<test>>>", ">>", GG_ENCODING_UTF8 },
+	{ "<<<test>>>", ">>", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Tagi do wycięcia */
-	{ "<foo>bar</baz>", "bar", GG_ENCODING_UTF8 },
+	{ "<foo>bar</baz>", "bar", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Poprawne encje, UTF-8 */
-	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xc2\xa0>", GG_ENCODING_UTF8 },
+	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xc2\xa0>", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Poprawne encje, CP1250 */
-	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xa0>", GG_ENCODING_CP1250 },
+	{ "&lt;&amp;&quot;&apos;&nbsp;&gt;", "<&\"'\xa0>", GG_ENCODING_CP1250, NULL, 0 },
 
 	/* Niepoprawne encje */
-	{ "test&test;test&#123;test&#xabc;test", "test?test?test?test", GG_ENCODING_UTF8 },
+	{ "test&test;test&#123;test&#xabc;test", "test?test?test?test", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Różne warianty <br> */
-	{ "a<br>b<br/>c<br />d", "a\nb\nc\nd", GG_ENCODING_UTF8 },
+	{ "a<br>b<br/>c<br />d", "a\nb\nc\nd", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Niepoprawne tagi */
-	{ "<foo&bar;baz><foo\"bar><foo<bar>", "", GG_ENCODING_UTF8 },
+	{ "<foo&bar;baz><foo\"bar><foo<bar>", "", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Niedokończona encja */
-	{ "http://test/foo?ala=1&ma=2&kota=3", "http://test/foo?ala=1&ma=2&kota=3", GG_ENCODING_UTF8 },
+	{ "http://test/foo?ala=1&ma=2&kota=3", "http://test/foo?ala=1&ma=2&kota=3", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Obrazek na początku tekstu, przed <span> */
 	{ "<img name=\"8877665544332211\">" SPAN("test"), "\xc2\xa0test", GG_ENCODING_UTF8, "\x01\x00\x08\x00\x00\x00\x00\x00\x80\x09\x01\x11\x22\x33\x44\x55\x66\x77\x88", 19 },
@@ -212,10 +212,10 @@ const struct test_data html_to_text[] =
 	{ SPAN("test<b>bolda</b>test"), "testboldatest", GG_ENCODING_UTF8, "\x00\x00\x08\x00\x00\x00\x04\x00\x09\x00\x00\x00\x09\x00\x08\x00\x00\x00", 18 },
 
 	/* Przed r1239 tag <bot/> był interpretowany jak bold */
-	{ "<bot body=\"&lt;html/&gt;\">test</bot>test", "testtest", GG_ENCODING_UTF8 },
+	{ "<bot body=\"&lt;html/&gt;\">test</bot>test", "testtest", GG_ENCODING_UTF8, NULL, 0 },
 
 	/* Pusty tekst */
-	{ "", "", GG_ENCODING_UTF8 },
+	{ "", "", GG_ENCODING_UTF8, NULL, 0 },
 };
 
 static void test_text_to_html(const char *input, const unsigned char *attr, size_t attr_len, const char *output, gg_encoding_t encoding)
@@ -241,7 +241,7 @@ static void test_text_to_html(const char *input, const unsigned char *attr, size
 
 	printf("text: \"%s\"", input);
 	if (attr != NULL) {
-		int i;
+		size_t i;
 
 		printf(" + attr:");
 		for (i = 0; i < attr_len; i++)
@@ -393,7 +393,7 @@ static void test_html_to_text(const char *input, const char *output, const unsig
 
 int main(int argc, char **argv)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < sizeof(text_to_html) / sizeof(text_to_html[0]); i++)
 		test_text_to_html(text_to_html[i].src, (const unsigned char*) text_to_html[i].attr, text_to_html[i].attr_len, text_to_html[i].dst, text_to_html[i].encoding);

@@ -44,7 +44,7 @@ expect data (78 00 00 00, auto, 00 06 "111111" 03, 00 06 "222222" 01, 00 06 "333
 call {
 	const unsigned int count = 228;
 	uint32_t uins[count];
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < count; i++)
 		uins[i] = 444444;
@@ -62,7 +62,7 @@ call {
 	const unsigned int count = 228;
 	uint32_t uins[count];
 	char types[count];
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < count; i++) {
 		uins[i] = 555555;

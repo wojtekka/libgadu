@@ -151,7 +151,7 @@ static void test_cp1250_to_utf8(const struct test_data *t)
 
 int main(void)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < sizeof(cp1250_to_utf8) / sizeof(cp1250_to_utf8[0]); i++)
 		test_cp1250_to_utf8(&cp1250_to_utf8[i]);

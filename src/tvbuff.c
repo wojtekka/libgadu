@@ -368,13 +368,6 @@ const char *gg_tvbuff_read_buff(gg_tvbuff_t *tvb, size_t length)
 		return NULL;
 	}
 
-	if (length < 0) {
-		gg_debug(GG_DEBUG_ERROR, "// gg_tvbuff_new() "
-			"invalid arguments\n");
-		tvb->valid = 0;
-		return NULL;
-	}
-
 	buff = tvb->buffer + tvb->offset;
 	tvb->offset += length;
 	return buff;
@@ -398,7 +391,7 @@ void gg_tvbuff_read_buff_cpy(gg_tvbuff_t *tvb, char *buffer, size_t length)
 		return;
 	}
 
-	if (buffer == NULL && length < 0) {
+	if (buffer == NULL && length > 0) {
 		gg_debug(GG_DEBUG_ERROR, "// gg_tvbuff_new() "
 			"invalid arguments\n");
 		tvb->valid = 0;
@@ -508,8 +501,8 @@ void gg_tvbuff_read_str_dup(gg_tvbuff_t *tvb, char **dst)
 uin_t gg_tvbuff_read_uin(gg_tvbuff_t *tvb)
 {
 	uin_t uin = 0;
-	uint32_t full_len;
-	uint8_t uin_type, uin_len;
+	uint32_t uin_len, full_len;
+	uint8_t uin_type;
 	const char *raw;
 
 	if (!gg_tvbuff_is_valid(tvb))

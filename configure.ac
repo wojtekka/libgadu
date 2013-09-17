@@ -28,7 +28,8 @@ export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
 PKG_PROG_PKG_CONFIG
 
 if test "$GCC"; then
-	CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
+	CFLAGS="$CFLAGS -Wall -Wextra -Wmissing-prototypes \
+		-Wno-unused-parameter -Waggregate-return"
 fi
 
 AC_C_BIGENDIAN

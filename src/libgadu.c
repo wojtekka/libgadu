@@ -817,8 +817,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 		GG_LOGIN_PARAMS_HAS_FIELD(p, socket_manager) &&
 		p->socket_manager_type != GG_SOCKET_MANAGER_TYPE_INTERNAL)
 	{
-		if (p->socket_manager_type < GG_SOCKET_MANAGER_TYPE_INTERNAL ||
-			p->socket_manager_type > GG_SOCKET_MANAGER_TYPE_TLS)
+		if ((unsigned int)p->socket_manager_type >
+			GG_SOCKET_MANAGER_TYPE_TLS)
 		{
 			gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_login()"
 				" invalid arguments. unknown socket manager "
@@ -1351,7 +1351,7 @@ static int gg_send_message_110(struct gg_session *sess,
 
 	if (recipient) {
 		msg.has_recipient = 1;
-		msg.recipient = gg_protobuf_set_uin(recipient, NULL);
+		gg_protobuf_set_uin(&msg.recipient, recipient, NULL);
 	}
 
 	msg.seq = seq;
@@ -2423,7 +2423,8 @@ int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants,
 	unsigned int participants_count)
 {
 	struct gg_chat_invite pkt;
-	int i, seq, ret;
+	int seq, ret;
+	unsigned int i;
 	struct gg_chat_participant
 	{
 		uint32_t uin;
