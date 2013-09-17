@@ -471,12 +471,12 @@ static int gg_handle_resolve_custom(struct gg_session *sess, enum gg_state_t nex
 		return -1;
 	}
 
-	p->socket_error = 0;
+	p->socket_failure = 0;
 	p->socket_next_state = next_state;
 	p->socket_handle = p->socket_manager.connect(p->socket_manager.cb_data,
 		sess->resolver_host, port, is_tls, sess->async, sess);
 
-	if (p->socket_error) {
+	if (p->socket_failure != 0) {
 		if (p->socket_handle != NULL) {
 			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_WARNING,
 				"// gg_handle_resolve_custom() handle should be"
@@ -1542,6 +1542,17 @@ static gg_action_t gg_handle_connected(struct gg_session *sess, struct gg_event 
 #endif
 }
 
+static gg_action_t gg_handle_error(struct gg_session *sess, struct gg_event *e, enum gg_state_t next_state, enum gg_state_t alt_state, enum gg_state_t alt2_state)
+{
+	struct gg_session_private *p = sess->private_data;
+
+	gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_handle_error() failure=%d\n", p->socket_failure);
+
+	e->event.failure = p->socket_failure;
+
+	return GG_ACTION_FAIL;
+}
+
 static const gg_state_transition_t handlers[] =
 {
 	{ GG_STATE_RESOLVE_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_HUB, GG_STATE_SEND_HUB, 0 },
@@ -1591,6 +1602,7 @@ static const gg_state_transition_t handlers[] =
 	{ GG_STATE_READING_REPLY, gg_handle_connected, 0, 0, 0 },
 	{ GG_STATE_CONNECTED, gg_handle_connected, 0, 0, 0 },
 	{ GG_STATE_DISCONNECTING, gg_handle_connected, 0, 0, 0 },
+	{ GG_STATE_ERROR, gg_handle_error, 0, 0, 0 },
 };
 
 
@@ -1630,7 +1642,7 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 	ge->type = GG_EVENT_NONE;
 
 	for (;;) {
-		unsigned int i;
+		unsigned int i, found = 0;
 		gg_action_t res;
 
 		res = GG_ACTION_FAIL;
@@ -1639,8 +1651,14 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 			if (handlers[i].state == (enum gg_state_t) sess->state) {
 				gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() %s\n", gg_debug_state(sess->state));
 				res = (*handlers[i].handler)(sess, ge, handlers[i].next_state, handlers[i].alt_state, handlers[i].alt2_state);
+				found = 1;
 				break;
 			}
+		}
+
+		if (!found) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_watch_fd() invalid state %s\n", gg_debug_state(sess->state));
+			ge->event.failure = GG_FAILURE_INTERNAL;
 		}
 
 		if (!sess->async && ge->type == GG_EVENT_NONE && res == GG_ACTION_WAIT)

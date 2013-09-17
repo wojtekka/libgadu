@@ -448,14 +448,17 @@ void gg_close(struct gg_session *sess)
 
 	errno_copy = errno;
 
-	if (p->socket_manager_type == GG_SOCKET_MANAGER_TYPE_INTERNAL) {
+	if (!p->socket_is_external) {
 		if (sess->fd != -1)
 			close(sess->fd);
 	} else {
+		assert(p->socket_manager_type !=
+			GG_SOCKET_MANAGER_TYPE_INTERNAL);
 		if (p->socket_handle != NULL) {
 			p->socket_manager.close(p->socket_manager.cb_data,
 				p->socket_handle);
 		}
+		p->socket_is_external = 0;
 	}
 	sess->fd = -1;
 	p->socket_handle = NULL;
@@ -2545,11 +2548,36 @@ int gg_libgadu_check_feature(gg_libgadu_feature_t feature)
 	return 0;
 }
 
+static void gg_socket_manager_error(struct gg_session *sess, enum gg_failure_t failure)
+{
+	int pipes[2];
+	uint8_t dummy = 0;
+	struct gg_session_private *p = sess->private_data;
+
+	p->socket_failure = failure;
+
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_socket_manager_error() unable to"
+			" create pipes (errno=%d, %s)\n", errno,
+			strerror(errno));
+		return;
+	}
+
+	p->socket_is_external = 0;
+	sess->fd = pipes[1];
+	sess->check = GG_CHECK_READ;
+	sess->state = GG_STATE_ERROR;
+	send(pipes[0], &dummy, sizeof(dummy), 0);
+	close(pipes[0]);
+}
+
 /**
  * Odbiera nowo utworzone gniazdo TCP/TLS.
  *
- * Jeżeli gniazdo nie zostanie obsłużone, należy je zniszczyć. Jeżeli zaś
- * wszystko przebiegnie pomyślnie, należy zacząć obserwować jego deskryptor.
+ * Po wywołaniu tej funkcji należy zacząć obserwować deskryptor sesji (nawet
+ * w przypadku niepowodzenia).
+ *
+ * Jeżeli gniazdo nie zostanie obsłużone, należy je zniszczyć.
  *
  * \param handle Uchwyt gniazda
  * \param priv Dane prywatne biblioteki libgadu
@@ -2575,22 +2603,23 @@ int gg_socket_manager_connected(void *handle, void *priv, int fd)
 	if (fd < 0) {
 		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
 			"// gg_socket_manager_connected() connection error\n");
-		/* TODO: jak wywołać tutaj event błędu dla async? */
-		p->socket_error = 1;
 		p->socket_handle = NULL;
+		gg_socket_manager_error(sess, GG_FAILURE_CONNECTING);
 		return 0;
 	}
 
 	if (p->socket_next_state == GG_STATE_TLS_NEGOTIATION) {
 		if (gg_session_init_ssl(sess) == -1) {
-			//e->event.failure = GG_FAILURE_TLS;
-			//TODO: tutaj też nie wiem jak wywołać event błędu
-			p->socket_error = 1;
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_socket_manager_connected() couldn't "
+				"initialize ssl\n");
 			p->socket_handle = NULL;
+			gg_socket_manager_error(sess, GG_FAILURE_TLS);
 			return 0;
 		}
 	}
 
+	p->socket_is_external = 1;
 	sess->fd = fd;
 	sess->timeout = GG_DEFAULT_TIMEOUT;
 	sess->state = p->socket_next_state;

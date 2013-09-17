@@ -50,7 +50,8 @@ struct gg_session_private {
 	gg_socket_manager_t socket_manager;
 	void *socket_handle;
 	int socket_next_state;
-	int socket_error;
+	int socket_is_external;
+	enum gg_failure_t socket_failure;
 
 	int time_diff;
 };
