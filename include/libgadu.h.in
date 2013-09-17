@@ -1550,6 +1550,9 @@ extern FILE *gg_debug_file;
 #define GG_DEBUG_ERROR 128	/**< Rejestracja błędów krytycznych */
 /** @} */
 
+const char *gg_debug_state(enum gg_state_t state);
+const char *gg_debug_event(enum gg_event_t event);
+
 #ifdef GG_DEBUG_DISABLE
 #define gg_debug(...) do { } while (0)
 #define gg_debug_session(...) do { } while (0)
