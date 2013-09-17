@@ -218,8 +218,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 		ge->type = GG_EVENT_CONN_FAILED;
 		ge->event.failure = GG_FAILURE_INVALID;
 		gs->state = GG_STATE_IDLE;
-		close(gs->fd);
-		gs->fd = -1;
+		gg_close(gs);
 		return 0;
 	}
 
@@ -251,13 +250,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 #endif
 
 			if (gg_login_hash_sha1_2(gs->password, seed, hash_buf) == -1) {
-				int errno_copy;
-
 				gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() gg_login_hash_sha1_2() failed, probably out of memory\n");
-				errno_copy = errno;
-				close(gs->fd);
-				errno = errno_copy;
-				gs->fd = -1;
+				gg_close(gs);
 				ge->type = GG_EVENT_CONN_FAILED;
 				ge->event.failure = GG_FAILURE_INTERNAL;
 				gs->state = GG_STATE_IDLE;
@@ -334,13 +328,8 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type, const
 			NULL);
 
 	if (ret == -1) {
-		int errno_copy;
-
 		gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() sending packet failed. (errno=%d, %s)\n", errno, strerror(errno));
-		errno_copy = errno;
-		close(gs->fd);
-		errno = errno_copy;
-		gs->fd = -1;
+		gg_close(gs);
 		ge->type = GG_EVENT_CONN_FAILED;
 		ge->event.failure = GG_FAILURE_WRITING;
 		gs->state = GG_STATE_IDLE;
@@ -391,8 +380,7 @@ static int gg_session_handle_login_failed(struct gg_session *gs, uint32_t type, 
 	ge->type = GG_EVENT_CONN_FAILED;
 	ge->event.failure = (type != GG_DISCONNECTING) ? GG_FAILURE_PASSWORD : GG_FAILURE_INTRUDER;
 	gs->state = GG_STATE_IDLE;
-	close(gs->fd);
-	gs->fd = -1;
+	gg_close(gs);
 	errno = EACCES;
 
 	return 0;

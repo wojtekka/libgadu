@@ -785,12 +785,7 @@ int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version,
 void gg_connection_failure(struct gg_session *gs, struct gg_event *ge,
 	enum gg_failure_t failure)
 {
-	int errno_copy;
-
-	errno_copy = errno;
-	close(gs->fd);
-	gs->fd = -1;
-	errno = errno_copy;
+	gg_close(gs);
 
 	if (ge != NULL) {
 		ge->type = GG_EVENT_CONN_FAILED;
