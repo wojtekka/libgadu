@@ -3,10 +3,10 @@
 #-----------------------------------------------------------------------------
 
 call {
-	gg_send_message(session, GG_CLASS_CHAT, 0x123456, (unsigned char*) "Tęśt");
+	gg_send_message(session, GG_CLASS_CHAT, 123456, (unsigned char*) "Tęśt");
 }
 
-expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 08 00 00 00, 6d 00 00 00, 72 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Tęśt</span>" 00, "T" ea 9c "t" 00, 02 06 00 00 00 08 00 00 00)
+expect data (7d 00 00 00, auto, 0a 08 01 06 "123456", 10 08, 18 01, 2a 06 "Tęśt", 32 13 "<span>Tęśt</span>")
 
 #-----------------------------------------------------------------------------
 # Sending rich-text message
@@ -22,41 +22,40 @@ call {
 		3, 0, GG_FONT_COLOR, 0x12, 0x34, 0x56
 	};
 
-	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "Tęśt", (unsigned char*) format, sizeof(format));
+	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 123456, (unsigned char*) "Tęśt", (unsigned char*) format, sizeof(format));
 }
 
-#expect data (0b 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, "T" ea 9c "t" 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
-expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, d4 00 00 00, d9 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 "><b>T</b><i>ę</i><u>ś</u></span><span" 20 "style=" 22 "color:#123456;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">t</span>" 00, "T" ea 9c "t" 00, 02, 0f 00, 00 00 01, 01 00 02, 02 00 04, 03 00 08 12 34 56)
+expect data (7d 00 00 00, auto, 0a 08 01 06 "123456", 10 08, 18 02, 2a 06 "Tęśt", 32 13 "<span>Tęśt</span>")
 
 #-----------------------------------------------------------------------------
 # Sending "rich-text" message with empty format attributes
 #-----------------------------------------------------------------------------
 
 call {
-	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "Tęśt", NULL, 0);
+	gg_send_message_richtext(session, GG_CLASS_CHAT | GG_CLASS_ACK, 123456, (unsigned char*) "Tęśt", NULL, 0);
 }
 
-expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, 6d 00 00 00, 72 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Tęśt</span>" 00, "T" ea 9c "t" 00)
+expect data (7d 00 00 00, auto, 0a 08 01 06 "123456", 10 08, 18 03, 2a 06 "Tęśt", 32 13 "<span>Tęśt</span>")
 
 #-----------------------------------------------------------------------------
 # Sending HTML message
 #-----------------------------------------------------------------------------
 
 call {
-	gg_send_message_html(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">Tęśt</span>");
+	gg_send_message_html(session, GG_CLASS_CHAT | GG_CLASS_ACK, 123456, (unsigned char*) "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">Tęśt</span>");
 }
 
-expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, 6d 00 00 00, 72 00 00 00, "<span" 20 "style=" 22 "color:#000000;" 20 "font-family:'MS" 20 "Shell" 20 "Dlg" 20 "2';" 20 "font-size:9pt;" 20 22 ">Tęśt</span>" 00, "T" ea 9c "t" 00, 02 06 00 00 00 08 00 00 00)
+expect data (7d 00 00 00, auto, 0a 08 01 06 "123456", 10 08, 18 04, 2a 06 "Tęśt", 32 58 "<span style=\"color:#000000; font-family:'MS Shell Dlg 2'; font-size:9pt; \">Tęśt</span>")
 
 #-----------------------------------------------------------------------------
 # Sending HTML message lacking any formatting
 #-----------------------------------------------------------------------------
 
 call {
-	gg_send_message_html(session, GG_CLASS_CHAT | GG_CLASS_ACK, 0x123456, (unsigned char*) "Tęśt");
+	gg_send_message_html(session, GG_CLASS_CHAT | GG_CLASS_ACK, 123456, (unsigned char*) "Tęśt");
 }
 
-expect data (2d 00 00 00, auto, 56 34 12 00, xx xx xx xx, 28 00 00 00, 1b 00 00 00, 20 00 00 00, "Tęśt" 00, "T" ea 9c "t" 00)
+expect data (7d 00 00 00, auto, 0a 08 01 06 "123456", 10 08, 18 05, 2a 06 "Tęśt", 32 06 "Tęśt")
 
 #-----------------------------------------------------------------------------
 # Sending conference message
