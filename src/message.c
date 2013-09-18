@@ -913,7 +913,7 @@ static size_t gg_message_text_to_html_110_buff(char *dst, const char *text,
 
 	gg_append(dst, &dst_len, "<span>", 6);
 
-	for (i = 0; i < text_len; i++)
+	for (i = 0; i < (size_t)text_len; i++)
 	{
 		char c = text[i];
 		if (c == '<')

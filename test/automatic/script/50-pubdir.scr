@@ -126,7 +126,7 @@ expect event GG_EVENT_PUBDIR50_SEARCH_REPLY {
 		{ 1, GG_PUBDIR50_CITY, "Tuchola" },
 		{ 1, GG_PUBDIR50_STATUS, "1" },
 	};
-	int i;
+	size_t i;
 
 	if (gg_pubdir50_count(event->pubdir50) != 2)
 		return FALSE;

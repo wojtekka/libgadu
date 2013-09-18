@@ -45,4 +45,6 @@ test/automatic/*-valgrind
 test/manual/client
 test/manual/dcc7
 test/manual/userlist
+test/manual/search
+test/manual/voice7
 test/manual/*-valgrind

@@ -757,7 +757,7 @@ struct gg_login_params {
 	int protocol_features;		/**< Opcje protokołu (flagi GG_FEATURE_*). */
 	int status_flags;		/**< Flagi statusu (flagi GG_STATUS_FLAG_*, patrz \ref status). */
 
-	int struct_size;		/**< Rozmiar struktury. To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. */
+	unsigned int struct_size;	/**< Rozmiar struktury. To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. */
 
 	char *connect_host;		/**< Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). */
 
@@ -1549,6 +1549,9 @@ extern FILE *gg_debug_file;
 #define GG_DEBUG_WARNING 64	/**< Rejestracja ostrzeżeń */
 #define GG_DEBUG_ERROR 128	/**< Rejestracja błędów krytycznych */
 /** @} */
+
+const char *gg_debug_state(enum gg_state_t state);
+const char *gg_debug_event(enum gg_event_t event);
 
 #ifdef GG_DEBUG_DISABLE
 #define gg_debug(...) do { } while (0)

@@ -344,7 +344,7 @@ int gg_file_hash_sha1(int fd, uint8_t *result)
 	if (!SHA1_Init(&ctx))
 		return -1;
 
-	if (len <= part_len * 10) {
+	if (len <= (off_t)part_len * 10) {
 		res = gg_file_hash_sha1_part(fd, &ctx, 0, len);
 	} else {
 		unsigned int i;

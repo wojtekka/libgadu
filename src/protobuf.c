@@ -102,11 +102,10 @@ int gg_protobuf_send_ex(struct gg_session *gs, struct gg_event *ge, int type,
 	return succ;
 }
 
-ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff_t *buff)
+void gg_protobuf_set_uin(ProtobufCBinaryData *dst, uin_t uin, gg_protobuf_uin_buff_t *buff)
 {
 	char *uin_str;
 	int uin_len;
-	ProtobufCBinaryData ret;
 	static gg_protobuf_uin_buff_t static_buffer;
 
 	if (buff == NULL) {
@@ -119,15 +118,14 @@ ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff_t *buff)
 	buff->data[0] = 0x01; /* magic: 0x00 lub 0x01 */
 	buff->data[1] = uin_len;
 
-	ret.len = uin_len + 2;
-	ret.data = (uint8_t*)&buff->data;
-	return ret;
+	dst->len = uin_len + 2;
+	dst->data = (uint8_t*)&buff->data;
 }
 
 uin_t gg_protobuf_get_uin(ProtobufCBinaryData uin_data)
 {
 	uint8_t magic;
-	uint8_t uin_len;
+	size_t uin_len;
 	const char *uin_str;
 	uin_t uin;
 

@@ -24,7 +24,7 @@ typedef struct {
 	int test;
 	state_type_t type;
 	struct gg_login_params *glp;
-	enum gg_event_t event;
+	int event;
 	state_check_event_func_t check_event;
 	state_api_call_func_t call;
 	unsigned char *data;
