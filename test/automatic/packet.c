@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include "libgadu.h"
+#include "internal.h"
 
 enum {
 	EXPECT_NOTHING = 0,
@@ -122,9 +123,11 @@ static void resolver_cleanup(void **priv_data, int force)
 
 }
 
-static void gs_init(struct gg_session *gs, int async)
+static void gs_init(struct gg_session *gs, struct gg_session_private *gsp, int async)
 {
+	memset(gsp, 0, sizeof(struct gg_session_private));
 	memset(gs, 0, sizeof(struct gg_session));
+	gs->private_data = gsp;
 	gs->fd = 123;
 	gs->state = GG_STATE_CONNECTED;
 	gs->timeout = -1;
@@ -136,10 +139,11 @@ static void gs_init(struct gg_session *gs, int async)
 static void test_recv_packet(void)
 {
 	struct gg_session gs;
+	struct gg_session_private gsp;
 
 	gg_debug_level = ~0;
 
-	gs_init(&gs, 0);
+	gs_init(&gs, &gsp, 0);
 
 	for (state = 0; (size_t)state < sizeof(input) / sizeof(input[0]); ) {
 		struct gg_header *gh;
@@ -166,7 +170,7 @@ static void test_recv_packet(void)
 				}
 
 				/* Posprzątaj, bo jedziemy dalej */
-				gs_init(&gs, 0);
+				gs_init(&gs, &gsp, 0);
 			}
 
 		} else {
@@ -243,8 +247,9 @@ ssize_t send(int fd, const void *buf, size_t len, int flags)
 static void test_send_packet(void)
 {
 	struct gg_session gs;
+	struct gg_session_private gsp;
 
-	gs_init(&gs, 1);
+	gs_init(&gs, &gsp, 1);
 
 	/* Poprawne wysyłanie */
 
@@ -286,7 +291,7 @@ static void test_send_packet(void)
 
 	/* EAGAIN na początek */
 
-	gs_init(&gs, 1);
+	gs_init(&gs, &gsp, 1);
 
 	if (gg_send_packet(&gs, 0x4567, "PQRSTU", 6, NULL) != 0) {
 		fprintf(stderr, "Expected success\n");
