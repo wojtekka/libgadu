@@ -9,17 +9,21 @@ sub split_string
 	my @result = ();
 	my $word = "";
 	my $in_string = 0;
+	my $in_backslash = 0;
 
 	for ($i = 0; $i < length($string); $i++) {
 		$ch = substr($string, $i, 1);
 
 		if ($in_string) {
-			if ($ch eq '"') {
+			if ($ch eq '"' && !$in_backslash) {
 				push(@result, $word . '"');
 				$in_string = 0;
 				$word = "";
+			} elsif ($ch eq '\\' && !$in_backslash) {
+				$in_backslash = 1;
 			} else {
 				$word .= $ch;
+				$in_backslash = 0;
 			}
 		} else {
 			if ($ch eq ' ' || $ch eq ',') {
@@ -60,6 +64,10 @@ sub parse
 		s/^\s*//;
 
 		next if (/^#/ || /^$/);
+
+		if (/^exit/) {
+			last;
+		}
 
 		if (/^include\s+(.*)\s*/) {
 			parse($1);
