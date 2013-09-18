@@ -125,9 +125,10 @@ sub parse
 		}
 
 		if (/^expect\s+(dis)*connect/) {
+			$exptype = defined($1) ? uc($1) : "";
 			$entry = "\t/* state $state */\n";
 			$entry .= "\t{\n";
-			$entry .= "\t\t.type = EXPECT_" . uc($1) . "CONNECT,\n";
+			$entry .= "\t\t.type = EXPECT_" . $exptype . "CONNECT,\n";
 			$entry .= "\t\t.filename = \"$filename\",\n";
 			$entry .= "\t\t.line = $line,\n";
 			$entry .= "\t\t.test = $test,\n";

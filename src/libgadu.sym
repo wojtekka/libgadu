@@ -46,11 +46,13 @@ gg_dcc_voice_send
 gg_dcc_watch_fd
 gg_debug
 gg_debug_common
+gg_debug_event
 gg_debug_file
 gg_debug_handler
 gg_debug_handler_session
 gg_debug_level
 gg_debug_session
+gg_debug_state
 gg_event_free
 gg_file_hash_sha1
 gg_fix16

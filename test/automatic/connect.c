@@ -111,9 +111,16 @@ static void debug_handler(int level, const char *format, va_list ap)
 		vprintf(format, ap);
 	} else {
 		char buf[4096], *tmp;
-		int len;
-	
-		if (vsnprintf(buf, sizeof(buf), format, ap) >= sizeof(buf)) {
+		int len, ret;
+
+		ret = vsnprintf(buf, sizeof(buf), format, ap);
+
+		if (ret < 0) {
+			fprintf(stderr, "vsnprintf error!\n");
+			return;
+		}
+
+		if ((size_t)ret >= sizeof(buf)) {
 			fprintf(stderr, "Increase temporary log buffer size!\n");
 			return;
 		}
@@ -523,7 +530,7 @@ static void* server_func(void* arg)
 	enum { CLIENT_UNKNOWN, CLIENT_HUB, CLIENT_GG, CLIENT_GG_SSL, CLIENT_PROXY } ctype = CLIENT_UNKNOWN;
 	int i;
 	char buf[4096];
-	int len = 0;
+	size_t len = 0;
 	const char welcome_packet[] = { 1, 0, 0, 0, 4, 0, 0, 0, 1, 2, 3, 4 };
 	const char login_ok_packet[] = { 3, 0, 0, 0, 0, 0, 0, 0 };
 	const char hub_reply[] = "HTTP/1.0 200 OK\r\n\r\n0 0 " HOST_LOCAL ":8074 " HOST_LOCAL "\r\n";

@@ -43,8 +43,8 @@ expect event GG_EVENT_MULTILOGON_INFO (
 	multilogon_info.sessions[0].name == "First"
 	multilogon_info.sessions[1].remote_addr == 127.0.0.2
 	multilogon_info.sessions[1].status_flags == 0x76543210
-	multilogon_info.sessions[1].protocol_features == 0x87654321
-	multilogon_info.sessions[1].logon_time == 0x98765432
+	multilogon_info.sessions[1].protocol_features == (int)0x87654321
+	multilogon_info.sessions[1].logon_time == (time_t)0x98765432
 	multilogon_info.sessions[1].name == "Second"
 )
 

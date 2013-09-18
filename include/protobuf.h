@@ -61,7 +61,7 @@ int gg_protobuf_send_ex(struct gg_session *gs, struct gg_event *ge, int type,
 	void *msg, gg_protobuf_size_cb_t size_cb,
 	gg_protobuf_pack_cb_t pack_cb);
 
-ProtobufCBinaryData gg_protobuf_set_uin(uin_t uin, gg_protobuf_uin_buff_t *buff);
+void gg_protobuf_set_uin(ProtobufCBinaryData *dst, uin_t uin, gg_protobuf_uin_buff_t *buff);
 uin_t gg_protobuf_get_uin(ProtobufCBinaryData uin_data);
 
 #endif /* LIBGADU_PROTOBUF_H */

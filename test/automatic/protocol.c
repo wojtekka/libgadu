@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 			debug("state %d: sending data\n", state);
 
 			if (outbuflen > 0) {
-				if (outbuflen + script[state].data_len > sizeof(outbuf)) {
+				if ((size_t)outbuflen + script[state].data_len > sizeof(outbuf)) {
 					errno = ENOMEM;
 					perror("write");
 					exit(1);
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
 					exit(1);
 				}
 
-				if (outbuflen + script[state].data_len - res > sizeof(outbuf)) {
+				if ((size_t)outbuflen + script[state].data_len - res > sizeof(outbuf)) {
 					errno = ENOMEM;
 					perror("write");
 					exit(1);

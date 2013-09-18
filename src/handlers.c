@@ -129,7 +129,7 @@ static int gg_session_handle_welcome_110(struct gg_session *gs, uint32_t seed,
 		"sending GG_LOGIN105 packet\n");
 
 	msg.lang = GG8_LANG;
-	msg.uin = gg_protobuf_set_uin(gs->uin, NULL);
+	gg_protobuf_set_uin(&msg.uin, gs->uin, NULL);
 	msg.hash.len = 20;
 	msg.hash.data = hash;
 	msg.client = client_str;
@@ -680,7 +680,7 @@ static int gg_session_handle_dcc7_info(struct gg_session *gs, uint32_t type, con
  * \param sender Numer nadawcy
  * \param type Typ pakietu
  */
-static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender, int type)
+static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender, uint32_t type)
 {
 	const struct gg_msg_image_reply *i = (const void*) p;
 	struct gg_image_queue *q, *qq;
@@ -907,7 +907,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 			case GG_MSG_OPTION_IMAGE_REPLY_MORE:
 			{
 				struct gg_msg_image_reply *rep = (void*) p;
-				int type = rep->flag;
+				uint8_t type = rep->flag;
 
 				if (e->event.msg.formats != NULL || e->event.msg.recipients != NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() mixed options (2)\n");
@@ -2181,7 +2181,7 @@ static int gg_session_handle_pong_110(struct gg_session *gs, uint32_t type,
 static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	gg_tvbuff_t *tvb;
-	int i;
+	uint32_t i;
 
 	uint64_t id;
 	uint32_t version;
@@ -2278,7 +2278,7 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs, uint32_t ty
 		chat->participants = realloc(chat->participants, sizeof(uin_t) * chat->participants_count);
 		chat->participants[chat->participants_count - 1] = participant;
 	} else if (msg->update_type == GG_CHAT_INFO_UPDATE_EXITED) {
-		int idx;
+		uint32_t idx;
 		for (idx = 0; idx < chat->participants_count; idx++)
 			if (chat->participants[idx] == participant)
 				break;
@@ -2421,7 +2421,8 @@ static int gg_session_handle_uin_info(struct gg_session *gs, uint32_t type, cons
 static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	GG112TransferInfo *msg = gg112_transfer_info__unpack(NULL, len, (uint8_t*)ptr);
-	int succ = 1, i;
+	int succ = 1;
+	size_t i;
 	uin_t peer = 0, sender = 0;
 
 	if (!GG_PROTOBUF_VALID(gs, "GG112TransferInfo", msg))

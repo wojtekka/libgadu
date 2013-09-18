@@ -22,64 +22,64 @@ struct {
 	int result;
 
 	int expect;
-	int type;
-	int length;
+	uint32_t type;
+	uint32_t length;
 	const char *expected_data;
 } input[] = {
 	{ "\x01\x00\x00\x00\x00\x00\x00\x00", 8, EXPECT_PACKET, 1, 0, "" },
 
 	{ "\x02\x00\x00\x00\x08\x00\x00\x00""ABCDEFGH", 16, EXPECT_PACKET, 2, 8, "ABCDEFGH" },
 
-	{ "\x03\x00\x00\x00\x04\x00\x00\x00", 8 },
+	{ "\x03\x00\x00\x00\x04\x00\x00\x00", 8, EXPECT_NOTHING, 0, 0, NULL },
 	{ "IJKL", 4, EXPECT_PACKET, 3, 4, "IJKL" },
 
-	{ "", -EINTR },
+	{ "", -EINTR, EXPECT_NOTHING, 0, 0, NULL },
 
-	{ "\x04\x00\x00\x00", 4 },
-	{ "", -EINTR },
-	{ "\x02\x00\x00\x00", 4 },
+	{ "\x04\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -EINTR, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x02\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
 	{ "MN", 2, EXPECT_PACKET, 4, 2, "MN" },
 
-	{ "\x05\x00", 2 },
-	{ "\x00\x00", 2 },
-	{ "\x06\x00\x00", 3 },
-	{ "\x00", 1 },
-	{ "OPQR", 4 },
+	{ "\x05\x00", 2, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00\x00", 2, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x06\x00\x00", 3, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "OPQR", 4, EXPECT_NOTHING, 0, 0, NULL },
 	{ "ST", 2, EXPECT_PACKET, 5, 6, "OPQRST" },
 
-	{ "\x06", 1 },
-	{ "\x00", 1 },
-	{ "\x00", 1 },
-	{ "\x00", 1 },
-	{ "\x01", 1 },
-	{ "\x00", 1 },
-	{ "\x00", 1 },
-	{ "\x00", 1 },
+	{ "\x06", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x01", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
+	{ "\x00", 1, EXPECT_NOTHING, 0, 0, NULL },
 	{ "U", 1, EXPECT_PACKET, 6, 1, "U" },
 
-	{ "\x07\x00\x00\x00", 4 },
-	{ "", -EINTR },
+	{ "\x07\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -EINTR, EXPECT_NOTHING, 0, 0, NULL },
 	{ "\x00\x00\x00\x00", 4, EXPECT_PACKET, 7, 0, "" },
 
-	{ "\x08\x00\x00\x00", 4 },
-	{ "", -EAGAIN, EXPECT_EAGAIN },
-	{ "\x04\x00\x00\x00", 4 },
-	{ "", -EINTR },
-	{ "", -EAGAIN, EXPECT_EAGAIN },
+	{ "\x08\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -EAGAIN, EXPECT_EAGAIN, 0, 0, NULL },
+	{ "\x04\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -EINTR, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -EAGAIN, EXPECT_EAGAIN, 0, 0, NULL },
 	{ "1234", 4, EXPECT_PACKET, 8, 4, "1234" },
 
-	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8, EXPECT_ERROR },
+	{ "\x09\x00\x00\x00\x00\x00\x00\x01", 8, EXPECT_ERROR, 0, 0, NULL },
 
-	{ "\x0a\x00\x00\x00", 4 },
-	{ "", -ENOTCONN, EXPECT_ERROR },
+	{ "\x0a\x00\x00\x00", 4, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", -ENOTCONN, EXPECT_ERROR, 0, 0, NULL },
 
-	{ "\x0b\x00\x00\x00\xff\x00\x00\x00", 8 },
-	{ "VW", 2 },
-	{ "", 0, EXPECT_ERROR },
+	{ "\x0b\x00\x00\x00\xff\x00\x00\x00", 8, EXPECT_NOTHING, 0, 0, NULL },
+	{ "VW", 2, EXPECT_NOTHING, 0, 0, NULL },
+	{ "", 0, EXPECT_ERROR, 0, 0, NULL },
 
-	{ "", 0, EXPECT_ERROR },
+	{ "", 0, EXPECT_ERROR, 0, 0, NULL },
 
-	{ "", -ENOTSOCK, EXPECT_ERROR },
+	{ "", -ENOTSOCK, EXPECT_ERROR, 0, 0, NULL },
 };
 
 ssize_t recv(int fd, void *buf, size_t len, int flags)
@@ -97,8 +97,8 @@ ssize_t recv(int fd, void *buf, size_t len, int flags)
 
 	result = input[state].result;
 
-	if (result > -1) {
-		if (result - offset > len) {
+	if (result > -1 && result - offset >= 0) {
+		if ((size_t)(result - offset) > len) {
 			memcpy(buf, input[state].data + offset, len);
 			offset += len;
 			result = len;
@@ -145,7 +145,7 @@ static void test_recv_packet(void)
 
 	gs_init(&gs, &gsp, 0);
 
-	for (state = 0; state < sizeof(input) / sizeof(input[0]); ) {
+	for (state = 0; (size_t)state < sizeof(input) / sizeof(input[0]); ) {
 		struct gg_header *gh;
 
 		expected_packet = 0;
