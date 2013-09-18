@@ -353,12 +353,12 @@ int main(int argc, char **argv)
 
 			if (ge->type != GG_EVENT_NONE || (script[state].type == EXPECT_EVENT && script[state].event == GG_EVENT_NONE)) {
 				if (script[state].type != EXPECT_EVENT) {
-					error(state, "Unexpected event %d\n", ge->type);
+					error(state, "Unexpected event %s (%d)\n", gg_debug_event(ge->type), ge->type);
 					exit(1);
 				}
 
 				if ((script[state].event != -1 && ge->type != script[state].event)) {
-					error(state, "Invalid event %d, expected %d\n", ge->type, script[state].event);
+					error(state, "Invalid event %s (%d), expected %s (%d)\n", gg_debug_event(ge->type), ge->type, gg_debug_event(script[state].event), script[state].event);
 					exit(1);
 				}
 
@@ -367,7 +367,7 @@ int main(int argc, char **argv)
 					exit(1);
 				}
 
-				debug("state %d: received event %d\n", state, ge->type);
+				debug("state %d: received event %s (%d)\n", state, gg_debug_event(ge->type), ge->type);
 				state++;
 				last = time(NULL);
 
