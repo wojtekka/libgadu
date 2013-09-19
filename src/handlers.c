@@ -417,11 +417,24 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 	if (!GG_PROTOBUF_VALID(gs, "GG110MessageAck", msg))
 		return -1;
 
-	gg_protobuf_expected(gs, "GG110MessageAck.dummy1", msg->dummy1, 0);
+	if (msg->dummy1 == 0x4000) {
+		/* zaobserwowane w EKG rev2856, po wywołaniu check_conn, czyli
+		 * gg_image_request(sess, uin, 0, time(NULL));
+		 */
+		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+			"// gg_session_handle_send_msg_ack_110() magic dummy1 "
+			"value 0x4000");
+	} else if (msg->dummy1 != 0) {
+		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+			"// gg_session_handle_send_msg_ack_110() unknown dummy1 "
+			"value: %x", msg->dummy1);
+	}
 
 	gg_debug_session(gs, GG_DEBUG_VERBOSE,
 		"// gg_session_handle_send_msg_ack_110() "
-		"msg_id=%016llx conv_id=%016llx\n", msg->msg_id, msg->conv_id);
+		"%s=%016llx %s=%016llx\n",
+		msg->has_msg_id ? "msg_id" : "0", msg->msg_id,
+		msg->has_conv_id ? "conv_id" : "0", msg->conv_id);
 
 	for (i = 0; i < msg->n_links; i++) {
 		GG110MessageAckLink *link = msg->links[i];
