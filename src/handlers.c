@@ -2218,6 +2218,12 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, con
 		gg_tvbuff_expected_uint32(tvb, 2); /* unknown */
 	}
 	participants_count = gg_tvbuff_read_uint32(tvb);
+	if (id == 0 && participants_count > 0) {
+		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+			"// gg_session_handle_chat_info() terminating packet "
+			"shouldn't contain participants\n");
+		participants_count = 0;
+	}
 
 	if (gg_tvbuff_is_valid(tvb) && participants_count > 0) {
 		participants = malloc(sizeof(uin_t) * participants_count);
