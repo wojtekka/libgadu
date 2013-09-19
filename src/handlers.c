@@ -691,7 +691,7 @@ static int gg_session_handle_dcc7_info(struct gg_session *gs, uint32_t type, con
  * \param len Długość bufora
  * \param sess Struktura sesji
  * \param sender Numer nadawcy
- * \param type Typ pakietu
+ * \param type Typ pakietu (NIE typ GG_MSG_OPTION_IMAGE_*)
  */
 static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int len, struct gg_session *sess, uin_t sender, uint32_t type)
 {
@@ -799,12 +799,13 @@ static void gg_image_queue_parse(struct gg_event *e, const char *p, unsigned int
  * \param sender Numer nadawcy.
  * \param p Wskaźnik na dane rozszerzone.
  * \param packet_end Wskaźnik na koniec pakietu.
+ * \param packet_type Typ pakietu, w którym otrzymaliśmy wiadomość.
  *
  * \return 0 jeśli się powiodło, -1 jeśli wiadomość obsłużono i wynik ma
  * zostać przekazany aplikacji, -2 jeśli wystąpił błąd ogólny, -3 jeśli
  * wiadomość jest niepoprawna.
  */
-static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *e, uin_t sender, const char *p, const char *packet_end)
+static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *e, uin_t sender, const char *p, const char *packet_end, uint32_t packet_type)
 {
 	while (p < packet_end) {
 		switch (*p) {
@@ -920,7 +921,6 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 			case GG_MSG_OPTION_IMAGE_REPLY_MORE:
 			{
 				struct gg_msg_image_reply *rep = (void*) p;
-				uint8_t type = rep->flag;
 
 				if (e->event.msg.formats != NULL || e->event.msg.recipients != NULL) {
 					gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg_options() mixed options (2)\n");
@@ -947,7 +947,7 @@ static int gg_handle_recv_msg_options(struct gg_session *sess, struct gg_event *
 
 				rep->size = gg_fix32(rep->size);
 				rep->crc32 = gg_fix32(rep->crc32);
-				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, sender, type);
+				gg_image_queue_parse(e, p, (unsigned int)(packet_end - p), sess, sender, packet_type);
 
 				goto handled;
 			}
@@ -1033,7 +1033,7 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 		
 		length = (size_t) (options - payload);
 
-		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end)) {
+		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), options + 1, payload_end, type)) {
 			case -1:	/* handled */
 				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
@@ -1140,7 +1140,7 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	e->event.msg.seq = gg_fix32(r->seq);
 
 	if (offset_attr != 0) {
-		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + length)) {
+		switch (gg_handle_recv_msg_options(sess, e, gg_fix32(r->sender), packet + offset_attr, packet + length, type)) {
 			case -1:	/* handled */
 				gg_session_send_msg_ack(sess, gg_fix32(r->seq));
 				return 0;
