@@ -234,10 +234,17 @@ dnl
 dnl  Sprawdzamy libprotobuf-c
 dnl
 
-AC_CHECK_LIB(protobuf-c, protobuf_c_message_pack, [have_protobuf_c=yes], [have_protobuf_c=no])
-if test "x$have_protobuf_c" = "xyes"; then
-	LIBS_PRIVATE="$LIBS_PRIVATE -lprotobuf-c"
-	AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
+AC_ARG_WITH(protobuf,
+  [  --without-protobuf      do not use libprotobuf-c even if found])
+
+if test "x$with_protobuf" != "xno"; then
+	AC_CHECK_LIB(protobuf-c, protobuf_c_message_pack, [have_protobuf_c=yes], [have_protobuf_c=no])
+	if test "x$have_protobuf_c" = "xyes"; then
+		LIBS_PRIVATE="$LIBS_PRIVATE -lprotobuf-c"
+		AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
+	fi
+else
+	have_protobuf_c=no
 fi
 AM_CONDITIONAL([HAVE_PROTOBUF_C], [test "x$have_protobuf_c" = "xyes"])
 
