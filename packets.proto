@@ -75,8 +75,8 @@ message GG110MessageAck
 	required uint32 msg_type = 1;
 	required uint32 seq = 2;
 	required fixed32 time = 3;
-	required fixed64 msg_id = 4;
-	required fixed64 conv_id = 5;
+	optional fixed64 msg_id = 4;
+	optional fixed64 conv_id = 5;
 	repeated GG110MessageAckLink links = 6;
 	required uint32 dummy1 = 7 [default = 0];
 }
