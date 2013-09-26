@@ -218,8 +218,8 @@ typedef enum {
  */
 typedef enum {
 	GG_SSL_DISABLED = 0,	/**< Połączenie SSL wyłączone */
-	GG_SSL_ENABLED,		/**< Połączenie SSL włączone gdy dostępne */
-	GG_SSL_REQUIRED		/**< Połączenie SSL wymagane */
+	GG_SSL_ENABLED,		/**< Połączenie SSL włączone gdy dostępne. Błędny certyfikat serwera nie powoduje odrzucenia połączenia. */
+	GG_SSL_REQUIRED		/**< Połączenie SSL wymagane. Błędny certyfikat serwera powoduje odrzucenie połączenia. */
 } gg_ssl_t;
 
 /**

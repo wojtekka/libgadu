@@ -15,6 +15,8 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 - Możliwość podania nazwy serwera, nie tylko adresu.
 
+- Ustawienie pola \c tls struktury \c gg_login_params na \c GG_SSL_REQUIRED powoduje odrzucenie połączenia w przypadku błędnego certyfikatu serwera.
+
 \section changelog-1_11_2 libgadu 1.11.2
 
 - Brak zmian API/ABI.
