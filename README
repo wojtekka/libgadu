@@ -38,7 +38,9 @@ Do połączeń szyfrowanych biblioteka wykorzystuje bibliotekę GnuTLS lub
 OpenSSL. Jeśli obie są zainstalowane w systemie, pierwszeństwo ma ta
 pierwsza, ponieważ użycie OpenSSL może powodować problemy z łączeniem
 z programami na licencji GPL. Minimalna wymagana wersja biblioteki
-OpenSSL to 0.9.7, a biblioteki GnuTLS 2.10.0.
+OpenSSL to 0.9.7, a biblioteki GnuTLS 2.10.0. Przy użyciu OpenSSL lub
+GnuTLS w wersji niższej niż 3.0 nie jest sprawdzana lista unieważnionych
+certyfikatów.
 
 Do przechowywania listy kontaktów na serwerze niezbędna jest biblioteka
 zlib.
