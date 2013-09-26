@@ -708,10 +708,10 @@ typedef ssize_t (*gg_socket_manager_write_cb_t)(void *cb_data, void *handle, con
  */
 typedef struct {
 	void *cb_data; /**< Dane prywatne aplikacji */
-	gg_socket_manager_connect_cb_t connect; /**< Funkcja tworząca nowe gniazdo */
-	gg_socket_manager_close_cb_t close; /**< Funkcja niszcząca gniazdo */
-	gg_socket_manager_read_cb_t read; /**< Funkcja odczytująca dane z gniazda */
-	gg_socket_manager_write_cb_t write; /**< Funkcja wysyłająca dane przez gniazdo */
+	gg_socket_manager_connect_cb_t connect_cb; /**< Funkcja tworząca nowe gniazdo */
+	gg_socket_manager_close_cb_t close_cb; /**< Funkcja niszcząca gniazdo */
+	gg_socket_manager_read_cb_t read_cb; /**< Funkcja odczytująca dane z gniazda */
+	gg_socket_manager_write_cb_t write_cb; /**< Funkcja wysyłająca dane przez gniazdo */
 #ifndef DOXYGEN
 	void *reserved1;
 	void *reserved2;

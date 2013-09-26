@@ -245,7 +245,7 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 #endif
 
 	if (p->socket_handle != NULL) {
-		if (p->socket_manager.read == NULL) {
+		if (p->socket_manager.read_cb == NULL) {
 			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
 				"// gg_read() socket_manager.read callback is "
 				"empty\n");
@@ -254,8 +254,9 @@ int gg_read(struct gg_session *sess, char *buf, int length)
 		}
 
 		do {
-			res = p->socket_manager.read(p->socket_manager.cb_data,
-				p->socket_handle, (unsigned char*)buf, length);
+			res = p->socket_manager.read_cb(
+				p->socket_manager.cb_data, p->socket_handle,
+				(unsigned char*)buf, length);
 		} while (res < 0 && errno == EINTR);
 
 		if (res < 0) {
@@ -348,7 +349,7 @@ static int gg_write_common(struct gg_session *sess, const char *buf, int length)
 #endif
 
 	if (p->socket_handle != NULL) {
-		if (p->socket_manager.write == NULL) {
+		if (p->socket_manager.write_cb == NULL) {
 			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
 				"// gg_write_common() socket_manager.write "
 				"callback is empty\n");
@@ -357,9 +358,9 @@ static int gg_write_common(struct gg_session *sess, const char *buf, int length)
 		}
 
 		do {
-			res = p->socket_manager.write(p->socket_manager.cb_data,
-				p->socket_handle, (const unsigned char*)buf,
-				length);
+			res = p->socket_manager.write_cb(
+				p->socket_manager.cb_data, p->socket_handle,
+				(const unsigned char*)buf, length);
 		} while (res < 0 && errno == EINTR);
 
 		if (res < 0) {
@@ -455,7 +456,7 @@ void gg_close(struct gg_session *sess)
 		assert(p->socket_manager_type !=
 			GG_SOCKET_MANAGER_TYPE_INTERNAL);
 		if (p->socket_handle != NULL) {
-			p->socket_manager.close(p->socket_manager.cb_data,
+			p->socket_manager.close_cb(p->socket_manager.cb_data,
 				p->socket_handle);
 		}
 		p->socket_is_external = 0;

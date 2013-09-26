@@ -434,7 +434,7 @@ static int gg_handle_resolve_custom(struct gg_session *sess, enum gg_state_t nex
 	if (p->socket_manager_type == GG_SOCKET_MANAGER_TYPE_INTERNAL)
 		return 0;
 
-	if (p->socket_manager.connect == NULL) {
+	if (p->socket_manager.connect_cb == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
 			"// gg_handle_resolve_custom() socket_manager.connect "
 			"callback is empty\n");
@@ -473,8 +473,9 @@ static int gg_handle_resolve_custom(struct gg_session *sess, enum gg_state_t nex
 
 	p->socket_failure = 0;
 	p->socket_next_state = next_state;
-	p->socket_handle = p->socket_manager.connect(p->socket_manager.cb_data,
-		sess->resolver_host, port, is_tls, sess->async, sess);
+	p->socket_handle = p->socket_manager.connect_cb(
+		p->socket_manager.cb_data, sess->resolver_host, port, is_tls,
+		sess->async, sess);
 
 	if (p->socket_failure != 0) {
 		if (p->socket_handle != NULL) {
