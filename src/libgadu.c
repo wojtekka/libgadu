@@ -797,6 +797,9 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	sess->client_addr = p->client_addr;
 	sess->client_port = p->client_port;
 
+	if (GG_LOGIN_PARAMS_HAS_FIELD(p, compatibility))
+		sess_private->compatibility = p->compatibility;
+
 	if (GG_LOGIN_PARAMS_HAS_FIELD(p, connect_host) && p->connect_host != NULL) {
 		int port = 0;
 		char *colon;
@@ -1088,7 +1091,7 @@ void gg_logoff(struct gg_session *sess)
 void gg_free_session(struct gg_session *sess)
 {
 	struct gg_dcc7 *dcc;
-	struct gg_chat_list *chat;
+	gg_chat_list_t *chat;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_free_session(%p);\n", sess);
 
@@ -1137,9 +1140,9 @@ void gg_free_session(struct gg_session *sess)
 	for (dcc = sess->dcc7_list; dcc; dcc = dcc->next)
 		dcc->sess = NULL;
 
-	chat = sess->chat_list;
+	chat = sess->private_data->chat_list;
 	while (chat != NULL) {
-		struct gg_chat_list *next = chat->next;
+		gg_chat_list_t *next = chat->next;
 		free(chat->participants);
 		free(chat);
 		chat = next;
@@ -2571,6 +2574,23 @@ static void gg_socket_manager_error(struct gg_session *sess, enum gg_failure_t f
 	sess->state = GG_STATE_ERROR;
 	send(pipes[0], &dummy, sizeof(dummy), 0);
 	close(pipes[0]);
+}
+
+int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t feature)
+{
+	gg_compat_t level;
+
+	if (sess == NULL)
+		return 0;
+
+	level = sess->private_data->compatibility;
+
+	switch (feature) {
+		case GG_COMPAT_FEATURE_ACK_EVENT:
+			return (level < GG_COMPAT_1_12_0);
+	}
+
+	return 0;
 }
 
 /**

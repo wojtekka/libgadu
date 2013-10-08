@@ -186,8 +186,6 @@ struct gg_dcc7;
 
 struct gg_dcc7_relay;
 
-struct gg_chat_list;
-
 struct gg_session_private;
 
 /**
@@ -210,6 +208,14 @@ typedef enum {
 	GG_ENCODING_UTF8,		/**< Kodowanie UTF-8 */
 	GG_ENCODING_INVALID = -1	/**< Nieprawidłowe kodowanie */
 } gg_encoding_t;
+
+/**
+ * Stopień kompatybilności ze starymi wersjami API.
+ */
+typedef enum {
+	GG_COMPAT_LEGACY = 0,	/**< Całkowita kompatybilność (nie wyłącza żadnych funkcji) */
+	GG_COMPAT_1_12_0 = 1	/**< Wyłączone: dostarczanie eventów GG_EVENT_ACK */
+} gg_compat_t;
 
 /**
  * Flaga połączenia szyfrowanego.
@@ -321,8 +327,6 @@ struct gg_session {
 
 	char *connect_host;			/**< Adres serwera Gadu-Gadu, z którym się łączymy */
 	gg_ssl_t ssl_flag;			/**< Flaga połączenia szyfrowanego */
-
-	struct gg_chat_list *chat_list;		/**< Lista konferencji, w których bierzemy udział */
 
 	struct gg_session_private *private_data;	/**< Prywatne dane sesji, nie udostępnione w API */
 };
@@ -758,6 +762,8 @@ struct gg_login_params {
 	int status_flags;		/**< Flagi statusu (flagi GG_STATUS_FLAG_*, patrz \ref status). */
 
 	unsigned int struct_size;	/**< Rozmiar struktury. To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. */
+
+	gg_compat_t compatibility;	/**< Stopień kompatybilności ze starym API. */
 
 	char *connect_host;		/**< Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). */
 

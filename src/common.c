@@ -719,9 +719,9 @@ uin_t gg_str_to_uin(const char *str, int len)
  *
  * \return Struktura z informacjami o konferencji
  */
-struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id)
+gg_chat_list_t *gg_chat_find(struct gg_session *sess, uint64_t id)
 {
-	struct gg_chat_list *chat_list = sess->chat_list;
+	gg_chat_list_t *chat_list = sess->private_data->chat_list;
 
 	while (chat_list != NULL)
 	{
@@ -747,24 +747,24 @@ struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id)
 int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version,
 	const uin_t *participants, unsigned int participants_count)
 {
-	struct gg_chat_list *chat;
+	gg_chat_list_t *chat;
 	uin_t *participants_new;
-	
+
 	if (participants_count >= ~0 / sizeof(uin_t))
 		return -1;
 
 	chat = gg_chat_find(sess, id);
 
 	if (!chat) {
-		chat = malloc(sizeof(struct gg_chat_list));
+		chat = malloc(sizeof(gg_chat_list_t));
 
 		if (!chat)
 			return -1;
 
-		memset(chat, 0, sizeof(struct gg_chat_list));
+		memset(chat, 0, sizeof(gg_chat_list_t));
 		chat->id = id;
-		chat->next = sess->chat_list;
-		sess->chat_list = chat;
+		chat->next = sess->private_data->chat_list;
+		sess->private_data->chat_list = chat;
 	}
 
 	participants_new = realloc(chat->participants,

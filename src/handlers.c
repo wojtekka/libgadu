@@ -1338,7 +1338,7 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type, 
 	}
 
 	if (msg->has_chat_id && succ) {
-		struct gg_chat_list *chat;
+		gg_chat_list_t *chat;
 
 		ev->chat_id = msg->chat_id;
 
@@ -2267,7 +2267,7 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, con
 static int gg_session_handle_chat_info_update(struct gg_session *gs, uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
 	GG110ChatInfoUpdate *msg = gg110_chat_info_update__unpack(NULL, len, (uint8_t*)ptr);
-	struct gg_chat_list *chat;
+	gg_chat_list_t *chat;
 	uin_t participant;
 
 	if (!GG_PROTOBUF_VALID(gs, "GG110ChatInfoUpdate", msg))

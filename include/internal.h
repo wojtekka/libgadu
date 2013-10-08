@@ -36,16 +36,22 @@ struct gg_dcc7_relay {
 	uint8_t family;
 };
 
-struct gg_chat_list {
+typedef struct _gg_chat_list_t gg_chat_list_t;
+
+struct _gg_chat_list_t {
 	uint64_t id;
 	uint32_t version;
 	uint32_t participants_count;
 	uin_t *participants;
 
-	struct gg_chat_list *next;
+	gg_chat_list_t *next;
 };
 
 struct gg_session_private {
+	gg_compat_t compatibility;
+
+	gg_chat_list_t *chat_list;
+
 	gg_socket_manager_type_t socket_manager_type;
 	gg_socket_manager_t socket_manager;
 	void *socket_handle;
@@ -56,7 +62,14 @@ struct gg_session_private {
 	int time_diff;
 };
 
+typedef enum
+{
+	GG_COMPAT_FEATURE_ACK_EVENT
+} gg_compat_feature_t;
+
 typedef struct gg_dcc7_relay gg_dcc7_relay_t;
+
+int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t feature);
 
 int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, const char *packet, int length);
 
@@ -67,7 +80,7 @@ void gg_resolve_pthread_cleanup(void *resolver, int kill);
 int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result);
 
 int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version, const uin_t *participants, unsigned int participants_count);
-struct gg_chat_list *gg_chat_find(struct gg_session *sess, uint64_t id);
+gg_chat_list_t *gg_chat_find(struct gg_session *sess, uint64_t id);
 
 uin_t gg_str_to_uin(const char *str, int len);
 
