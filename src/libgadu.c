@@ -135,6 +135,9 @@ __attribute__ ((unused))
 
 #endif /* DOXYGEN */
 
+static void gg_compat_message_sent(struct gg_session *sess, int seq, size_t recipients_count, uin_t *recipients);
+static void gg_compat_message_cleanup(struct gg_session *sess);
+
 /**
  * Zwraca wersję biblioteki.
  *
@@ -145,6 +148,21 @@ __attribute__ ((unused))
 const char *gg_libgadu_version(void)
 {
 	return GG_LIBGADU_VERSION;
+}
+
+void * gg_new0(size_t size)
+{
+	void *ptr;
+
+	ptr = malloc(size);
+	if (ptr == NULL) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"//gg_new0(%zd) not enough memory\n", size);
+		return NULL;
+	}
+
+	memset(ptr, 0, size);
+	return ptr;
 }
 
 /**
@@ -463,6 +481,14 @@ void gg_close(struct gg_session *sess)
 	}
 	sess->fd = -1;
 	p->socket_handle = NULL;
+
+	while (p->event_queue) {
+		gg_eventqueue_t *next = p->event_queue->next;
+		gg_event_free(p->event_queue->event);
+		free(p->event_queue);
+		p->event_queue = next;
+	}
+	gg_compat_message_cleanup(sess);
 
 	errno = errno_copy;
 }
@@ -1432,6 +1458,12 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass, int rec
 		goto cleanup;
 	}
 
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110 && !gg_compat_feature_is_enabled(sess, GG_COMPAT_FEATURE_LEGACY_CONFER)) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_send_message_common() legacy conferences disabled\n");
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (message == NULL) {
 		char *tmp_msg;
 		size_t len, fmt_len;
@@ -1586,6 +1618,9 @@ cleanup:
 	free(recoded_msg);
 	free(recoded_html_msg);
 	free(generated_format);
+
+	if (seq_no >= 0)
+		gg_compat_message_sent(sess, seq_no, recipients_count, recipients);
 
 	return seq_no;
 }
@@ -2587,10 +2622,113 @@ int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t fe
 
 	switch (feature) {
 		case GG_COMPAT_FEATURE_ACK_EVENT:
+		case GG_COMPAT_FEATURE_LEGACY_CONFER:
 			return (level < GG_COMPAT_1_12_0);
 	}
 
 	return 0;
+}
+
+static gg_msg_list_t * gg_compat_find_sent_message(struct gg_session *sess, int seq, int remove)
+{
+	struct gg_session_private *p = sess->private_data;
+	gg_msg_list_t *it, *previous = NULL;
+
+	for (it = p->sent_messages; it; it = it->next) {
+		if (it->seq == seq)
+			break;
+		else
+			previous = it;
+	}
+
+	if (remove && it) {
+		if (previous == NULL)
+			p->sent_messages = it->next;
+		else
+			previous->next = it->next;
+	}
+
+	return it;
+}
+
+static void gg_compat_message_cleanup(struct gg_session *sess)
+{
+	struct gg_session_private *p = sess->private_data;
+
+	while (p->sent_messages) {
+		gg_msg_list_t *next = p->sent_messages->next;
+		free(p->sent_messages->recipients);
+		free(p->sent_messages);
+		p->sent_messages = next;
+	}
+}
+
+static void gg_compat_message_sent(struct gg_session *sess, int seq, size_t recipients_count, uin_t *recipients)
+{
+	struct gg_session_private *p = sess->private_data;
+	gg_msg_list_t *sm;
+	uin_t *new_recipients;
+	size_t old_count, i;
+
+	if (sess->protocol_version < GG_PROTOCOL_VERSION_110)
+		return;
+
+	if (!gg_compat_feature_is_enabled(sess, GG_COMPAT_FEATURE_ACK_EVENT))
+		return;
+
+	sm = gg_compat_find_sent_message(sess, seq, 0);
+	if (!sm) {
+		sm = gg_new0(sizeof(gg_msg_list_t));
+		if (!sm)
+			return;
+		sm->next = p->sent_messages;
+		p->sent_messages = sm;
+	}
+
+	sm->seq = seq;
+	old_count = sm->recipients_count;
+	sm->recipients_count += recipients_count;
+
+	new_recipients = realloc(sm->recipients, sizeof(uin_t) * sm->recipients_count);
+	if (new_recipients == NULL) {
+		gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+			"// gg_compat_message_sent() not enough memory\n");
+		return;
+	}
+	sm->recipients = new_recipients;
+
+	for (i = 0; i < recipients_count; i++)
+		sm->recipients[old_count + i] = recipients[i];
+}
+
+void gg_compat_message_ack(struct gg_session *sess, int seq)
+{
+	gg_msg_list_t *sm;
+	size_t i;
+
+	if (sess->protocol_version < GG_PROTOCOL_VERSION_110)
+		return;
+
+	if (!gg_compat_feature_is_enabled(sess, GG_COMPAT_FEATURE_ACK_EVENT))
+		return;
+
+	sm = gg_compat_find_sent_message(sess, seq, 1);
+	if (!sm)
+		return;
+
+	for (i = 0; i < sm->recipients_count; i++) {
+		struct gg_event *qev;
+
+		qev = gg_eventqueue_add(sess);
+
+		qev->type = GG_EVENT_ACK;
+		qev->event.ack.status = GG_ACK_DELIVERED;
+		qev->event.ack.recipient = sm->recipients[i];
+		qev->event.ack.seq = seq;
+	}
+
+	free(sm->recipients);
+	free(sm);
 }
 
 /**

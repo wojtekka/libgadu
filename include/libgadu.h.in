@@ -214,7 +214,7 @@ typedef enum {
  */
 typedef enum {
 	GG_COMPAT_LEGACY = 0,	/**< Całkowita kompatybilność (nie wyłącza żadnych funkcji) */
-	GG_COMPAT_1_12_0 = 1	/**< Wyłączone: dostarczanie eventów GG_EVENT_ACK */
+	GG_COMPAT_1_12_0 = 1	/**< Wyłącza: dostarczanie eventów GG_EVENT_ACK, stary format konferencji */
 } gg_compat_t;
 
 /**

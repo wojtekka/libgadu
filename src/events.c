@@ -1606,6 +1606,34 @@ static const gg_state_transition_t handlers[] =
 	{ GG_STATE_ERROR, gg_handle_error, 0, 0, 0 },
 };
 
+struct gg_event *gg_eventqueue_add(struct gg_session *sess)
+{
+	struct gg_event *ge;
+	gg_eventqueue_t *queue_el, *it;
+
+	queue_el = gg_new0(sizeof(gg_eventqueue_t));
+	ge = gg_new0(sizeof(struct gg_event));
+
+	if (queue_el == NULL || ge == NULL) {
+		free(queue_el);
+		free(ge);
+		return NULL;
+	}
+
+	ge->type = GG_EVENT_NONE;
+
+	queue_el->event = ge;
+	if (sess->private_data->event_queue == NULL)
+		sess->private_data->event_queue = queue_el;
+	else {
+		it = sess->private_data->event_queue;
+		while (it->next != NULL)
+			it = it->next;
+		it->next = queue_el;
+	}
+
+	return ge;
+}
 
 /**
  * Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.
@@ -1623,12 +1651,28 @@ static const gg_state_transition_t handlers[] =
 struct gg_event *gg_watch_fd(struct gg_session *sess)
 {
 	struct gg_event *ge;
+	struct gg_session_private *priv;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_watch_fd(%p);\n", sess);
 
 	if (sess == NULL) {
 		errno = EFAULT;
 		return NULL;
+	}
+
+	priv = sess->private_data;
+
+	if (priv->event_queue != NULL) {
+		gg_eventqueue_t *next;
+
+		ge = priv->event_queue->event;
+		next = priv->event_queue->next;
+		free(priv->event_queue);
+		priv->event_queue = next;
+
+		if (next == NULL)
+			sess->check = priv->check_after_queue;
+		return ge;
 	}
 
 	ge = malloc(sizeof(struct gg_event));
@@ -1667,6 +1711,11 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 
 		switch (res) {
 			case GG_ACTION_WAIT:
+				if (priv->event_queue != NULL) {
+					priv->check_after_queue = sess->check;
+					/* wymuszamy ponowne wywołanie gg_watch_fd */
+					sess->check = GG_CHECK_READ | GG_CHECK_WRITE;
+				}
 				return ge;
 
 			case GG_ACTION_NEXT:

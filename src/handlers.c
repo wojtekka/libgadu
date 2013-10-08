@@ -450,6 +450,8 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 	ge->event.ack110.seq = msg->seq;
 	ge->event.ack110.time = msg->time;
 
+	gg_compat_message_ack(gs, msg->seq);
+
 	gg110_message_ack__free_unpacked(msg, NULL);
 
 	return 0;

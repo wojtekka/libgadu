@@ -36,9 +36,8 @@ struct gg_dcc7_relay {
 	uint8_t family;
 };
 
-typedef struct _gg_chat_list_t gg_chat_list_t;
-
-struct _gg_chat_list_t {
+typedef struct _gg_chat_list gg_chat_list_t;
+struct _gg_chat_list {
 	uint64_t id;
 	uint32_t version;
 	uint32_t participants_count;
@@ -47,10 +46,30 @@ struct _gg_chat_list_t {
 	gg_chat_list_t *next;
 };
 
+typedef struct _gg_msg_list gg_msg_list_t;
+struct _gg_msg_list {
+	int seq;
+	uin_t *recipients;
+	size_t recipients_count;
+
+	gg_msg_list_t *next;
+};
+
+typedef struct _gg_eventqueue gg_eventqueue_t;
+struct _gg_eventqueue {
+	struct gg_event *event;
+
+	gg_eventqueue_t *next;
+};
+
 struct gg_session_private {
 	gg_compat_t compatibility;
 
 	gg_chat_list_t *chat_list;
+	gg_msg_list_t *sent_messages;
+
+	gg_eventqueue_t *event_queue;
+	int check_after_queue;
 
 	gg_socket_manager_type_t socket_manager_type;
 	gg_socket_manager_t socket_manager;
@@ -64,10 +83,13 @@ struct gg_session_private {
 
 typedef enum
 {
-	GG_COMPAT_FEATURE_ACK_EVENT
+	GG_COMPAT_FEATURE_ACK_EVENT,
+	GG_COMPAT_FEATURE_LEGACY_CONFER
 } gg_compat_feature_t;
 
 typedef struct gg_dcc7_relay gg_dcc7_relay_t;
+
+void * gg_new0(size_t size);
 
 int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t feature);
 
@@ -92,5 +114,9 @@ time_t gg_server_time(struct gg_session *gs);
 
 int gg_session_init_ssl(struct gg_session *gs);
 void gg_close(struct gg_session *gs);
+
+struct gg_event *gg_eventqueue_add(struct gg_session *sess);
+
+void gg_compat_message_ack(struct gg_session *sess, int seq);
 
 #endif /* LIBGADU_INTERNAL_H */
