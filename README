@@ -13,9 +13,7 @@ Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1,
 której treść znajduje się w pliku COPYING. Biblioteka została napisana
 w języku C i jest niezależna od systemu operacyjnego czy środowiska.
 Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS
-i Win32, choć ten ostatni nie jest wspierany ze względu na istnienie
-oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach konsolowych,
-jak i graficznych GTK+ i Qt.
+i Win32. Używana jest w aplikacjach konsolowych, jak i graficznych GTK+ i Qt.
 
 Strona projektu znajduje się pod adresem http://libgadu.net/.
 Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
