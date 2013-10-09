@@ -2,6 +2,9 @@
 
 \defgroup session Połączenie z serwerem
 
+\defgroup chat Konferencje
+\ingroup session
+
 \defgroup dcc Połączenia bezpośrednie między klientami
 
 \defgroup services Usługi dodatkowe
@@ -17,6 +20,9 @@
 \defgroup ip Konfiguracja IP
 \ingroup misc
 \bug Ustawienia są globalne dla wszystkich połączeń.
+
+\defgroup socketmanager Własne funkcje do nawiązywania połączeń TCP/TLS
+\ingroup misc
 
 \defgroup version Informacje o bibliotece
 \ingroup misc

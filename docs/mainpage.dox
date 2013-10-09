@@ -15,9 +15,8 @@ Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1,
 której treść znajduje się w pliku \c COPYING.
 Biblioteka została napisana w języku C i jest niezależna od systemu
 operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z
-POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na
-istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach
-konsolowych, jak i graficznych GTK+ i Qt.
+POSIX, również BeOS i Win32. Używana jest w aplikacjach konsolowych, jak i
+graficznych GTK+ i Qt.
 
 Strona projektu znajduje się pod adresem http://libgadu.net/.
 Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
@@ -34,6 +33,7 @@ Dokumentację podzielono na następujące działy:
 	- \ref events
 	- \ref contacts
 	- \ref messages
+	- \ref chat
 	- \ref status
 	- \ref pubdir50
 	- \ref importexport <br>
@@ -54,6 +54,7 @@ Dokumentację podzielono na następujące działy:
 	- \ref version
 	- \ref proxy
 	- \ref ip
+	- \ref socketmanager
 	- \ref debug
 	- \ref helper
 	- \ref todo

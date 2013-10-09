@@ -1,6 +1,7 @@
 /**
 
 \defgroup events Obsługa zdarzeń
+\brief \n
 \ingroup session
 
 \details

@@ -4,8 +4,8 @@
 
 \details
 
-Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows
-+ Cygwin) przeprowadza się według typowego schematu:
+Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows +
+Cygwin) przeprowadza się według typowego schematu:
 
 \code
 $ ./configure

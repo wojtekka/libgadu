@@ -11,11 +11,25 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 \section changelog-1_12_0 libgadu 1.12.0
 
-- Możliwość użycia własnych funkcji do połączeń TCP.
+- Obsługa protokołu Gadu-Gadu 11.
+
+- Wsparcie dla win32.
+
+- Możliwość użycia własnych funkcji do połączeń TCP/TLS.
 
 - Możliwość podania nazwy serwera, nie tylko adresu.
 
 - Ustawienie pola \c tls struktury \c gg_login_params na \c GG_SSL_REQUIRED powoduje odrzucenie połączenia w przypadku błędnego certyfikatu serwera.
+
+- Nowe flagi debugowania: \c GG_DEBUG_VERBOSE, \c GG_DEBUG_WARNING oraz \c GG_DEBUG_ERROR.
+
+- Funkcje \c gg_debug_state oraz \c gg_debug_event dodane do publicznego API.
+
+- Możliwość wyłączenia funkcji zapewniających wsteczną kompatybilność (np. tych, które wpływają negatywnie na wydajność).
+
+- Wysyłanie wiadomości w formacie HTML.
+
+- Możliwość sprawdzenia powodu błędu przy operacji na katalogu publicznym.
 
 \section changelog-1_11_2 libgadu 1.11.2
 
