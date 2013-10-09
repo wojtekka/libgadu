@@ -165,6 +165,18 @@ void * gg_new0(size_t size)
 	return ptr;
 }
 
+int
+gg_required_proto(struct gg_session *gs, int protocol_version)
+{
+	if (gs->protocol_version >= protocol_version)
+		return 1;
+
+	gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_ERROR, "// requested "
+		"feature requires protocol %#02x, but %#02x is selected\n",
+		protocol_version, gs->protocol_version);
+	return 0;
+}
+
 /**
  * \internal Liczy skrót z hasła i ziarna.
  *
@@ -2434,7 +2446,12 @@ int gg_multilogon_disconnect(struct gg_session *gs, gg_multilogon_id_t conn_id)
 int gg_chat_create(struct gg_session *gs)
 {
 	struct gg_chat_create pkt;
-	int seq = ++gs->seq;
+	int seq;
+
+	if (!gg_required_proto(gs, GG_PROTOCOL_VERSION_110))
+		return -1;
+
+	seq = ++gs->seq;
 
 	pkt.seq = gg_fix32(seq);
 	pkt.dummy = 0;
@@ -2471,6 +2488,9 @@ int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants,
 	} GG_PACKED;
 	struct gg_chat_participant *participants_list;
 	size_t participants_list_size;
+
+	if (!gg_required_proto(gs, GG_PROTOCOL_VERSION_110))
+		return -1;
 
 	if (participants_count == 0 || participants_count >= ~0 / sizeof(struct gg_chat_participant))
 		return -1;
@@ -2516,8 +2536,12 @@ int gg_chat_invite(struct gg_session *gs, uint64_t id, uin_t *participants,
 int gg_chat_leave(struct gg_session *gs, uint64_t id)
 {
 	struct gg_chat_leave pkt;
-	int seq = ++gs->seq;
+	int seq;
 
+	if (!gg_required_proto(gs, GG_PROTOCOL_VERSION_110))
+		return -1;
+
+	seq = ++gs->seq;
 	pkt.id = gg_fix64(id);
 	pkt.seq = gg_fix32(seq);
 
@@ -2542,6 +2566,9 @@ int gg_chat_leave(struct gg_session *gs, uint64_t id)
  */
 int gg_chat_send_message(struct gg_session *gs, uint64_t id, const char *message, int is_html)
 {
+	if (!gg_required_proto(gs, GG_PROTOCOL_VERSION_110))
+		return -1;
+
 	return gg_send_message_110(gs, 0, id, message, is_html);
 }
 

@@ -90,6 +90,7 @@ typedef enum
 typedef struct gg_dcc7_relay gg_dcc7_relay_t;
 
 void * gg_new0(size_t size);
+int gg_required_proto(struct gg_session *gs, int protocol_version);
 
 int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t feature);
 
