@@ -1240,7 +1240,11 @@ struct gg_event_imtoken {
  * Opis zdarzenia \c GG_EVENT_PONG110.
  */
 struct gg_event_pong110 {
+#ifndef _WIN32
 	time_t time;			/**< Aktualny czas na serwerze */
+#else
+	uint32_t time;			/**< Aktualny czas na serwerze */
+#endif
 };
 
 /**
@@ -1772,9 +1776,10 @@ struct gg_image_queue {
 	char *filename;			/**< Nazwa pliku */
 	char *image;			/**< Bufor z odebranymi danymi */
 	uint32_t done;			/**< Rozmiar odebranych danych */
-	uint32_t packet_type;		/**< \brief Rodzaj odbieranych pakietów. W niektórych przypadkach (przy multilogowaniu) serwer wysyła nam dwie kopie obrazka jako dwa różne typy pakietów */
 
 	struct gg_image_queue *next;	/**< Kolejny element listy */
+
+	uint32_t packet_type;		/**< \brief Rodzaj odbieranych pakietów. W niektórych przypadkach (przy multilogowaniu) serwer wysyła nam dwie kopie obrazka jako dwa różne typy pakietów */
 } GG_DEPRECATED;
 
 int gg_dcc7_handle_id(struct gg_session *sess, struct gg_event *e, const void *payload, int len) GG_DEPRECATED;
@@ -1798,7 +1803,6 @@ int gg_dcc7_handle_reject(struct gg_session *sess, struct gg_event *e, const voi
 #define GG_HTTPS_PORT 443
 #define GG_HTTP_USERAGENT "Mozilla/4.7 [en] (Win98; I)"
 
-/* TODO: czy 0x2e to dokładnie GG10.0? */
 #define GG_PROTOCOL_VERSION_100 0x2e
 #define GG_PROTOCOL_VERSION_110 0x40
 
