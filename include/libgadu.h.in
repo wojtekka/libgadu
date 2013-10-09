@@ -137,6 +137,11 @@ typedef unsigned int   uint32_t;
 typedef unsigned long long uint64_t;
 #endif
 
+#ifdef _MSC_VER
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 /** \endcond */
 
 /**
