@@ -70,6 +70,7 @@ struct gg_session_private {
 
 	gg_eventqueue_t *event_queue;
 	int check_after_queue;
+	int fd_after_queue;
 
 	gg_socket_manager_type_t socket_manager_type;
 	gg_socket_manager_t socket_manager;
@@ -79,6 +80,9 @@ struct gg_session_private {
 	enum gg_failure_t socket_failure;
 
 	int time_diff;
+
+	int dummyfds_created;
+	int dummyfds[2];
 };
 
 typedef enum
@@ -91,6 +95,7 @@ typedef struct gg_dcc7_relay gg_dcc7_relay_t;
 
 void * gg_new0(size_t size);
 int gg_required_proto(struct gg_session *gs, int protocol_version);
+int gg_get_dummy_fd(struct gg_session *sess);
 
 int gg_compat_feature_is_enabled(struct gg_session *sess, gg_compat_feature_t feature);
 

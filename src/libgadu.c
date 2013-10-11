@@ -177,6 +177,24 @@ gg_required_proto(struct gg_session *gs, int protocol_version)
 	return 0;
 }
 
+int gg_get_dummy_fd(struct gg_session *sess)
+{
+	struct gg_session_private *p = sess->private_data;
+
+	if (p->dummyfds_created)
+		return p->dummyfds[0];
+
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, p->dummyfds) == -1) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_get_dummy_fd() "
+			"unable to create pipes (errno=%d, %s)\n",
+			errno, strerror(errno));
+		return -1;
+	}
+
+	p->dummyfds_created = 1;
+	return p->dummyfds[0];
+}
+
 /**
  * \internal Liczy skrót z hasła i ziarna.
  *
@@ -500,6 +518,13 @@ void gg_close(struct gg_session *sess)
 		free(p->event_queue);
 		p->event_queue = next;
 	}
+
+	if (p->dummyfds_created) {
+		close(p->dummyfds[0]);
+		close(p->dummyfds[1]);
+		p->dummyfds_created = 0;
+	}
+
 	gg_compat_message_cleanup(sess);
 
 	errno = errno_copy;

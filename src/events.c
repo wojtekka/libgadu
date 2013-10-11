@@ -1670,8 +1670,10 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		free(priv->event_queue);
 		priv->event_queue = next;
 
-		if (next == NULL)
+		if (next == NULL) {
 			sess->check = priv->check_after_queue;
+			sess->fd = priv->fd_after_queue;
+		}
 		return ge;
 	}
 
@@ -1712,8 +1714,12 @@ struct gg_event *gg_watch_fd(struct gg_session *sess)
 		switch (res) {
 			case GG_ACTION_WAIT:
 				if (priv->event_queue != NULL) {
+					priv->fd_after_queue = sess->fd;
 					priv->check_after_queue = sess->check;
 					/* wymuszamy ponowne wywołanie gg_watch_fd */
+					sess->fd = gg_get_dummy_fd(sess);
+					if (sess->fd < 0)
+						sess->fd = priv->fd_after_queue;
 					sess->check = GG_CHECK_READ | GG_CHECK_WRITE;
 				}
 				return ge;
