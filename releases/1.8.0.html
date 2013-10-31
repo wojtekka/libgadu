@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>libgadu 1.8.0</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="Keywords" content="libgadu, libgg, gg, gadu-gadu, gadugadu, linux, unix, ekg, gpl, lgpl" />
+	</head>
+	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
+		<h1>libgadu 1.8.0</h1>
+
+		<p>23 lutego 2008r.</p>
+
+		<hr />
+
+		<h3>Zmiany</h3>
+
+		<ul>
+			<li>
+			Obsługa protokołu Gadu-Gadu 7.x, w tym:
+			<ul>
+				<li>przesyłanie plików,</li>
+				<li>autoryzacja silną funkcją skrótu SHA-1,</li>
+				<li>obsługa informacji w formacie XML otrzymywany od serwera.</li>
+			</ul>
+			</li>
+			<li>Poprawki zachowania w sytuacjach wyjątkowych podczas łączenia się z serwerem.</li>
+			<li>Buforowanie danych wysyłanych do serwera.</li>
+			<li>Przekazywanie do aplikacji numeru sekwencyjnego odebranych wiadomości.</li>
+			<li>Dokumentacja kodu w formacie Doxygen.</li>
+		</ul>
+
+		<hr />
+
+		<h3>Pobierz</h3>
+
+		<ul>
+			<li><a href="../files/libgadu-1.8.0.tar.gz">libgadu-1.8.0.tar.gz</a> (MD5: 8c5397ac27ce9afae158ca23f4b9b53c)</li>
+		</ul>
+
+		<hr />
+
+		<h3>Znane błędy</h3>
+
+		<ul>
+			<li>Połączenia głosowe Gadu-Gadu 7.x nie są jeszcze obsługiwane.</li>
+			<li>Przesyłanie plików przez serwer pośredniczący Gadu-Gadu nie jest jeszcze obsługiwane.</li>
+			<li>Dokumentacja jest dostępna jedynie w repozytorium i do jej wygenerowania niezbędny jest <a href="http://www.doxygen.org/">Doxygen</a> (<i>aktualizowano 16 czerwca 2008r.</i>).</li>
+			<li>Użycie własnego hasha pliku w funkcji <tt>gg_dcc7_send_file()</tt> spowoduje naruszenie ochrony pamięci (<i>dodano 12 maja 2008r.</i>)</li>
+			<li>Drobne błędy na architekturach big-endian (<i>dodano 12 maja 2008r.</i>)</li>
+			<li>Dane zbuforowane przy zapisie (np. obrazki) są nieprawidłowo wysyłane (<i>dodano 1 czerwca 2008r.</i>)</li>
+		</ul>
+
+		<hr />
+
+		<div style="padding: 0.5em 0em 1.5em 0em;">
+			<div style="float: left;">&copy; Copyright 2008 <a href="http://toxygen.net/kontakt.php">Wojtek Kaniewski</a> i inni</div>
+			<div style="float: right; color: gray;">Hosting: <a href="http://www.malart.com.pl/">Malart</a></div>
+		</div>
+	</body>
+</html>
