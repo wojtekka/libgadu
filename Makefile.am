@@ -5,6 +5,8 @@ endif
 
 DIST_SUBDIRS = include src pkgconfig examples docs test
 
+EXTRA_DIST = packets.proto protobufgen.sh
+
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 
 libtool:	$(LIBTOOL_DEPS)

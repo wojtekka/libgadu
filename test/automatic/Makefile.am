@@ -39,7 +39,7 @@ packet_LDADD = $(top_builddir)/src/libgadu.la
 
 resolver_LDADD = $(top_builddir)/src/libgadu.la
 
-EXTRA_DIST = protocol.txt connect.txt
+EXTRA_DIST = protocol.txt connect.txt connect.pem
 
 SUBDIRS = script
 
