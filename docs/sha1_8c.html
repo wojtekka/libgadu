@@ -78,3 +78,371 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+/a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>Strony</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_43e0a1f539e00dcfa1a6bc4d4fee4fc2.html">home</a></li><li class="navelem"><a class="el" href="dir_2f1d81e90a030591e75f7b21ecd501d4.html">wojtekka</a></li><li class="navelem"><a class="el" href="dir_15ece959c815e25dbd7c7c578ed1ff94.html">src</a></li><li class="navelem"><a class="el" href="dir_f81b4fb471623863d39ba398fb1031f1.html">libgadu</a></li><li class="navelem"><a class="el" href="dir_5d5fdd71fe5c7b40eeda8a564f749010.html">src</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#define-members">Definicje</a>  </div>
+  <div class="headertitle">
+<div class="title">Dokumentacja pliku sha1.c</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>Funkcje wyznaczania skrótu SHA1.  
+<a href="#details">Więcej...</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Definicje</h2></td></tr>
+<tr class="memitem:af1373930110e4f86cb1f4bc6d44a66ee"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#af1373930110e4f86cb1f4bc6d44a66ee">rol</a>(value, bits)&#160;&#160;&#160;(((value) &lt;&lt; (bits)) | ((value) &gt;&gt; (32 - (bits))))</td></tr>
+<tr class="separator:af1373930110e4f86cb1f4bc6d44a66ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a75de24d0277c5319098c218efaef2d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#a1a75de24d0277c5319098c218efaef2d">blk0</a>(i)</td></tr>
+<tr class="separator:a1a75de24d0277c5319098c218efaef2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd06ff24e9f6f5f0a9c32a1cba4b0f9c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)</td></tr>
+<tr class="separator:abd06ff24e9f6f5f0a9c32a1cba4b0f9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ac24a09e1273548828d3cc9436f9bc7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#a8ac24a09e1273548828d3cc9436f9bc7">R0</a>(v, w, x, y, z, i)&#160;&#160;&#160;z+=((w&amp;(x^y))^y)+<a class="el" href="sha1_8c.html#a1a75de24d0277c5319098c218efaef2d">blk0</a>(i)+0x5A827999+rol(v,5);w=rol(w,30);</td></tr>
+<tr class="separator:a8ac24a09e1273548828d3cc9436f9bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2628f8af7bf67ca052200537279f855a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#a2628f8af7bf67ca052200537279f855a">R1</a>(v, w, x, y, z, i)&#160;&#160;&#160;z+=((w&amp;(x^y))^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x5A827999+rol(v,5);w=rol(w,30);</td></tr>
+<tr class="separator:a2628f8af7bf67ca052200537279f855a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a774229b80509be0e9e0a1d9819580224"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#a774229b80509be0e9e0a1d9819580224">R2</a>(v, w, x, y, z, i)&#160;&#160;&#160;z+=(w^x^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);</td></tr>
+<tr class="separator:a774229b80509be0e9e0a1d9819580224"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0b8b342432d17717ff1020d10cf0eea"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#ac0b8b342432d17717ff1020d10cf0eea">R3</a>(v, w, x, y, z, i)&#160;&#160;&#160;z+=(((w|x)&amp;y)|(w&amp;x))+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);</td></tr>
+<tr class="separator:ac0b8b342432d17717ff1020d10cf0eea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af77ddc8894422d2af2adbd4e71e55d1f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="sha1_8c.html#af77ddc8894422d2af2adbd4e71e55d1f">R4</a>(v, w, x, y, z, i)&#160;&#160;&#160;z+=(w^x^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);</td></tr>
+<tr class="separator:af77ddc8894422d2af2adbd4e71e55d1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
+<div class="textblock"><p>Funkcje wyznaczania skrótu SHA1. </p>
+</div><h2 class="groupheader">Dokumentacja definicji</h2>
+<a class="anchor" id="af1373930110e4f86cb1f4bc6d44a66ee"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define rol</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">value, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">bits&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;(((value) &lt;&lt; (bits)) | ((value) &gt;&gt; (32 - (bits))))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a1a75de24d0277c5319098c218efaef2d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define blk0</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Wartość:</b><div class="fragment"><div class="line">(block-&gt;l[i] = (<a class="code" href="sha1_8c.html#af1373930110e4f86cb1f4bc6d44a66ee">rol</a>(block-&gt;l[i],24)&amp;0xFF00FF00) \</div>
+<div class="line">    |(<a class="code" href="sha1_8c.html#af1373930110e4f86cb1f4bc6d44a66ee">rol</a>(block-&gt;l[i],8)&amp;0x00FF00FF))</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a class="anchor" id="abd06ff24e9f6f5f0a9c32a1cba4b0f9c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define blk</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Wartość:</b><div class="fragment"><div class="line">(block-&gt;l[i&amp;15] = <a class="code" href="sha1_8c.html#af1373930110e4f86cb1f4bc6d44a66ee">rol</a>(block-&gt;l[(i+13)&amp;15]^block-&gt;l[(i+8)&amp;15] \</div>
+<div class="line">    ^block-&gt;l[(i+2)&amp;15]^block-&gt;l[i&amp;15],1))</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a class="anchor" id="a8ac24a09e1273548828d3cc9436f9bc7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define R0</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">v, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">w, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">z, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;z+=((w&amp;(x^y))^y)+<a class="el" href="sha1_8c.html#a1a75de24d0277c5319098c218efaef2d">blk0</a>(i)+0x5A827999+rol(v,5);w=rol(w,30);</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a2628f8af7bf67ca052200537279f855a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define R1</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">v, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">w, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">z, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;z+=((w&amp;(x^y))^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x5A827999+rol(v,5);w=rol(w,30);</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a774229b80509be0e9e0a1d9819580224"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define R2</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">v, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">w, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">z, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;z+=(w^x^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ac0b8b342432d17717ff1020d10cf0eea"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define R3</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">v, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">w, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">z, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;z+=(((w|x)&amp;y)|(w&amp;x))+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="af77ddc8894422d2af2adbd4e71e55d1f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define R4</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">v, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">w, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">x, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">y, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">z, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">i&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;z+=(w^x^y)+<a class="el" href="sha1_8c.html#abd06ff24e9f6f5f0a9c32a1cba4b0f9c">blk</a>(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

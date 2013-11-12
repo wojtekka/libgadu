@@ -465,3 +465,266 @@ Data Fields</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+to">
+      <table class="memname">
+        <tr>
+          <td class="memname">int protocol_version</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wersja protokołu wysyłana do serwera (domyślnie najnowsza obsługiwana) </p>
+
+</div>
+</div>
+<a class="anchor" id="a57e529d03f7681e4cc1299ac53ed5742"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* client_version</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wersja klienta wysyłana do serwera (domyślnie najnowsza znana) </p>
+
+</div>
+</div>
+<a class="anchor" id="afeb7eff4877d70b4b4c462702c34be55"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int has_audio</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Flaga obsługi połączeń głosowych. </p>
+
+</div>
+</div>
+<a class="anchor" id="afb0337a48a614cc3a06d794b20b976fe"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int last_sysmsg</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Numer ostatnio odebranej wiadomości systemowej. </p>
+
+</div>
+</div>
+<a class="anchor" id="a9098d15d77ef7bd951a05eb7451bc450"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t external_addr</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Adres publiczny dla połączeń bezpośrednich (domyślnie dobierany automatycznie) </p>
+
+</div>
+</div>
+<a class="anchor" id="a4579a6a3bb00195b8f1b0dbcf10984e5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t external_port</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Port publiczny dla połączeń bezpośrednich (domyślnie dobierany automatycznie) </p>
+
+</div>
+</div>
+<a class="anchor" id="a39888985bf98dd26251c28fbf14cb82f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int tls</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Flaga połączenia szyfrowanego (patrz <a class="el" href="group__login.html#gaf5331c4041f0322580d80922d59d0594">gg_ssl_t</a>) </p>
+
+</div>
+</div>
+<a class="anchor" id="a98c9a8ca94afbc85988b2fc030e50048"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int image_size</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Maksymalny rozmiar obsługiwanych obrazków w kilobajtach. </p>
+
+</div>
+</div>
+<a class="anchor" id="aaa9356eeaef6b07861a8bec932a4c611"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int hash_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rodzaj skrótu hasła (<code>GG_LOGIN_HASH_GG32</code> lub <code>GG_LOGIN_HASH_SHA1</code>, domyślnie SHA1) </p>
+
+</div>
+</div>
+<a class="anchor" id="a93fbfdd652d2f6a717ac190934ec52f9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="libgadu_8h.html#adbaace4dc70e6607a9d6bd4c23cd2498">gg_encoding_t</a> encoding</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rodzaj kodowania używanego w sesji (domyślnie CP1250) </p>
+
+</div>
+</div>
+<a class="anchor" id="a48b120c0de69edf94d300ad9ec944720"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="libgadu_8h.html#a7bb365d8dbaef300a442a8a29adca931">gg_resolver_t</a> resolver</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sposób rozwiązywania nazw (patrz <a class="el" href="group__build.html#build-resolver">Rozwiązywanie nazw</a>) </p>
+
+</div>
+</div>
+<a class="anchor" id="acfd337486f19499ea8d1f20030600240"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int protocol_features</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Opcje protokołu (flagi GG_FEATURE_*). </p>
+
+</div>
+</div>
+<a class="anchor" id="ad84f42de4f92baa08f0eeefb77f584d1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int status_flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Flagi statusu (flagi GG_STATUS_FLAG_*, patrz <a class="el" href="group__status.html">Zmiana statusu użytkownika</a>). </p>
+
+</div>
+</div>
+<a class="anchor" id="a9f0114084951d5ccb9bd484bf4946667"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int struct_size</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rozmiar struktury. </p>
+<p>To pole powinno być inicjowane wartością sizeof(struct gg_login_params) - w przeciwnym przypadku pola za nim nie będą obsługiwane. Pozwala na rozszerzanie struktury bez łamania ABI. </p>
+
+</div>
+</div>
+<a class="anchor" id="a754d07e8abd4985de1452ea8c230f8fa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="libgadu_8h.html#ab5c01d6dec4f4ea4d33f5357f2e1046e">gg_compat_t</a> compatibility</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stopień kompatybilności ze starym API. </p>
+
+</div>
+</div>
+<a class="anchor" id="a85989c75586784c3ccb9e6bd6996c8eb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* connect_host</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Nazwa hosta (oraz opcjonalnie port, podany po dwukropku) serwera Gadu-Gadu (domyślnie pobierany automatycznie) (patrz pole struct_size). </p>
+
+</div>
+</div>
+<a class="anchor" id="a967601bda5ad39a2818b6121577b6507"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__socketmanager.html#ga7e531710a578f880b8c354ff4e622491">gg_socket_manager_type_t</a> socket_manager_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wybrana metoda nawiązywania połączeń TCP/TLS (domyślnie wewnętrzna) </p>
+
+</div>
+</div>
+<a class="anchor" id="ac4c390cdd9956adc3362f60aef0c159b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structgg__socket__manager__t.html">gg_socket_manager_t</a> socket_manager</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Jeżeli wybrano metodę zewnętrzną - konfiguracja jej. </p>
+
+</div>
+</div>
+<hr/>Dokumentacja dla tej struktury została wygenerowana z pliku:<ul>
+<li><a class="el" href="libgadu_8h.html">libgadu.h</a></li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:41 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

@@ -641,3 +641,299 @@ Functions</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+lass="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">type</td><td>Rodzaj połączenia (<code>GG_DCC7_TYPE_FILE</code> lub <code>GG_DCC7_TYPE_VOICE</code>)</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a5eaddf1d844d41ec7df529cbd8e7c6f2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_dcc7_handle_id </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje pakiet identyfikatora połączenia bezpośredniego.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">e</td><td>Struktura zdarzenia </td></tr>
+    <tr><td class="paramname">payload</td><td>Treść pakietu </td></tr>
+    <tr><td class="paramname">len</td><td>Długość pakietu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2c6da3f3087d88de089e1575b4d5f635"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_dcc7_handle_accept </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje pakiet akceptacji połączenia bezpośredniego.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">e</td><td>Struktura zdarzenia </td></tr>
+    <tr><td class="paramname">payload</td><td>Treść pakietu </td></tr>
+    <tr><td class="paramname">len</td><td>Długość pakietu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a4c25cc5bdc1ba60ef99ed3bd049ce35c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_dcc7_handle_info </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje pakiet informacji o połączeniu bezpośrednim.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">e</td><td>Struktura zdarzenia </td></tr>
+    <tr><td class="paramname">payload</td><td>Treść pakietu </td></tr>
+    <tr><td class="paramname">len</td><td>Długość pakietu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="af893cdffd98862a43712e7ba0de21e5a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_dcc7_handle_reject </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje pakiet odrzucenia połączenia bezpośredniego.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">e</td><td>Struktura zdarzenia </td></tr>
+    <tr><td class="paramname">payload</td><td>Treść pakietu </td></tr>
+    <tr><td class="paramname">len</td><td>Długość pakietu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad08c3d6a85209e2a39eaf84dded253ca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_dcc7_handle_new </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje pakiet nowego połączenia bezpośredniego.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">e</td><td>Struktura zdarzenia </td></tr>
+    <tr><td class="paramname">payload</td><td>Treść pakietu </td></tr>
+    <tr><td class="paramname">len</td><td>Długość pakietu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a9faa85b96147ffaefbcf1e3687d83b25"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_dcc7_postauth_fixup </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__dcc7.html">gg_dcc7</a> *&#160;</td>
+          <td class="paramname"><em>dcc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Ustawia odpowiednie stany wewnętrzne w zależności od rodzaju połączenia.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dcc</td><td>Struktura połączenia</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu. </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

@@ -659,3 +659,511 @@ Variables</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+<td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>protocol_version</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a7d6067061019358d8f07b4021577b207"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_get_dummy_fd </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aecad65806a7337c4471e5ad837c16fe3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int gg_login_hash </td>
+          <td>(</td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>password</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Liczy skrót z hasła i ziarna.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">password</td><td>Hasło </td></tr>
+    <tr><td class="paramname">seed</td><td>Ziarno podane przez serwer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Wartość skrótu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a5ab45f8f8e5895ba8a6940a3c5926eac"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_read </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>length</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Odbiera od serwera dane binarne.</p>
+<p>Funkcja odbiera dane od serwera zajmując się SSL/TLS w razie konieczności. Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi wywołaniami systemowymi.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">buf</td><td>Bufor na danymi </td></tr>
+    <tr><td class="paramname">length</td><td>Długość bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>To samo co funkcja systemowa <code>read</code> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a024fa6c0063c54f8c44240553ef53990"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_write_common </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>length</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Wysyła do serwera dane binarne.</p>
+<p>Funkcja wysyła dane do serwera zajmując się SSL/TLS w razie konieczności. Obsługuje EINTR, więc użytkownik nie musi się przejmować przerwanymi wywołaniami systemowymi.</p>
+<dl class="section note"><dt>Nota</dt><dd>Funkcja nie zajmuje się buforowaniem wysyłanych danych (patrz <a class="el" href="libgadu_8c.html#a58b0d9685bc18be695012f098a9276dc">gg_write()</a>).</dd></dl>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">buf</td><td>Bufor z danymi </td></tr>
+    <tr><td class="paramname">length</td><td>Długość bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>To samo co funkcja systemowa <code>write</code> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a58b0d9685bc18be695012f098a9276dc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_write </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>length</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wysyła do serwera dane binarne.</p>
+<p>Funkcja wysyła dane do serwera zajmując się TLS w razie konieczności.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">buf</td><td>Bufor z danymi </td></tr>
+    <tr><td class="paramname">length</td><td>Długość bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>To samo co funkcja systemowa <code>write</code> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a95a1588c935fc88f9445a9bfcf0bd622"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gg_close </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a0b04853fff3144983bc8e4f417813f43"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* gg_recv_packet </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Odbiera pakiet od serwera.</p>
+<p>Funkcja odczytuje nagłówek pakietu, a następnie jego zawartość i zwraca w zaalokowanym buforze.</p>
+<p>Przy połączeniach asynchronicznych, funkcja może nie być w stanie skompletować całego pakietu &ndash; w takim przypadku zwróci <code>NULL</code>, a kodem błędu będzie <code>EAGAIN</code>.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Wskaźnik do zaalokowanego bufora </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a3946c94037042dc506141f41920a2e37"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_send_packet </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>...</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Wysyła pakiet do serwera.</p>
+<p>Funkcja konstruuje pakiet do wysłania z dowolnej liczby fragmentów. Jeśli rozmiar pakietu jest za duży, by móc go wysłać za jednym razem, pozostała część zostanie zakolejkowana i wysłana, gdy będzie to możliwe.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">type</td><td>Rodzaj pakietu </td></tr>
+    <tr><td class="paramname">...</td><td>Lista kolejnych części pakietu (wskaźnik na bufor i długość typu <code>int</code>) zakończona <code>NULL</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ad31c7674325e0e48b00820cedee70206"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_session_callback </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Funkcja zwrotna sesji.</p>
+<p>Pole <code>callback</code> struktury <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code> zawiera wskaźnik do tej funkcji. Wywołuje ona <code>gg_watch_fd</code> i zachowuje wynik w polu <code>event</code>.</p>
+<dl class="section note"><dt>Nota</dt><dd>Korzystanie z tej funkcjonalności nie jest już zalecane.</dd></dl>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a57672c31c41c4aec3f3cdd3268a7e0b7"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_notify105_ex </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *&#160;</td>
+          <td class="paramname"><em>userlist</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>types</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a880942cba23cc4219a66f613a8b329dd"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void gg_socket_manager_error </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#a0228f2f274fa5d3d1626b8f1742d9433">gg_failure_t</a>&#160;</td>
+          <td class="paramname"><em>failure</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aaf9e1cf4c0f48ee75efd9f90da3b998f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_compat_feature_is_enabled </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="internal_8h.html#a089e0f303b4bf018ef4cbed61bb382d4">gg_compat_feature_t</a>&#160;</td>
+          <td class="paramname"><em>feature</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a70e4f1e993d9e0174857a335aa5457b8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="internal_8h.html#ae275441130d828320bc595e600aafa6f">gg_msg_list_t</a>* gg_compat_find_sent_message </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>seq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>remove</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ab558e25e455f008d24949befae4c233c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gg_compat_message_ack </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>seq</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

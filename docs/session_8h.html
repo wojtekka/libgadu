@@ -255,3 +255,93 @@ Functions</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+td class="paramname">gs</td><td>)</td>
+          <td>&#160;&#160;&#160;((gs)-&gt;state != <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7abdcebd9d60be74df0c476b30c6a009db">GG_STATE_IDLE</a> &amp;&amp; (gs)-&gt;state != <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7a751f461af644b2b4aef39181a2b8b428">GG_STATE_CONNECTED</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a71266feaf8fbcd28fcb8576a6d43cb3b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define GG_SESSION_IS_CONNECTED</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">gs</td><td>)</td>
+          <td>&#160;&#160;&#160;((gs)-&gt;state == <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7a751f461af644b2b4aef39181a2b8b428">GG_STATE_CONNECTED</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja funkcji</h2>
+<a class="anchor" id="aaad2e1e2e45520172135e5aea1ef296b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_session_handle_packet </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>ge</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obsługuje przychodzący pakiet danych.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir"></td><td class="paramname">gs</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">type</td><td>Typ pakietu </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">ptr</td><td>Wskaźnik do bufora pakietu </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">len</td><td>Długość bufora pakietu </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ge</td><td>Struktura zdarzenia</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

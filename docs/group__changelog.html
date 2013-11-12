@@ -152,3 +152,34 @@ libgadu 1.8.0</h2>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+alnie za pomocą funkcji <a class="el" href="libgadu_8h.html#acf8f4941ad20d3ac4f68486205af26db">gg_global_set_resolver</a> czy <a class="el" href="libgadu_8h.html#a38af79bcadc046a261666464fe7c3413">gg_global_set_custom_resolver</a>. <a class="el" href="group__build.html#build-resolver">Szczegóły.</a></li>
+</ul>
+<ul>
+<li>Opis zdarzenia <code>GG_EVENT_DCC7_PENDING</code> zawiera wskaźnik do struktury połączenia, którego dotyczy.</li>
+</ul>
+<h1><a class="anchor" id="changelog-1_8_0"></a>
+libgadu 1.8.0</h1>
+<ul>
+<li>Połączenia bezpośrednie Gadu-Gadu 7.x. <a class="el" href="group__dcc7.html">Szczegóły.</a></li>
+</ul>
+<ul>
+<li>Pole <code>hash_type</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> określa rodzaj użytej funkcji skrótu hasła. W nowej wersji protokołu domyślnie używany jest SHA-1. <a class="el" href="structgg__login__params.html">Szczegóły.</a></li>
+</ul>
+<ul>
+<li>Pole <code>soft_timeout</code> struktur <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code> i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> informuje, że po przekroczeniu czasu określnego w polu <code>timeout</code> zamiast zrywać połączenie, należy wywołać funkcję <code><a class="el" href="group__events.html#gae28360891a3b393d606fb455564e3b3a" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.">gg_watch_fd()</a></code> lub <code><a class="el" href="group__dcc7.html#ga3053d18bcbd8d6854bc4510376451d2e" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_dcc7_watch_fd()</a></code>. <a class="el" href="group__events.html">Szczegóły.</a></li>
+</ul>
+<ul>
+<li>Zdarzenie <code>GG_EVENT_MSG</code> zawiera nowe pole <code>seq</code> zawierające numer sekwencyjny odebranej wiadomości. <a class="el" href="structgg__event__msg.html">Szczegóły.</a></li>
+</ul>
+<ul>
+<li>Nowe zdarzenie <code>GG_EVENT_XML_EVENT</code> zawiera informacje w formacie XML otrzymane od serwera. <a class="el" href="structgg__event__xml__event.html">Szczegóły.</a> </li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

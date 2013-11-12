@@ -194,3 +194,62 @@ fclose(plik);
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+c9937ea7b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_token_watch_fd </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__http.html">gg_http</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. </p>
+<p>Operacja będzie zakończona, gdy pole <code>state</code> będzie równe <code>GG_STATE_DONE</code>. Jeśli wystąpi błąd, <code>state</code> będzie równe <code>GG_STATE_ERROR</code>, a kod błędu znajdzie się w polu <code>error</code>.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">h</td><td>Struktura połączenia</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gafc103504bf9e1c48ad5ec29eac8b4f0f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gg_token_free </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__http.html">gg_http</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Zwalnia zasoby po operacji pobierania tokenu. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">h</td><td>Struktura połączenia </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:41 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

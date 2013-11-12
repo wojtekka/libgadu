@@ -479,3 +479,158 @@ Variables</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+     <table class="memname">
+        <tr>
+          <td class="memname">int gg_chat_update </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>version</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *&#160;</td>
+          <td class="paramname"><em>participants</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>participants_count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Aktualizuje informacje o konferencji.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">id</td><td>Identyfikator konferencji </td></tr>
+    <tr><td class="paramname">version</td><td>Wersja informacji o konferencji </td></tr>
+    <tr><td class="paramname">participants</td><td>Lista uczestników konferencji </td></tr>
+    <tr><td class="paramname">participants_count</td><td>Ilość uczestników konferencji</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Wartość równa 0, jeżeli zakończono powodzeniem </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a2a38f767fc03415f7b8db34724ed08a7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gg_connection_failure </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>ge</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#a0228f2f274fa5d3d1626b8f1742d9433">gg_failure_t</a>&#160;</td>
+          <td class="paramname"><em>failure</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a2115f8d589939e00d0d9a84f8c258b97"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">time_t gg_server_time </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja zmiennych</h2>
+<a class="anchor" id="a4a908d82544625df6a62aca6909da5a5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char gg_base64_charset[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Wartość początkowa:</b><div class="fragment"><div class="line">=</div>
+<div class="line">        <span class="stringliteral">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/&quot;</span></div>
+</div><!-- fragment --><p>Zestaw znaków kodowania base64. </p>
+
+</div>
+</div>
+<a class="anchor" id="ab65c59ce09c0067bf14b3ba41d60293c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t gg_crc32_table[256]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Tablica pomocnicza do wyznaczania sumy kontrolnej. </p>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

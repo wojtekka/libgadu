@@ -656,3 +656,78 @@ dcc = <a class="code" href="group__dcc6.html#gab71b56ab1af27f6c9c45d03d43effea5"
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+ść bufora z danymi</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga9804ea6dffcb077cd5f7a90d4120dc9b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structgg__event.html">gg_event</a>* gg_dcc_watch_fd </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__dcc.html">gg_dcc</a> *&#160;</td>
+          <td class="paramname"><em>h</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. </p>
+<p>Funkcja zwraca strukturę zdarzenia <code><a class="el" href="structgg__event.html" title="Opis zdarzenia.">gg_event</a></code>. Jeśli rodzaj zdarzenia to <code>GG_EVENT_NONE</code>, nie wydarzyło się jeszcze nic wartego odnotowania. Strukturę zdarzenia należy zwolnić funkcja <code>gg_event_free</code>.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">h</td><td>Struktura połączenia</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura zdarzenia lub <code>NULL</code> jeśli wystąpił błąd </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga5d4489eadc5c531a60a9905894fda6b3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gg_dcc_free </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__dcc.html">gg_dcc</a> *&#160;</td>
+          <td class="paramname"><em>d</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Zwalnia zasoby używane przez połączenie bezpośrednie. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">d</td><td>Struktura połączenia </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>

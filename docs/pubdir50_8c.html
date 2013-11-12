@@ -196,3 +196,114 @@ Functions</h2></td></tr>
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.1 </small></address>
 </body>
 </html>
+tml#ga1604f460b45e6d6f2dc4736e9623b6bc">Więcej...</a><br/></td></tr>
+<tr class="separator:ga1604f460b45e6d6f2dc4736e9623b6bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
+<div class="textblock"><p>Obsługa katalogu publicznego od wersji Gadu-Gadu 5.x. </p>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000002">Do zrobienia:</a></b></dt><dd>Zoptymalizować konwersję CP1250&lt;-&gt;UTF8. Obecnie robiona jest testowa konwersja, żeby poznać długość tekstu wynikowego. </dd></dl>
+</div><h2 class="groupheader">Dokumentacja funkcji</h2>
+<a class="anchor" id="aec1a278f1466858b6c21f148a2bf7016"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_pubdir50_add_n </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="libgadu_8h.html#ac8c23cc18f4f30db7805db11e9b12bc8">gg_pubdir50_t</a>&#160;</td>
+          <td class="paramname"><em>req</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Dodaje lub zastępuje pole zapytania lub odpowiedzi katalogu publicznego.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">req</td><td>Zapytanie lub odpowiedź </td></tr>
+    <tr><td class="paramname">num</td><td>Numer wyniku odpowiedzi (0 dla zapytania) </td></tr>
+    <tr><td class="paramname">field</td><td>Nazwa pola </td></tr>
+    <tr><td class="paramname">value</td><td>Wartość pola</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a481364a76628e73033b71c2b64ad2d17"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_pubdir50_handle_reply_sess </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>packet</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>length</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano Wt, 12 lis 2013 22:28:40 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.3.1
+</small></address>
+</body>
+</html>
