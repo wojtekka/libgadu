@@ -774,6 +774,8 @@ struct gg_login_params {
 
 	gg_socket_manager_type_t socket_manager_type; /**< Wybrana metoda nawiązywania połączeń TCP/TLS (domyślnie wewnętrzna) */
 	gg_socket_manager_t socket_manager; /**< Jeżeli wybrano metodę zewnętrzną - konfiguracja jej */
+
+	char **host_white_list;		/**< Lista zakończona wskaźnikiem NULL, domen akceptowanych w odpowiedziach od huba (domyślnie wszystkie do tej pory znane). Używane tylko przy GG_SSL_REQUIRED. Pusta lista wyłącza sprawdzanie. */
 };
 
 struct gg_session *gg_login(const struct gg_login_params *p);

@@ -904,6 +904,14 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 			GG_SOCKET_MANAGER_TYPE_INTERNAL;
 	}
 
+	if (GG_LOGIN_PARAMS_HAS_FIELD(p, host_white_list) &&
+		p->host_white_list != NULL) {
+		sess_private->host_white_list =
+			gg_strarr_dup(p->host_white_list);
+		if (sess_private->host_white_list == NULL)
+			goto fail;
+	}
+
 	if (p->protocol_features == 0) {
 		sess->protocol_features = GG_FEATURE_MSG80 | GG_FEATURE_STATUS80 | GG_FEATURE_DND_FFC | GG_FEATURE_IMAGE_DESCR | GG_FEATURE_UNKNOWN_100 | GG_FEATURE_USER_DATA | GG_FEATURE_MSG_ACK | GG_FEATURE_TYPING_NOTIFICATION;
 	} else {
@@ -1210,6 +1218,8 @@ void gg_free_session(struct gg_session *sess)
 		free(chat);
 		chat = next;
 	}
+
+	gg_strarr_free(sess->private_data->host_white_list);
 
 	free(sess->private_data);
 

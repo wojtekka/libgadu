@@ -923,6 +923,8 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 	const char *body;
 	struct in_addr addr;
 	int res;
+	char **host_white;
+	char *host_white_default[] = GG_DEFAULT_HOST_WHITE_LIST;
 
 	res = recv(sess->fd, buf, sizeof(buf), 0);
 
@@ -1060,6 +1062,52 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 	if (sess->connect_host == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() not enough memory\n");
 		return GG_ACTION_FAIL;
+	}
+
+	gg_str_tolower(sess->connect_host);
+	host_white = sess->private_data->host_white_list;
+	if (!host_white)
+		host_white = host_white_default;
+
+	if (sess->ssl_flag == GG_SSL_REQUIRED && host_white[0] != NULL) {
+		int host_ok = 0;
+		char **it;
+		int host_len;
+
+		host_len = strlen(sess->connect_host);
+
+		for (it = host_white; *it != NULL; it++) {
+			char *white = *it;
+			int white_len, dom_offset;
+
+			white_len = strlen(white);
+			if (white_len > host_len)
+				continue;
+
+			dom_offset = host_len - white_len;
+			if (strncmp(sess->connect_host + dom_offset, white,
+				white_len) != 0)
+			{
+				continue;
+			}
+
+			if (white_len < host_len) {
+				if (sess->connect_host[dom_offset - 1] != '.')
+					continue;
+			}
+
+			host_ok = 1;
+			break;
+		}
+
+		if (!host_ok) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_watch_fd() the HUB server returned "
+				"a host that is not trusted (%s)\n",
+				sess->connect_host);
+			e->event.failure = GG_FAILURE_TLS;
+			return GG_ACTION_FAIL;
+		}
 	}
 
 	if (sess->state == GG_STATE_READING_HUB)

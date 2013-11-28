@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 
 #include "config.h"
@@ -805,6 +806,65 @@ time_t gg_server_time(struct gg_session *gs)
 	}
 
 	return now + gs->private_data->time_diff;
+}
+
+void gg_strarr_free(char **strarr)
+{
+	char **it;
+
+	if (strarr == NULL)
+		return;
+
+	for (it = strarr; *it != NULL; it++)
+		free(*it);
+	free(strarr);
+}
+
+char ** gg_strarr_dup(char **strarr)
+{
+	if (strarr == NULL)
+		return NULL;
+
+	size_t i, len, size;
+	char **it, **out;
+
+	len = 0;
+	for (it = strarr; *it != NULL; it++)
+		len++;
+
+	size = (len + 1) * sizeof(char*);
+	out = malloc(size);
+
+	if (out == NULL) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_strarr_dup() "
+			"not enough memory for the array\n");
+		return NULL;
+	}
+	memset(out, 0, size);
+
+	for (i = 0; i < len; i++) {
+		out[i] = strdup(strarr[i]);
+		if (out[i] == NULL) {
+			gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR,
+				"// gg_strarr_dup() "
+				"not enough memory for the array element\n");
+			gg_strarr_free(out);
+			return NULL;
+		}
+	}
+
+	return out;
+}
+
+void gg_str_tolower(char *str)
+{
+	if (str == NULL)
+		return;
+
+	while (*str) {
+		*str = tolower(*str);
+		str++;
+	}
 }
 
 /*

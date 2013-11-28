@@ -42,6 +42,8 @@
 #define GG_FEATURE_MSG80		0x02
 #define GG_FEATURE_STATUS80 		0x05
 
+#define GG_DEFAULT_HOST_WHITE_LIST { "gadu-gadu.pl", "gg.pl", NULL }
+
 #define GG8_LANG	"pl"
 #define GG8_VERSION	"Gadu-Gadu Client Build "
 

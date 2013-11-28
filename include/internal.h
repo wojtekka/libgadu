@@ -83,6 +83,8 @@ struct gg_session_private {
 
 	int dummyfds_created;
 	int dummyfds[2];
+
+	char **host_white_list;
 };
 
 typedef enum
@@ -124,5 +126,9 @@ void gg_close(struct gg_session *gs);
 struct gg_event *gg_eventqueue_add(struct gg_session *sess);
 
 void gg_compat_message_ack(struct gg_session *sess, int seq);
+
+void gg_strarr_free(char **strarr);
+char ** gg_strarr_dup(char **strarr);
+void gg_str_tolower(char *str);
 
 #endif /* LIBGADU_INTERNAL_H */
