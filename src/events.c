@@ -1064,7 +1064,6 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 		return GG_ACTION_FAIL;
 	}
 
-	gg_str_tolower(sess->connect_host);
 	host_white = sess->private_data->host_white_list;
 	if (!host_white)
 		host_white = host_white_default;
@@ -1077,7 +1076,7 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 		host_len = strlen(sess->connect_host);
 
 		for (it = host_white; *it != NULL; it++) {
-			char *white = *it;
+			const char *white = *it;
 			int white_len, dom_offset;
 
 			white_len = strlen(white);
@@ -1085,7 +1084,7 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess, struct g
 				continue;
 
 			dom_offset = host_len - white_len;
-			if (strncmp(sess->connect_host + dom_offset, white,
+			if (strncasecmp(sess->connect_host + dom_offset, white,
 				white_len) != 0)
 			{
 				continue;

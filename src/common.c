@@ -856,17 +856,6 @@ char ** gg_strarr_dup(char **strarr)
 	return out;
 }
 
-void gg_str_tolower(char *str)
-{
-	if (str == NULL)
-		return;
-
-	while (*str) {
-		*str = tolower(*str);
-		str++;
-	}
-}
-
 /*
  * Local variables:
  * c-indentation-style: k&r

@@ -129,6 +129,5 @@ void gg_compat_message_ack(struct gg_session *sess, int seq);
 
 void gg_strarr_free(char **strarr);
 char ** gg_strarr_dup(char **strarr);
-void gg_str_tolower(char *str);
 
 #endif /* LIBGADU_INTERNAL_H */
