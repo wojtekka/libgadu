@@ -172,19 +172,19 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 				pthread_setcancelstate(old_state, NULL);
 #endif
 
-			if (*result == NULL)
-				return -1;
+			if (*result != NULL) {
+				/* Kopiuj */
 
-			/* Kopiuj */
+				for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
+					memcpy(&((*result)[i]), he_ptr->h_addr_list[i], sizeof(struct in_addr));
 
-			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
-				memcpy(&((*result)[i]), he_ptr->h_addr_list[i], sizeof(struct in_addr));
+				(*result)[i].s_addr = INADDR_NONE;
 
-			(*result)[i].s_addr = INADDR_NONE;
+				*count = i;
 
-			*count = i;
-
-			res = 0;
+				res = 0;
+			} else
+				res = -1;
 		}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
