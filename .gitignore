@@ -9,8 +9,10 @@ Makefile.in
 *.tar.gz
 *.pb-c.*
 stamp-h*
+.dirstamp
 config.*
 autom4te.cache/
+compile
 configure
 depcomp
 docs/html
@@ -22,6 +24,7 @@ install-sh
 libtool
 ltmain.sh
 missing
+test-driver
 examples/conn-async
 examples/httphash
 examples/register-async

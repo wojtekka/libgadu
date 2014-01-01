@@ -2,7 +2,7 @@ dnl $Id$
 
 AC_INIT([libgadu], [1.12.0-rc2])
 AC_CONFIG_SRCDIR([src/libgadu.c])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_PREREQ(2.50)
 AC_CANONICAL_HOST
@@ -19,7 +19,7 @@ AC_C_CONST
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
-AC_SUBST(INCLUDES)
+AC_SUBST(AM_CPPFLAGS)
 dnl Zależności dla pkgconfig
 AC_SUBST(REQUIRES_PRIVATE)
 AC_SUBST(LIBS_PRIVATE)
@@ -197,7 +197,7 @@ if test "x$with_pthread" != "xno"; then
 		if test "x$PTHREAD_CFLAGS" = "x-pthread"; then
 			PTHREAD_LIBS="$PTHREAD_LIBS -pthread"
 		else
-			INCLUDES="$INCLUDES $PTHREAD_CFLAGS"
+			AM_CPPFLAGS="$AM_CPPFLAGS $PTHREAD_CFLAGS"
 		fi
 
 		LIBS_PRIVATE="$PTHREAD_LIBS $LIBS_PRIVATE"
