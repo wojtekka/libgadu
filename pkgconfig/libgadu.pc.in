@@ -9,5 +9,5 @@ Description: libgadu
 Requires.private: @REQUIRES_PRIVATE@
 Libs: -L${libdir} -lgadu
 Libs.private: @LIBS_PRIVATE@
-Cflags: -I${includedir} @INCLUDES@
+Cflags: -I${includedir}
 
