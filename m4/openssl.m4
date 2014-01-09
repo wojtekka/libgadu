@@ -5,15 +5,17 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
   AC_SUBST(OPENSSL_LIBS)
   AC_SUBST(OPENSSL_INCLUDES)
 
-  AC_ARG_WITH(openssl,
-    [[  --without-openssl       do not use OpenSSL even if found]], 
-      if test "x$withval" = "xno" ; then
-        without_openssl=yes
-      elif test "x$withval" != "xyes" ; then
-        with_arg=$withval/include:-L$withval/lib
-      fi)
+  with_arg=""
 
-  if test "x$without_openssl" != "xyes" -a "x$with_arg" = "x" -o "x$force_openssl" = "xyes"; then
+  AC_ARG_WITH(openssl,
+    [[  --with-openssl          use OpenSSL, if found (the resulting binary won't be GPL-compliant)]],
+      if test "x$withval" != "xyes" -a "x$withval" != "xno" ; then
+        with_arg=$withval/include:-L$withval/lib
+        with_openssl="yes"
+      fi,
+      with_openssl="no")
+
+  if test "x$with_openssl" = "xyes" -a "x$with_arg" = "x"; then
     PKG_CHECK_MODULES([OPENSSL], [openssl >= 0.9.7], [
 	AC_DEFINE(HAVE_OPENSSL, 1, [define if you have OpenSSL])
         without_openssl=yes
@@ -21,7 +23,7 @@ AC_DEFUN([AC_CHECK_OPENSSL],[
 	], [:])
   fi
 
-  if test "x$without_openssl" != "xyes" ; then
+  if test "x$with_openssl" = "xyes" -a "x$have_openssl" != "xyes" ; then
     dnl Beware, this code is not able to check installed openssl version
 
     AC_MSG_CHECKING(for ssl.h)

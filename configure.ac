@@ -374,12 +374,6 @@ if test "x$enable_tests" != "xno"; then
 		AC_CHECK_HEADERS(expat.h, [have_expat="no"])
 	fi
 
-	dnl Dla testów zawsze używaj OpenSSL, o ile tylko jest dostępne.
-	if test "x$have_openssl" != "xyes"; then
-		force_openssl="yes"
-		AC_CHECK_OPENSSL
-	fi
-
 	dnl
 	dnl  Perl dla protocol
 	dnl

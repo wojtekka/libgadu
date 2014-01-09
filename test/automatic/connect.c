@@ -930,7 +930,9 @@ int main(int argc, char **argv)
 {
 	int i, test_from = 0, test_to = 0;
 	int exit_code = 0;
+#ifdef GG_CONFIG_HAVE_GNUTLS
 	int res;
+#endif
 	pthread_t server_thread;
 	
 #ifdef FIONBIO
