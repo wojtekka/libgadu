@@ -25,6 +25,7 @@ libtool
 ltmain.sh
 missing
 test-driver
+libgadu.sym
 examples/conn-async
 examples/httphash
 examples/register-async

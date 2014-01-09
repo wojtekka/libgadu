@@ -326,7 +326,11 @@ if test "x$have_openssl" = "xyes"; then
 	CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
+else
+	AC_DEFINE([GG_CONFIG_IS_GPL_COMPLIANT], [], [Defined if libgadu is GPL compliant (was not linked with OpenSSL or any other non-GPL compliant library support).])
 fi
+
+AM_CONDITIONAL([IS_GPL_COMPLIANT], [test "x$have_openssl" != "xyes"])
 
 # We need separate lists of libs handled with and without pkgconfig help, for the pkgconfig file.
 # We concatenate them here so that libtool can pick the pkgconfig-less libs too.
@@ -361,7 +365,7 @@ if test "x$enable_tests" != "xno"; then
 	fi
 
 	dnl
-	dnl  curl, expat i OpenSSL dla search
+	dnl  curl i expat dla search
 	dnl
 
 	AC_CHECK_LIB(curl, curl_easy_init, [have_curl="yes"])

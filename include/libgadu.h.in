@@ -101,6 +101,10 @@ extern "C" {
 /* Defined if this machine has uint64_t. */
 #undef GG_CONFIG_HAVE_UINT64_T
 
+/* Defined if libgadu is GPL compliant (was not linked with OpenSSL or any
+   other non-GPL compliant library support). */
+#undef GG_CONFIG_IS_GPL_COMPLIANT
+
 #ifdef GG_CONFIG_HAVE_OPENSSL
 #include <openssl/ssl.h>
 #endif
@@ -778,6 +782,9 @@ struct gg_login_params {
 	char **host_white_list;		/**< Lista zakończona wskaźnikiem NULL, domen akceptowanych w odpowiedziach od huba (domyślnie wszystkie do tej pory znane). Używane tylko przy GG_SSL_REQUIRED. Pusta lista wyłącza sprawdzanie. */
 };
 
+#ifdef GG_CONFIG_IS_GPL_COMPLIANT
+int gg_is_gpl_compliant(void);
+#endif
 struct gg_session *gg_login(const struct gg_login_params *p);
 void gg_free_session(struct gg_session *sess);
 void gg_logoff(struct gg_session *sess);

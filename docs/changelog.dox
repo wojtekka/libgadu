@@ -17,6 +17,8 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 - Możliwość użycia własnych funkcji do połączeń TCP/TLS.
 
+- Dodany symbol \c gg_is_gpl_compliant, definiowany wtedy i tylko wtedy, gdy biblioteka jest zgodna z licencją GPL. W związku z tym wersja kompilowana z OpenSSL nie jest zgodna binarnie z wersją GPL.
+
 - Możliwość podania nazwy serwera, nie tylko adresu.
 
 - Ustawienie pola \c tls struktury \c gg_login_params na \c GG_SSL_REQUIRED powoduje odrzucenie połączenia w przypadku błędnego certyfikatu serwera.

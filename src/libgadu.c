@@ -138,6 +138,24 @@ __attribute__ ((unused))
 static void gg_compat_message_sent(struct gg_session *sess, int seq, size_t recipients_count, uin_t *recipients);
 static void gg_compat_message_cleanup(struct gg_session *sess);
 
+#ifdef GG_CONFIG_IS_GPL_COMPLIANT
+/**
+ * Symbol zdefiniowany tylko dla libgadu zgodnego z licencją GPL.
+ *
+ * Zwracana wartość nie jest istotna, a ponadto może się zmienić w przyszłych
+ * wersjach biblioteki. Istotne jest tylko wywołanie tej funkcji w kodzie, który
+ * ma być zgodny z GPL, aby wymusić jej istnienie.
+ *
+ * \return Wartość 1.
+ *
+ * \ingroup version
+ */
+int gg_is_gpl_compliant(void)
+{
+	return 1;
+}
+#endif
+
 /**
  * Zwraca wersję biblioteki.
  *
