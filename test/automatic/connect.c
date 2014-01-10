@@ -1019,7 +1019,7 @@ int main(int argc, char **argv)
 	}
 
 	for (i = test_from - 1; i < test_to; i++) {
-		int j = i;
+		int j;
 		int expect = 0;
 		test_param_t *test;
 

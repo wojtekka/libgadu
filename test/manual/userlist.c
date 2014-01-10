@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 			case 'r':
 				mode = MODE_REMOVE;
 				type = GG_USERLIST100_PUT;
+				free(content);
 				content = strdup(" ");
 				break;
 

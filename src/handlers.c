@@ -1014,6 +1014,9 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type, co
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %d, %p);\n", packet, length, e);
 
+	if (sess == NULL)
+		goto fail;
+
 	if ((r->seq == 0) && (r->msgclass == 0)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg() oops, silently ignoring the bait\n");
 		goto malformed;
@@ -1102,6 +1105,9 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	uint32_t offset_attr;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %d, %p);\n", packet, length, e);
+
+	if (sess == NULL)
+		goto fail;
 
 	if (r->seq == 0 && r->msgclass == 0) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_handle_recv_msg80() oops, silently ignoring the bait\n");
@@ -2227,7 +2233,7 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type, con
 		participants_count = 0;
 	}
 
-	if (gg_tvbuff_is_valid(tvb) && participants_count > 0) {
+	if (participants_count > 0) {
 		participants = malloc(sizeof(uin_t) * participants_count);
 		if (participants == NULL) {
 			gg_tvbuff_close(tvb);

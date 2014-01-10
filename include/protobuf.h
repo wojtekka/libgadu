@@ -40,9 +40,12 @@ typedef size_t (*gg_protobuf_pack_cb_t)(const void *message, uint8_t *out);
 
 typedef struct _gg_protobuf_uin_buff gg_protobuf_uin_buff_t;
 
+/* Ostatni warunek (msg != NULL) jest tylko po to, żeby uciszyć analizę
+ * statyczną (zawiera się w pierwszym). */
 #define GG_PROTOBUF_VALID(gs, name, msg) \
 	(gg_protobuf_valid_chknull(gs, name, msg == NULL) && \
-	gg_protobuf_valid_chkunknown(gs, name, &msg->base))
+	gg_protobuf_valid_chkunknown(gs, name, &msg->base) && \
+	msg != NULL)
 
 #define GG_PROTOBUF_SEND(gs, ge, packet_type, msg_type, msg) \
 	gg_protobuf_send_ex(gs, ge, packet_type, &msg, \

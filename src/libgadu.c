@@ -592,14 +592,15 @@ void *gg_recv_packet(struct gg_session *sess)
 			len = sizeof(struct gg_header) - sess->recv_done;
 			gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() header: %d done, %d to go\n", sess->recv_done, len);
 		} else {
-			if ((size_t) sess->recv_done >= sizeof(struct gg_header) + gg_fix32(gh->length)) {
+			uint32_t ghlen = gh ? gg_fix32(gh->length) : 0;
+			if ((size_t) sess->recv_done >= sizeof(struct gg_header) + ghlen) {
 				gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() and that's it\n");
 				break;
 			}
 
-			len = sizeof(struct gg_header) + gg_fix32(gh->length) - sess->recv_done;
+			len = sizeof(struct gg_header) + ghlen - sess->recv_done;
 
-			gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() payload: %d done, %d length, %d to go\n", sess->recv_done, gg_fix32(gh->length), len);
+			gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() payload: %d done, %d length, %d to go\n", sess->recv_done, ghlen, len);
 		}
 
 		res = gg_read(sess, sess->recv_buf + sess->recv_done, len);
@@ -624,19 +625,20 @@ void *gg_recv_packet(struct gg_session *sess)
 
 		if (sess->recv_done + res == sizeof(struct gg_header)) {
 			char *tmp;
+			uint32_t ghlen = gh ? gg_fix32(gh->length) : 0;
 
-			gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() header complete, payload %d bytes\n", gg_fix32(gh->length));
+			gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() header complete, payload %d bytes\n", ghlen);
 
-			if (gg_fix32(gh->length == 0))
+			if (ghlen == 0)
 				break;
 
-			if (gg_fix32(gh->length) > 65535) {
-				gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_recv_packet() invalid packet length (%d)\n", gg_fix32(gh->length));
+			if (ghlen > 65535) {
+				gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_recv_packet() invalid packet length (%d)\n", ghlen);
 				errno = ERANGE;
 				goto fail;
 			}
 
-			tmp = realloc(sess->recv_buf, sizeof(struct gg_header) + gg_fix32(gh->length) + 1);
+			tmp = realloc(sess->recv_buf, sizeof(struct gg_header) + ghlen + 1);
 
 			if (tmp == NULL) {
 				gg_debug_session(sess, GG_DEBUG_ERROR, "// gg_recv_packet() out of memory\n");
@@ -652,6 +654,9 @@ void *gg_recv_packet(struct gg_session *sess)
 	packet = sess->recv_buf;
 	sess->recv_buf = NULL;
 	sess->recv_done = 0;
+
+	if (gh == NULL)
+		goto fail;
 
 	/* Czasami zakładamy, że teksty w pakietach są zakończone zerem */
 	packet[sizeof(struct gg_header) + gg_fix32(gh->length)] = 0;
