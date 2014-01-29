@@ -3,6 +3,7 @@
     width: 100%;
     z-index: 101;
     font-size: 13px;
+    font-family: 'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
 }
 
 .tabs2 {
@@ -54,9 +55,6 @@
 .tablist li.current a {
     background-image: url('tab_a.png');
     background-repeat:repeat-x;
-    color: #fff;
-    text-shadow: 0px 1px 1px rgba(0, 0, 0, 1.0);
-}
     color: #fff;
     text-shadow: 0px 1px 1px rgba(0, 0, 0, 1.0);
 }
