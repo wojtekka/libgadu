@@ -33,6 +33,10 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 - Możliwość sprawdzenia powodu błędu przy operacji na katalogu publicznym.
 
+\section changelog-1_11_3 libgadu 1.11.3
+
+- Brak zmian API/ABI.
+
 \section changelog-1_11_2 libgadu 1.11.2
 
 - Brak zmian API/ABI.
