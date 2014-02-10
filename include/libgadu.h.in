@@ -2484,6 +2484,7 @@ enum {
 #ifndef DOXYGEN
 
 #define GG_USERLIST100_REPLY_LIST 0x00
+#define GG_USERLIST100_REPLY_UPTODATE 0x01
 #define GG_USERLIST100_REPLY_ACK 0x10
 #define GG_USERLIST100_REPLY_REJECT 0x12
 
@@ -2496,6 +2497,7 @@ enum {
  */
 enum {
 	GG_USERLIST100_REPLY_LIST,	/**< W odpowiedzi znajduje się aktualna lista kontaktów na serwerze. */
+	GG_USERLIST100_REPLY_UPTODATE,	/**< Komunikat o tym, że lista kontaktów jest już zsynchronizowana. */
 	GG_USERLIST100_REPLY_ACK,	/**< Potwierdzenie odebrania nowej wersji listy kontaktów. W polu \c gg_userlist100_reply.version znajduje się numer nowej wersji listy kontaktów. */
 	GG_USERLIST100_REPLY_REJECT,	/**< Odmowa przyjęcia nowej wersji listy kontaktów. W polu \c gg_userlist100_reply.version znajduje się numer wersji listy kontaktów aktualnie przechowywanej przez serwer. */
 };

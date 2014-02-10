@@ -170,6 +170,7 @@ int main(int argc, char **argv)
 					else
 						printf("%s", ge->event.userlist100_reply.reply);
 					break;
+				case GG_USERLIST100_REPLY_UPTODATE:
 				case GG_USERLIST100_REPLY_ACK:
 					res = 0;
 					break;
