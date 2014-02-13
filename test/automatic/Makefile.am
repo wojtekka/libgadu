@@ -12,12 +12,12 @@ endif
 check_PROGRAMS = $(TESTS)
 EXTRA_PROGRAMS = convert endian1 message2 message1 hash resolver packet connect protocol
 
-CFLAGS += -DGG_IGNORE_DEPRECATED
+CFLAGS += -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
 AM_LDFLAGS = -no-install
 
 protocol_SOURCES = protocol.c
 nodist_protocol_SOURCES = script/script.c
-protocol_CFLAGS = -Iscript
+protocol_CFLAGS = -I$(top_srcdir)/test/automatic/script
 protocol_LDADD = $(top_builddir)/src/libgadu.la
 
 convert_SOURCES = convert.c ../../src/encoding.c
@@ -43,11 +43,11 @@ EXTRA_DIST = protocol.txt connect.txt connect.pem
 
 SUBDIRS = script
 
-script/script.c:       $(wildcard script/*.scr) script/compile
-	$(PERL) script/compile script/*.scr > script/script.c
+script/script.c: $(wildcard script/*.scr) script/compile
+	$(PERL) $(top_srcdir)/test/automatic/script/compile $(top_srcdir)/test/automatic/script/*.scr > script/script.c
 
 clean-local:
 	rm -f *-valgrind.log *-valgrind script/script.c
 
-check-local:	$(check_PROGRAMS)
+check-local: $(check_PROGRAMS)
 	for i in $(check_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
