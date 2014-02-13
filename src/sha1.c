@@ -264,7 +264,7 @@ int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result)
 
 fail:
 	/* Zwolnij zasoby. Tylko GnuTLS przyjęłoby NULL zamiast result, więc przekaż result. */
-	SHA1_Final(result, &ctx);
+	(void)SHA1_Final(result, &ctx);
 	return -1;
 }
 
