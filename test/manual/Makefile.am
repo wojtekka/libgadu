@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 check_PROGRAMS = client userlist
 if HAVE_GLIBC
 check_PROGRAMS += dcc7

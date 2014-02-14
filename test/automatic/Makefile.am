@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 TESTS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_PERL)
 if HAVE_GLIBC
 TESTS += resolver packet
