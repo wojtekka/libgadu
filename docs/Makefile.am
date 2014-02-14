@@ -1,4 +1,24 @@
-EXTRA_DIST = Doxyfile protocol.html *.dox
+EXTRA_DIST = \
+	Doxyfile \
+	protocol.html \
+	build.dox \
+	changelog.dox \
+	contacts.dox \
+	dcc6.dox \
+	dcc7.dox \
+	events.dox \
+	groups.dox \
+	http.dox \
+	importexport.dox \
+	login.dox \
+	mainpage.dox \
+	messages.dox \
+	proxy.dox \
+	pubdir50.dox \
+	re.dox \
+	status.dox \
+	todo.dox \
+	token.dox
 
 all-local:	html-stamp
 

@@ -934,10 +934,30 @@ int main(int argc, char **argv)
 	int res;
 #endif
 	pthread_t server_thread;
-	
+	const char *srcdir;
+	size_t srcdir_len;
+	char cert_file_path[2000], key_file_path[2000];
+
 #ifdef FIONBIO
 	int one = 1;
 #endif
+
+	srcdir = getenv("srcdir");
+	if (srcdir == NULL || srcdir[0] == '\0')
+		srcdir = ".";
+
+	srcdir_len = strlen(srcdir);
+	if (srcdir_len > 1000) {
+		fprintf(stderr, "srcdir path too long\n");
+		failure();
+	}
+
+	memcpy(cert_file_path, srcdir, srcdir_len);
+	memcpy(key_file_path, srcdir, srcdir_len);
+	cert_file_path[srcdir_len] = '/';
+	key_file_path[srcdir_len] = '/';
+	strcpy(cert_file_path + srcdir_len + 1, CERT_FILE);
+	strcpy(key_file_path + srcdir_len + 1, KEY_FILE);
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	if ((res = gnutls_global_init()) != GNUTLS_E_SUCCESS) {
@@ -948,7 +968,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "gnutls_certificate_allocate_credentials: %d, %s\n", res, gnutls_strerror(res));
 		failure();
 	}
-	if ((res = gnutls_certificate_set_x509_key_file(x509_cred, CERT_FILE, KEY_FILE, GNUTLS_X509_FMT_PEM)) != GNUTLS_E_SUCCESS) {
+	if ((res = gnutls_certificate_set_x509_key_file(x509_cred, cert_file_path, key_file_path, GNUTLS_X509_FMT_PEM)) != GNUTLS_E_SUCCESS) {
 		fprintf(stderr, "gnutls_certificate_set_x509_key_file: %d, %s\n", res, gnutls_strerror(res));
 		failure();
 	}

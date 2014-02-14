@@ -12,7 +12,7 @@ endif
 
 EXTRA_PROGRAMS = client userlist dcc7 search voice7
 
-CFLAGS = -DGG_IGNORE_DEPRECATED
+CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
 AM_LDFLAGS = -no-install
 
 dcc7_CFLAGS = -Wall
