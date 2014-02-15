@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = subdir-objects
+SUBDIRS = lib
 
 check_PROGRAMS = client userlist
 if HAVE_GLIBC
@@ -13,6 +13,7 @@ endif
 # endif
 
 EXTRA_PROGRAMS = client userlist dcc7 search voice7
+CLEANFILES = client userlist dcc7 search voice7
 
 CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
 AM_LDFLAGS = -no-install
@@ -27,18 +28,14 @@ client_SOURCES = client.c userconfig.c userconfig.h
 userlist_LDADD = $(top_builddir)/src/libgadu.la
 userlist_SOURCES = userlist.c userconfig.c userconfig.h
 
-search_SOURCES = search.c lib/base64.c lib/base64.h ../../config.h lib/hmac.c lib/hmac.h lib/http.c lib/http.h lib/oauth.c lib/oauth.h lib/oauth_parameter.c lib/oauth_parameter.h lib/sha1.c lib/sha1.h lib/urlencode.c lib/urlencode.h lib/xml.c lib/xml.h
-search_CFLAGS = -Wall -DHAVE_OPENSSL
-search_LDADD = -lcurl -lexpat -lssl -lcrypto
+search_SOURCES = search.c
+search_LDADD = lib/libsearch.a -lcurl -lexpat
 
 voice7_CFLAGS = -Wall -DHAVE_SPEEX -DHAVE_GSM
 voice7_LDADD = $(top_builddir)/src/libgadu.la -lgsm -lspeex
-
-SUBDIRS = lib
 
 clean-local:
 	rm -f *.log *-valgrind
 
 check-local:      $(check_PROGRAMS)
 	for i in $(check_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
-

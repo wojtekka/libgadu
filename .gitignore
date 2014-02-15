@@ -3,6 +3,7 @@ Makefile.in
 *.m4
 *.o
 *.la
+*.a
 *.lo
 .deps
 .libs
@@ -37,6 +38,7 @@ examples/send
 examples/status
 examples/token-async
 examples/token-sync
+test/config
 test/automatic/connect
 test/automatic/convert
 test/automatic/endian1
