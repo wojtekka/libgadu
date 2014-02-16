@@ -21,6 +21,8 @@
 #include <string.h>
 #include <expat.h>
 
+#include "xml.h"
+
 enum {
 	ELEMENT_INVALID = -1,	/**< Nieprawidłowy XML, nie parsujemy */
 	ELEMENT_NONE = 0,	/**< Brak lub nieznany, ignorowany element */

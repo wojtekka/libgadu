@@ -20,6 +20,8 @@
 #include <string.h>
 #include <curl/curl.h>
 
+#include "http.h"
+
 static size_t handle_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
 	char *new_text, **text_ptr;
@@ -95,7 +97,7 @@ char *gg_http_fetch(const char *method, const char *url, const char *auth_header
 	return text;
 }
 
-void http_init() {
+void http_init(void)
+{
 	curl_global_init(CURL_GLOBAL_SSL);
 }
-

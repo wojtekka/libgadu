@@ -20,6 +20,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "urlencode.h"
+
 #define gg_urlencode_isvalid(c) \
 ( \
 	(((c) >= 'a') && ((c) <= 'z')) || \

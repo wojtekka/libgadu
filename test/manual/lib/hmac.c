@@ -16,6 +16,8 @@
  *  USA.
  */
 
+#include "hmac.h"
+
 #ifdef HAVE_OPENSSL
 
 #include <openssl/hmac.h>
