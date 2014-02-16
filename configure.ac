@@ -327,6 +327,7 @@ if test "x$have_openssl" = "xyes"; then
 	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
 else
+	have_openssl="no"
 	AC_DEFINE([GG_CONFIG_IS_GPL_COMPLIANT], [], [Defined if libgadu is GPL compliant (was not linked with OpenSSL or any other non-GPL compliant library support).])
 fi
 
@@ -346,6 +347,8 @@ AC_ARG_ENABLE(tests,
 AM_CONDITIONAL([ENABLE_TESTS], [test "x$enable_tests" != "xno"])
 
 if test "x$enable_tests" != "xno"; then
+	enable_tests="yes"
+
 	dnl
 	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
 	dnl
@@ -373,9 +376,9 @@ if test "x$enable_tests" != "xno"; then
 		AC_CHECK_HEADERS(curl/curl.h, [], [have_curl="no"])
 	fi
 
-	AC_CHECK_LIB(expat, XML_ParserCreate, [have_expat="yes"])
+	AC_CHECK_LIB(expat, XML_ParserCreate, [have_expat="yes"], [have_expat="no"])
 	if test "x$have_expat" = "xyes"; then
-		AC_CHECK_HEADERS(expat.h, [have_expat="no"])
+		AC_CHECK_HEADERS(expat.h, [], [have_expat="no"])
 	fi
 
 	dnl
@@ -392,13 +395,16 @@ if test "x$enable_tests" != "xno"; then
 	dnl
 
 	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
+		have_libxml2="yes"
 		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
-	], [:])
+	], [
+		have_libxml2="no"
+	])
 fi
 
 AM_CONDITIONAL([HAVE_GLIBC], [test "x$have_glibc" = "xyes"])
 AM_CONDITIONAL([HAVE_GNUTLS_TESTS], [test "x$have_gnutls" = "xyes"])
-AM_CONDITIONAL([HAVE_CURL_AND_EXPAT_AND_OPENSSL], [test "x$have_curl" = "xyes" -a "x$have_expat" = "xyes" -a "x$have_openssl" = "xyes"])
+AM_CONDITIONAL([HAVE_CURL_AND_EXPAT], [test "x$have_curl" = "xyes" -a "x$have_expat" = "xyes"])
 AM_CONDITIONAL([HAVE_PERL], [test "x$have_perl" = "xyes"])
 
 dnl
@@ -448,3 +454,27 @@ AM_COND_IF([ENABLE_TESTS],
 )
 
 AC_OUTPUT
+
+echo
+echo $PACKAGE $VERSION
+echo
+
+echo Build with gnutls.... : $have_gnutls
+echo Build with openssl... : $have_openssl
+echo Build with protobuf-c : $have_protobuf_c
+echo Build with pthread... : $have_pthread
+echo Build with zlib...... : $have_zlib
+echo
+
+echo Enable tests......... : $enable_tests
+if test "x$enable_tests" = "xyes"; then
+	echo Build with glibc..... : $have_glibc
+	echo Build with libcurl... : $have_curl
+	echo Build with libexpat.. : $have_expat
+	echo Build with libxml2... : $have_libxml2
+	echo Build with perl...... : $have_perl
+fi
+
+echo
+echo configure complete, now type \'make\'
+echo

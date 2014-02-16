@@ -4,7 +4,7 @@ check_PROGRAMS = client userlist
 if HAVE_GLIBC
 check_PROGRAMS += dcc7
 endif
-if HAVE_CURL_AND_EXPAT_AND_OPENSSL
+if HAVE_CURL_AND_EXPAT
 check_PROGRAMS += search
 endif
 # Wyłączone.
