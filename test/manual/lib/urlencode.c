@@ -35,7 +35,7 @@
 
 static const char gg_urlencode_hex_table[] = "0123456789ABCDEF";
 
-unsigned int gg_urlencode_strlen(const char *p)
+size_t gg_urlencode_strlen(const char *p)
 {
 	int len = 0;
 
