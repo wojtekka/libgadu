@@ -190,6 +190,7 @@ dnl
 AC_ARG_WITH(pthread,
   [  --without-pthread       do not use pthread resolver even if found])
 
+have_pthread="no"
 if test "x$with_pthread" != "xno"; then
 	ACX_PTHREAD(
 	[
@@ -255,7 +256,7 @@ dnl
 AC_ARG_WITH(gnutls,
   [  --without-gnutls        do not use GnuTLS even if found])
 
-have_gnutls=""
+have_gnutls="no"
 
 if test "x$with_gnutls" != "xno"; then
 	PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
@@ -353,7 +354,7 @@ if test "x$enable_tests" != "xno"; then
 	dnl  Sprawdź, czy można korzystać z __funkcji w libc.
 	dnl
 
-	AC_CHECK_LIB(c, __connect, [have_glibc="yes"])
+	AC_CHECK_LIB(c, __connect, [have_glibc="yes"], [have_glibc="no"])
 
 	dnl
 	dnl  GnuTLS dla connect
@@ -371,7 +372,7 @@ if test "x$enable_tests" != "xno"; then
 	dnl  curl i expat dla search
 	dnl
 
-	AC_CHECK_LIB(curl, curl_easy_init, [have_curl="yes"])
+	AC_CHECK_LIB(curl, curl_easy_init, [have_curl="yes"], [have_curl="no"])
 	if test "x$have_curl" = "xyes"; then
 		AC_CHECK_HEADERS(curl/curl.h, [], [have_curl="no"])
 	fi
@@ -388,6 +389,8 @@ if test "x$enable_tests" != "xno"; then
 	AC_CHECK_PROG([PERL], [perl], [perl], [:])
 	if test "x$PERL" != "x:"; then
 		have_perl="yes"
+	else
+		have_perl="no"
 	fi
 
 	dnl
