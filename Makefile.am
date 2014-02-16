@@ -13,7 +13,3 @@ libtool:	$(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 ACLOCAL_AMFLAGS = -I m4
-
-# it doesn't work with subdir-objects
-distcleancheck:
-	@:
