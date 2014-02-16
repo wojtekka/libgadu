@@ -100,7 +100,7 @@ static void failure(void)
 
 static test_param_t *get_test_param(void)
 {
-	static test_param_t test = { false };
+	static test_param_t test;
 
 	return &test;
 }
@@ -694,12 +694,12 @@ static void* server_func(void* arg)
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
 						if (!test->ssl_mode) {
-							if (send(client_fd, hub_reply, strlen(hub_reply), 0) != strlen(hub_reply)) {
+							if (send(client_fd, hub_reply, strlen(hub_reply), 0) != (ssize_t)strlen(hub_reply)) {
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
 						} else {
-							if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != strlen(hub_ssl_reply)) {
+							if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != (ssize_t)strlen(hub_ssl_reply)) {
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
@@ -742,18 +742,18 @@ static void* server_func(void* arg)
 							test->tried_80 = 1;
 							if (test->plug_80 == PLUG_NONE) {
 								if (!test->ssl_mode) {
-									if (send(client_fd, hub_reply, strlen(hub_reply), 0) != strlen(hub_reply)) {
+									if (send(client_fd, hub_reply, strlen(hub_reply), 0) != (ssize_t)strlen(hub_reply)) {
 										fprintf(stderr, "send() not completed\n");
 										failure();
 									}
 								} else {
-									if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != strlen(hub_ssl_reply)) {
+									if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != (ssize_t)strlen(hub_ssl_reply)) {
 										fprintf(stderr, "send() not completed\n");
 										failure();
 									}
 								}
 							} else {
-								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -767,7 +767,7 @@ static void* server_func(void* arg)
 							test->tried_443 = 1;
 
 							if (test->plug_443 == PLUG_NONE) {
-								if (send(client_fd, proxy_reply, strlen(proxy_reply), 0) != strlen(proxy_reply)) {
+								if (send(client_fd, proxy_reply, strlen(proxy_reply), 0) != (ssize_t)strlen(proxy_reply)) {
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -803,7 +803,7 @@ static void* server_func(void* arg)
 									ctype = CLIENT_GG;
 								}
 							} else {
-								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -811,7 +811,7 @@ static void* server_func(void* arg)
 							len = 0;
 						} else {
 							debug("Invalid proxy request");
-							if (send(client_fd, proxy_error, strlen(proxy_error), 0) != strlen(proxy_error)) {
+							if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
