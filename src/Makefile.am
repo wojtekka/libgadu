@@ -6,7 +6,7 @@ libgadu_libextradir = $(libdir)
 libgadu_libextra_DATA = @MINGW_LIBDATA@
 BUILT_SOURCES = libgadu.sym
 CLEANFILES = libgadu.sym
-EXTRA_DIST = libgadu.sym.in
+EXTRA_DIST = libgadu.sym.in protobuf-c.c.patch
 
 if !HAVE_PROTOBUF_C
 libgadu_la_SOURCES += protobuf-c.c
