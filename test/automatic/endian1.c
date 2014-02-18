@@ -13,7 +13,7 @@ static void test_gg_fix64(void)
 
 	memcpy(&value, source, sizeof(value));
 
-	if (gg_fix64(value) != (uint64_t)0x8899aabbccddeeff) {
+	if (gg_fix64(value) != 0x8899aabbccddeeffLL) {
 		fprintf(stderr, "gg_fix64 failed\n");
 		exit(1);
 	}
