@@ -69,3 +69,11 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        if (wire_type != PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
          return 0;
+@@ -2205,6 +2213,7 @@
+       size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
+       const ProtobufCFieldDescriptor *field;
+       ScannedMember tmp;
++      memset(&tmp, 0, sizeof(ScannedMember));
+       if (used == 0)
+         {
+           UNPACK_ERROR (("error parsing tag/wiretype at offset %u",

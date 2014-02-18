@@ -2213,6 +2213,7 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
       size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
       const ProtobufCFieldDescriptor *field;
       ScannedMember tmp;
+      memset(&tmp, 0, sizeof(ScannedMember));
       if (used == 0)
         {
           UNPACK_ERROR (("error parsing tag/wiretype at offset %u",
