@@ -438,7 +438,7 @@ int gg_pubdir50_handle_reply_sess(struct gg_session *sess, struct gg_event *e, c
 				free(tmp);
 			}
 		}
-	}	
+	}
 
 	res->count = num + 1;
 
