@@ -2,10 +2,10 @@
 
 /*
  *  (C) Copyright 2001-2010 Wojtek Kaniewski <wojtekka@irc.pl>
- *			  Robert J. Woźny <speedy@ziew.org>
- *			  Arkadiusz Miśkiewicz <arekm@pld-linux.org>
- *			  Tomasz Chiliński <chilek@chilan.com>
- *			  Adam Wysocki <gophi@ekg.chmurka.net>
+ *                          Robert J. Woźny <speedy@ziew.org>
+ *                          Arkadiusz Miśkiewicz <arekm@pld-linux.org>
+ *                          Tomasz Chiliński <chilek@chilan.com>
+ *                          Adam Wysocki <gophi@ekg.chmurka.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License Version
@@ -107,4 +107,3 @@ uint16_t gg_fix16(uint16_t x)
 		((x & (uint16_t) 0xff00U) >> 8));
 #endif
 }
-
