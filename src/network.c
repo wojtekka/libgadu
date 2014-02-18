@@ -49,7 +49,7 @@ int gg_win32_socketpair(int sv[2])
 
 	if (server == -1)
 		goto fail;
-	
+
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -66,7 +66,7 @@ int gg_win32_socketpair(int sv[2])
 
 	if (getsockname(server, (struct sockaddr*) &sin, &sin_len) == -1)
 		goto fail;
-	
+
 	sin.sin_family = AF_INET;
 	sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 
@@ -74,7 +74,7 @@ int gg_win32_socketpair(int sv[2])
 
 	if (sv[0] == -1)
 		goto fail;
-	
+
 	if (connect(sv[0], (struct sockaddr*) &sin, sin_len) == -1)
 		goto fail;
 

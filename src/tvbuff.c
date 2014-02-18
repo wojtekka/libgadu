@@ -424,7 +424,8 @@ const char *gg_tvbuff_read_str(gg_tvbuff_t *tvb, size_t *length)
 	offset = tvb->offset;
 	str_len = gg_tvbuff_read_packed_uint(tvb);
 	if (!gg_tvbuff_is_valid(tvb) ||
-		!gg_tvbuff_have_remaining(tvb, str_len)) {
+		!gg_tvbuff_have_remaining(tvb, str_len))
+	{
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_str() failed at "
 			"%d:%d\n", offset, str_len);
 		return NULL;
@@ -466,7 +467,8 @@ void gg_tvbuff_read_str_dup(gg_tvbuff_t *tvb, char **dst)
 	offset = tvb->offset;
 	str_len = gg_tvbuff_read_packed_uint(tvb);
 	if (!gg_tvbuff_is_valid(tvb) ||
-		!gg_tvbuff_have_remaining(tvb, str_len)) {
+		!gg_tvbuff_have_remaining(tvb, str_len))
+	{
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_str_dup() failed "
 			"at %d:%d\n", offset, str_len);
 		return;
@@ -517,7 +519,8 @@ uin_t gg_tvbuff_read_uin(gg_tvbuff_t *tvb)
 
 	if (full_len != uin_len + 2 ||
 		uin_type != 0 ||
-		uin_len > 10) {
+		uin_len > 10)
+	{
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_uin() failed (1)\n");
 		tvb->valid = 0;
 		return 0;
