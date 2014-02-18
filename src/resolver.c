@@ -122,11 +122,17 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 #endif
 
 	if (buf != NULL) {
+		while (1) {
 #ifndef sun
-		while ((ret = gethostbyname_r(hostname, &he, buf, buf_len, &he_ptr, &h_errnop)) == ERANGE) {
+			ret = gethostbyname_r(hostname, &he, buf, buf_len, &he_ptr, &h_errnop);
+			if (ret != ERANGE)
+				break;
 #else
-		while (((he_ptr = gethostbyname_r(hostname, &he, buf, buf_len, &h_errnop)) == NULL) && (errno == ERANGE)) {
+			he_ptr = gethostbyname_r(hostname, &he, buf, buf_len, &h_errnop);
+			if (he_ptr != NULL || errno != ERANGE)
+				break;
 #endif
+
 			buf_len *= 2;
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -155,8 +161,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 
 			/* Policz liczbę adresów */
 
-			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++)
-				;
+			for (i = 0; he_ptr->h_addr_list[i] != NULL; i++);
 
 			/* Zaalokuj */
 
@@ -225,8 +230,7 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 
 	/* Policz liczbę adresów */
 
-	for (i = 0; he->h_addr_list[i] != NULL; i++)
-		;
+	for (i = 0; he->h_addr_list[i] != NULL; i++);
 
 	/* Zaalokuj */
 
@@ -306,8 +310,12 @@ static int gg_resolver_run(int fd, const char *hostname, int pthread)
 		addr_count = 1;
 	}
 
-	if (send(fd, addr_list != NULL ? addr_list : addr_ip, (addr_count + 1) * sizeof(struct in_addr), 0) != (int)((addr_count + 1) * sizeof(struct in_addr)))
+	if (send(fd, addr_list != NULL ? addr_list : addr_ip,
+		(addr_count + 1) * sizeof(struct in_addr), 0) !=
+		(int)((addr_count + 1) * sizeof(struct in_addr)))
+	{
 		res = -1;
+	}
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	if (pthread)
@@ -364,7 +372,7 @@ struct gg_resolver_fork_data {
  *
  * Połączenia asynchroniczne nie mogą blokować procesu w trakcie rozwiązywania
  * nazwy serwera. W tym celu tworzona jest para gniazd, nowy proces i dopiero
- * w nim przeprowadzane jest rozwiązywanie nazwy. Deskryptor gniazda do odczytu 
+ * w nim przeprowadzane jest rozwiązywanie nazwy. Deskryptor gniazda do odczytu
  * zapisuje się w strukturze sieci i czeka na dane w postaci struktury
  * \c in_addr. Jeśli nie znaleziono nazwy, zwracana jest \c INADDR_NONE.
  *
@@ -396,7 +404,9 @@ static int gg_resolver_fork_start(int *fd, void **priv_data, const char *hostnam
 	}
 
 	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_fork_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_fork_start() unable "
+			"to create pipes (errno=%d, %s)\n",
+			errno, strerror(errno));
 		free(data);
 		return -1;
 	}
@@ -564,7 +574,9 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 	}
 
 	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() unable "
+			"to create pipes (errno=%d, %s)\n",
+			errno, strerror(errno));
 		free(data);
 		return -1;
 	}
@@ -671,7 +683,9 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 	}
 
 	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to create pipes (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to "
+			"create pipes (errno=%d, %s)\n",
+			errno, strerror(errno));
 		free(data);
 		return -1;
 	}
@@ -831,12 +845,15 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  *
  * Parametry funkcji rozpoczynającej rozwiązywanie nazwy wyglądają następująco:
  *  - \c "int *fd" &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda
- *  - \c "void **priv_data" &mdash; wskaźnik na zmienną, gdzie można umieścić wskaźnik do prywatnych danych na potrzeby rozwiązywania nazwy
+ *  - \c "void **priv_data" &mdash; wskaźnik na zmienną, gdzie można umieścić
+ *    wskaźnik do prywatnych danych na potrzeby rozwiązywania nazwy
  *  - \c "const char *name" &mdash; nazwa serwera do rozwiązania
  *
  * Parametry funkcji zwalniającej zasoby wyglądają następująco:
- *  - \c "void **priv_data" &mdash; wskaźnik na zmienną przechowującą wskaźnik do prywatnych danych, należy go ustawić na \c NULL po zakończeniu
- *  - \c "int force" &mdash; flaga mówiąca o tym, że zasoby są zwalniane przed zakończeniem rozwiązywania nazwy, np. z powodu zamknięcia sesji.
+ *  - \c "void **priv_data" &mdash; wskaźnik na zmienną przechowującą wskaźnik
+ *    do prywatnych danych, należy go ustawić na \c NULL po zakończeniu
+ *  - \c "int force" &mdash; flaga mówiąca o tym, że zasoby są zwalniane przed
+ *    zakończeniem rozwiązywania nazwy, np. z powodu zamknięcia sesji.
  *
  * Własny kod rozwiązywania nazwy powinien stworzyć potok, parę gniazd lub
  * inny deskryptor pozwalający na co najmniej odbiór danych i przekazać go
@@ -851,7 +868,9 @@ gg_resolver_t gg_session_get_resolver(struct gg_session *gs)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_session_set_custom_resolver(struct gg_session *gs, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
+int gg_session_set_custom_resolver(struct gg_session *gs,
+	int (*resolver_start)(int*, void**, const char*),
+	void (*resolver_cleanup)(void**, int))
 {
 	GG_SESSION_CHECK(gs, -1);
 
@@ -956,7 +975,9 @@ gg_resolver_t gg_http_get_resolver(struct gg_http *gh)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_http_set_custom_resolver(struct gg_http *gh, int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
+int gg_http_set_custom_resolver(struct gg_http *gh,
+	int (*resolver_start)(int*, void**, const char*),
+	void (*resolver_cleanup)(void**, int))
 {
 	if (gh == NULL || resolver_start == NULL || resolver_cleanup == NULL) {
 		errno = EINVAL;
@@ -1036,7 +1057,9 @@ gg_resolver_t gg_global_get_resolver(void)
  *
  * \return 0 jeśli się powiodło, -1 w przypadku błędu
  */
-int gg_global_set_custom_resolver(int (*resolver_start)(int*, void**, const char*), void (*resolver_cleanup)(void**, int))
+int gg_global_set_custom_resolver(
+	int (*resolver_start)(int*, void**, const char*),
+	void (*resolver_cleanup)(void**, int))
 {
 	if (resolver_start == NULL || resolver_cleanup == NULL) {
 		errno = EINVAL;
@@ -1067,4 +1090,3 @@ int gg_resolver_recv(int fd, void *buf, size_t len)
 	return recv(fd, buf, len, 0);
 #endif
 }
-

@@ -1348,7 +1348,7 @@ int gg_change_status_descr(struct gg_session *sess, int status, const char *desc
 		descr_null_len = 1;
 	}
 
-	res = gg_send_packet(sess, GG_NEW_STATUS80, 
+	res = gg_send_packet(sess, GG_NEW_STATUS80,
 		&p, sizeof(p), descr, descr_len,
 		"\x00", descr_null_len, NULL);
 
