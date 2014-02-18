@@ -209,12 +209,17 @@ char *gg_read_line(int sock, char *buf, int length)
 
 	for (; length > 1; buf++, length--) {
 		do {
-			if ((ret = recv(sock, buf, 1, 0)) == -1 && errno != EINTR && errno != EAGAIN) {
-				gg_debug(GG_DEBUG_MISC, "// gg_read_line() error on read (errno=%d, %s)\n", errno, strerror(errno));
+			if ((ret = recv(sock, buf, 1, 0)) == -1 &&
+				errno != EINTR && errno != EAGAIN)
+			{
+				gg_debug(GG_DEBUG_MISC, "// gg_read_line() "
+					"error on read (errno=%d, %s)\n",
+					errno, strerror(errno));
 				*buf = 0;
 				return NULL;
 			} else if (ret == 0) {
-				gg_debug(GG_DEBUG_MISC, "// gg_read_line() eof reached\n");
+				gg_debug(GG_DEBUG_MISC, "// gg_read_line() "
+					"eof reached\n");
 				*buf = 0;
 				return NULL;
 			}

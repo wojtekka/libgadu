@@ -109,7 +109,8 @@ void gg_resolve_pthread_cleanup(void *resolver, int kill);
 
 int gg_login_hash_sha1_2(const char *password, uint32_t seed, uint8_t *result);
 
-int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version, const uin_t *participants, unsigned int participants_count);
+int gg_chat_update(struct gg_session *sess, uint64_t id, uint32_t version,
+	const uin_t *participants, unsigned int participants_count);
 gg_chat_list_t *gg_chat_find(struct gg_session *sess, uint64_t id);
 
 uin_t gg_str_to_uin(const char *str, int len);
