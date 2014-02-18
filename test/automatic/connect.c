@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include "libgadu.h"
+#include "network.h"
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #include <gnutls/gnutls.h>
@@ -938,10 +939,6 @@ int main(int argc, char **argv)
 	size_t srcdir_len;
 	char cert_file_path[2000], key_file_path[2000];
 
-#ifdef FIONBIO
-	int one = 1;
-#endif
-
 	srcdir = getenv("srcdir");
 	if (srcdir == NULL || srcdir[0] == '\0')
 		srcdir = ".";
@@ -1010,12 +1007,8 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-#ifdef FIONBIO
-	if (ioctl(timeout_pipe[0], FIONBIO, &one) == -1) {
-#else
-	if (fcntl(timeout_pipe[0], F_SETFL, O_NONBLOCK) == -1) {
-#endif
-		perror("ioctl/fcntl");
+	if (!gg_fd_set_nonblocking(timeout_pipe[0])) {
+		perror("gg_fd_set_nonblocking() failed!");
 		failure();
 	}
 

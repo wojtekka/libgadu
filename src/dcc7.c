@@ -1053,9 +1053,6 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 		{
 			struct sockaddr_in sin;
 			int fd;
-#ifdef FIONBIO
-			int one = 1;
-#endif
 			socklen_t sin_len = sizeof(sin);
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() GG_STATE_LISTENING\n");
@@ -1067,11 +1064,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() connection from %s:%d\n", inet_ntoa(sin.sin_addr), htons(sin.sin_port));
 
-#ifdef FIONBIO
-			if (ioctl(fd, FIONBIO, &one) == -1) {
-#else
-			if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-#endif
+			if (!gg_fd_set_nonblocking(fd)) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_watch_fd() can't set nonblocking (%s)\n", strerror(errno));
 				close(fd);
 				e->type = GG_EVENT_DCC7_ERROR;

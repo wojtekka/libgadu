@@ -578,9 +578,6 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 		struct sockaddr_in sin;
 		struct gg_dcc *c;
 		int fd;
-#ifdef FIONBIO
-		int one = 1;
-#endif
 		socklen_t sin_len = sizeof(sin);
 
 		if ((fd = accept(h->fd, (struct sockaddr*) &sin, &sin_len)) == -1) {
@@ -590,11 +587,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() new direct connection from %s:%d\n", inet_ntoa(sin.sin_addr), htons(sin.sin_port));
 
-#ifdef FIONBIO
-		if (ioctl(fd, FIONBIO, &one) == -1) {
-#else
-		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-#endif
+		if (!gg_fd_set_nonblocking(fd)) {
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() can't set nonblocking (errno=%d, %s)\n", errno, strerror(errno));
 			close(fd);
 			e->type = GG_EVENT_DCC_ERROR;

@@ -274,13 +274,7 @@ int gg_connect(void *addr, int port, int async)
 	}
 
 	if (async) {
-#ifdef FIONBIO
-		int one = 1;
-
-		if (ioctl(sock, FIONBIO, &one) == -1) {
-#else
-		if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
-#endif
+		if (!gg_fd_set_nonblocking(sock)) {
 			gg_debug(GG_DEBUG_MISC, "// gg_connect() can't set nonblocking (errno=%d, %s)\n", errno, strerror(errno));
 			errno2 = errno;
 			close(sock);

@@ -92,4 +92,17 @@ int gg_win32_socketpair(int sv[2]);
 #  define INADDR_NONE ((in_addr_t) 0xffffffff)
 #endif
 
+static inline int gg_fd_set_nonblocking(int fd)
+{
+	int success;
+#ifdef FIONBIO
+	int one = 1;
+	success = (ioctl(fd, FIONBIO, &one) == 0);
+#else
+	success = (fcntl(fd, F_SETFL, O_NONBLOCK) == 0);
+#endif
+
+	return success;
+}
+
 #endif /* LIBGADU_NETWORK_H */
