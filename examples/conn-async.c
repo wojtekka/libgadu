@@ -29,12 +29,12 @@ int main(void)
 	int ret;
 
 	gg_debug_level = ~0;
-	
+
 	memset(&p, 0, sizeof(p));
 	p.uin = 123456;
 	p.password = "qwerty";
 	p.async = 1;
-	
+
 	sess = gg_login(&p);
 
 	for (;;) {
@@ -48,7 +48,7 @@ int main(void)
 
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
-		
+
 		ret = select(sess->fd + 1, &rd, &wd, NULL, &tv);
 
 		if (ret == -1) {
@@ -59,14 +59,19 @@ int main(void)
 		now = time(NULL);
 
 		if (now != last) {
-			if (sess->timeout != -1 && sess->timeout-- == 0 && !sess->soft_timeout) {
+			if (sess->timeout != -1 && sess->timeout-- == 0 &&
+				!sess->soft_timeout)
+			{
 				printf("Przekroczenie czasu operacji.\n");
 				gg_free_session(sess);
 				return 1;
 			}
 		}
-	
-		if (sess && (FD_ISSET(sess->fd, &rd) || FD_ISSET(sess->fd, &wd) || (sess->timeout == 0 && sess->soft_timeout))) {
+
+		if (sess && (FD_ISSET(sess->fd, &rd) ||
+			FD_ISSET(sess->fd, &wd) ||
+			(sess->timeout == 0 && sess->soft_timeout)))
+		{
 			if (!(e = gg_watch_fd(sess))) {
 				printf("Połączenie zerwane.\n");
 				gg_free_session(sess);
@@ -92,7 +97,6 @@ int main(void)
 			gg_free_event(e);
 		}
 	}
-	
+
 	return 1;
 }
-
