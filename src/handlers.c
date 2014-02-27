@@ -2680,6 +2680,7 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
  */
 static const gg_packet_handler_t handlers[] =
 {
+	/* style:maxlinelength:start-ignore */
 	{ GG_WELCOME, GG_STATE_READING_KEY, 0, gg_session_handle_welcome },
 	{ GG_LOGIN_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
 	{ GG_LOGIN80_OK, GG_STATE_READING_REPLY, 0, gg_session_handle_login_ok },
@@ -2735,6 +2736,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_ACCESS_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_access_info },
 	{ GG_UIN_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_uin_info },
 	{ GG_TRANSFER_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_transfer_info }
+	/* style:maxlinelength:end-ignore */
 };
 
 /**

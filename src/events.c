@@ -1692,6 +1692,7 @@ static gg_action_t gg_handle_error(struct gg_session *sess, struct gg_event *e,
 
 static const gg_state_transition_t handlers[] =
 {
+	/* style:maxlinelength:start-ignore */
 	{ GG_STATE_RESOLVE_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_HUB, GG_STATE_SEND_HUB, 0 },
 	{ GG_STATE_RESOLVE_GG_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_GG, GG_STATE_READING_KEY, 0 },
 	{ GG_STATE_RESOLVE_PROXY_HUB_SYNC, gg_handle_resolve_sync, GG_STATE_CONNECT_PROXY_HUB, GG_STATE_SEND_PROXY_HUB, 0 },
@@ -1740,6 +1741,7 @@ static const gg_state_transition_t handlers[] =
 	{ GG_STATE_CONNECTED, gg_handle_connected, 0, 0, 0 },
 	{ GG_STATE_DISCONNECTING, gg_handle_connected, 0, 0, 0 },
 	{ GG_STATE_ERROR, gg_handle_error, 0, 0, 0 },
+	/* style:maxlinelength:end-ignore */
 };
 
 struct gg_event *gg_eventqueue_add(struct gg_session *sess)
