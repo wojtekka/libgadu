@@ -1,4 +1,4 @@
-/* $Id: libgadu.c 1167 2011-09-04 20:26:43Z wojtekka $ */
+/* $Id$ */
 
 /*
  *  (C) Copyright 2001-2010 Wojtek Kaniewski <wojtekka@irc.pl>
