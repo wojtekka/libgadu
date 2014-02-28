@@ -104,4 +104,3 @@ void config_free(void)
 	free(config_server);
 	free(config_proxy);
 }
-

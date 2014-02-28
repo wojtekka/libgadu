@@ -104,7 +104,7 @@ int oauth_authorize() {
 	char *tmp, *reply;
 
 	printf("\n\033[1m/authorize\033[0m\n\n");
-	
+
 	tmp = gg_urlencode_printf("callback_url=http://www.mojageneracja.pl&request_token=%s&uin=%s&password=%s",
 			token, config_uin, config_password);
 
@@ -121,8 +121,11 @@ int oauth_access() {
 	char *auth, *reply;
 	printf("\n\033[1m/access_token\033[0m\n\n");
 
-	if (!(auth = gg_oauth_generate_header(HTTP_METHOD2, HTTP_URL2, config_uin, config_password, token, token_secret)))
+	if (!(auth = gg_oauth_generate_header(HTTP_METHOD2, HTTP_URL2,
+		config_uin, config_password, token, token_secret)))
+	{
 		return 0;
+	}
 
 	printf("header = '%s'\n", auth);
 
@@ -221,4 +224,3 @@ int main(int argc, char **argv)
 	free(token_secret);
 	return 0;
 }
-

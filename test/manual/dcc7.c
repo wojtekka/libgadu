@@ -37,7 +37,7 @@
 		fprintf(stderr, msg); \
 		fprintf(stderr, "\033[0m"); \
 		fflush(stderr); \
-	} while(0)
+	} while (0)
 
 int test_mode;
 int connected;
@@ -109,7 +109,10 @@ int main(int argc, char **argv)
 	glp.client_addr = config_ip;
 	glp.client_port = config_port;
 
-	if (config_dir && (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME)) {
+	if (config_dir && (test_mode == TEST_MODE_RECEIVE ||
+		test_mode == TEST_MODE_RECEIVE_NAT ||
+		test_mode == TEST_MODE_RECEIVE_RESUME))
+	{
 		if (chdir(config_dir) == -1) {
 			perror("chdir");
 			exit(1);
@@ -240,13 +243,19 @@ int main(int argc, char **argv)
 						status = ge->event.status60.status;
 					}
 
-					if (uin == config_peer && (GG_S_A(status) || GG_S_B(status)) && (test_mode == TEST_MODE_SEND || test_mode == TEST_MODE_SEND_NAT)) {
+					if (uin == config_peer &&
+						(GG_S_A(status) || GG_S_B(status)) &&
+						(test_mode == TEST_MODE_SEND || test_mode == TEST_MODE_SEND_NAT))
+					{
 						debug("Sending file...\n");
-					
-						if (config_file)
-							gd = gg_dcc7_send_file(gs, config_peer, config_file, NULL, NULL);
-						else
-							gd = gg_dcc7_send_file_fd(gs, config_peer, fds[0], config_size, "test.bin", "DummySHA1HashOfAAAAA");
+
+						if (config_file) {
+							gd = gg_dcc7_send_file(gs, config_peer,
+								config_file, NULL, NULL);
+						} else {
+							gd = gg_dcc7_send_file_fd(gs, config_peer, fds[0],
+								config_size, "test.bin", "DummySHA1HashOfAAAAA");
+						}
 
 						if (!gd) {
 							perror("gg_dcc7_send_file");
@@ -259,12 +268,18 @@ int main(int argc, char **argv)
 				case GG_EVENT_DCC7_NEW:
 					debug("Incoming direct connection\n");
 
-					if (test_mode == TEST_MODE_RECEIVE || test_mode == TEST_MODE_RECEIVE_NAT || test_mode == TEST_MODE_RECEIVE_RESUME) {
+					if (test_mode == TEST_MODE_RECEIVE ||
+						test_mode == TEST_MODE_RECEIVE_NAT ||
+						test_mode == TEST_MODE_RECEIVE_RESUME)
+					{
 						gd = ge->event.dcc7_new;
 						if (config_dir) {
-							gd->file_fd = open((char*) gd->filename, O_WRONLY | O_CREAT, 0600);
-//							lseek(gd->file_fd, gd->size, SEEK_SET);
-						} else 
+							gd->file_fd = open((char*) gd->filename,
+								O_WRONLY | O_CREAT, 0600);
+#if 0
+							lseek(gd->file_fd, gd->size, SEEK_SET);
+#endif
+						} else
 							gd->file_fd = open("/dev/null", O_WRONLY);
 						if (gd->file_fd == -1) {
 							perror("open");
@@ -277,7 +292,7 @@ int main(int argc, char **argv)
 					}
 
 					break;
-				
+
 				case GG_EVENT_DCC7_ERROR:
 					debug("Direct connection error\n");
 					exit(1);
@@ -305,7 +320,9 @@ int main(int argc, char **argv)
 			gg_event_free(ge);
 		}
 
-		if (gd && gd->fd != -1 && (FD_ISSET(gd->fd, &rds) || FD_ISSET(gd->fd, &wds) || (gd->timeout == 0 && gd->soft_timeout))) {
+		if (gd && gd->fd != -1 && (FD_ISSET(gd->fd, &rds) ||
+			FD_ISSET(gd->fd, &wds) || (gd->timeout == 0 && gd->soft_timeout)))
+		{
 			struct gg_event *ge;
 
 			if (!(ge = gg_dcc7_watch_fd(gd))) {
@@ -355,4 +372,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-

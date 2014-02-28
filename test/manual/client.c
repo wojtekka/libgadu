@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	int ch;
 
 	gg_debug_level = 255;
-	
+
 	memset(&glp, 0, sizeof(glp));
 	glp.async = 1;
 
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
 
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
-		
+
 		ret = select(fd + 1, &rd, &wd, NULL, &tv);
 
 		if (ret == -1) {
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
-	
+
 		if (gs != NULL && (FD_ISSET(fd, &rd) || FD_ISSET(fd, &wd) || (gs->timeout == 0 && gs->soft_timeout))) {
 			struct gg_event *ge;
 
@@ -259,8 +259,13 @@ int main(int argc, char **argv)
 			}
 
 			if (ge->type == GG_EVENT_MSG) {
-				if (ge->event.msg.sender != 0 || !hide_sysmsg)
-					printf("Received message from %d:\n- plain text: %s\n- html: %s\n", ge->event.msg.sender, ge->event.msg.message, ge->event.msg.xhtml_message);
+				if (ge->event.msg.sender != 0 || !hide_sysmsg) {
+					printf("Received message from %d:\n- "
+						"plain text: %s\n- html: %s\n",
+						ge->event.msg.sender,
+						ge->event.msg.message,
+						ge->event.msg.xhtml_message);
+				}
 			}
 
 			gg_event_free(ge);
@@ -268,11 +273,10 @@ int main(int argc, char **argv)
 	}
 
 	free(gg_proxy_host);
-	
+
 	gg_free_session(gs);
 
 	config_free();
 
 	return 0;
 }
-

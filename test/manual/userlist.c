@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 			case 'd':
 				debug = 1;
 				break;
-			
+
 			case 'h':
 				usage(argv[0]);
 				exit(0);
@@ -209,4 +209,3 @@ int main(int argc, char **argv)
 
 	return res;
 }
-
