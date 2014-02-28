@@ -64,20 +64,22 @@ void SHA1_Final(unsigned char digest[20], SHA_CTX* context);
 /* blk0() and blk() perform the initial expand. */
 /* I got the idea of expanding during the round function from SSLeay */
 #ifndef WORDS_BIGENDIAN
-#define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
-    |(rol(block->l[i],8)&0x00FF00FF))
+#define blk0(i) (block->l[i] = (rol(block->l[i], 24)&0xFF00FF00) \
+    |(rol(block->l[i], 8)&0x00FF00FF))
 #else
 #define blk0(i) block->l[i]
 #endif
 #define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
-    ^block->l[(i+2)&15]^block->l[i&15],1))
+    ^block->l[(i+2)&15]^block->l[i&15], 1))
 
 /* (R0+R1), R2, R3, R4 are the different operations used in SHA1 */
+/* style:comma:start-ignore */
 #define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(i)+0x5A827999+rol(v,5);w=rol(w,30);
 #define R1(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk(i)+0x5A827999+rol(v,5);w=rol(w,30);
 #define R2(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);
 #define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
 #define R4(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0xCA62C1D6+rol(v,5);w=rol(w,30);
+/* style:comma:end-ignore */
 
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
@@ -100,6 +102,7 @@ static unsigned char workspace[64];
     d = state[3];
     e = state[4];
     /* 4 rounds of 20 operations each. Loop unrolled. */
+    /* style:comma:start-ignore */
     R0(a,b,c,d,e, 0); R0(e,a,b,c,d, 1); R0(d,e,a,b,c, 2); R0(c,d,e,a,b, 3);
     R0(b,c,d,e,a, 4); R0(a,b,c,d,e, 5); R0(e,a,b,c,d, 6); R0(d,e,a,b,c, 7);
     R0(c,d,e,a,b, 8); R0(b,c,d,e,a, 9); R0(a,b,c,d,e,10); R0(e,a,b,c,d,11);
@@ -120,6 +123,7 @@ static unsigned char workspace[64];
     R4(c,d,e,a,b,68); R4(b,c,d,e,a,69); R4(a,b,c,d,e,70); R4(e,a,b,c,d,71);
     R4(d,e,a,b,c,72); R4(c,d,e,a,b,73); R4(b,c,d,e,a,74); R4(a,b,c,d,e,75);
     R4(e,a,b,c,d,76); R4(d,e,a,b,c,77); R4(c,d,e,a,b,78); R4(b,c,d,e,a,79);
+    /* style:comma:end-ignore */
     /* Add the working vars back into context.state[] */
     state[0] += a;
     state[1] += b;
@@ -199,4 +203,3 @@ unsigned char finalcount[8];
 }
 
 #endif /* HAVE_OPENSSL */
-

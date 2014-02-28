@@ -31,7 +31,9 @@ static size_t handle_data(void *ptr, size_t size, size_t nmemb, void *stream)
 
 	bytes = size * nmemb;
 
-//	printf("Read %d\n", bytes);
+#if 0
+	printf("Read %d\n", bytes);
+#endif
 
 	if (*text_ptr == NULL) {
 		text_len = 0;
@@ -50,7 +52,7 @@ static size_t handle_data(void *ptr, size_t size, size_t nmemb, void *stream)
 	memcpy(new_text + text_len, ptr, bytes);
 	new_text[text_len + bytes] = 0;
 	*text_ptr = new_text;
-	
+
 	return bytes;
 }
 
@@ -85,7 +87,9 @@ char *gg_http_fetch(const char *method, const char *url, const char *auth_header
 	curl_easy_setopt(c, CURLOPT_SSL_VERIFYHOST, 0);
 	curl_easy_setopt(c, CURLOPT_MAXREDIRS, 3);
 
-//	curl_easy_setopt(c, CURLOPT_VERBOSE, 1);
+#if 0
+	curl_easy_setopt(c, CURLOPT_VERBOSE, 1);
+#endif
 
 	curl_easy_perform(c);
 

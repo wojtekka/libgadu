@@ -146,5 +146,3 @@ void gg_oauth_parameter_free(gg_oauth_parameter_t *list)
 		list = next;
 	}
 }
-
-

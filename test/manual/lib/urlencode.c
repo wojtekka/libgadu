@@ -150,8 +150,7 @@ char *gg_urlencode_printf(char *format, ...)
 			*tmp++ = format[i];
 	}
 	*tmp = '\0';
-	
+
 	free(args);
 	return buf;
 }
-

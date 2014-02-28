@@ -88,7 +88,7 @@ static void handle_cdata(void *data, const char *str, int len)
 		return;
 
 	tmp = malloc(len + 1);
-	
+
 	if (tmp == NULL)
 		return;
 
@@ -139,7 +139,7 @@ int gg_parse_token_reply(const char *reply, char **token, char **token_secret)
 
 	XML_SetElementHandler(parser, handle_start_element, handle_end_element);
 	XML_SetCharacterDataHandler(parser, handle_cdata);
-	
+
 	if (!XML_Parse(parser, reply, strlen(reply), 1)) {
 		XML_ParserFree(parser);
 		free(state.token);
@@ -176,7 +176,10 @@ int gg_parse_token_reply(const char *reply, char **token, char **token_secret)
 
 int main(void)
 {
-	const char *test = "<result><oauth_token>c795432d623c3ec75137f50f66852b93</oauth_token><oauth_token_secret>9de77905611fb965e3023e1ffbbfad3e</oauth_token_secret><status>0</status></result>";
+	const char *test = "<result>"
+		"<oauth_token>c795432d623c3ec75137f50f66852b93</oauth_token>"
+		"<oauth_token_secret>9de77905611fb965e3023e1ffbbfad3e</oauth_token_secret>"
+		"<status>0</status></result>";
 	char *token;
 	char *token_secret;
 

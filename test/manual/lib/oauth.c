@@ -46,7 +46,9 @@ static void gg_oauth_generate_nonce(char *buf, int len)
 	*buf = 0;
 }
 
-static char *gg_oauth_generate_signature(const char *method, const char *url, const char *request, const char *consumer_secret, const char *token_secret)
+static char *gg_oauth_generate_signature(const char *method, const char *url,
+	const char *request, const char *consumer_secret,
+	const char *token_secret)
 {
 	char *text, *key, *res;
 	unsigned char digest[20];
@@ -74,7 +76,9 @@ static char *gg_oauth_generate_signature(const char *method, const char *url, co
 	return res;
 }
 
-char *gg_oauth_generate_header(const char *method, const char *url, const char *consumer_key, const char *consumer_secret, const char *token, const char *token_secret)
+char *gg_oauth_generate_header(const char *method, const char *url,
+	const char *consumer_key, const char *consumer_secret,
+	const char *token, const char *token_secret)
 {
 	char *request, *signature, *res;
 	char nonce[80], timestamp[16];
@@ -129,4 +133,3 @@ char *gg_oauth_generate_header(const char *method, const char *url, const char *
 
 	return res;
 }
-
