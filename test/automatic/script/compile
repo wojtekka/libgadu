@@ -197,7 +197,7 @@ sub parse
 					$first = 0;
 				}
 				if ($first) {
-					print "true)";
+					print "TRUE)";
 				}
 				print ");\n";
 

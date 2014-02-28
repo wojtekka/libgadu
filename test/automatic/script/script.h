@@ -54,16 +54,6 @@ extern state_t script[];
 
 extern const char *tests[];
 
-#ifdef false
-#undef false
-#endif
-#define false 0
-
-#ifdef true
-#undef true
-#endif
-#define true 1
-
 #ifdef FALSE
 #undef FALSE
 #endif
@@ -75,9 +65,9 @@ extern const char *tests[];
 #define TRUE 1
 
 #ifdef GG_CONFIG_BIGENDIAN
-#define ip(a,b,c,d) ((a)<<24|(b)<<16|(c)<<8|(d))
+#define ip(a, b, c, d) ((a)<<24|(b)<<16|(c)<<8|(d))
 #else
-#define ip(a,b,c,d) ((a)|(b)<<8|(c)<<16|(d)<<24)
+#define ip(a, b, c, d) ((a)|(b)<<8|(c)<<16|(d)<<24)
 #endif
 
 #endif /* SCRIPT_H */
