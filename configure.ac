@@ -219,7 +219,9 @@ if test "x$with_pthread" != "xno"; then
 	])
 fi
 
+prefer_pthread="no"
 if test "x$with_pthread" = "xyes"; then
+	prefer_pthread="yes"
 	AC_DEFINE([GG_CONFIG_PTHREAD_DEFAULT], [], [Defined if pthread resolver is the default one.])
 fi
 
@@ -471,6 +473,7 @@ echo Build with gnutls.... : $have_gnutls
 echo Build with openssl... : $have_openssl
 echo Build with protobuf-c : $have_protobuf_c
 echo Build with pthread... : $have_pthread
+echo Prefer pthread....... : $prefer_pthread
 echo Build with zlib...... : $have_zlib
 echo
 
