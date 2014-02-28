@@ -39,7 +39,9 @@ struct hostent *gethostbyname(const char *name)
 	static char *addr_list[2];
 	static char sname[128];
 
-//	printf("gethostbyname(\"%s\")\n", name);
+#if 0
+	printf("gethostbyname(\"%s\")\n", name);
+#endif
 
 	addr_list[0] = (char*) &addr;
 	addr_list[1] = NULL;
@@ -56,16 +58,16 @@ struct hostent *gethostbyname(const char *name)
 
 	if (delay_flag)
 		sleep(2);
-	
+
 	return &he;
 }
 
-int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop)
+int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
+	size_t buflen, struct hostent **result, int *h_errnop)
 {
 	struct hostent *tmp;
 
 	if (buflen < sizeof(struct hostent)) {
-//		printf("1\n");
 		errno = ERANGE;
 		*result = NULL;
 		return -1;
@@ -74,12 +76,10 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 	tmp = gethostbyname(name);
 
 	if (tmp != NULL) {
-//		printf("0\n");
 		*h_errnop = 0;
 		memcpy(ret, tmp, sizeof(struct hostent));
 		*result = ret;
 	} else {
-//		printf("2\n");
 		*h_errnop = h_errno;
 		*result = NULL;
 	}
@@ -535,7 +535,7 @@ static int test_set_get(void)
 
 	return 1;
 }
-	
+
 int main(int argc, char **argv)
 {
 	int i, j, k = 1;

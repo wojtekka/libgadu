@@ -16,15 +16,16 @@
  *  USA.
  */
 
-// Obecne testy to tylko podstawa. Powinno być jeszcze:
-// - testowanie całego zakresu CP1250,
-// - testowanie reakcji na znaki unikodowe spoza CP1250,
-// - testowanie reakcji na znaki unikodowe >65535 (są ignorowane),
-// - testowanie reakcji na nieprawidłowe sekwencje UTF-8,
-// - testowanie cięcia tekstów na wejściu i wyjściu,
-// - testowanie czy cięcie nie potnie znaków UTF-8 w środku,
-// - ...
-// TODO ograniczanie stringów
+/* Obecne testy to tylko podstawa. Powinno być jeszcze:
+ * - testowanie całego zakresu CP1250,
+ * - testowanie reakcji na znaki unikodowe spoza CP1250,
+ * - testowanie reakcji na znaki unikodowe >65535 (są ignorowane),
+ * - testowanie reakcji na nieprawidłowe sekwencje UTF-8,
+ * - testowanie cięcia tekstów na wejściu i wyjściu,
+ * - testowanie czy cięcie nie potnie znaków UTF-8 w środku,
+ * - ...
+ * TODO ograniczanie stringów
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,8 +42,9 @@ struct test_data
 	ssize_t dst_len;
 };
 
-#define TEST(src,dst) { __LINE__, src, dst, -1, -1 }
-#define TEST_SIZE(src,dst,src_len,dst_len) { __LINE__, src, dst, src_len, dst_len }
+#define TEST(src, dst) { __LINE__, src, dst, -1, -1 }
+#define TEST_SIZE(src, dst, src_len, dst_len) \
+	{ __LINE__, src, dst, src_len, dst_len }
 
 static const struct test_data utf8_to_cp1250[] =
 {
@@ -146,7 +148,10 @@ static void test_utf8_to_cp1250(const struct test_data *t)
 	res = gg_encoding_convert(t->src, GG_ENCODING_UTF8, GG_ENCODING_CP1250, t->src_len, t->dst_len);
 
 	if (strcmp(res, t->dst) != 0) {
-		printf("utf8->cp1250: line %d, input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", t->line, t->src, res, t->dst, (int) t->src_len, (int) t->dst_len);
+		printf("utf8->cp1250: line %d, input=\"%s\", output=\"%s\", "
+			"match=\"%s\", src_len=%d, dst_len=%d\n",
+			t->line, t->src, res, t->dst,
+			(int)t->src_len, (int)t->dst_len);
 		exit(1);
 	}
 
@@ -160,7 +165,10 @@ static void test_cp1250_to_utf8(const struct test_data *t)
 	res = gg_encoding_convert(t->src, GG_ENCODING_CP1250, GG_ENCODING_UTF8, t->src_len, t->dst_len);
 
 	if (strcmp(res, t->dst) != 0) {
-		printf("cp1250->utf8: line %d, input=\"%s\", output=\"%s\", match=\"%s\", src_len=%d, dst_len=%d\n", t->line, t->src, res, t->dst, (int) t->src_len, (int) t->dst_len);
+		printf("cp1250->utf8: line %d, input=\"%s\", output=\"%s\", "
+			"match=\"%s\", src_len=%d, dst_len=%d\n",
+			t->line, t->src, res, t->dst,
+			(int)t->src_len, (int)t->dst_len);
 		exit(1);
 	}
 

@@ -16,7 +16,7 @@
  *  USA.
  */
 
-// Tutaj będziemy testować "metody" "klasy" gg_message_t.
+/* Tutaj będziemy testować "metody" "klasy" gg_message_t. */
 
 int main(void)
 {

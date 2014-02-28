@@ -45,8 +45,10 @@
 #define HOST_LOCAL "127.0.0.1"
 #define HOST_PROXY "proxy.example.org"
 
-//#define SERVER_TIMEOUT 60
-//#define CLIENT_TIMEOUT 60
+#if 0
+#define SERVER_TIMEOUT 60
+#define CLIENT_TIMEOUT 60
+#endif
 
 #define TEST_MAX (3*3*3*3*2*2*2)
 
@@ -212,11 +214,12 @@ struct hostent *gethostbyname(const char *name)
 
 	if (gethostbyname_r(name, &he, buf, sizeof(buf), &he_ptr, &h_errno) != 0)
 		return NULL;
-	
+
 	return he_ptr;
 }
 
-int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buflen, struct hostent **result, int *h_errnop)
+int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
+	size_t buflen, struct hostent **result, int *h_errnop)
 {
 	resolver_storage_t *storage = (void*) buf;
 	int h_errno;
@@ -250,7 +253,9 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 		return -1;
 	}
 
-	if ((!test->proxy_mode && strcmp(name, GG_APPMSG_HOST) != 0) || (test->proxy_mode && strcmp(name, HOST_PROXY) != 0)) {
+	if ((!test->proxy_mode && strcmp(name, GG_APPMSG_HOST) != 0) ||
+		(test->proxy_mode && strcmp(name, HOST_PROXY) != 0))
+	{
 		debug("Invalid argument for gethostbyname(): \"%s\"\n", name);
 		*h_errnop = HOST_NOT_FOUND;
 		return -1;
@@ -266,7 +271,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf, size_t buf
 	ret->h_addrtype = AF_INET;
 	ret->h_length = sizeof(struct in_addr);
 	ret->h_addr_list = storage->addr_list;
-	
+
 	*result = ret;
 
 	return 0;
@@ -437,7 +442,7 @@ static int client_func(const test_param_t *test)
 				gg_free_session(gs);
 				return 0;
 			}
-			
+
 			if (res == -1 && errno != EINTR) {
 				debug("select() failed: %s\n", strerror(errno));
 				gg_free_session(gs);
@@ -460,14 +465,16 @@ static int client_func(const test_param_t *test)
 				}
 			}
 
-			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) || (FD_ISSET(timeout_pipe[0], &rd) && gs->soft_timeout)) {
+			if (FD_ISSET(gs->fd, &rd) || FD_ISSET(gs->fd, &wr) ||
+				(FD_ISSET(timeout_pipe[0], &rd) && gs->soft_timeout))
+			{
 				struct gg_event *ge;
-				
+
 				if (FD_ISSET(timeout_pipe[0], &rd)) {
 					debug("Soft timeout\n");
 					gs->timeout = 0;
 				}
-		
+
 				ge = gg_watch_fd(gs);
 
 				if (!ge) {
@@ -642,7 +649,7 @@ static void* server_func(void* arg)
 
 		if (client_fd != -1) {
 			FD_SET(client_fd, &rd);
-				
+
 			if (client_fd > max_fd)
 				max_fd = client_fd;
 		}
@@ -713,12 +720,18 @@ static void* server_func(void* arg)
 				case CLIENT_HUB:
 					if (strstr(buf, "\r\n\r\n") != NULL) {
 						if (!test->ssl_mode) {
-							if (send(client_fd, hub_reply, strlen(hub_reply), 0) != (ssize_t)strlen(hub_reply)) {
+							if (send(client_fd, hub_reply,
+								strlen(hub_reply), 0) !=
+								(ssize_t)strlen(hub_reply))
+							{
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
 						} else {
-							if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != (ssize_t)strlen(hub_ssl_reply)) {
+							if (send(client_fd, hub_ssl_reply,
+								strlen(hub_ssl_reply), 0) !=
+								(ssize_t)strlen(hub_ssl_reply))
+							{
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
@@ -733,7 +746,10 @@ static void* server_func(void* arg)
 
 				case CLIENT_GG:
 					if (len > 8 && len >= get32(buf + 4)) {
-						if (send(client_fd, login_ok_packet, sizeof(login_ok_packet), 0) != sizeof(login_ok_packet)) {
+						if (send(client_fd, login_ok_packet,
+							sizeof(login_ok_packet), 0) !=
+							sizeof(login_ok_packet))
+						{
 							fprintf(stderr, "send() not completed\n");
 							failure();
 						}
@@ -743,7 +759,11 @@ static void* server_func(void* arg)
 				case CLIENT_GG_SSL:
 #ifdef GG_CONFIG_HAVE_GNUTLS
 					if (len > 8 && len >= get32(buf + 4)) {
-						if (gnutls_record_send(session, login_ok_packet, sizeof(login_ok_packet)) != sizeof(login_ok_packet)) {
+						if (gnutls_record_send(session,
+							login_ok_packet,
+							sizeof(login_ok_packet)) !=
+							sizeof(login_ok_packet))
+						{
 							fprintf(stderr, "gnutls_record_send() not completed\n");
 							failure();
 						}
@@ -757,22 +777,36 @@ static void* server_func(void* arg)
 
 						test = get_test_param();
 
-						if (strncmp(buf, "GET http://" GG_APPMSG_HOST, strlen("GET http://" GG_APPMSG_HOST)) == 0) {
+						if (strncmp(buf,
+							"GET http://" GG_APPMSG_HOST,
+							strlen("GET http://" GG_APPMSG_HOST)) == 0)
+						{
 							test->tried_80 = 1;
 							if (test->plug_80 == PLUG_NONE) {
 								if (!test->ssl_mode) {
-									if (send(client_fd, hub_reply, strlen(hub_reply), 0) != (ssize_t)strlen(hub_reply)) {
-										fprintf(stderr, "send() not completed\n");
+									if (send(client_fd, hub_reply,
+										strlen(hub_reply), 0) !=
+										(ssize_t)strlen(hub_reply))
+									{
+										fprintf(stderr,
+											"send() not completed\n");
 										failure();
 									}
 								} else {
-									if (send(client_fd, hub_ssl_reply, strlen(hub_ssl_reply), 0) != (ssize_t)strlen(hub_ssl_reply)) {
-										fprintf(stderr, "send() not completed\n");
+									if (send(client_fd, hub_ssl_reply,
+										strlen(hub_ssl_reply), 0) !=
+										(ssize_t)strlen(hub_ssl_reply))
+									{
+										fprintf(stderr,
+											"send() not completed\n");
 										failure();
 									}
 								}
 							} else {
-								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
+								if (send(client_fd, proxy_error,
+									strlen(proxy_error), 0) !=
+									(ssize_t)strlen(proxy_error))
+								{
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -782,11 +816,17 @@ static void* server_func(void* arg)
 								failure();
 							}
 							client_fd = -1;
-						} else if (strncmp(buf, "CONNECT " HOST_LOCAL ":443 ", strlen("CONNECT " HOST_LOCAL ":443 ")) == 0) {
+						} else if (strncmp(buf,
+							"CONNECT " HOST_LOCAL ":443 ",
+							strlen("CONNECT " HOST_LOCAL ":443 ")) == 0)
+						{
 							test->tried_443 = 1;
 
 							if (test->plug_443 == PLUG_NONE) {
-								if (send(client_fd, proxy_reply, strlen(proxy_reply), 0) != (ssize_t)strlen(proxy_reply)) {
+								if (send(client_fd, proxy_reply,
+									strlen(proxy_reply), 0) !=
+									(ssize_t)strlen(proxy_reply))
+								{
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -797,7 +837,11 @@ static void* server_func(void* arg)
 
 									res = server_ssl_init(&session, client_fd);
 									if (res != GNUTLS_E_SUCCESS) {
-										debug("Handshake failed: %d, %s\n", res, gnutls_strerror(res));
+										/* XXX: this indentation
+										 * hits 80-th column
+										 * with tabs only! */
+										debug("Handshake failed: %d, %s\n",
+											res, gnutls_strerror(res));
 										if (close(client_fd) == -1) {
 											perror("close");
 											failure();
@@ -806,8 +850,14 @@ static void* server_func(void* arg)
 										continue;
 									}
 
-									if (gnutls_record_send(session, welcome_packet, sizeof(welcome_packet)) != sizeof(welcome_packet)) {
-										fprintf(stderr, "gnutls_record_send() not completed\n");
+									if (gnutls_record_send(session,
+										welcome_packet,
+										sizeof(welcome_packet)) !=
+										sizeof(welcome_packet))
+									{
+										fprintf(stderr,
+											"gnutls_record_send() "
+											"not completed\n");
 										failure();
 									}
 
@@ -815,14 +865,21 @@ static void* server_func(void* arg)
 								} else
 #endif
 								{
-									if (send(client_fd, welcome_packet, sizeof(welcome_packet), 0) != sizeof(welcome_packet)) {
-										fprintf(stderr, "send() not completed\n");
+									if (send(client_fd, welcome_packet,
+										sizeof(welcome_packet), 0) !=
+										sizeof(welcome_packet))
+									{
+										fprintf(stderr,
+											"send() not completed\n");
 										failure();
 									}
 									ctype = CLIENT_GG;
 								}
 							} else {
-								if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
+								if (send(client_fd, proxy_error,
+									strlen(proxy_error), 0) !=
+									(ssize_t)strlen(proxy_error))
+								{
 									fprintf(stderr, "send() not completed\n");
 									failure();
 								}
@@ -830,7 +887,10 @@ static void* server_func(void* arg)
 							len = 0;
 						} else {
 							debug("Invalid proxy request");
-							if (send(client_fd, proxy_error, strlen(proxy_error), 0) != (ssize_t)strlen(proxy_error)) {
+							if (send(client_fd, proxy_error,
+								strlen(proxy_error), 0) !=
+								(ssize_t)strlen(proxy_error))
+							{
 								fprintf(stderr, "send() not completed\n");
 								failure();
 							}
@@ -894,16 +954,20 @@ static void* server_func(void* arg)
 						client_fd = -1;
 						continue;
 					}
-						
-					if (gnutls_record_send(session, welcome_packet, sizeof(welcome_packet)) != sizeof(welcome_packet)) {
+
+					if (gnutls_record_send(session, welcome_packet,
+						sizeof(welcome_packet)) != sizeof(welcome_packet))
+					{
 						fprintf(stderr, "gnutls_record_send() not completed\n");
 						failure();
 					}
 				}
-#endif 
+#endif
 				else if (i == PORT_443 || i == PORT_8074) {
 					ctype = CLIENT_GG;
-					if (send(client_fd, welcome_packet, sizeof(welcome_packet), 0) != sizeof(welcome_packet)) {
+					if (send(client_fd, welcome_packet,
+						sizeof(welcome_packet), 0) != sizeof(welcome_packet))
+					{
 						fprintf(stderr, "send() not completed\n");
 						failure();
 					}
@@ -983,7 +1047,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "gnutls_certificate_allocate_credentials: %d, %s\n", res, gnutls_strerror(res));
 		failure();
 	}
-	if ((res = gnutls_certificate_set_x509_key_file(x509_cred, cert_file_path, key_file_path, GNUTLS_X509_FMT_PEM)) != GNUTLS_E_SUCCESS) {
+	if ((res = gnutls_certificate_set_x509_key_file(x509_cred,
+		cert_file_path, key_file_path, GNUTLS_X509_FMT_PEM)) != GNUTLS_E_SUCCESS)
+	{
 		fprintf(stderr, "gnutls_certificate_set_x509_key_file: %d, %s\n", res, gnutls_strerror(res));
 		failure();
 	}
@@ -1012,7 +1078,9 @@ int main(int argc, char **argv)
 		test_to = atoi(argv[2]);
 	}
 
-	if (argc < 3 || test_from < 1 || test_from > TEST_MAX || test_from > test_to || test_to < 1 || test_to > TEST_MAX) {
+	if (argc < 3 || test_from < 1 || test_from > TEST_MAX ||
+		test_from > test_to || test_to < 1 || test_to > TEST_MAX)
+	{
 		test_from = 1;
 		test_to = TEST_MAX;
 	}
@@ -1074,8 +1142,13 @@ int main(int argc, char **argv)
 				if ((!test->ssl_mode && test->plug_8074 == PLUG_NONE) || test->plug_443 == PLUG_NONE)
 					expect = 1;
 		} else {
-			if (test->plug_resolver == PLUG_NONE && test->plug_8080 == PLUG_NONE && (test->plug_80 == PLUG_NONE || test->server) && test->plug_443 == PLUG_NONE)
+			if (test->plug_resolver == PLUG_NONE &&
+				test->plug_8080 == PLUG_NONE &&
+				(test->plug_80 == PLUG_NONE || test->server) &&
+				test->plug_443 == PLUG_NONE)
+			{
 				expect = 1;
+			}
 		}
 
 		for (j = 0; j < 2; j++) {
@@ -1123,12 +1196,16 @@ int main(int argc, char **argv)
 				debug("Didn't use hub\n");
 			}
 
-			if (test->server && (!test->proxy_mode || test->plug_resolver == PLUG_NONE) && !test->tried_8074 && !test->tried_443) {
+			if (test->server && (!test->proxy_mode || test->plug_resolver == PLUG_NONE)
+				&& !test->tried_8074 && !test->tried_443)
+			{
 				result = false;
 				debug("Didn't try connecting directly\n");
 			}
 
-			if ((test->server || (test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE)) && test->plug_8074 != PLUG_NONE && !test->tried_443 && !test->proxy_mode) {
+			if ((test->server || (test->plug_resolver == PLUG_NONE && test->plug_80 == PLUG_NONE)) &&
+				test->plug_8074 != PLUG_NONE && !test->tried_443 && !test->proxy_mode)
+			{
 				result = false;
 				debug("Didn't try 443\n");
 			}
@@ -1159,7 +1236,9 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-	if (close(timeout_pipe[0]) == -1 || close(timeout_pipe[1]) == -1 || close(server_pipe[0]) == -1 || close(server_pipe[1]) == -1) {
+	if (close(timeout_pipe[0]) == -1 || close(timeout_pipe[1]) == -1 ||
+		close(server_pipe[0]) == -1 || close(server_pipe[1]) == -1)
+	{
 		perror("close");
 		failure();
 	}

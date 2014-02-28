@@ -44,19 +44,21 @@
 		fprintf(stderr, msg); \
 		fprintf(stderr, "\033[0m"); \
 		fflush(stderr); \
-	} while(0)
+	} while (0)
 
 #define error(state, msg...) \
 	do { \
 		fprintf(stderr, "\033[1;31m"); \
-		if (script[state].test != -1) \
-			fprintf(stderr, "File: %s, Line: %d, Test: %s\n", script[state].filename, script[state].line, tests[script[state].test]); \
-		else \
+		if (script[state].test != -1) { \
+			fprintf(stderr, "File: %s, Line: %d, Test: %s\n", \
+				script[state].filename, script[state].line, \
+				tests[script[state].test]); \
+		} else \
 			fprintf(stderr, "File: %s, Line: %d\n", script[state].filename, script[state].line); \
 		fprintf(stderr, msg); \
 		fprintf(stderr, "\033[0m"); \
 		fflush(stderr); \
-	} while(0)
+	} while (0)
 
 static char outbuf[4096];
 static int outbuflen = 0;
@@ -194,7 +196,9 @@ int main(int argc, char **argv)
 				}
 
 				if (res != script[state].data_len) {
-					memcpy(outbuf + outbuflen, script[state].data + res, script[state].data_len - res);
+					memcpy(outbuf + outbuflen,
+						script[state].data + res,
+						script[state].data_len - res);
 					outbuflen += script[state].data_len - res;
 				}
 			}
@@ -218,19 +222,28 @@ int main(int argc, char **argv)
 		if (script[state].type == EXPECT_DATA && inbuflen >= 8) {
 			int len;
 
-			len = (((unsigned char) inbuf[4]) | ((unsigned char) inbuf[5]) << 8 | ((unsigned char) inbuf[6]) << 16 | ((unsigned char) inbuf[7]) << 24) + 8;
+			len = (((unsigned char) inbuf[4]) |
+				((unsigned char) inbuf[5]) << 8 |
+				((unsigned char) inbuf[6]) << 16 |
+				((unsigned char) inbuf[7]) << 24) + 8;
 
 			if (inbuflen >= len) {
 				int i;
 
 				if (script[state].data_len != len) {
-					error(state, "Invalid data length %d vs expected %d\n", len, script[state].data_len);
+					error(state, "Invalid data length %d vs expected %d\n",
+						len, script[state].data_len);
 					exit(1);
 				}
 
 				for (i = 0; i < script[state].data_len; i++) {
-					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) != script[state].data[i]) {
-						error(state, "Received invalid data at offset %d: expected 0x%02x, received 0x%02x\n", i, (unsigned char) script[state].data[i], (unsigned char) inbuf[i]);
+					if (((unsigned char) inbuf[i] & script[state].data_mask[i]) !=
+						script[state].data[i])
+					{
+						error(state, "Received invalid data at offset %d: "
+							"expected 0x%02x, received 0x%02x\n", i,
+							(unsigned char) script[state].data[i],
+							(unsigned char) inbuf[i]);
 						exit(1);
 					}
 				}
@@ -369,14 +382,18 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 
-			if (ge->type != GG_EVENT_NONE || (script[state].type == EXPECT_EVENT && script[state].event == GG_EVENT_NONE)) {
+			if (ge->type != GG_EVENT_NONE || (script[state].type == EXPECT_EVENT &&
+				script[state].event == GG_EVENT_NONE))
+			{
 				if (script[state].type != EXPECT_EVENT) {
 					error(state, "Unexpected event %s (%d)\n", gg_debug_event(ge->type), ge->type);
 					exit(1);
 				}
 
 				if ((script[state].event != -1 && ge->type != script[state].event)) {
-					error(state, "Invalid event %s (%d), expected %s (%d)\n", gg_debug_event(ge->type), ge->type, gg_debug_event(script[state].event), script[state].event);
+					error(state, "Invalid event %s (%d), expected %s (%d)\n",
+						gg_debug_event(ge->type), ge->type,
+						gg_debug_event(script[state].event), script[state].event);
 					exit(1);
 				}
 

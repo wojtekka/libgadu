@@ -153,7 +153,7 @@ static void gs_init(struct gg_session *gs, struct gg_session_private *gsp, int a
 	gs->async = async;
 }
 
-// TODO: napisać test na r1324
+/* TODO: napisać test na r1324 */
 static void test_recv_packet(void)
 {
 	struct gg_session gs;
@@ -183,7 +183,9 @@ static void test_recv_packet(void)
 				}
 			} else {
 				if (input[state-1].expect != EXPECT_ERROR) {
-					fprintf(stderr, "Returned error (%s) when expected something\n", strerror(errno));
+					fprintf(stderr, "Returned error (%s) "
+						"when expected something\n",
+						strerror(errno));
 					exit(1);
 				}
 
@@ -207,7 +209,10 @@ static void test_recv_packet(void)
 				exit(1);
 			}
 
-			if (memcmp(((char*) gh) + sizeof(*gh), input[state-1].expected_data, input[state-1].length) != 0) {
+			if (memcmp(((char*) gh) + sizeof(*gh),
+				input[state-1].expected_data,
+				input[state-1].length) != 0)
+			{
 				fprintf(stderr, "Invalid packet payload\n");
 				exit(1);
 			}
@@ -316,7 +321,9 @@ static void test_send_packet(void)
 		exit(1);
 	}
 
-	if (gs.send_buf == NULL || gs.send_left != 14 || memcmp(gs.send_buf, "\x67\x45\x00\x00\x06\x00\x00\x00""PQRSTU", 14) != 0) {
+	if (gs.send_buf == NULL || gs.send_left != 14 || memcmp(gs.send_buf,
+		"\x67\x45\x00\x00\x06\x00\x00\x00""PQRSTU", 14) != 0)
+	{
 		fprintf(stderr, "Not queued properly\n");
 		exit(1);
 	}
@@ -328,7 +335,10 @@ static void test_send_packet(void)
 		exit(1);
 	}
 
-	if (gs.send_buf == NULL || gs.send_left != 25 || memcmp(gs.send_buf, "\x67\x45\x00\x00\x06\x00\x00\x00""PQRSTU""\x78\x56\x00\x00\x03\x00\x00\x00""VWX", 25) != 0) {
+	if (gs.send_buf == NULL || gs.send_left != 25 || memcmp(gs.send_buf,
+		"\x67\x45\x00\x00\x06\x00\x00\x00""PQRSTU""\x78\x56\x00\x00\x03"
+		"\x00\x00\x00""VWX", 25) != 0)
+	{
 		fprintf(stderr, "Not queued properly\n");
 		exit(1);
 	}

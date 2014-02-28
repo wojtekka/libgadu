@@ -33,7 +33,7 @@ static char *sha1_to_string(uint8_t *sha1)
 
 	for (i = 0; i < 20; i++)
 		sprintf(str + i * 2, "%02x", sha1[i]);
-	
+
 	return str;
 }
 
@@ -74,7 +74,8 @@ static void test_login_hash(const char *password, uint32_t seed, const char *exp
 	}
 
 	if (!sha1_compare(result, expect)) {
-		printf("hash failed for \"%s\", 0x%08x, expected %s, got %s\n", password, seed, expect, sha1_to_string(result));
+		printf("hash failed for \"%s\", 0x%08x, expected %s, got %s\n",
+			password, seed, expect, sha1_to_string(result));
 		exit(1);
 	}
 }
