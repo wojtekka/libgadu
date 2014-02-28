@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	tokenval = argv[4];
 
 	gg_debug_level = 255;
-	
+
 #ifndef ASYNC
 	if (!(h = gg_register3(email, password, tokenid, tokenval, 0))) {
 		printf("Błąd rejestracji.\n");
@@ -79,20 +79,20 @@ int main(int argc, char **argv)
 	if (!(h = gg_register3(email, password, tokenid, tokenval, 1)))
 		return 1;
 
-        while (1) {
-                fd_set rd, wr, ex;
+	while (1) {
+		fd_set rd, wr, ex;
 
-                FD_ZERO(&rd);
-                FD_ZERO(&wr);
-                FD_ZERO(&ex);
+		FD_ZERO(&rd);
+		FD_ZERO(&wr);
+		FD_ZERO(&ex);
 
-                if ((h->check & GG_CHECK_READ))
-                        FD_SET(h->fd, &rd);
-                if ((h->check & GG_CHECK_WRITE))
-                        FD_SET(h->fd, &wr);
-                FD_SET(h->fd, &ex);
+		if ((h->check & GG_CHECK_READ))
+			FD_SET(h->fd, &rd);
+		if ((h->check & GG_CHECK_WRITE))
+			FD_SET(h->fd, &wr);
+		FD_SET(h->fd, &ex);
 
-                if (select(h->fd + 1, &rd, &wr, &ex, NULL) == -1 || FD_ISSET(h->fd, &ex)) {
+		if (select(h->fd + 1, &rd, &wr, &ex, NULL) == -1 || FD_ISSET(h->fd, &ex)) {
 			if (errno == EINTR)
 				continue;
 			gg_free_register(h);
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 
-                if (FD_ISSET(h->fd, &rd) || FD_ISSET(h->fd, &wr)) {
+		if (FD_ISSET(h->fd, &rd) || FD_ISSET(h->fd, &wr)) {
 			if (gg_register_watch_fd(h) == -1) {
 				gg_free_register(h);
 				fprintf(stderr, "Błąd połączenia.\n");
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 			if (h->state == GG_STATE_DONE)
 				break;
 		}
-        }
+	}
 #endif
 
 	p = h->data;
@@ -123,4 +123,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-

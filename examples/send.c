@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	memset(&p, 0, sizeof(p));
 	p.uin = atoi(argv[2]);
 	p.password = argv[1];
-	
+
 	if (!(sess = gg_login(&p))) {
 		printf("Nie udało się połączyć: %s\n", strerror(errno));
 		gg_free_session(sess);
@@ -52,7 +52,9 @@ int main(int argc, char **argv)
 
 	printf("Połączono.\n");
 
-	if (gg_notify(sess, NULL, 0) == -1) {	/* serwery gg nie pozwalaja wysylac wiadomosci bez powiadomienia o userliscie (przetestowane p.protocol_version [0x15; def] */
+	/* serwery gg nie pozwalaja wysylac wiadomosci bez powiadomienia
+	 * o userliscie (przetestowane p.protocol_version [0x15; def] */
+	if (gg_notify(sess, NULL, 0) == -1) {
 		printf("Połączenie przerwane: %s\n", strerror(errno));
 		gg_free_session(sess);
 		return 1;

@@ -41,11 +41,13 @@ int main(int argc, char **argv)
 	memset(&glp, 0, sizeof(glp));
 	glp.uin = atoi(argv[1]);
 	glp.password = argv[2];
-//	glp.encoding = GG_ENCODING_UTF8;
-//	glp.protocol_version = 0x2d;
+#if 0
+	glp.encoding = GG_ENCODING_UTF8;
+	glp.protocol_version = 0x2d;
+#endif
 	glp.status = GG_STATUS_INVISIBLE_DESCR;
 	glp.status_descr = argv[3];
-	
+
 	if (!(gs = gg_login(&glp))) {
 		printf("Nie udało się połączyć: %s\n", strerror(errno));
 		gg_free_session(gs);
