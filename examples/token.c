@@ -46,7 +46,7 @@ static void sigchld(int sig)
 static inline int
 gg_mkstemp(char *path)
 {
-#if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || _XOPEN_SOURCE >= 500
+#if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
 	return (mkstemp(path) != -1);
 #else
 	return (strcmp(mktemp(path), "") != 0);
