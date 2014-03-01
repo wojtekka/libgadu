@@ -271,7 +271,7 @@ int gg_session_init_ssl(struct gg_session *gs)
 	gnutls_init(&tmp->session, GNUTLS_CLIENT);
 	gnutls_set_default_priority(tmp->session);
 	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
-	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) (long) gs->fd);
+	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) (intptr_t) gs->fd);
 #endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
