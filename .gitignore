@@ -5,6 +5,7 @@ Makefile.in
 *.la
 *.a
 *.lo
+*.exe
 .deps
 .libs
 *.tar.gz
@@ -22,6 +23,7 @@ docs/Doxyfile
 docs/html-stamp
 pkgconfig/libgadu.pc
 include/libgadu.h
+src/libgadu.def
 install-sh
 libtool
 ltmain.sh
