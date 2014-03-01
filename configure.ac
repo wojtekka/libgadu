@@ -440,6 +440,8 @@ case "$host" in
 		MINGW_LDFLAGS="-no-undefined -lws2_32 -Wl,--output-def,libgadu.def"
 		MINGW_LIBDATA="libgadu.def"
 		LDFLAGS_NO_INSTALL="-no-fast-install"
+		SRCDIR=`(cd $srcdir && pwd)`
+		AC_SUBST([AM_TESTS_ENVIRONMENT], [$SRCDIR/test/automatic/wine-wrapper.sh])
 		;;
 	*)
 		MINGW_LDFLAGS=""

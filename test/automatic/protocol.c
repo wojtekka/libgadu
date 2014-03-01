@@ -25,11 +25,15 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <arpa/inet.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
+#ifdef _WIN32
+#  include <ws2tcpip.h>
+#else
+#  include <arpa/inet.h>
+#  include <sys/select.h>
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <netdb.h>
+#endif
 
 #include "libgadu.h"
 
@@ -88,7 +92,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value));
+	setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&value, sizeof(value));
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;

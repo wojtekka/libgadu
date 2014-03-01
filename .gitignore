@@ -41,6 +41,8 @@ examples/status
 examples/token-async
 examples/token-sync
 test/config
+test/automatic/*.log
+test/automatic/*.trs
 test/automatic/connect
 test/automatic/convert
 test/automatic/endian1

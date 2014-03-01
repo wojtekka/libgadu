@@ -26,6 +26,19 @@
 #include "libgadu.h"
 #include "internal.h"
 
+static inline int
+gg_mkstemp(char *path)
+{
+#if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
+	return mkstemp(path);
+#else
+	if (strcmp(mktemp(path), "") == 0)
+		return -1;
+	/* XXX: O_CREAT shouldn't be necessary */
+	return open(path, O_EXCL | O_RDWR | O_CREAT);
+#endif
+}
+
 static char *sha1_to_string(uint8_t *sha1)
 {
 	static char str[41];
@@ -104,7 +117,7 @@ static void test_file_hash(unsigned int megs, const char *expect)
 
 	strcpy(name, "hash.XXXXXX");
 
-	fd = mkstemp(name);
+	fd = gg_mkstemp(name);
 
 	if (fd == -1) {
 		fprintf(stderr, "Unable to create temporary file\n");
