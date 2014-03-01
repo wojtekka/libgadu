@@ -25,15 +25,8 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#ifdef _WIN32
-#  include <ws2tcpip.h>
-#else
-#  include <arpa/inet.h>
-#  include <sys/select.h>
-#  include <sys/socket.h>
-#  include <netinet/in.h>
-#  include <netdb.h>
-#endif
+
+#include "network.h"
 
 #include "libgadu.h"
 
@@ -68,6 +61,18 @@ static char outbuf[4096];
 static int outbuflen = 0;
 static int fd = -1;	/* connected socket */
 
+#ifdef _WIN32
+static inline void win32_init_network(void)
+{
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		perror("WSAStartup");
+		exit(1);
+	}
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	struct gg_login_params glp;
@@ -83,6 +88,10 @@ int main(int argc, char **argv)
 	struct hostent *he;
 	uint32_t server_addr;
 	uint16_t server_port;
+
+#ifdef _WIN32
+	win32_init_network();
+#endif
 
 	gg_debug_file = stdout;
 	gg_debug_level = ~0;
@@ -147,7 +156,6 @@ int main(int argc, char **argv)
 			glp.server_addr = server_addr;
 			glp.server_port = server_port;
 			glp.async = 1;
-			glp.resolver = GG_RESOLVER_PTHREAD;
 
 			if (!(gs = gg_login(&glp))) {
 				perror("gg_login");
@@ -177,7 +185,7 @@ int main(int argc, char **argv)
 			if (outbuflen > 0) {
 				if ((size_t)outbuflen + script[state].data_len > sizeof(outbuf)) {
 					errno = ENOMEM;
-					perror("write");
+					perror("send");
 					exit(1);
 				}
 
@@ -186,16 +194,16 @@ int main(int argc, char **argv)
 			} else {
 				int res;
 
-				res = write(fd, script[state].data, script[state].data_len);
+				res = send(fd, script[state].data, script[state].data_len, 0);
 
 				if (res < 0) {
-					perror("write");
+					perror("send");
 					exit(1);
 				}
 
 				if ((size_t)outbuflen + script[state].data_len - res > sizeof(outbuf)) {
 					errno = ENOMEM;
-					perror("write");
+					perror("send");
 					exit(1);
 				}
 
@@ -339,7 +347,7 @@ int main(int argc, char **argv)
 		}
 
 		if (fd != -1 && FD_ISSET(fd, &rds)) {
-			res = read(fd, inbuf + inbuflen, sizeof(inbuf) - inbuflen);
+			res = recv(fd, inbuf + inbuflen, sizeof(inbuf) - inbuflen, 0);
 
 			if (res < 1) {
 				if (script[state].type != EXPECT_DISCONNECT) {
@@ -360,10 +368,10 @@ int main(int argc, char **argv)
 		}
 
 		if (fd != -1 && FD_ISSET(fd, &wds)) {
-			res = write(fd, outbuf, outbuflen);
+			res = send(fd, outbuf, outbuflen, 0);
 
 			if (res == -1) {
-				perror("write");
+				perror("send");
 				exit(1);
 			} else if (res == outbuflen) {
 				outbuflen = 0;

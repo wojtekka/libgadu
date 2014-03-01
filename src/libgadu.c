@@ -1244,7 +1244,8 @@ void gg_free_session(struct gg_session *sess)
 		SSL_CTX_free(sess->ssl_ctx);
 #endif
 
-	sess->resolver_cleanup(&sess->resolver, 1);
+	if (sess->resolver_cleanup != NULL)
+		sess->resolver_cleanup(&sess->resolver, 1);
 
 	gg_close(sess);
 

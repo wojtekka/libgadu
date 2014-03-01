@@ -13,10 +13,10 @@ check_PROGRAMS = $(TESTS)
 EXTRA_PROGRAMS = convert endian1 message2 message1 hash resolver packet connect protocol
 
 CFLAGS += -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
-AM_LDFLAGS = -no-install
+AM_LDFLAGS = @LDFLAGS_NO_INSTALL@
 
 protocol_SOURCES = protocol.c
-nodist_protocol_SOURCES = script.c
+nodist_protocol_SOURCES = script.c libgadu-network.c
 protocol_CFLAGS = -I$(top_srcdir)/test/automatic/script
 protocol_LDADD = $(top_builddir)/src/libgadu.la
 
