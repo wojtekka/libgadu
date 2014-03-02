@@ -1,6 +1,6 @@
-TESTS = convert endian1 message2 message1 hash $(OPTIONAL_TESTS_PERL)
+TESTS = convert endian1 message2 message1 hash resolver $(OPTIONAL_TESTS_PERL)
 if HAVE_GLIBC
-TESTS += resolver packet
+TESTS += packet
 if HAVE_GNUTLS_TESTS
 TESTS += connect
 endif

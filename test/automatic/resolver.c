@@ -16,23 +16,26 @@
  *  USA.
  */
 
-#include <arpa/inet.h>
 #include <errno.h>
 #include "libgadu.h"
-#include <netdb.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
+
+#include "network.h"
 
 #define LOCALHOST "127.0.0.1"
 
 int delay_flag;
 int connect_flag;
 
+#undef gethostbyname
+#ifdef _WIN32
+WINSOCK_API_LINKAGE struct hostent *WSAAPI gethostbyname(const char *name)
+#else
 struct hostent *gethostbyname(const char *name)
+#endif
 {
 	static struct hostent he;
 	static struct in_addr addr;
@@ -62,6 +65,7 @@ struct hostent *gethostbyname(const char *name)
 	return &he;
 }
 
+#ifdef GG_CONFIG_HAVE_GETHOSTBYNAME_R
 int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 	size_t buflen, struct hostent **result, int *h_errnop)
 {
@@ -86,6 +90,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 
 	return (*result != NULL) ? 0 : -1;
 }
+#endif
 
 int connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
 {
@@ -139,15 +144,25 @@ static int test(int resolver, int delay)
 			if (ge == NULL) {
 				gg_free_session(gs);
 				return 0;
-			} else {
-				if (ge->type == GG_EVENT_CONN_FAILED) {
-					gg_event_free(ge);
-					gg_free_session(gs);
-					return 0;
-				}
-
-				gg_event_free(ge);
 			}
+
+			if (ge->type == GG_EVENT_CONN_FAILED) {
+				gg_event_free(ge);
+				gg_free_session(gs);
+				return 0;
+			}
+
+			if (gs->hub_addr != 0 && gs->hub_addr != inet_addr(LOCALHOST)) {
+				struct in_addr hub_addr;
+				hub_addr.s_addr = gs->hub_addr;
+				printf("gethostbyname hook failed %s != %s\n",
+					LOCALHOST, inet_ntoa(hub_addr));
+				gg_event_free(ge);
+				gg_free_session(gs);
+				return 0;
+			}
+
+			gg_event_free(ge);
 
 			if (connect_flag == 1)
 				break;
@@ -158,21 +173,23 @@ static int test(int resolver, int delay)
 
 	gg_free_session(gs);
 
-	if (loops == 5)
+	if (loops == 5) {
+		printf("timeout\n");
 		return 0;
+	}
 
 	return 1;
 }
 
 static int dummy_start(int *fd, void **private_data, const char *hostname)
 {
-	fprintf(stderr, "** custom resolver started\n");
+	printf("** custom resolver started\n");
 	return 0;
 }
 
 static void dummy_cleanup(void **private_data, int force)
 {
-	fprintf(stderr, "** custom resolver cleaning up\n");
+	printf("** custom resolver cleaning up\n");
 }
 
 static int test_set_get(void)
@@ -194,6 +211,7 @@ static int test_set_get(void)
 		return 0;
 	}
 
+#ifdef GG_CONFIG_HAVE_FORK
 	printf("Setting global fork resolver\n");
 	gg_global_set_resolver(GG_RESOLVER_FORK);
 
@@ -201,7 +219,9 @@ static int test_set_get(void)
 		printf("Expected global fork resolver\n");
 		return 0;
 	}
+#endif
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	printf("Setting global pthread resolver\n");
 	gg_global_set_resolver(GG_RESOLVER_PTHREAD);
 
@@ -209,6 +229,17 @@ static int test_set_get(void)
 		printf("Expected global thread resolver\n");
 		return 0;
 	}
+#endif
+
+#ifdef _WIN32
+	printf("Setting global win32 resolver\n");
+	gg_global_set_resolver(GG_RESOLVER_WIN32);
+
+	if (gg_global_get_resolver() != GG_RESOLVER_WIN32) {
+		printf("Expected global win32 resolver\n");
+		return 0;
+	}
+#endif
 
 	printf("Setting global custom resolver\n");
 	gg_global_set_custom_resolver(dummy_start, dummy_cleanup);
@@ -235,10 +266,17 @@ static int test_set_get(void)
 	if (gs == NULL)
 		return 0;
 
+#ifdef _WIN32
+	if (gg_session_get_resolver(gs) != GG_RESOLVER_WIN32) {
+		printf("Expected local win32 resolver\n");
+		return 0;
+	}
+#else
 	if (gg_session_get_resolver(gs) != GG_RESOLVER_FORK && gg_session_get_resolver(gs) != GG_RESOLVER_PTHREAD) {
 		printf("Expected local fork or pthread resolver\n");
 		return 0;
 	}
+#endif
 
 	gg_free_session(gs);
 
@@ -248,6 +286,7 @@ static int test_set_get(void)
 
 	gg_global_set_resolver(GG_RESOLVER_DEFAULT);
 
+#ifdef GG_CONFIG_HAVE_FORK
 	/* Test lokalnych ustawień -- fork */
 
 	printf("Testing local fork resolver\n");
@@ -265,7 +304,9 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	/* Test lokalnych ustawień -- pthread */
 
 	printf("Testing local pthread resolver\n");
@@ -283,7 +324,29 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif
 
+#ifdef _WIN32
+	/* Test lokalnych ustawień -- win32 */
+
+	printf("Testing local win32 resolver\n");
+
+	glp.resolver = GG_RESOLVER_WIN32;
+
+	gs = gg_login(&glp);
+
+	if (gs == NULL)
+		return 0;
+
+	if (gg_session_get_resolver(gs) != GG_RESOLVER_WIN32) {
+		printf("Expected local win32 resolver\n");
+		return 0;
+	}
+
+	gg_free_session(gs);
+#endif
+
+#ifdef GG_CONFIG_HAVE_FORK
 	/* Testy globalnego fork + lokalne */
 
 	printf("Setting global fork resolver\n");
@@ -342,7 +405,9 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif /* GG_CONFIG_HAVE_FORK */
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	/* Testy globalnego pthread + lokalne */
 
 	printf("Setting global pthread resolver\n");
@@ -401,6 +466,7 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif /* GG_CONFIG_HAVE_PTHREAD */
 
 	/* Testy globalnego custom + lokalne */
 
@@ -425,6 +491,7 @@ static int test_set_get(void)
 
 	gg_free_session(gs);
 
+#ifdef GG_CONFIG_HAVE_FORK
 	/* Test globalnych ustawień + lokalne */
 
 	printf("Testing local fork resolver\n");
@@ -442,7 +509,9 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	/* Test globalnych ustawień + lokalne */
 
 	printf("Testing local pthread resolver\n");
@@ -460,6 +529,7 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif
 
 	/* Test HTTP */
 
@@ -471,13 +541,21 @@ static int test_set_get(void)
 	if (gh == NULL)
 		return 0;
 
+#ifdef _WIN32
+	if (gg_http_get_resolver(gh) != GG_RESOLVER_WIN32) {
+		printf("Expected local win32 resolver\n");
+		return 0;
+	}
+#else
 	if (gg_http_get_resolver(gh) != GG_RESOLVER_FORK && gg_http_get_resolver(gh) != GG_RESOLVER_PTHREAD) {
 		printf("Expected local fork or pthread resolver\n");
 		return 0;
 	}
+#endif
 
 	gg_http_free(gh);
 
+#ifdef GG_CONFIG_HAVE_FORK
 	/* Test HTTP */
 
 	printf("Testing global fork resolver in HTTP\n");
@@ -494,7 +572,9 @@ static int test_set_get(void)
 	}
 
 	gg_http_free(gh);
+#endif
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	/* Test HTTP */
 
 	printf("Testing global pthread resolver in HTTP\n");
@@ -511,6 +591,7 @@ static int test_set_get(void)
 	}
 
 	gg_http_free(gh);
+#endif
 
 	/* Test HTTP */
 
@@ -536,12 +617,28 @@ static int test_set_get(void)
 	return 1;
 }
 
+#ifdef _WIN32
+static inline void win32_init_network(void)
+{
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		perror("WSAStartup");
+		exit(1);
+	}
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	int i, j, k = 1;
 
+#ifdef _WIN32
+	win32_init_network();
+#else
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
+#endif
 
 	gg_debug_level = 255;
 
@@ -552,9 +649,24 @@ int main(int argc, char **argv)
 	}
 	printf("\n");
 
-	for (i = GG_RESOLVER_DEFAULT; i <= GG_RESOLVER_PTHREAD; i++) {
+	for (i = GG_RESOLVER_DEFAULT; i <= GG_RESOLVER_WIN32; i++) {
+		if (i == GG_RESOLVER_CUSTOM)
+			continue;
+#ifndef GG_CONFIG_HAVE_FORK
+		if (i == GG_RESOLVER_FORK)
+			continue;
+#endif
+#ifndef GG_CONFIG_HAVE_PTHREAD
+		if (i == GG_RESOLVER_PTHREAD)
+			continue;
+#endif
+#ifndef _WIN32
+		if (i == GG_RESOLVER_WIN32)
+			continue;
+#endif
+
 		for (j = 0; j < 2; j++) {
-			printf("*** TEST %d ***\n\n", k++);
+			printf("*** TEST %d (resolver %d) ***\n\n", k++, i);
 
 			if (!test(i, j)) {
 				printf("*** TEST FAILED ***\n");

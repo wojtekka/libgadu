@@ -712,6 +712,7 @@ static gg_action_t gg_handle_connect(struct gg_session *sess,
 	addr = sess->resolver_result[sess->resolver_index];
 
 	if (sess->state == GG_STATE_CONNECT_HUB) {
+		sess->hub_addr = addr.s_addr;
 		port = GG_APPMSG_PORT;
 	} else {
 		sess->proxy_addr = addr.s_addr;

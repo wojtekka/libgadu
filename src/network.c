@@ -41,6 +41,7 @@ int gg_win32_socketpair(int sv[2])
 	socklen_t sin_len = sizeof(sin);
 	int server = -1;
 	int tmp = 1;
+	int errno_copy;
 
 	server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -88,9 +89,11 @@ int gg_win32_socketpair(int sv[2])
 	return 0;
 
 fail:
+	errno_copy = errno;
 	close(server);
 	close(sv[0]);
 	close(sv[1]);
+	errno = errno_copy;
 
 	return -1;
 }
