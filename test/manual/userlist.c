@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
+#include <getopt.h>
 
 #include "libgadu.h"
 #include "network.h"
@@ -44,6 +45,18 @@ static void usage(const char *argv0)
 	"\n", argv0);
 }
 
+#ifdef _WIN32
+static inline void win32_init_network(void)
+{
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		perror("WSAStartup");
+		exit(1);
+	}
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	struct gg_session *gs;
@@ -56,6 +69,10 @@ int main(int argc, char **argv)
 	char *content = NULL;
 	int debug = 0;
 	int res = 0;
+
+#ifdef _WIN32
+	win32_init_network();
+#endif
 
 	while ((opt = getopt(argc, argv, "cv:gpf:hdr")) != -1) {
 		switch (opt) {
@@ -114,7 +131,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#ifndef _WIN32
 	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	if (debug) {
 		gg_debug_file = stderr;
