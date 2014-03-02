@@ -194,9 +194,25 @@ void oauth_ask(const char *uid)
 	free(tmp);
 }
 
+#ifdef _WIN32
+static inline void win32_init_network(void)
+{
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		perror("WSAStartup");
+		exit(1);
+	}
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	int i;
+
+#ifdef _WIN32
+	win32_init_network();
+#endif
 
 	srand(time(NULL));
 	http_init();

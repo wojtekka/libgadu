@@ -29,7 +29,7 @@ userlist_LDADD = $(top_builddir)/src/libgadu.la
 userlist_SOURCES = userlist.c userconfig.c userconfig.h
 
 search_SOURCES = search.c
-search_LDADD = lib/libsearch.a -lcurl -lexpat
+search_LDADD = lib/libsearch.a -lcurl -lexpat @MINGW_LDFLAGS@
 
 voice7_CFLAGS = -Wall -DHAVE_SPEEX -DHAVE_GSM
 voice7_LDADD = $(top_builddir)/src/libgadu.la -lgsm -lspeex

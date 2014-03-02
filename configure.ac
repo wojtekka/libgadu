@@ -438,7 +438,8 @@ dnl
 is_mingw="no"
 case "$host" in
 	*-*-mingw* | *-*-cygwin*)
-		MINGW_LDFLAGS="-no-undefined -lws2_32 -Wl,--output-def,libgadu.def"
+		MINGW_LDFLAGS="-no-undefined -lws2_32"
+		MINGW_LIBGEN="-Wl,--output-def,libgadu.def"
 		MINGW_LIBDATA="libgadu.def"
 		LDFLAGS_NO_INSTALL="-no-fast-install"
 		SRCDIR=`(cd $srcdir && pwd)`
@@ -453,6 +454,7 @@ case "$host" in
 esac
 AM_CONDITIONAL([HAVE_MINGW], [test "x$is_mingw" = "xyes"])
 AC_SUBST([MINGW_LDFLAGS])
+AC_SUBST([MINGW_LIBGEN])
 AC_SUBST([MINGW_LIBDATA])
 AC_SUBST([LDFLAGS_NO_INSTALL])
 
