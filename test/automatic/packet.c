@@ -281,7 +281,7 @@ ssize_t send(int fd, const void *buf, size_t len, int flags)
 	res = send_list[send_state].result_value;
 	send_state++;
 
-	printf("send(%d, %p, %d, %d) = %d\n", fd, buf, (int) len, flags, (int) res);
+	printf("send(%d, %p, %d, %d) = %d\n", (int)fd, buf, (int) len, flags, (int) res);
 
 	return res;
 }
