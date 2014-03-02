@@ -20,7 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <arpa/inet.h>
+
+#include "network.h"
 
 unsigned int config_uin;
 char *config_password;
