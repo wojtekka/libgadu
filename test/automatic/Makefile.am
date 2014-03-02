@@ -1,10 +1,18 @@
 TESTS = convert endian1 message2 message1 hash resolver $(OPTIONAL_TESTS_PERL)
+
+if HAVE_MINGW
+# FIXIT: resolver test is expected to fail on win32,
+# due to gethostbyname hook improperly implemented
+XFAIL_TESTS = resolver
+endif
+
 if HAVE_GLIBC
 TESTS += packet
 if HAVE_GNUTLS_TESTS
 TESTS += connect
 endif
 endif
+
 if HAVE_PERL
 TESTS += protocol
 endif

@@ -54,6 +54,12 @@ extern state_t script[];
 
 extern const char *tests[];
 
+#ifdef _WIN32
+#define logon_time_t uint32_t
+#else
+#define logon_time_t time_t
+#endif
+
 #ifdef FALSE
 #undef FALSE
 #endif

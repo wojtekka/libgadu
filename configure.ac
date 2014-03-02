@@ -435,6 +435,7 @@ fi
 dnl
 dnl  Egzotyczne systemy operacyjne
 dnl
+is_mingw="no"
 case "$host" in
 	*-*-mingw* | *-*-cygwin*)
 		MINGW_LDFLAGS="-no-undefined -lws2_32 -Wl,--output-def,libgadu.def"
@@ -442,6 +443,7 @@ case "$host" in
 		LDFLAGS_NO_INSTALL="-no-fast-install"
 		SRCDIR=`(cd $srcdir && pwd)`
 		AC_SUBST([AM_TESTS_ENVIRONMENT], [$SRCDIR/test/automatic/wine-wrapper.sh])
+		is_mingw="yes"
 		;;
 	*)
 		MINGW_LDFLAGS=""
@@ -449,6 +451,7 @@ case "$host" in
 		LDFLAGS_NO_INSTALL="-no-install"
 		;;
 esac
+AM_CONDITIONAL([HAVE_MINGW], [test "x$is_mingw" = "xyes"])
 AC_SUBST([MINGW_LDFLAGS])
 AC_SUBST([MINGW_LIBDATA])
 AC_SUBST([LDFLAGS_NO_INSTALL])
