@@ -16,13 +16,14 @@
  *  USA.
  */
 
-#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include "libgadu.h"
 #include "internal.h"
+
+#include "network.h"
 
 enum {
 	EXPECT_NOTHING = 0,
@@ -34,6 +35,7 @@ enum {
 int state;
 int offset;
 int expected_packet;
+static int recv_called = 0;
 
 struct {
 	const char *data;
@@ -100,9 +102,16 @@ struct {
 	{ "", -ENOTSOCK, EXPECT_ERROR, 0, 0, NULL },
 };
 
+#undef recv
+#ifdef _WIN32
+WINSOCK_API_LINKAGE int WSAAPI recv(SOCKET fd, char *buf, int len, int flags)
+#else
 ssize_t recv(int fd, void *buf, size_t len, int flags)
+#endif
 {
 	ssize_t result;
+
+	recv_called = 1;
 
 	if (fd != 123) {
 		fprintf(stderr, "recv: Invalid descriptor\n");
@@ -116,7 +125,7 @@ ssize_t recv(int fd, void *buf, size_t len, int flags)
 	result = input[state].result;
 
 	if (result > -1 && result - offset >= 0) {
-		if ((size_t)(result - offset) > len) {
+		if ((size_t)(result - offset) > (size_t)len) {
 			memcpy(buf, input[state].data + offset, len);
 			offset += len;
 			result = len;
@@ -169,6 +178,11 @@ static void test_recv_packet(void)
 		expected_packet = 0;
 
 		gh = gg_recv_packet(&gs);
+
+		if (!recv_called) {
+			fprintf(stderr, "recv hook not called\n");
+			exit(1);
+		}
 
 		if (gh == NULL) {
 			if (expected_packet) {
@@ -239,7 +253,12 @@ struct {
 	{ "\x67\x45\x00\x00\x06\x00\x00\x00""PQRSTU", 14, -1, EAGAIN },
 };
 
+#undef send
+#ifdef _WIN32
+WINSOCK_API_LINKAGE int WSAAPI send(SOCKET fd, const char *buf, int len, int flags)
+#else
 ssize_t send(int fd, const void *buf, size_t len, int flags)
+#endif
 {
 	ssize_t res;
 
@@ -248,7 +267,7 @@ ssize_t send(int fd, const void *buf, size_t len, int flags)
 		exit(1);
 	}
 
-	if (len != send_list[send_state].expect_len) {
+	if ((size_t)len != send_list[send_state].expect_len) {
 		fprintf(stderr, "Expected %d bytes instead of %d\n", (int) send_list[send_state].expect_len, (int) len);
 		exit(1);
 	}

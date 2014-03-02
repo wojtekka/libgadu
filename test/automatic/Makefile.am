@@ -1,13 +1,13 @@
-TESTS = convert endian1 message2 message1 hash resolver $(OPTIONAL_TESTS_PERL)
+TESTS = convert endian1 message2 message1 hash packet resolver $(OPTIONAL_TESTS_PERL)
 
 if HAVE_MINGW
 # FIXIT: resolver test is expected to fail on win32,
-# due to gethostbyname hook improperly implemented
-XFAIL_TESTS = resolver
+# due to gethostbyname hook improperly implemented.
+# Ditto for packet test and recv/send hook.
+XFAIL_TESTS = resolver packet
 endif
 
 if HAVE_GLIBC
-TESTS += packet
 if HAVE_GNUTLS_TESTS
 TESTS += connect
 endif
