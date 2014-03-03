@@ -30,6 +30,7 @@ ltmain.sh
 missing
 test-driver
 libgadu.sym
+libgadu-*/
 examples/conn-async
 examples/httphash
 examples/register-async
