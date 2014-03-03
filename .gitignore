@@ -40,6 +40,7 @@ examples/send
 examples/status
 examples/token-async
 examples/token-sync
+examples/token.??????
 test/config
 test/automatic/*.log
 test/automatic/*.trs

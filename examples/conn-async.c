@@ -26,15 +26,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#ifdef _WIN32
-#  include <winsock2.h>
-#else
-#  include <sys/wait.h>
-#  include <sys/time.h>
-#  include <sys/socket.h>
-#endif
 #include <time.h>
 #include "libgadu.h"
+#include "network.h"
 
 int main(void)
 {
@@ -45,6 +39,10 @@ int main(void)
 	fd_set rd, wd;
 	time_t last = 0, now;
 	int ret;
+
+#ifdef _WIN32
+	gg_win32_init_network();
+#endif
 
 	gg_debug_level = ~0;
 

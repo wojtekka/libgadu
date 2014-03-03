@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include "libgadu.h"
+#include "network.h"
 
 int main(int argc, char **argv)
 {
@@ -38,11 +39,15 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+#ifdef _WIN32
+	gg_win32_init_network();
+#endif
+
 	gg_debug_level = 255;
 
 	memset(&p, 0, sizeof(p));
-	p.uin = atoi(argv[2]);
-	p.password = argv[1];
+	p.uin = atoi(argv[1]);
+	p.password = argv[2];
 
 	if (!(sess = gg_login(&p))) {
 		printf("Nie udało się połączyć: %s\n", strerror(errno));

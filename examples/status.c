@@ -25,6 +25,7 @@
 #include <string.h>
 #include <errno.h>
 #include "libgadu.h"
+#include "network.h"
 
 int main(int argc, char **argv)
 {
@@ -35,6 +36,10 @@ int main(int argc, char **argv)
 		fprintf(stderr, "użycie: %s <mójnumerek> <mojehasło> <opis>\n", argv[0]);
 		return 1;
 	}
+
+#ifdef _WIN32
+	gg_win32_init_network();
+#endif
 
 	gg_debug_level = 255;
 
