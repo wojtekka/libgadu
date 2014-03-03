@@ -21,6 +21,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "libgadu.h"
 #include "network.h"
 
 unsigned int config_uin;

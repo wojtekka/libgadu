@@ -45,18 +45,6 @@ static void usage(const char *argv0)
 	"\n", argv0);
 }
 
-#ifdef _WIN32
-static inline void win32_init_network(void)
-{
-	WSADATA wsaData;
-
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		perror("WSAStartup");
-		exit(1);
-	}
-}
-#endif
-
 int main(int argc, char **argv)
 {
 	struct gg_session *gs;
@@ -71,7 +59,7 @@ int main(int argc, char **argv)
 	int res = 0;
 
 #ifdef _WIN32
-	win32_init_network();
+	gg_win32_init_network();
 #endif
 
 	while ((opt = getopt(argc, argv, "cv:gpf:hdr")) != -1) {

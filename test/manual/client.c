@@ -77,18 +77,6 @@ void parse_address(const char *arg, char **host, int *port)
 	}
 }
 
-#ifdef _WIN32
-static inline void win32_init_network(void)
-{
-	WSADATA wsaData;
-
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		perror("WSAStartup");
-		exit(1);
-	}
-}
-#endif
-
 int main(int argc, char **argv)
 {
 	struct gg_login_params glp;
@@ -98,7 +86,7 @@ int main(int argc, char **argv)
 	int ch;
 
 #ifdef _WIN32
-	win32_init_network();
+	gg_win32_init_network();
 #endif
 
 	gg_debug_level = 255;

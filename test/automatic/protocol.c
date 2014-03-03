@@ -26,9 +26,8 @@
 #include <errno.h>
 #include <ctype.h>
 
-#include "network.h"
-
 #include "libgadu.h"
+#include "network.h"
 
 #include "script.h"
 
@@ -61,18 +60,6 @@ static char outbuf[4096];
 static int outbuflen = 0;
 static int fd = -1;	/* connected socket */
 
-#ifdef _WIN32
-static inline void win32_init_network(void)
-{
-	WSADATA wsaData;
-
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		perror("WSAStartup");
-		exit(1);
-	}
-}
-#endif
-
 int main(int argc, char **argv)
 {
 	struct gg_login_params glp;
@@ -90,7 +77,7 @@ int main(int argc, char **argv)
 	uint16_t server_port;
 
 #ifdef _WIN32
-	win32_init_network();
+	gg_win32_init_network();
 #endif
 
 	gg_debug_file = stdout;

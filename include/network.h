@@ -105,4 +105,14 @@ static inline int gg_fd_set_nonblocking(int fd)
 	return success;
 }
 
+static inline void gg_win32_init_network(void)
+{
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		perror("WSAStartup");
+		exit(1);
+	}
+}
+
 #endif /* LIBGADU_NETWORK_H */

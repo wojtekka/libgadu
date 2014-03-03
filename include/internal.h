@@ -131,4 +131,42 @@ void gg_compat_message_ack(struct gg_session *sess, int seq);
 void gg_strarr_free(char **strarr);
 char ** gg_strarr_dup(char **strarr);
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+#define gg_win32_hook(orig_func, hook_func) \
+	gg_win32_hook_f((void (*)())(orig_func), (void (*)())(hook_func))
+
+static inline void
+gg_win32_hook_f(void (*orig_func)(), void (*hook_func)())
+{
+	DWORD dPermission = 0;
+	uint8_t trap[] = {
+#ifdef _WIN64
+		0x48, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, /* mov rax, uint64_t */
+		0xff, 0xe0 /* jmp rax */
+#else
+		0xB8, 0, 0, 0, 0, /* mov eax, uint32_t */
+		0xff, 0xe0 /* jmp eax */
+#endif
+	};
+
+#ifdef _WIN64
+	uint64_t addr = (uint64_t)hook_func;
+	memcpy(&trap[2], &addr, sizeof(addr));
+#else
+	uint32_t addr = (uint32_t)hook_func;
+	memcpy(&trap[1], &addr, sizeof(addr));
+#endif
+
+	VirtualProtect(orig_func, sizeof(trap),
+		PAGE_EXECUTE_READWRITE, &dPermission);
+	memcpy(orig_func, trap, sizeof(trap));
+	VirtualProtect(orig_func, sizeof(trap),
+		dPermission, &dPermission);
+}
+
+#endif /* _WIN32 */
+
 #endif /* LIBGADU_INTERNAL_H */

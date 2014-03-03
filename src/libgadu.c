@@ -30,9 +30,7 @@
 
 #include "strman.h"
 #include "network.h"
-#ifdef sun
-#  include <sys/filio.h>
-#endif
+#include "fileio.h"
 
 #include "libgadu.h"
 #include "protocol.h"

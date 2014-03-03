@@ -21,10 +21,8 @@
 #include <errno.h>
 #include <string.h>
 #include "libgadu.h"
-#include "internal.h"
-
 #include "network.h"
-#include "compat.h"
+#include "internal.h"
 
 enum {
 	EXPECT_NOTHING = 0,
@@ -393,9 +391,9 @@ static int my_get_last_error(void)
 int main(void)
 {
 #ifdef _WIN32
-	install_win32_hook(WSAGetLastError, my_get_last_error);
-	install_win32_hook(recv, my_recv);
-	install_win32_hook(send, my_send);
+	gg_win32_hook(WSAGetLastError, my_get_last_error);
+	gg_win32_hook(recv, my_recv);
+	gg_win32_hook(send, my_send);
 #endif
 
 	test_recv_packet();
