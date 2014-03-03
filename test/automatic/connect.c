@@ -26,23 +26,18 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <arpa/inet.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <pthread.h>
 
 #include "libgadu.h"
 #include "network.h"
+#include "internal.h"
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 #endif
 
-#define HOST_LOCAL "127.0.0.1"
+/* must be different from INADDR_LOOPBACK=127.0.0.1 */
+#define HOST_LOCAL "127.0.0.2"
 #define HOST_PROXY "proxy.example.org"
 
 #if 0
@@ -195,10 +190,9 @@ static void debug(const char *fmt, ...)
 	va_end(ap);
 }
 
+#ifndef _WIN32
 extern int __connect(int socket, const struct sockaddr *address, socklen_t address_len);
-extern struct hostent *__gethostbyname(const char *name);
-int __gethostbyname_r(const char *name,  struct hostent *ret, char *buf,
-size_t buflen,  struct hostent **result, int *h_errnop);
+#endif
 
 typedef struct {
 	struct in_addr addr;
@@ -206,7 +200,18 @@ typedef struct {
 	char name[1];
 } resolver_storage_t;
 
+int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
+	size_t buflen, struct hostent **result, int *h_errnop);
+
+#undef h_errno
+static int h_errno;
+
+#undef gethostbyname
+#ifdef _WIN32
+static struct hostent *my_gethostbyname(const char *name)
+#else
 struct hostent *gethostbyname(const char *name)
+#endif
 {
 	static char buf[256];
 	static struct hostent he;
@@ -222,7 +227,6 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 	size_t buflen, struct hostent **result, int *h_errnop)
 {
 	resolver_storage_t *storage = (void*) buf;
-	int h_errno;
 	test_param_t *test;
 
 	test = get_test_param();
@@ -238,11 +242,11 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 		if (test->plug_resolver == PLUG_TIMEOUT) {
 			if (test->async_mode) {
 				int res;
-				if ((res = write(timeout_pipe[1], "", 1)) != 1) {
+				if ((res = send(timeout_pipe[1], "", 1, 0)) != 1) {
 					if (res == -1)
-						perror("write");
+						perror("send");
 					else
-						fprintf(stderr, "write returned %d\n", res);
+						fprintf(stderr, "send returned %d\n", res);
 					failure();
 				}
 			}
@@ -277,7 +281,14 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 	return 0;
 }
 
+#undef connect
+#ifdef _WIN32
+static gg_win32_hook_data_t connect_hook;
+
+static int my_connect(SOCKET socket, const struct sockaddr *address, int address_len)
+#else
 int connect(int socket, const struct sockaddr *address, socklen_t address_len)
+#endif
 {
 	struct sockaddr_in sin;
 	int result, plug, port;
@@ -287,11 +298,22 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 	/* GnuTLS may want to connect */
-	if (!gnutls_initialized)
+	if (!gnutls_initialized) {
+#ifdef _WIN32
+		int ret;
+
+		gg_win32_hook_set_enabled(&connect_hook, 0);
+		ret = connect(socket, address, address_len);
+		gg_win32_hook_set_enabled(&connect_hook, 1);
+
+		return ret;
+#else
 		return __connect(socket, address, address_len);
 #endif
+	}
+#endif
 
-	if (address_len < sizeof(sin)) {
+	if ((size_t)address_len < sizeof(sin)) {
 		debug("Invalid argument for connect(): sa_len < %d\n", sizeof(sin));
 		errno = EINVAL;
 		return -1;
@@ -304,6 +326,18 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		errno = EINVAL;
 		return -1;
 	}
+
+#ifdef _WIN32
+	if (sin.sin_addr.s_addr == htonl(INADDR_LOOPBACK)) {
+		int ret;
+
+		gg_win32_hook_set_enabled(&connect_hook, 0);
+		ret = connect(socket, address, address_len);
+		gg_win32_hook_set_enabled(&connect_hook, 1);
+
+		return ret;
+	}
+#endif
 
 	if (sin.sin_addr.s_addr != inet_addr(HOST_LOCAL)) {
 		debug("Invalid argument for connect(): sin_addr = %s\n", inet_ntoa(sin.sin_addr));
@@ -356,8 +390,8 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 				errno = ETIMEDOUT;
 			} else {
 				int res;
-				if ((res = write(timeout_pipe[1], "", 1)) != 1) {
-					debug("write() returned %d\n", res);
+				if ((res = send(timeout_pipe[1], "", 1, 0)) != 1) {
+					debug("send() returned %d\n", res);
 					errno = EBADF;
 					return -1;
 				}
@@ -366,7 +400,13 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			return -1;
 	}
 
+#ifdef _WIN32
+	gg_win32_hook_set_enabled(&connect_hook, 0);
+	result = connect(socket, (struct sockaddr*) &sin, address_len);
+	gg_win32_hook_set_enabled(&connect_hook, 1);
+#else
 	result = __connect(socket, (struct sockaddr*) &sin, address_len);
+#endif
 
 	return result;
 }
@@ -386,7 +426,6 @@ static int client_func(const test_param_t *test)
 	glp.uin = 1;
 	glp.password = "dupa.8";
 	glp.async = test->async_mode;
-	glp.resolver = GG_RESOLVER_PTHREAD;
 
 	if (test->server)
 		glp.server_addr = inet_addr(HOST_LOCAL);
@@ -394,7 +433,7 @@ static int client_func(const test_param_t *test)
 	if (test->ssl_mode)
 		glp.tls = GG_SSL_ENABLED;
 
-	while (read(timeout_pipe[0], &tmp, 1) != -1);
+	while (recv(timeout_pipe[0], &tmp, 1, 0) != -1);
 
 	gs = gg_login(&glp);
 
@@ -452,7 +491,7 @@ static int client_func(const test_param_t *test)
 				continue;
 
 			if (FD_ISSET(timeout_pipe[0], &rd)) {
-				if (read(timeout_pipe[0], &tmp, 1) != 1) {
+				if (recv(timeout_pipe[0], &tmp, 1, 0) != 1) {
 					debug("Test error\n");
 					gg_free_session(gs);
 					return -1;
@@ -1021,6 +1060,12 @@ int main(int argc, char **argv)
 	size_t srcdir_len;
 	char cert_file_path[2000], key_file_path[2000];
 
+#ifdef _WIN32
+	gg_win32_init_network();
+	gg_win32_hook(connect, my_connect, &connect_hook);
+	gg_win32_hook(gethostbyname, my_gethostbyname, NULL);
+#endif
+
 	srcdir = getenv("srcdir");
 	if (srcdir == NULL || srcdir[0] == '\0')
 		srcdir = ".";
@@ -1088,8 +1133,15 @@ int main(int argc, char **argv)
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
-	if (pipe(server_pipe) == -1 || pipe(timeout_pipe) == -1) {
-		perror("pipe");
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, server_pipe) == -1)
+	{
+		perror("server_pipe");
+		failure();
+	}
+
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, timeout_pipe) == -1)
+	{
+		perror("timeout_pipe");
 		failure();
 	}
 
@@ -1226,8 +1278,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (write(server_pipe[1], "", 1) != 1) {
-		perror("write");
+	if (send(server_pipe[1], "", 1, 0) != 1) {
+		perror("send");
 		failure();
 	}
 
