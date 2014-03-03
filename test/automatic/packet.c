@@ -391,9 +391,9 @@ static int my_get_last_error(void)
 int main(void)
 {
 #ifdef _WIN32
-	gg_win32_hook(WSAGetLastError, my_get_last_error);
-	gg_win32_hook(recv, my_recv);
-	gg_win32_hook(send, my_send);
+	gg_win32_hook(WSAGetLastError, my_get_last_error, NULL);
+	gg_win32_hook(recv, my_recv, NULL);
+	gg_win32_hook(send, my_send, NULL);
 #endif
 
 	test_recv_packet();

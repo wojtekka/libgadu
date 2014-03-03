@@ -135,13 +135,24 @@ char ** gg_strarr_dup(char **strarr);
 
 #include <windows.h>
 
-#define gg_win32_hook(orig_func, hook_func) \
-	gg_win32_hook_f((void (*)())(orig_func), (void (*)())(hook_func))
+typedef struct {
+	void (*fnc)();
+#ifdef _WIN64
+	uint8_t trap[12];
+	uint8_t original[12];
+#else
+	uint8_t trap[7];
+	uint8_t original[7];
+#endif
+} gg_win32_hook_data_t;
+
+#define gg_win32_hook(orig_func, hook_func, data) \
+	gg_win32_hook_f((void (*)())(orig_func), (void (*)())(hook_func), (data))
 
 static inline void
-gg_win32_hook_f(void (*orig_func)(), void (*hook_func)())
+gg_win32_hook_f(void (*orig_func)(), void (*hook_func)(), gg_win32_hook_data_t *data)
 {
-	DWORD dPermission = 0;
+	DWORD dPermission;
 	uint8_t trap[] = {
 #ifdef _WIN64
 		0x48, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, /* mov rax, uint64_t */
@@ -162,8 +173,31 @@ gg_win32_hook_f(void (*orig_func)(), void (*hook_func)())
 
 	VirtualProtect(orig_func, sizeof(trap),
 		PAGE_EXECUTE_READWRITE, &dPermission);
+	if (data != NULL) {
+		data->fnc = orig_func;
+		memcpy(data->trap, trap, sizeof(trap));
+		memcpy(data->original, orig_func, sizeof(trap));
+	}
 	memcpy(orig_func, trap, sizeof(trap));
 	VirtualProtect(orig_func, sizeof(trap),
+		dPermission, &dPermission);
+}
+
+static inline void
+gg_win32_hook_set_enabled(gg_win32_hook_data_t *data, int enabled)
+{
+	DWORD dPermission;
+	uint8_t *src;
+
+	if (enabled)
+		src = data->trap;
+	else
+		src = data->original;
+
+	VirtualProtect(data->fnc, sizeof(data->trap),
+		PAGE_EXECUTE_READWRITE, &dPermission);
+	memcpy(data->fnc, src, sizeof(data->trap));
+	VirtualProtect(data->fnc, sizeof(data->trap),
 		dPermission, &dPermission);
 }
 

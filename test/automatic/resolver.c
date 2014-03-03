@@ -24,15 +24,17 @@
 #include <unistd.h>
 
 #include "network.h"
+#include "internal.h"
 
-#define LOCALHOST "127.0.0.1"
+/* must be different from INADDR_LOOPBACK=127.0.0.1 */
+#define LOCALHOST "127.0.0.2"
 
 int delay_flag;
 int connect_flag;
 
 #undef gethostbyname
 #ifdef _WIN32
-WINSOCK_API_LINKAGE struct hostent *WSAAPI gethostbyname(const char *name)
+static inline struct hostent *my_gethostbyname(const char *name)
 #else
 struct hostent *gethostbyname(const char *name)
 #endif
@@ -92,11 +94,35 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 }
 #endif
 
+#undef connect
+#ifdef _WIN32
+static gg_win32_hook_data_t connect_hook;
+
+static inline int my_connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
+{
+	int ret;
+	struct sockaddr_in *sin = (struct sockaddr_in *)sa;
+
+	if (sa->sa_family == AF_INET &&
+		sin->sin_addr.s_addr == inet_addr(LOCALHOST))
+	{
+		connect_flag = 1;
+		return 0;
+	}
+
+	gg_win32_hook_set_enabled(&connect_hook, 0);
+	ret = connect(fd, sa, sa_len);
+	gg_win32_hook_set_enabled(&connect_hook, 1);
+
+	return ret;
+}
+#else
 int connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
 {
 	connect_flag = 1;
 	return 0;
 }
+#endif
 
 static int test(int resolver, int delay)
 {
@@ -623,6 +649,8 @@ int main(int argc, char **argv)
 
 #ifdef _WIN32
 	gg_win32_init_network();
+	gg_win32_hook(gethostbyname, my_gethostbyname, NULL);
+	gg_win32_hook(connect, my_connect, &connect_hook);
 #else
 	setbuf(stdout, NULL);
 	setbuf(stderr, NULL);
