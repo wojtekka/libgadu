@@ -3,8 +3,7 @@ TESTS = convert endian1 message2 message1 hash packet resolver $(OPTIONAL_TESTS_
 if HAVE_MINGW
 # FIXIT: resolver test is expected to fail on win32,
 # due to gethostbyname hook improperly implemented.
-# Ditto for packet test and recv/send hook.
-XFAIL_TESTS = resolver packet
+XFAIL_TESTS = resolver
 endif
 
 if HAVE_GLIBC
@@ -20,7 +19,7 @@ endif
 check_PROGRAMS = $(TESTS)
 EXTRA_PROGRAMS = convert endian1 message2 message1 hash resolver packet connect protocol
 
-CFLAGS += -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
+CFLAGS += -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include -I$(top_srcdir)/test
 AM_LDFLAGS = @LDFLAGS_NO_INSTALL@
 
 protocol_SOURCES = protocol.c

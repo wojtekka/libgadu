@@ -24,6 +24,7 @@
 #include "internal.h"
 
 #include "network.h"
+#include "compat.h"
 
 enum {
 	EXPECT_NOTHING = 0,
@@ -36,6 +37,7 @@ int state;
 int offset;
 int expected_packet;
 static int recv_called = 0;
+static int send_called = 0;
 
 struct {
 	const char *data;
@@ -104,7 +106,7 @@ struct {
 
 #undef recv
 #ifdef _WIN32
-WINSOCK_API_LINKAGE int WSAAPI recv(SOCKET fd, char *buf, int len, int flags)
+static int my_recv(SOCKET fd, char *buf, int len, int flags)
 #else
 ssize_t recv(int fd, void *buf, size_t len, int flags)
 #endif
@@ -255,12 +257,14 @@ struct {
 
 #undef send
 #ifdef _WIN32
-WINSOCK_API_LINKAGE int WSAAPI send(SOCKET fd, const char *buf, int len, int flags)
+static int my_send(SOCKET fd, const char *buf, int len, int flags)
 #else
 ssize_t send(int fd, const void *buf, size_t len, int flags)
 #endif
 {
 	ssize_t res;
+
+	send_called = 1;
 
 	if (send_state >= sizeof(send_list) / sizeof(send_list[0])) {
 		fprintf(stderr, "Unexpected send\n");
@@ -296,7 +300,10 @@ static void test_send_packet(void)
 	/* Poprawne wysyłanie */
 
 	if (gg_send_packet(&gs, 0x1234, "ABC", 3, "DEF", 3, NULL) != 0) {
-		fprintf(stderr, "Expected success\n");
+		if (!send_called)
+			fprintf(stderr, "send hook not called\n");
+		else
+			fprintf(stderr, "Expected success\n");
 		exit(1);
 	}
 
@@ -374,8 +381,23 @@ static void test_send_packet(void)
 	fprintf(stderr, "Test succeeded.\n");
 }
 
+#ifdef _WIN32
+
+static int my_get_last_error(void)
+{
+	return errno;
+}
+
+#endif
+
 int main(void)
 {
+#ifdef _WIN32
+	install_win32_hook(WSAGetLastError, my_get_last_error);
+	install_win32_hook(recv, my_recv);
+	install_win32_hook(send, my_send);
+#endif
+
 	test_recv_packet();
 	test_send_packet();
 
