@@ -5,7 +5,7 @@ libgadu_la_LDFLAGS = -version-number 3:13 -export-symbols $(top_builddir)/src/li
 libgadu_libextradir = $(libdir)
 libgadu_libextra_DATA = @MINGW_LIBDATA@
 BUILT_SOURCES = libgadu.sym
-CLEANFILES = libgadu.sym
+CLEANFILES = libgadu.sym libgadu.def
 EXTRA_DIST = libgadu.sym.in protobuf-c.c.patch
 
 if !HAVE_PROTOBUF_C

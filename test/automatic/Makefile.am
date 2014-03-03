@@ -51,7 +51,7 @@ packet_LDADD = $(top_builddir)/src/libgadu.la
 
 resolver_LDADD = $(top_builddir)/src/libgadu.la
 
-EXTRA_DIST = protocol.txt connect.txt connect.pem
+EXTRA_DIST = protocol.txt connect.txt connect.pem wine-wrapper.sh
 
 SUBDIRS = script
 
