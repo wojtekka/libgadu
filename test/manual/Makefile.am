@@ -41,7 +41,7 @@ voice7_CFLAGS = -Wall -DHAVE_SPEEX -DHAVE_GSM
 voice7_LDADD = $(top_builddir)/src/libgadu.la -lgsm -lspeex
 
 clean-local:
-	rm -f *.log *-valgrind
+	rm -f *.log *-valgrind libgadu-*.c
 
 check-local:      $(check_PROGRAMS)
 	for i in $(check_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done
