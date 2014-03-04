@@ -84,6 +84,15 @@ case "$UNAME_SYSTEM" in
         ;;
 esac
 
+case "$host" in
+	*-*-mingw* | *-*-cygwin*)
+		is_mingw="yes"
+		;;
+	*)
+		is_mingw="no"
+		;;
+esac
+
 if test x"$acx_pthread_ok" = xno; then
 for flag in $acx_pthread_flags; do
 
@@ -218,7 +227,7 @@ if test "x$acx_pthread_ok" = xyes; then
 		# linking checks with -shared actually has any value. However
 		# linkers other than GNU ld might not support this flag.
 		AC_PROG_LD_GNU
-		if test x"$with_gnu_ld" = xyes; then
+		if test x"$with_gnu_ld" = xyes -a x"$is_mingw" != xyes; then
 			no_undefined_flag="-Wl,-z,defs"
 		else
 			no_undefined_flag=""

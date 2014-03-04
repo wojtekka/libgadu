@@ -44,9 +44,6 @@ nodist_endian1_SOURCES = libgadu-endian.c
 connect_SOURCES = connect.c
 nodist_connect_SOURCES = libgadu-network.c
 connect_LDADD = $(top_builddir)/src/libgadu.la @GNUTLS_LIBS@
-if HAVE_MINGW
-connect_LDADD += -lpthread
-endif
 connect_CFLAGS = @GNUTLS_CFLAGS@
 
 packet_LDADD = $(top_builddir)/src/libgadu.la
