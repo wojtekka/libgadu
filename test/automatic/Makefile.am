@@ -17,7 +17,7 @@ endif
 check_PROGRAMS = $(TESTS)
 EXTRA_PROGRAMS = convert endian1 message2 message1 hash resolver packet connect protocol
 
-CFLAGS += -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include -I$(top_srcdir)/test
+AM_CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include -I$(top_srcdir)/test
 AM_LDFLAGS = @LDFLAGS_NO_INSTALL@
 
 protocol_SOURCES = protocol.c

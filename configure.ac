@@ -202,8 +202,7 @@ if test "x$with_pthread" != "xno"; then
 		dnl workaround dla pkgconfiga
 		if test "x$PTHREAD_CFLAGS" = "x-pthread"; then
 			PTHREAD_LIBS="$PTHREAD_LIBS -pthread"
-		else
-			AM_CPPFLAGS="$AM_CPPFLAGS $PTHREAD_CFLAGS"
+			PTHREAD_CFLAGS=""
 		fi
 
 		LIBS_PRIVATE="$PTHREAD_LIBS $LIBS_PRIVATE"

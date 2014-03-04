@@ -21,7 +21,7 @@ endif
 EXTRA_PROGRAMS = client userlist dcc7 search voice7
 CLEANFILES = client userlist dcc7 search voice7
 
-CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
+AM_CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
 AM_LDFLAGS = @LDFLAGS_NO_INSTALL@
 
 dcc7_LDADD = $(top_builddir)/src/libgadu.la
@@ -37,7 +37,7 @@ userlist_SOURCES = userlist.c userconfig.c userconfig.h
 search_SOURCES = search.c
 search_LDADD = lib/libsearch.a -lcurl -lexpat @MINGW_LDFLAGS@
 
-voice7_CFLAGS = -Wall -DHAVE_SPEEX -DHAVE_GSM
+voice7_CFLAGS = -DHAVE_SPEEX -DHAVE_GSM
 voice7_LDADD = $(top_builddir)/src/libgadu.la -lgsm -lspeex
 
 clean-local:
