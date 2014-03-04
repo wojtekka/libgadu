@@ -62,4 +62,5 @@ test/manual/dcc7
 test/manual/userlist
 test/manual/search
 test/manual/voice7
+test/manual/libgadu-*.c
 test/manual/*-valgrind

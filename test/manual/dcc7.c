@@ -25,10 +25,10 @@
 #include <errno.h>
 #include <signal.h>
 #include <ctype.h>
-#include <sys/select.h>
 
 #include "libgadu.h"
 #include "network.h"
+#include "internal.h"
 #include "userconfig.h"
 
 #define debug(msg...) \
@@ -51,11 +51,21 @@ enum {
 	TEST_MODE_LAST
 };
 
+#undef connect
+#ifdef _WIN32
+static gg_win32_hook_data_t connect_hook;
+
+static int my_connect(SOCKET socket, const struct sockaddr *address, int address_len)
+#else
 extern int __connect(int socket, const struct sockaddr *address, socklen_t address_len);
 
 int connect(int socket, const struct sockaddr *address, socklen_t address_len)
+#endif
 {
 	struct sockaddr_in sin;
+#ifdef _WIN32
+	int ret;
+#endif
 
 	if (connected && test_mode == TEST_MODE_SEND_NAT) {
 		memcpy(&sin, address, address_len);
@@ -63,7 +73,15 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		address = (struct sockaddr*) &sin;
 	}
 
+#ifdef _WIN32
+	gg_win32_hook_set_enabled(&connect_hook, 0);
+	ret = connect(socket, address, address_len);
+	gg_win32_hook_set_enabled(&connect_hook, 1);
+
+	return ret;
+#else
 	return __connect(socket, address, address_len);
+#endif
 }
 
 int main(int argc, char **argv)
@@ -93,11 +111,16 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+#ifdef _WIN32
+	gg_win32_init_network();
+	gg_win32_hook(connect, my_connect, &connect_hook);
+#else
 	signal(SIGPIPE, SIG_IGN);
+#endif
 	gg_debug_file = stdout;
 	gg_debug_level = ~0;
 
-	if (!config_file && pipe(fds) == -1) {
+	if (!config_file && socketpair(AF_LOCAL, SOCK_STREAM, 0, fds) == -1) {
 		perror("pipe");
 		exit(1);
 	}
@@ -108,6 +131,7 @@ int main(int argc, char **argv)
 	glp.async = 1;
 	glp.client_addr = config_ip;
 	glp.client_port = config_port;
+	glp.protocol_version = GG_PROTOCOL_VERSION_100;
 
 	if (config_dir && (test_mode == TEST_MODE_RECEIVE ||
 		test_mode == TEST_MODE_RECEIVE_NAT ||
