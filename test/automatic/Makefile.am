@@ -4,6 +4,10 @@ if HAVE_GLIBC
 if HAVE_GNUTLS_TESTS
 TESTS += connect
 endif
+else
+if HAVE_MINGW
+TESTS += connect
+endif
 endif
 
 if HAVE_PERL

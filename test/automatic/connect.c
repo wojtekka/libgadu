@@ -393,6 +393,29 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 			sin.sin_port = htons(port);
 			break;
 		case PLUG_RESET:
+#ifdef _WIN32
+			/* TODO: it doesn't seems to fit win32 sockets behavior.
+			 * In real case, win32 may hang here - just remove this
+			 * block and see what's happens.
+			 *
+			 * For blocking sockets, connect() should return
+			 * ECONNREFUSED. For async it should:
+			 * - return EINPROGRESS;
+			 * - next call to select() returns >= 1;
+			 * - getsockopt(..., SO_ERROR, ...) returns ECONNREFUSED.
+			 *
+			 * Instead, on win32 select() returns 0 and getsockopt
+			 * always returns 0.
+			 *
+			 * Function send(fd, "", 0, 0) called just after
+			 * connect, returns ECONNRESET both for "RESET" and
+			 * "TIMEOUT" sockets.
+			 */
+			if (test->async_mode) {
+				errno = ECONNREFUSED;
+				return -1;
+			}
+#endif
 			sin.sin_port = htons(server_ports[PORT_CLOSED]);
 			break;
 		case PLUG_TIMEOUT:
@@ -1167,14 +1190,12 @@ int main(int argc, char **argv)
 	gg_debug_handler = debug_handler;
 	gg_debug_level = ~0;
 
-	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, server_pipe) == -1)
-	{
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, server_pipe) == -1) {
 		perror("server_pipe");
 		failure();
 	}
 
-	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, timeout_pipe) == -1)
-	{
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, timeout_pipe) == -1) {
 		perror("timeout_pipe");
 		failure();
 	}
