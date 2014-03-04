@@ -457,6 +457,7 @@ static int test_set_get(void)
 
 	gg_free_session(gs);
 
+#ifdef GG_CONFIG_HAVE_FORK
 	/* Test globalnych ustawień + lokalne */
 
 	printf("Testing local fork resolver\n");
@@ -474,6 +475,7 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif
 
 	/* Test globalnych ustawień + lokalne */
 
@@ -492,6 +494,27 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+
+#ifdef _WIN32
+	/* Test globalnych ustawień + lokalne */
+
+	printf("Testing local win32 resolver\n");
+
+	glp.resolver = GG_RESOLVER_WIN32;
+
+	gs = gg_login(&glp);
+
+	if (gs == NULL)
+		return 0;
+
+	if (gg_session_get_resolver(gs) != GG_RESOLVER_WIN32) {
+		printf("Expected local win32 resolver\n");
+		return 0;
+	}
+
+	gg_free_session(gs);
+#endif
+
 #endif /* GG_CONFIG_HAVE_PTHREAD */
 
 	/* Testy globalnego custom + lokalne */
