@@ -107,6 +107,10 @@ static gnutls_dh_params_t dh_params;
 #define KEY_FILE "connect.pem"
 #endif
 
+#ifdef _WIN32
+static bool errno_is_set = 0;
+#endif
+
 static void failure(void) __attribute__ ((noreturn));
 
 static void failure(void)
@@ -306,11 +310,16 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		ret = connect(socket, address, address_len);
 		gg_win32_hook_set_enabled(&connect_hook, 1);
 
+		errno_is_set = 0;
 		return ret;
 #else
 		return __connect(socket, address, address_len);
 #endif
 	}
+#endif
+
+#ifdef _WIN32
+	errno_is_set = 1;
 #endif
 
 	if ((size_t)address_len < sizeof(sin)) {
@@ -335,6 +344,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 		ret = connect(socket, address, address_len);
 		gg_win32_hook_set_enabled(&connect_hook, 1);
 
+		errno_is_set = 0;
 		return ret;
 	}
 #endif
@@ -404,12 +414,35 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 	gg_win32_hook_set_enabled(&connect_hook, 0);
 	result = connect(socket, (struct sockaddr*) &sin, address_len);
 	gg_win32_hook_set_enabled(&connect_hook, 1);
+
+	errno_is_set = 0;
 #else
 	result = __connect(socket, (struct sockaddr*) &sin, address_len);
 #endif
 
 	return result;
 }
+
+#ifdef _WIN32
+static gg_win32_hook_data_t get_last_error_hook;
+
+static int my_get_last_error(void)
+{
+	int result;
+
+	if (errno_is_set) {
+		errno_is_set = 0;
+		return errno;
+	}
+
+	gg_win32_hook_set_enabled(&get_last_error_hook, 0);
+	result = WSAGetLastError();
+	gg_win32_hook_set_enabled(&get_last_error_hook, 1);
+
+	return result;
+}
+
+#endif
 
 /** @return 1 on success, 0 on failure, -1 on error */
 static int client_func(const test_param_t *test)
@@ -483,7 +516,7 @@ static int client_func(const test_param_t *test)
 			}
 
 			if (res == -1 && errno != EINTR) {
-				debug("select() failed: %s\n", strerror(errno));
+				debug("select() failed: %s (errno=%d)\n", strerror(errno), errno);
 				gg_free_session(gs);
 				return -1;
 			}
@@ -1064,6 +1097,7 @@ int main(int argc, char **argv)
 	gg_win32_init_network();
 	gg_win32_hook(connect, my_connect, &connect_hook);
 	gg_win32_hook(gethostbyname, my_gethostbyname, NULL);
+	gg_win32_hook(WSAGetLastError, my_get_last_error, &get_last_error_hook);
 #endif
 
 	srcdir = getenv("srcdir");
