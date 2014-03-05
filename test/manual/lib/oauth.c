@@ -69,7 +69,7 @@ static char *gg_oauth_generate_signature(const char *method, const char *url,
 	free(key);
 	free(text);
 
-	res = gg_base64_encode((const char*) digest, 20);
+	res = gg_base64_encode2((const char*) digest, 20);
 
 	printf("signature = '%s'\n", res);
 

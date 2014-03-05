@@ -20,6 +20,7 @@
 #define URLENCODE_H
 
 #include <sys/types.h>
+#include <libgadu.h>
 
 size_t gg_urlencode_strlen(const char *s);
 char *gg_urlencode_strcpy(char *dest, const char *src);

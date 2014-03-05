@@ -75,7 +75,7 @@ static char gg_base64_charset[] =
  *
  * \ingroup helper
  */
-char *gg_base64_encode(const char *buf, ssize_t len)
+char *gg_base64_encode2(const char *buf, ssize_t len)
 {
 	char *out, *res;
 	unsigned int i = 0, j = 0, k = 0;
