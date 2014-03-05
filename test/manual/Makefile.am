@@ -21,7 +21,7 @@ endif
 EXTRA_PROGRAMS = client userlist dcc7 search voice7
 CLEANFILES = client userlist dcc7 search voice7
 
-AM_CFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
+AM_CPPFLAGS = -DGG_IGNORE_DEPRECATED -I$(top_srcdir)/include
 AM_LDFLAGS = @LDFLAGS_NO_INSTALL@
 
 dcc7_LDADD = $(top_builddir)/src/libgadu.la
