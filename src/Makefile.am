@@ -5,6 +5,7 @@ libgadu_la_LDFLAGS = -version-number 3:13 -export-symbols $(top_builddir)/src/li
 EXTRA_libgadu_la_DEPENDENCIES = libgadu.sym
 libgadu_libextradir = $(libdir)
 libgadu_libextra_DATA = @MINGW_LIBDATA@
+BUILT_SOURCES = libgadu.sym
 CLEANFILES = libgadu.sym libgadu.def libgadu.def.in
 EXTRA_DIST = libgadu.sym.in protobuf-c.c.patch
 
