@@ -34,33 +34,47 @@
 #define LOCALHOST_NAME "localhost"
 #define LOCALHOST_ADDR "127.0.0.1"
 
-/* TODO: static inline function with GG_GNUC_PRINTF */
-#define debug(msg...) \
-	do { \
-		fprintf(stderr, "\033[1m"); \
-		fprintf(stderr, msg); \
-		fprintf(stderr, "\033[0m"); \
-		fflush(stderr); \
-	} while (0)
-
-/* TODO: static inline function with GG_GNUC_PRINTF */
-#define error(state, msg...) \
-	do { \
-		fprintf(stderr, "\033[1;31m"); \
-		if (script[state].test != -1) { \
-			fprintf(stderr, "File: %s, Line: %d, Test: %s\n", \
-				script[state].filename, script[state].line, \
-				tests[script[state].test]); \
-		} else \
-			fprintf(stderr, "File: %s, Line: %d\n", script[state].filename, script[state].line); \
-		fprintf(stderr, msg); \
-		fprintf(stderr, "\033[0m"); \
-		fflush(stderr); \
-	} while (0)
-
 static char outbuf[4096];
 static int outbuflen = 0;
 static int fd = -1;	/* connected socket */
+
+static void debug(const char *msg, ...) GG_GNUC_PRINTF(1, 2);
+static void debug(const char *msg, ...)
+{
+	va_list ap;
+
+	fprintf(stderr, "\033[1m");
+
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
+
+	fprintf(stderr, "\033[0m");
+	fflush(stderr);
+}
+
+static void error(int state, const char *msg, ...) GG_GNUC_PRINTF(2, 3);
+static void error(int state, const char *msg, ...)
+{
+	va_list ap;
+
+	fprintf(stderr, "\033[1;31m");
+	if (script[state].test != -1) {
+		fprintf(stderr, "File: %s, Line: %d, Test: %s\n",
+			script[state].filename, script[state].line,
+			tests[script[state].test]);
+	} else {
+		fprintf(stderr, "File: %s, Line: %d\n",
+			script[state].filename, script[state].line);
+	}
+
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
+
+	fprintf(stderr, "\033[0m");
+	fflush(stderr);
+}
 
 int main(int argc, char **argv)
 {

@@ -56,15 +56,6 @@
 #define EKG_CODEC_MELP    0x04
 
 
-/* TODO: static inline function with GG_GNUC_PRINTF */
-#define debug(msg...) \
-	do { \
-		fprintf(stderr, "\033[1m"); \
-		fprintf(stderr, msg); \
-		fprintf(stderr, "\033[0m"); \
-		fflush(stderr); \
-	} while (0)
-
 int test_mode;
 int connected;
 
@@ -87,6 +78,21 @@ void *voice_speex_dec = NULL;
 SpeexBits speex_enc_bits;
 SpeexBits speex_dec_bits;
 #endif
+
+static void debug(const char *msg, ...) GG_GNUC_PRINTF(1, 2);
+static void debug(const char *msg, ...)
+{
+	va_list ap;
+
+	fprintf(stderr, "\033[1m");
+
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
+
+	fprintf(stderr, "\033[0m");
+	fflush(stderr);
+}
 
 void voice_close()
 {
