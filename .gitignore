@@ -23,7 +23,7 @@ docs/Doxyfile
 docs/html-stamp
 pkgconfig/libgadu.pc
 include/libgadu.h
-src/libgadu.def
+src/libgadu.def*
 install-sh
 libtool
 ltmain.sh

@@ -438,7 +438,7 @@ is_mingw="no"
 case "$host" in
 	*-*-mingw* | *-*-cygwin*)
 		MINGW_LDFLAGS="-no-undefined -lws2_32"
-		MINGW_LIBGEN="-Wl,--output-def,libgadu.def"
+		MINGW_LIBGEN="-Wl,--output-def,libgadu.def.in"
 		MINGW_LIBDATA="libgadu.def"
 		LDFLAGS_NO_INSTALL="-no-fast-install"
 		SRCDIR=`(cd $srcdir && pwd)`
