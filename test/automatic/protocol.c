@@ -34,6 +34,7 @@
 #define LOCALHOST_NAME "localhost"
 #define LOCALHOST_ADDR "127.0.0.1"
 
+/* TODO: static inline function with GG_GNUC_PRINTF */
 #define debug(msg...) \
 	do { \
 		fprintf(stderr, "\033[1m"); \
@@ -42,6 +43,7 @@
 		fflush(stderr); \
 	} while (0)
 
+/* TODO: static inline function with GG_GNUC_PRINTF */
 #define error(state, msg...) \
 	do { \
 		fprintf(stderr, "\033[1;31m"); \

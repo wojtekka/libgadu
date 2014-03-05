@@ -24,6 +24,6 @@
 size_t gg_urlencode_strlen(const char *s);
 char *gg_urlencode_strcpy(char *dest, const char *src);
 char *gg_urlencode(const char *s);
-char *gg_urlencode_printf(char *format, ...);
+char *gg_urlencode_printf(char *format, ...) GG_GNUC_PRINTF(1, 2);
 
 #endif /* URLENCODE_H */

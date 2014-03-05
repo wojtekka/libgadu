@@ -56,6 +56,7 @@
 #define EKG_CODEC_MELP    0x04
 
 
+/* TODO: static inline function with GG_GNUC_PRINTF */
 #define debug(msg...) \
 	do { \
 		fprintf(stderr, "\033[1m"); \

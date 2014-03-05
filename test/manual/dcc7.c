@@ -31,6 +31,7 @@
 #include "internal.h"
 #include "userconfig.h"
 
+/* TODO: static inline function with GG_GNUC_PRINTF */
 #define debug(msg...) \
 	do { \
 		fprintf(stderr, "\033[1m"); \
