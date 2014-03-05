@@ -140,7 +140,8 @@ int gg_tvbuff_have_remaining(gg_tvbuff_t *tvb, size_t length)
 		return 1;
 
 	gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_have_remaining() failed "
-		"(%d < %d)\n", gg_tvbuff_get_remaining(tvb), length);
+		"(%" GG_SIZE_FMT " < %" GG_SIZE_FMT ")\n",
+		gg_tvbuff_get_remaining(tvb), length);
 	tvb->valid = 0;
 	return 0;
 }
@@ -227,7 +228,7 @@ uint8_t gg_tvbuff_read_uint8(gg_tvbuff_t *tvb)
 
 	if (!gg_tvbuff_have_remaining(tvb, 1)) {
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_uint8() "
-			"failed at %d\n", tvb->offset);
+			"failed at %" GG_SIZE_FMT "\n", tvb->offset);
 		return 0;
 	}
 
@@ -250,7 +251,7 @@ uint32_t gg_tvbuff_read_uint32(gg_tvbuff_t *tvb)
 
 	if (!gg_tvbuff_have_remaining(tvb, 4)) {
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_uint32() "
-			"failed at %d\n", tvb->offset);
+			"failed at %" GG_SIZE_FMT "\n", tvb->offset);
 		return 0;
 	}
 
@@ -276,7 +277,7 @@ uint64_t gg_tvbuff_read_uint64(gg_tvbuff_t *tvb)
 
 	if (!gg_tvbuff_have_remaining(tvb, 8)) {
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_uint64() "
-			"failed at %d\n", tvb->offset);
+			"failed at %" GG_SIZE_FMT "\n", tvb->offset);
 		return 0;
 	}
 
@@ -364,7 +365,8 @@ const char *gg_tvbuff_read_buff(gg_tvbuff_t *tvb, size_t length)
 
 	if (!gg_tvbuff_have_remaining(tvb, length)) {
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_get_buff() "
-			"failed at %d:%d\n", tvb->offset, length);
+			"failed at %" GG_SIZE_FMT ":%" GG_SIZE_FMT "\n",
+			tvb->offset, length);
 		return NULL;
 	}
 
@@ -387,7 +389,8 @@ void gg_tvbuff_read_buff_cpy(gg_tvbuff_t *tvb, char *buffer, size_t length)
 
 	if (!gg_tvbuff_have_remaining(tvb, length)) {
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_buff() "
-			"failed at %d:%d\n", tvb->offset, length);
+			"failed at %" GG_SIZE_FMT ":%" GG_SIZE_FMT "\n",
+			tvb->offset, length);
 		return;
 	}
 
@@ -427,7 +430,7 @@ const char *gg_tvbuff_read_str(gg_tvbuff_t *tvb, size_t *length)
 		!gg_tvbuff_have_remaining(tvb, str_len))
 	{
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_str() failed at "
-			"%d:%d\n", offset, str_len);
+			"%" GG_SIZE_FMT ":%d\n", offset, str_len);
 		return NULL;
 	}
 
@@ -470,7 +473,7 @@ void gg_tvbuff_read_str_dup(gg_tvbuff_t *tvb, char **dst)
 		!gg_tvbuff_have_remaining(tvb, str_len))
 	{
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_read_str_dup() failed "
-			"at %d:%d\n", offset, str_len);
+			"at %" GG_SIZE_FMT ":%d\n", offset, str_len);
 		return;
 	}
 
@@ -558,7 +561,7 @@ void gg_tvbuff_expected_uint8(gg_tvbuff_t *tvb, uint8_t value)
 
 	if (got != value)
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_expected_uint8() "
-			"expected %#02x, but %#02x found at %d\n",
+			"expected %#02x, but %#02x found at %" GG_SIZE_FMT "\n",
 			value, got, offset);
 }
 
@@ -581,7 +584,7 @@ void gg_tvbuff_expected_uint32(gg_tvbuff_t *tvb, uint32_t value)
 
 	if (got != value)
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_expected_uint32() "
-			"expected %#08x, but %#08x found at %d\n",
+			"expected %#08x, but %#08x found at %" GG_SIZE_FMT "\n",
 			value, got, offset);
 }
 
@@ -598,7 +601,7 @@ void gg_tvbuff_expected_eob(const gg_tvbuff_t *tvb)
 
 	if (gg_tvbuff_get_remaining(tvb) != 0)
 		gg_debug(GG_DEBUG_WARNING, "// gg_tvbuff_expected_eob() "
-			"unexpected %d bytes, first=%#02x\n",
+			"unexpected %" GG_SIZE_FMT " bytes, first=%#02x\n",
 			gg_tvbuff_get_remaining(tvb),
 			tvb->buffer[tvb->offset]);
 }

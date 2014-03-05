@@ -173,7 +173,8 @@ void * gg_new0(size_t size)
 	ptr = malloc(size);
 	if (ptr == NULL) {
 		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR,
-			"//gg_new0(%zd) not enough memory\n", size);
+			"//gg_new0(%" GG_SIZE_FMT
+			") not enough memory\n", size);
 		return NULL;
 	}
 
@@ -588,7 +589,8 @@ void *gg_recv_packet(struct gg_session *sess)
 			len = sizeof(struct gg_header) - sess->recv_done;
 			gg_debug_session(sess, GG_DEBUG_NET,
 				"// gg_recv_packet() header: %d done, "
-				"%d to go\n", sess->recv_done, len);
+				"%" GG_SIZE_FMT " to go\n",
+				sess->recv_done, len);
 		} else {
 			uint32_t ghlen = gh ? gg_fix32(gh->length) : 0;
 			if ((size_t) sess->recv_done >= sizeof(struct gg_header) + ghlen) {
@@ -600,8 +602,8 @@ void *gg_recv_packet(struct gg_session *sess)
 
 			gg_debug_session(sess, GG_DEBUG_NET,
 				"// gg_recv_packet() payload: %d done, "
-				"%d length, %d to go\n", sess->recv_done,
-				ghlen, len);
+				"%u length, %" GG_SIZE_FMT " to go\n",
+				sess->recv_done, ghlen, len);
 		}
 
 		res = gg_read(sess, sess->recv_buf + sess->recv_done, len);
@@ -1423,7 +1425,7 @@ static int gg_send_message_110(struct gg_session *sess,
 	int succ = 1;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION,
-		"** gg_send_message_110(%p, %u, %llu, %p, %d);\n",
+		"** gg_send_message_110(%p, %u, %" PRIu64 ", %p, %d);\n",
 		sess, recipient, chat_id, message, is_html);
 
 	if (message == NULL)

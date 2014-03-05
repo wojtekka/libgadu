@@ -547,7 +547,7 @@ struct gg_dcc7 *gg_dcc7_send_file_fd(struct gg_session *sess, uin_t rcpt,
 	int fd, size_t size, const char *filename1250, const char *hash)
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_dcc7_send_file_fd(%p, "
-		"%d, %d, %u, \"%s\", %p)\n",
+		"%d, %d, %" GG_SIZE_FMT ", \"%s\", %p)\n",
 		sess, rcpt, fd, size, filename1250, hash);
 
 	return gg_dcc7_send_file_common(sess, rcpt, fd, size, filename1250, hash, 0);
@@ -993,7 +993,7 @@ int gg_dcc7_handle_new(struct gg_session *sess, struct gg_event *e, const void *
 		default:
 			gg_debug_session(sess, GG_DEBUG_MISC,
 				"// gg_dcc7_handle_new() unknown dcc type (%d) "
-				"from %ld\n", gg_fix32(p->type),
+				"from %u\n", gg_fix32(p->type),
 				gg_fix32(p->uin_from));
 
 			break;

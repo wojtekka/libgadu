@@ -8,7 +8,8 @@ AC_DEFUN([AC_NEED_STDINT_H],
  [AC_MSG_CHECKING([for uintXX_t types])
 
   ac_header_stdint=""
-  for i in stdint.h inttypes.h sys/inttypes.h sys/int_types.h sys/types.h; do
+  dnl inttypes have PRIu64 defined, stdint.h does not
+  for i in inttypes.h stdint.h sys/inttypes.h sys/int_types.h sys/types.h; do
     if test "x$ac_header_stdint" = "x"; then
       AC_TRY_COMPILE([#include <$i>], [uint32_t foo], [ac_header_stdint=$i])
     fi

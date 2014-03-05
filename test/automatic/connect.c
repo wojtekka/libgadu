@@ -324,7 +324,8 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 #endif
 
 	if ((size_t)address_len < sizeof(sin)) {
-		debug("Invalid argument for connect(): sa_len < %d\n", sizeof(sin));
+		debug("Invalid argument for connect(): sa_len < %"
+			GG_SIZE_FMT "\n", sizeof(sin));
 		errno = EINVAL;
 		return -1;
 	}

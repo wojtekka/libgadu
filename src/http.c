@@ -28,6 +28,7 @@
 #include "network.h"
 #include "libgadu.h"
 #include "resolver.h"
+#include "internal.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -267,7 +268,7 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		if (res == -1 && errno != EINTR && errno != EAGAIN) {
 			gg_debug(GG_DEBUG_MISC, "=> http, send() failed "
-				"(len=%d, res=%d, errno=%d)\n",
+				"(len=%" GG_SIZE_FMT ", res=%d, errno=%d)\n",
 				strlen(h->query), res, errno);
 			gg_http_error(GG_ERROR_WRITING);
 		}
@@ -281,14 +282,16 @@ int gg_http_watch_fd(struct gg_http *h)
 
 		if ((size_t) res < strlen(h->query)) {
 			gg_debug(GG_DEBUG_MISC, "=> http, partial header sent "
-				"(led=%d, sent=%d)\n", strlen(h->query), res);
+				"(led=%" GG_SIZE_FMT ", sent=%d)\n",
+				strlen(h->query), res);
 
 			memmove(h->query, h->query + res, strlen(h->query) - res + 1);
 			h->state = GG_STATE_SENDING_QUERY;
 			h->check = GG_CHECK_WRITE;
 			h->timeout = GG_DEFAULT_TIMEOUT;
 		} else {
-			gg_debug(GG_DEBUG_MISC, "=> http, request sent (len=%d)\n", strlen(h->query));
+			gg_debug(GG_DEBUG_MISC, "=> http, request sent (len=%"
+				GG_SIZE_FMT ")\n", strlen(h->query));
 			free(h->query);
 			h->query = NULL;
 

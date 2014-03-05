@@ -1085,7 +1085,7 @@ static gg_action_t gg_handle_reading_hub_proxy(struct gg_session *sess,
 	}
 
 	if (strcmp(host, "notoperating") == 0) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n", errno, strerror(errno));
+		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() service unavailable\n");
 		e->event.failure = GG_FAILURE_UNAVAILABLE;
 		return GG_ACTION_FAIL;
 	}

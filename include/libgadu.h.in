@@ -1760,7 +1760,7 @@ struct in_addr *gg_gethostbyname(const char *hostname) GG_DEPRECATED;
 char *gg_read_line(int sock, char *buf, int length) GG_DEPRECATED;
 void gg_chomp(char *line) GG_DEPRECATED;
 char *gg_urlencode(const char *str) GG_DEPRECATED;
-int gg_http_hash(const char *format, ...) GG_GNUC_PRINTF(1, 2) GG_DEPRECATED;
+int gg_http_hash(const char *format, ...) GG_DEPRECATED;
 void gg_http_free_fields(struct gg_http *h) GG_DEPRECATED;
 int gg_read(struct gg_session *sess, char *buf, int length) GG_DEPRECATED;
 int gg_write(struct gg_session *sess, const char *buf, int length) GG_DEPRECATED;

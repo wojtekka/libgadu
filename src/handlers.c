@@ -446,7 +446,7 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 
 	gg_debug_session(gs, GG_DEBUG_VERBOSE,
 		"// gg_session_handle_send_msg_ack_110() "
-		"%s=%016llx %s=%016llx\n",
+		"%s=%016" PRIx64 " %s=%016" PRIx64 "\n",
 		msg->has_msg_id ? "msg_id" : "0", msg->msg_id,
 		msg->has_conv_id ? "conv_id" : "0", msg->conv_id);
 
@@ -456,7 +456,7 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 			continue;
 		gg_debug_session(gs, GG_DEBUG_MISC,
 			"// gg_session_handle_send_msg_ack_110() "
-			"got link (id=%llu) \"%s\"\n", link->id, link->url);
+			"got link (id=%" PRIx64 ") \"%s\"\n", link->id, link->url);
 	}
 
 	ge->type = GG_EVENT_ACK110;
@@ -552,7 +552,7 @@ static int gg_session_handle_event_110(struct gg_session *gs, uint32_t type,
 		return -1;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_session_handle_event_110: "
-		"received GG11 event (type=%d, id=%llx)\n", msg->type, msg->id);
+		"received GG11 event (type=%d, id=%" PRIx64 ")\n", msg->type, msg->id);
 
 	if (msg->type == GG110_EVENT__TYPE__XML) {
 		ge->type = GG_EVENT_XML_EVENT;
@@ -620,7 +620,8 @@ static int gg_session_handle_userlist_reply(struct gg_session *gs,
 		unsigned int reply_len = (gs->userlist_reply != NULL) ? strlen(gs->userlist_reply) : 0;
 		char *tmp;
 
-		gg_debug_session(gs, GG_DEBUG_MISC, "userlist_reply=%p, len=%d\n", gs->userlist_reply, len);
+		gg_debug_session(gs, GG_DEBUG_MISC, "userlist_reply=%p, len=%"
+			GG_SIZE_FMT "\n", gs->userlist_reply, len);
 
 		tmp = realloc(gs->userlist_reply, reply_len + len);
 
@@ -1076,7 +1077,8 @@ static int gg_session_handle_recv_msg(struct gg_session *sess, uint32_t type,
 	const char *payload_end = packet + length;
 	size_t len;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %d, %p);\n", packet, length, e);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg(%p, %"
+		GG_SIZE_FMT ", %p);\n", packet, length, e);
 
 	if (sess == NULL)
 		goto fail;
@@ -1176,7 +1178,9 @@ static int gg_session_handle_recv_msg_80(struct gg_session *sess, uint32_t type,
 	uint32_t offset_plain;
 	uint32_t offset_attr;
 
-	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_handle_recv_msg80(%p, %d, %p);\n", packet, length, e);
+	gg_debug_session(sess, GG_DEBUG_FUNCTION,
+		"** gg_handle_recv_msg80(%p, %" GG_SIZE_FMT ", %p);\n",
+		packet, length, e);
 
 	if (sess == NULL)
 		goto fail;
@@ -1356,8 +1360,8 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type,
 	struct gg_event_msg *ev = &ge->event.msg;
 
 	gg_debug_session(gs, GG_DEBUG_FUNCTION,
-		"** gg_session_handle_recv_msg_110(%p, %d, %p);\n",
-		ptr, len, ge);
+		"** gg_session_handle_recv_msg_110(%p, %" GG_SIZE_FMT
+		", %p);\n", ptr, len, ge);
 
 	if (!GG_PROTOBUF_VALID(gs, "GG110RecvMessage", msg))
 		return -1;
@@ -1373,7 +1377,7 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type,
 		msg->conv_id = msg->has_conv_id ? msg->conv_id : 0;
 		gg_debug_session(gs, GG_DEBUG_VERBOSE,
 			"// gg_session_handle_recv_msg_110() "
-			"msg_id=%016llx conv_id=%016llx\n",
+			"msg_id=%016" PRIx64 " conv_id=%016" PRIx64 "\n",
 			msg->msg_id, msg->conv_id);
 	}
 
@@ -1989,7 +1993,7 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type,
 		if (users == NULL) {
 			gg_debug_session(gs, GG_DEBUG_MISC,
 				"// gg_session_handle_user_data() out of memory"
-				" (%d*%d)\n", d.user_count,
+				" (%d*%" GG_SIZE_FMT ")\n", d.user_count,
 				sizeof(struct gg_event_user_data_user));
 			goto fail;
 		}
@@ -2030,7 +2034,8 @@ static int gg_session_handle_user_data(struct gg_session *gs, uint32_t type,
 			if (attrs == NULL) {
 				gg_debug_session(gs, GG_DEBUG_MISC,
 					"// gg_session_handle_user_data() "
-					"out of memory (%d*%d)\n", u.attr_count,
+					"out of memory (%d*%" GG_SIZE_FMT
+					")\n", u.attr_count,
 					sizeof(struct gg_event_user_data_attr));
 				goto fail;
 			}
@@ -2202,7 +2207,8 @@ static int gg_session_handle_multilogon_info(struct gg_session *gs,
 
 	if (sessions == NULL) {
 		gg_debug_session(gs, GG_DEBUG_MISC, "// "
-			"gg_handle_multilogon_info() out of memory (%d*%d)\n",
+			"gg_handle_multilogon_info() out of memory (%"
+			GG_SIZE_FMT "*%" GG_SIZE_FMT ")\n",
 			count, sizeof(struct gg_multilogon_session));
 		return -1;
 	}
@@ -2242,7 +2248,7 @@ static int gg_session_handle_multilogon_info(struct gg_session *gs,
 		if (sessions[i].name == NULL) {
 			gg_debug_session(gs, GG_DEBUG_MISC,
 				"// gg_handle_multilogon_info() out of "
-				"memory (%d)\n", name_size);
+				"memory (%" GG_SIZE_FMT ")\n", name_size);
 			goto fail;
 		}
 
@@ -2448,7 +2454,8 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs,
 
 	gg_debug_session(gs, GG_DEBUG_VERBOSE,
 		"// gg_session_handle_chat_info_update() "
-		"msg_id=%016llx conv_id=%016llx\n", msg->msg_id, msg->conv_id);
+		"msg_id=%016" PRIx64 " conv_id=%016" PRIx64 "\n",
+		msg->msg_id, msg->conv_id);
 
 	ge->type = GG_EVENT_CHAT_INFO_UPDATE;
 	ge->event.chat_info_update.id = msg->chat_id;
@@ -2573,7 +2580,7 @@ static int gg_session_handle_access_info(struct gg_session *gs, uint32_t type,
 
 	gg_debug_session(gs, GG_DEBUG_MISC,
 		"// gg_session_handle_access_info: dummy[%02x, %02x], "
-		"last[message=%lu, file_transfer=%lu, conference_ch=%lu]\n",
+		"last[message=%u, file_transfer=%u, conference_ch=%u]\n",
 		msg->dummy1, msg->dummy2, msg->last_message,
 		msg->last_file_transfer, msg->last_conference_ch);
 
@@ -2643,8 +2650,8 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
 
 	gg_debug_session(gs, GG_DEBUG_MISC,
 		"// gg_session_handle_transfer_info: dummy1=%#x, time=%u, "
-			"sender=%u, peer=%u, msg_id=%#016llx, "
-			"conv_id=%#016llx\n",
+			"sender=%u, peer=%u, msg_id=%#016" PRIx64 ", "
+			"conv_id=%#016" PRIx64 "\n",
 		msg->dummy1, msg->time, sender, peer, msg->msg_id,
 		msg->conv_id);
 
@@ -2662,7 +2669,7 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
 		gg_debug_session(gs, GG_DEBUG_MISC,
 			"// gg_session_handle_transfer_info file: "
 			"type=\"%s\", content_type=\"%s\", filename=\"%s\", "
-			"filesize=%u, msg_id=%#016llx url=\"%s\"\n",
+			"filesize=%u, msg_id=%#016" PRIx64 " url=\"%s\"\n",
 			file->type, file->content_type, file->filename,
 			file->filesize, file->msg_id, file->url);
 	}
@@ -2754,7 +2761,9 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 {
 	unsigned int i;
 
-	gg_debug_session(gs, GG_DEBUG_FUNCTION, "// gg_session_handle_packet(%d, %p, %d)\n", type, ptr, len);
+	gg_debug_session(gs, GG_DEBUG_FUNCTION,
+		"// gg_session_handle_packet(%d, %p, %" GG_SIZE_FMT ")\n",
+		type, ptr, len);
 
 	gs->last_event = time(NULL);
 
@@ -2796,7 +2805,8 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 		if (len < handlers[i].min_length) {
 			gg_debug_session(gs, GG_DEBUG_ERROR,
 				"// gg_session_handle_packet() packet 0x%02x "
-				"too short (%d bytes)\n", type, len);
+				"too short (%" GG_SIZE_FMT " bytes)\n",
+				type, len);
 			continue;
 		}
 
@@ -2804,7 +2814,7 @@ int gg_session_handle_packet(struct gg_session *gs, uint32_t type, const char *p
 	}
 
 	gg_debug_session(gs, GG_DEBUG_WARNING, "// gg_session_handle_packet() "
-		"unhandled packet 0x%02x, len %d, state %d\n",
+		"unhandled packet 0x%02x, len %" GG_SIZE_FMT ", state %d\n",
 		type, len, gs->state);
 
 	return 0;

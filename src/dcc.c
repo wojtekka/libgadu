@@ -234,7 +234,7 @@ static struct gg_dcc *gg_dcc_transfer(uint32_t ip, uint16_t port, uin_t my_uin, 
 
 	addr.s_addr = ip;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_transfer(%s, %d, %ld, %ld, "
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_dcc_transfer(%s, %d, %u, %u, "
 		"%s);\n", inet_ntoa(addr), port, my_uin, peer_uin,
 		(type == GG_SESSION_DCC_SEND) ? "SEND" : "GET");
 
@@ -514,7 +514,8 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 				"connection broken\n"); \
 		} else { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() recv() failed " \
-				"(%d bytes, %d needed)\n", _tmp, size); \
+				"(%d bytes, %" GG_SIZE_FMT " needed)\n", \
+				_tmp, size); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
@@ -541,7 +542,8 @@ int gg_dcc_voice_send(struct gg_dcc *d, char *buf, int length)
 				"failed (errno=%d, %s)\n", errno, strerror(errno)); \
 		} else { \
 			gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() send() " \
-				"failed (%d needed, %d done)\n", size, write_res); \
+				"failed (%" GG_SIZE_FMT " needed, %d done)\n", \
+				size, write_res); \
 		} \
 		e->type = GG_EVENT_DCC_ERROR; \
 		e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE; \
@@ -720,7 +722,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 					default:
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown dcc type "
-							"(%.4x) from %ld\n", small_pkt.type, h->peer_uin);
+							"(%.4x) from %u\n", small_pkt.type, h->peer_uin);
 						e->type = GG_EVENT_DCC_ERROR;
 						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
 				}
@@ -754,7 +756,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 
 					default:
 						gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() unknown "
-							"dcc request (%.4x) from %ld\n",
+							"dcc request (%.4x) from %u\n",
 							small_pkt.type, h->peer_uin);
 						e->type = GG_EVENT_DCC_ERROR;
 						e->event.dcc_error = GG_ERROR_DCC_HANDSHAKE;
