@@ -683,7 +683,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_SENDING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_SENDING_ACK\n");
 
-				gg_dcc_write(h->fd, ack, 4);
+				gg_dcc_write(h->fd, ack, (size_t)4);
 
 				h->state = GG_STATE_READING_TYPE;
 				h->check = GG_CHECK_READ;
@@ -994,7 +994,7 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 			case GG_STATE_READING_ACK:
 				gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() GG_STATE_READING_ACK\n");
 
-				gg_dcc_read(h->fd, buf, 4);
+				gg_dcc_read(h->fd, buf, (size_t)4);
 
 				if (strncmp(buf, ack, 4)) {
 					gg_debug(GG_DEBUG_MISC, "// gg_dcc_watch_fd() did't get ack\n");

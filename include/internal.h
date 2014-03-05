@@ -26,7 +26,11 @@
 #define GG_DEFAULT_CLIENT_VERSION_100 "10.1.0.11070"
 #define GG_DEFAULT_CLIENT_VERSION_110 "11.3.45.10771"
 
-#define GG_SIZE_FMT "zu"
+#ifdef _WIN32
+#  define GG_SIZE_FMT "Iu"
+#else
+#  define GG_SIZE_FMT "zu"
+#endif
 #ifndef PRIu64
 #  define PRIu64 "llu"
 #endif
