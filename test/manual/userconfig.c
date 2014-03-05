@@ -23,6 +23,7 @@
 
 #include "libgadu.h"
 #include "network.h"
+#include "userconfig.h"
 
 unsigned int config_uin;
 char *config_password;

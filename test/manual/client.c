@@ -31,12 +31,12 @@
 
 volatile int disconnect_flag;
 
-void sigint(int sig)
+static void sigint(int sig)
 {
 	disconnect_flag = 1;
 }
 
-void usage(const char *argv0)
+static void usage(const char *argv0)
 {
 	printf("usage: %s [OPTIONS] [uin [password]]\n"
 		"\n"
@@ -52,7 +52,7 @@ void usage(const char *argv0)
 		"\n", argv0);
 }
 
-void parse_address(const char *arg, char **host, int *port)
+static void parse_address(const char *arg, char **host, int *port)
 {
 	const char *colon;
 

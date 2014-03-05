@@ -34,7 +34,8 @@ char *token, *token_secret;
 char *config_uin;
 char *config_password;
 
-int config_read(void) {
+static int config_read(void)
+{
 	char buf[256];
 	FILE *f;
 
@@ -62,7 +63,7 @@ int config_read(void) {
 	return 0;
 }
 
-void config_free(void)
+static void config_free(void)
 {
 	free(config_uin);
 	free(config_password);
@@ -70,7 +71,8 @@ void config_free(void)
 
 #define HTTP_METHOD1 "POST"
 #define HTTP_URL1 "http://api.gadu-gadu.pl/request_token"
-int oauth_request() {
+static int oauth_request(void)
+{
 	char *auth, *reply;
 
 	printf("\033[1m/request_token\033[0m\n\n");
@@ -102,7 +104,8 @@ int oauth_request() {
 
 #define HTTP_AUTH_METHOD "POST"
 #define HTTP_AUTH_URL	"https://login.gadu-gadu.pl/authorize"
-int oauth_authorize() {
+static int oauth_authorize(void)
+{
 	char *tmp, *reply;
 
 	printf("\n\033[1m/authorize\033[0m\n\n");
@@ -119,7 +122,8 @@ int oauth_authorize() {
 
 #define HTTP_METHOD2 "POST"
 #define HTTP_URL2 "http://api.gadu-gadu.pl/access_token"
-int oauth_access() {
+static int oauth_access(void)
+{
 	char *auth, *reply;
 	printf("\n\033[1m/access_token\033[0m\n\n");
 
@@ -152,7 +156,8 @@ int oauth_access() {
 	return 1;
 }
 
-int oauth_init() {
+static int oauth_init(void)
+{
 	if (!oauth_request())
 		return 0;
 	if (!oauth_authorize())
@@ -165,7 +170,7 @@ int oauth_init() {
 #define HTTP_METHOD3 "GET"
 #define HTTP_URL3_BASE "http://api.gadu-gadu.pl/users/"
 
-void oauth_ask(const char *uid)
+static void oauth_ask(const char *uid)
 {
 	char *auth;
 	char *reply;
@@ -220,12 +225,14 @@ int main(int argc, char **argv)
 	if (!oauth_init()) {
 		free(token);
 		free(token_secret);
+		config_free();
 		return 1;
 	}
 
 	for (i = 1; i < argc; i++)	/* mozeby wypadalo sprawdzac przez strtol() czy to faktycznie jest int? */
 		oauth_ask(argv[i]);
 
+	config_free();
 	free(token);
 	free(token_secret);
 	return 0;
