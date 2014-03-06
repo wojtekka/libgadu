@@ -170,7 +170,8 @@ struct gg_http *gg_http_connect(const char *hostname, int port, int async,
 #ifndef DOXYGEN
 
 #define gg_http_error(x) \
-	close(h->fd); \
+	if (h->fd > -1) \
+		close(h->fd); \
 	h->fd = -1; \
 	h->state = GG_STATE_ERROR; \
 	h->error = x; \

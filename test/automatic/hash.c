@@ -20,23 +20,29 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
-#include <sys/types.h>
 
 #include "libgadu.h"
 #include "internal.h"
+#include "fileio.h"
 
 static inline int
 gg_mkstemp(char *path)
 {
+	mode_t old_umask;
+	int ret;
+
+	old_umask = umask(S_IRWXO | S_IRWXG);
 #if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
-	return mkstemp(path);
+	ret = mkstemp(path);
 #else
 	if (strcmp(mktemp(path), "") == 0)
-		return -1;
-	/* XXX: O_CREAT shouldn't be necessary */
-	return open(path, O_EXCL | O_RDWR | O_CREAT);
+		ret = -1;
+	else /* XXX: O_CREAT shouldn't be necessary */
+		ret = open(path, O_EXCL | O_RDWR | O_CREAT);
 #endif
+	umask(old_umask);
+
+	return ret;
 }
 
 static char *sha1_to_string(uint8_t *sha1)

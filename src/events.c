@@ -909,6 +909,9 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess,
 			"\r\n", host, sess->uin, sess->last_sysmsg, client, (auth) ? auth : "");
 	}
 
+	free(auth);
+	free(client);
+
 	if (req == NULL) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() out of memory\n");
 		e->event.failure = GG_FAILURE_PROXY;
@@ -916,9 +919,6 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess,
 	}
 
 	req_len = strlen(req);
-
-	free(auth);
-	free(client);
 
 	gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// sending http query:\n%s", req);
 
@@ -1518,8 +1518,7 @@ static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess,
 		body += 4;
 	}
 
-	if (res != 0 && body == NULL)
-		return GG_ACTION_WAIT;
+	gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
 
 	gg_debug_session(sess, GG_DEBUG_TRAFFIC, "// received proxy reply:\n%s\n", sess->recv_buf);
 
@@ -1533,14 +1532,6 @@ static gg_action_t gg_handle_reading_proxy_gg(struct gg_session *sess,
 		e->event.failure = GG_FAILURE_CONNECTING;
 		return GG_ACTION_FAIL;
 	}
-
-	if (body == NULL) {
-		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() can't find body\n");
-		e->event.failure = GG_FAILURE_CONNECTING;
-		return GG_ACTION_FAIL;
-	}
-
-	gg_debug_session(sess, GG_DEBUG_MISC, "// found body!\n");
 
 	if (sess->ssl_flag != GG_SSL_DISABLED) {
 		if (gg_session_init_ssl(sess) == -1) {

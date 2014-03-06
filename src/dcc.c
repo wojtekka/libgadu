@@ -1173,7 +1173,17 @@ struct gg_event *gg_dcc_watch_fd(struct gg_dcc *h)
 					return e;
 				}
 
-				lseek(h->file_fd, h->offset, SEEK_SET);
+				if (lseek(h->file_fd, h->offset, SEEK_SET) != (off_t)h->offset) {
+					gg_debug(GG_DEBUG_MISC,
+						"// gg_dcc_watch_fd() lseek() "
+						"failed. (errno=%d, %s)\n",
+						errno, strerror(errno));
+
+					e->type = GG_EVENT_DCC_ERROR;
+					e->event.dcc_error = GG_ERROR_DCC_FILE;
+
+					return e;
+				}
 
 				size = read(h->file_fd, buf, utmp);
 

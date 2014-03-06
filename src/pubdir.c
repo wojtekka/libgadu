@@ -755,10 +755,13 @@ int gg_token_watch_fd(struct gg_http *h)
 		const char *host;
 		struct gg_http *h2;
 		struct gg_token *t;
+		size_t results_len;
 
 		gg_debug(GG_DEBUG_MISC, "=> token body \"%s\"\n", h->body);
 
-		if (h->body && (!(url = malloc(strlen(h->body))) || !(tokenid = malloc(strlen(h->body))))) {
+		results_len = h->body ? strlen(h->body) : 0;
+
+		if (h->body && (!(url = malloc(results_len)) || !(tokenid = malloc(results_len)))) {
 			gg_debug(GG_DEBUG_MISC, "=> token, not enough memory for results\n");
 			free(url);
 			return -1;
