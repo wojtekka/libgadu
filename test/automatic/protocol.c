@@ -104,7 +104,12 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&value, sizeof(value));
+	if (setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR,
+		(const void *)&value, sizeof(value)) != 0)
+	{
+		perror("setsockopt");
+		exit(1);
+	}
 
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;

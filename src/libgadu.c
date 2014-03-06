@@ -565,6 +565,7 @@ void *gg_recv_packet(struct gg_session *sess)
 	char *packet;
 	int res;
 	size_t len;
+	uint32_t ghlen = 0;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_recv_packet(%p);\n", sess);
 
@@ -592,7 +593,16 @@ void *gg_recv_packet(struct gg_session *sess)
 				"%" GG_SIZE_FMT " to go\n",
 				sess->recv_done, len);
 		} else {
-			uint32_t ghlen = gh ? gg_fix32(gh->length) : 0;
+			ghlen = gh ? gg_fix32(gh->length) : 0;
+
+			if (ghlen > 65535) {
+				gg_debug_session(sess, GG_DEBUG_ERROR,
+					"// gg_recv_packet() invalid packet "
+					"length (%d)\n", ghlen);
+				errno = ERANGE;
+				goto fail;
+			}
+
 			if ((size_t) sess->recv_done >= sizeof(struct gg_header) + ghlen) {
 				gg_debug_session(sess, GG_DEBUG_NET, "// gg_recv_packet() and that's it\n");
 				break;
@@ -630,7 +640,7 @@ void *gg_recv_packet(struct gg_session *sess)
 
 		if (sess->recv_done + res == sizeof(struct gg_header)) {
 			char *tmp;
-			uint32_t ghlen = gh ? gg_fix32(gh->length) : 0;
+			ghlen = gh ? gg_fix32(gh->length) : 0;
 
 			gg_debug_session(sess, GG_DEBUG_NET,
 				"// gg_recv_packet() header complete, "
@@ -668,14 +678,14 @@ void *gg_recv_packet(struct gg_session *sess)
 		goto fail;
 
 	/* Czasami zakładamy, że teksty w pakietach są zakończone zerem */
-	packet[sizeof(struct gg_header) + gg_fix32(gh->length)] = 0;
+	packet[sizeof(struct gg_header) + ghlen] = 0;
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_recv_packet(type=0x%.2x, "
-		"length=%d)\n", gg_fix32(gh->type), gg_fix32(gh->length));
-	gg_debug_dump(sess, GG_DEBUG_DUMP, packet, sizeof(struct gg_header) + gg_fix32(gh->length));
+		"length=%d)\n", gg_fix32(gh->type), ghlen);
+	gg_debug_dump(sess, GG_DEBUG_DUMP, packet, sizeof(struct gg_header) + ghlen);
 
 	gh->type = gg_fix32(gh->type);
-	gh->length = gg_fix32(gh->length);
+	gh->length = ghlen;
 
 	return packet;
 
@@ -1650,6 +1660,9 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 			formatlen_ = formatlen - 3;
 		}
 
+		if (format_ == NULL && formatlen_ > 0)
+			goto cleanup;
+
 		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
 
 		tmp = malloc(len + 1);
@@ -2194,8 +2207,6 @@ static int gg_notify105_ex(struct gg_session *sess, uin_t *userlist, char *types
 int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int count)
 {
 	struct gg_notify *n;
-	uin_t *u;
-	char *t;
 	int i, res = 0;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_notify_ex(%p, %p, %p, %d);\n", sess, userlist, types, count);
@@ -2230,12 +2241,12 @@ int gg_notify_ex(struct gg_session *sess, uin_t *userlist, char *types, int coun
 		if (!(n = (struct gg_notify*) malloc(sizeof(*n) * part_count)))
 			return -1;
 
-		for (u = userlist, t = types, i = 0; i < part_count; u++, t++, i++) {
-			n[i].uin = gg_fix32(*u);
+		for (i = 0; i < part_count; i++) {
+			n[i].uin = gg_fix32(userlist[i]);
 			if (types == NULL)
 				n[i].dunno1 = GG_USER_NORMAL;
 			else
-				n[i].dunno1 = *t;
+				n[i].dunno1 = types[i];
 		}
 
 		if (gg_send_packet(sess, packet_type, n, sizeof(*n) * part_count, NULL) == -1) {
@@ -2777,7 +2788,12 @@ static void gg_socket_manager_error(struct gg_session *sess, enum gg_failure_t f
 	sess->fd = pipes[1];
 	sess->check = GG_CHECK_READ;
 	sess->state = GG_STATE_ERROR;
-	send(pipes[0], &dummy, sizeof(dummy), 0);
+	if (send(pipes[0], &dummy, sizeof(dummy), 0) != sizeof(dummy)) {
+		gg_debug(GG_DEBUG_MISC, "// gg_socket_manager_error() unable to"
+			" send via pipe (errno=%d, %s)\n", errno,
+			strerror(errno));
+		return;
+	}
 	close(pipes[0]);
 }
 

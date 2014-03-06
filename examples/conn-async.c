@@ -53,6 +53,11 @@ int main(void)
 
 	sess = gg_login(&p);
 
+	if (!sess) {
+		printf("gg_login failed.\n");
+		return 1;
+	}
+
 	for (;;) {
 		FD_ZERO(&rd);
 		FD_ZERO(&wd);

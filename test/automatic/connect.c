@@ -1135,8 +1135,8 @@ int main(int argc, char **argv)
 		failure();
 	}
 
-	memcpy(cert_file_path, srcdir, srcdir_len);
-	memcpy(key_file_path, srcdir, srcdir_len);
+	strncpy(cert_file_path, srcdir, srcdir_len);
+	strncpy(key_file_path, srcdir, srcdir_len);
 	cert_file_path[srcdir_len] = '/';
 	key_file_path[srcdir_len] = '/';
 	strcpy(cert_file_path + srcdir_len + 1, CERT_FILE);
