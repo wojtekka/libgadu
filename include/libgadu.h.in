@@ -293,8 +293,10 @@ struct gg_session {
 
 	void *resolver;		/**< Dane prywatne procesu lub wątku rozwiązującego nazwę serwera */
 
-	char *header_buf;	/**< Bufor na początek nagłówka pakietu */
-	unsigned int header_done;	/**< Liczba wczytanych bajtów nagłówka pakietu */
+#ifndef DOXYGEN
+	char *header_buf;	/**< Bufor na początek nagłówka pakietu (nieaktualne) */
+	unsigned int header_done;	/**< Liczba wczytanych bajtów nagłówka pakietu (nieaktualne) */
+#endif
 
 #ifdef GG_CONFIG_HAVE_OPENSSL
 	SSL *ssl;		/**< Struktura TLS */
