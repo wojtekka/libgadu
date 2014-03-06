@@ -61,6 +61,7 @@ char *gg_http_fetch(const char *method, const char *url, const char *auth_header
 	CURL *c;
 	struct curl_slist *hdr = NULL;
 	char *text = NULL;
+	char **write_data_to = &text;
 
 	c = curl_easy_init();
 
@@ -71,7 +72,7 @@ char *gg_http_fetch(const char *method, const char *url, const char *auth_header
 		hdr = curl_slist_append(hdr, auth_header);
 
 	curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, handle_data);
-	curl_easy_setopt(c, CURLOPT_WRITEDATA, &text);
+	curl_easy_setopt(c, CURLOPT_WRITEDATA, write_data_to);
 	curl_easy_setopt(c, CURLOPT_USERAGENT, "Gadu-Gadu Client, build 8,0,0,4881");
 	curl_easy_setopt(c, CURLOPT_URL, url);
 	curl_easy_setopt(c, CURLOPT_HTTPHEADER, hdr);

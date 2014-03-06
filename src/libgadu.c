@@ -1259,8 +1259,14 @@ void gg_free_session(struct gg_session *sess)
 
 	gg_close(sess);
 
-	while (sess->images)
+	while (sess->images) {
+		struct gg_image_queue *next = sess->images->next;
+
 		gg_image_queue_remove(sess, sess->images, 1);
+
+		/* a fix for false-positive NULL-dereference */
+		sess->images = next;
+	}
 
 	free(sess->send_buf);
 
