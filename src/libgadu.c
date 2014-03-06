@@ -1660,9 +1660,6 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 			formatlen_ = formatlen - 3;
 		}
 
-		if (format_ == NULL && formatlen_ > 0)
-			goto cleanup;
-
 		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
 
 		tmp = malloc(len + 1);

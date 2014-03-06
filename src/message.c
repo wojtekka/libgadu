@@ -403,6 +403,9 @@ size_t gg_message_text_to_html(char *dst, const char *src,
 	unsigned int i;
 	size_t len = 0;
 
+	if (format == NULL)
+		format_len = 0;
+
 	/* Pętla przechodzi też przez kończące \0, żeby móc dokleić obrazek
 	 * na końcu tekstu. */
 
@@ -430,6 +433,13 @@ size_t gg_message_text_to_html(char *dst, const char *src,
 
 			if (format_idx + 3 > format_len)
 				break;
+
+			/* (format_idx + 3 <= format_len) && (format_idx > 0)
+			 * 3 < format_len
+			 * 0 != format_len
+			 * format != NULL
+			 */
+			assert(format != NULL);
 
 			attr_pos = format[format_idx] | (format[format_idx + 1] << 8);
 			attr = format[format_idx + 2];
