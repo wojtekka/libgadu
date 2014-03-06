@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "message.h"
 
