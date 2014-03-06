@@ -138,19 +138,24 @@ int gg_dcc_fill_file_info2(struct gg_dcc *d, const char *filename, const char *l
 		return -1;
 	}
 
-	if (stat(local_filename, &st) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() stat() failed (%s)\n", strerror(errno));
+	if ((d->file_fd = open(local_filename, O_RDONLY)) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() open() failed (%s)\n", strerror(errno));
+		return -1;
+	}
+
+	if (fstat(d->file_fd, &st) == -1) {
+		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() "
+			"fstat() failed (%s)\n", strerror(errno));
+		close(d->file_fd);
+		d->file_fd = -1;
 		return -1;
 	}
 
 	if ((st.st_mode & S_IFDIR)) {
 		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() that's a directory\n");
 		errno = EINVAL;
-		return -1;
-	}
-
-	if ((d->file_fd = open(local_filename, O_RDONLY)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_dcc_fill_file_info2() open() failed (%s)\n", strerror(errno));
+		close(d->file_fd);
+		d->file_fd = -1;
 		return -1;
 	}
 
