@@ -492,14 +492,12 @@ struct gg_dcc7 *gg_dcc7_send_file(struct gg_session *sess, uin_t rcpt,
 	if (fstat(fd, &st) == -1) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() "
 			"fstat() failed (%s)\n", strerror(errno));
-		close(fd);
 		goto fail;
 	}
 
 	if ((st.st_mode & S_IFDIR)) {
 		gg_debug_session(sess, GG_DEBUG_MISC, "// gg_dcc7_send_file() that's a directory\n");
 		errno = EINVAL;
-		close(fd);
 		goto fail;
 	}
 
