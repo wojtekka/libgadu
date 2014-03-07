@@ -2480,7 +2480,7 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs,
 			chat->participants = old_part;
 			gg_debug_session(gs, GG_DEBUG_ERROR,
 				"// gg_session_handle_chat_info_update() "
-				"out of memory (count=%" PRIu32 ")\n",
+				"out of memory (count=%u)\n",
 				chat->participants_count);
 			return -1;
 		}
