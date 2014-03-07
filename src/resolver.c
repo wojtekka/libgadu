@@ -627,8 +627,11 @@ cleanup:
  */
 struct gg_resolver_win32_data {
 	HANDLE thread;		/*< Uchwyt wątku */
+	CRITICAL_SECTION mutex;	/*< Semafor wątku */
 	char *hostname;		/*< Nazwa serwera */
 	int wfd;		/*< Deskryptor do zapisu */
+	int orphan;		/*< Wątek powinien sam po sobie posprzątać */
+	int finished;		/*< Wątek już skończył pracę */
 };
 
 /**
@@ -639,13 +642,25 @@ struct gg_resolver_win32_data {
 static DWORD WINAPI gg_resolver_win32_thread(void *arg)
 {
 	struct gg_resolver_win32_data *data = arg;
+	int result, is_orphan;
 
-	if (gg_resolver_run(data->wfd, data->hostname, 0) == -1)
-		ExitThread(-1);
-	else
-		ExitThread(0);
+	result = gg_resolver_run(data->wfd, data->hostname, 0);
 
-	return 0;	/* żeby kompilator nie marudził */
+	EnterCriticalSection(&data->mutex);
+	is_orphan = data->orphan;
+	data->finished = 1;
+	LeaveCriticalSection(&data->mutex);
+
+	if (is_orphan) {
+		CloseHandle(data->thread);
+		DeleteCriticalSection(&data->mutex);
+		close(data->wfd);
+		free(data->hostname);
+		free(data);
+	}
+
+	ExitThread(result);
+	return 0; /* żeby kompilator nie marudził */
 }
 
 /**
@@ -666,6 +681,7 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 {
 	struct gg_resolver_win32_data *data = NULL;
 	int pipes[2], new_errno;
+	CRITICAL_SECTION *mutex = NULL;
 
 	gg_debug(GG_DEBUG_FUNCTION, "** gg_resolver_win32_start(%p, %p, \"%s\");\n", fd, priv_data, hostname);
 
@@ -681,6 +697,9 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() out of memory for resolver data\n");
 		return -1;
 	}
+
+	data->orphan = 0;
+	data->finished = 0;
 
 	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipes) == -1) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_win32_start() unable to "
@@ -699,6 +718,9 @@ static int gg_resolver_win32_start(int *fd, void **priv_data, const char *hostna
 	}
 
 	data->wfd = pipes[1];
+
+	mutex = &data->mutex;
+	InitializeCriticalSection(mutex);
 
 	data->thread = CreateThread(NULL, 0, gg_resolver_win32_thread, data, 0, NULL);
 	if (!data->thread) {
@@ -722,6 +744,9 @@ cleanup:
 
 	close(pipes[0]);
 	close(pipes[1]);
+
+	if (mutex)
+		DeleteCriticalSection(mutex);
 
 	errno = new_errno;
 
@@ -749,12 +774,22 @@ static void gg_resolver_win32_cleanup(void **priv_data, int force)
 	*priv_data = NULL;
 
 	if (WaitForSingleObject(data->thread, 0) == WAIT_TIMEOUT) {
-		if (force)
-			TerminateThread(data->thread, 0);
+		int finished;
+		/* We cannot call TerminateThread here - it doesn't
+		 * release critical section locks (see MSDN docs).
+		 * if (force) TerminateThread(data->thread, 0);
+		 */
+		EnterCriticalSection(&data->mutex);
+		finished = data->finished;
+		if (!finished)
+			data->orphan = 1;
+		LeaveCriticalSection(&data->mutex);
+		if (!finished)
+			return;
 	}
 
 	CloseHandle(data->thread);
-
+	DeleteCriticalSection(&data->mutex);
 	close(data->wfd);
 	free(data->hostname);
 	free(data);
