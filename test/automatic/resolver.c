@@ -661,6 +661,7 @@ static int test_set_get(void)
 
 	/* Czyścimy po sobie */
 
+	printf("Cleaning up after resolver tests...\n");
 	gg_global_set_resolver(GG_RESOLVER_DEFAULT);
 
 	return 1;
