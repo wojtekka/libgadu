@@ -27,9 +27,7 @@
 
 #include "network.h"
 #include "strman.h"
-#ifdef sun
-#  include <sys/filio.h>
-#endif
+#include "fileio.h"
 
 #include <errno.h>
 #include <stdarg.h>
