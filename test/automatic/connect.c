@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include "config.h"
 
 #if defined(GG_CONFIG_HAVE_PTHREAD)
 #  include <pthread.h>
@@ -1200,7 +1201,9 @@ int main(int argc, char **argv)
 	gg_win32_hook(connect, my_connect, &connect_hook);
 	gg_win32_hook(gethostbyname, my_gethostbyname, NULL);
 	gg_win32_hook(WSAGetLastError, my_get_last_error, &get_last_error_hook);
+#endif
 
+#ifdef GG_SIMULATE_WIN32_PTHREAD
 	InitializeCriticalSection(&log_mutex);
 	InitializeCriticalSection(&server_mutex);
 #endif
@@ -1451,7 +1454,7 @@ int main(int argc, char **argv)
 	gnutls_global_deinit();
 #endif
 
-#ifdef _WIN32
+#ifdef GG_SIMULATE_WIN32_PTHREAD
 	DeleteCriticalSection(&log_mutex);
 	DeleteCriticalSection(&server_mutex);
 #endif
