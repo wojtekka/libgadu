@@ -221,21 +221,6 @@ dnl
 AC_ARG_WITH(pthread,
   [  --without-pthread       do not use pthread resolver even if found])
 
-if test "x$is_mingw" = "xyes"; then
-	dnl pthreads-win32 tends to fail with the following message:
-	dnl
-	dnl err:ntdll:RtlpWaitForCriticalSection section [...] "?"
-	dnl wait timed out in thread [...], blocked by [...], retrying (60 sec)
-	dnl
-	dnl They are implemented with native win32 threads anyway (which are
-	dnl supported natively by libgadu), so threre is no point in using this
-	dnl module on this system.
-	if test "x$with_pthread" = "xyes"; then
-		AC_MSG_ERROR([Pthreads are not stable on win32. It's preferred to use native Win32 threads.])
-	fi
-	with_pthread="no"
-fi
-
 have_pthread="no"
 if test "x$with_pthread" != "xno"; then
 	ACX_PTHREAD(

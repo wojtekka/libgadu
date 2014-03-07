@@ -27,8 +27,10 @@
 #include <errno.h>
 #include <ctype.h>
 
-#ifndef _WIN32
-#include <pthread.h>
+#if defined(GG_CONFIG_HAVE_PTHREAD)
+#  include <pthread.h>
+#elif defined(_WIN32)
+#  define GG_SIMULATE_WIN32_PTHREAD
 #endif
 
 #include "libgadu.h"
@@ -84,7 +86,7 @@ typedef struct {
 	bool tried_resolver;
 } test_param_t;
 
-#ifdef _WIN32
+#ifdef GG_SIMULATE_WIN32_PTHREAD
 
 typedef CRITICAL_SECTION pthread_mutex_t;
 #define PTHREAD_MUTEX_INITIALIZER { 0 }
@@ -106,7 +108,7 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 /** Server data */
 static int server_ports[PORT_COUNT];
 static pthread_mutex_t server_mutex = PTHREAD_MUTEX_INITIALIZER;
-#ifndef _WIN32
+#ifndef GG_SIMULATE_WIN32_PTHREAD
 static pthread_cond_t server_cond = PTHREAD_COND_INITIALIZER;
 #endif
 static bool server_init = false;
@@ -138,7 +140,7 @@ static void failure(void)
 	exit(1);
 }
 
-#ifdef _WIN32
+#ifdef GG_SIMULATE_WIN32_PTHREAD
 
 static inline int pthread_mutex_lock(pthread_mutex_t *mutex)
 {
@@ -189,7 +191,7 @@ static inline int pthread_join(pthread_t th, void **res)
 	return 0;
 }
 
-#endif
+#endif /* GG_SIMULATE_WIN32_PTHREAD */
 
 static test_param_t *get_test_param(void)
 {
