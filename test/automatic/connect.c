@@ -26,7 +26,10 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+
+#ifndef _WIN32
 #include <pthread.h>
+#endif
 
 #include "libgadu.h"
 #include "network.h"
@@ -81,6 +84,21 @@ typedef struct {
 	bool tried_resolver;
 } test_param_t;
 
+#ifdef _WIN32
+
+typedef CRITICAL_SECTION pthread_mutex_t;
+#define PTHREAD_MUTEX_INITIALIZER { 0 }
+
+typedef struct
+{
+	HANDLE handle;
+
+	void *(*func)(void *);
+	void *arg;
+} pthread_t;
+
+#endif
+
 /** Log buffer */
 static char *log_buffer;
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -88,7 +106,9 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 /** Server data */
 static int server_ports[PORT_COUNT];
 static pthread_mutex_t server_mutex = PTHREAD_MUTEX_INITIALIZER;
+#ifndef _WIN32
 static pthread_cond_t server_cond = PTHREAD_COND_INITIALIZER;
+#endif
 static bool server_init = false;
 static int server_pipe[2];
 
@@ -117,6 +137,60 @@ static void failure(void)
 {
 	exit(1);
 }
+
+#ifdef _WIN32
+
+static inline int pthread_mutex_lock(pthread_mutex_t *mutex)
+{
+	EnterCriticalSection(mutex);
+	return 0;
+}
+
+static inline int pthread_mutex_unlock(pthread_mutex_t *mutex)
+{
+	LeaveCriticalSection(mutex);
+	return 0;
+}
+
+static inline void __attribute__((__cdecl__))
+_pthread_create_body(void *args)
+{
+	pthread_t *th = args;
+
+	th->func(th->arg);
+}
+
+static inline int pthread_create(pthread_t *th, void *attr,
+	void *(*func)(void *), void *arg)
+{
+	if (th == NULL || func == NULL)
+		return -1;
+	if (attr != NULL || arg != NULL)
+		return -1;
+
+	th->func = func;
+	th->arg = arg;
+	th->handle = (HANDLE)_beginthread(_pthread_create_body, 0, th);
+	if (!th->handle)
+		return -1;
+
+	return 0;
+}
+
+static inline int pthread_join(pthread_t th, void **res)
+{
+	if (res != NULL)
+		return -1;
+
+	if (!th.handle)
+		return 0;
+
+	WaitForSingleObject(th.handle, INFINITE);
+
+	return 0;
+}
+
+#endif
 
 static test_param_t *get_test_param(void)
 {
@@ -713,10 +787,12 @@ static void* server_func(void* arg)
 		failure();
 	}
 	server_init = true;
+#ifndef _WIN32
 	if (pthread_cond_signal(&server_cond) != 0) {
 		fprintf(stderr, "pthread_cond_signal failed!\n");
 		failure();
 	}
+#endif
 	if (pthread_mutex_unlock(&server_mutex) != 0) {
 		fprintf(stderr, "pthread_mutex_unlock failed!\n");
 		failure();
@@ -1123,6 +1199,9 @@ int main(int argc, char **argv)
 	gg_win32_hook(connect, my_connect, &connect_hook);
 	gg_win32_hook(gethostbyname, my_gethostbyname, NULL);
 	gg_win32_hook(WSAGetLastError, my_get_last_error, &get_last_error_hook);
+
+	InitializeCriticalSection(&log_mutex);
+	InitializeCriticalSection(&server_mutex);
 #endif
 
 	srcdir = getenv("srcdir");
@@ -1216,11 +1295,24 @@ int main(int argc, char **argv)
 		fprintf(stderr, "pthread_mutex_lock() failed!\n");
 		failure();
 	}
-	while (!server_init)
+	while (!server_init) {
+#ifdef _WIN32
+		if (pthread_mutex_unlock(&server_mutex) != 0) {
+			fprintf(stderr, "pthread_mutex_unlock() failed!\n");
+			failure();
+		}
+		usleep(10000); /* 10ms */
+		if (pthread_mutex_lock(&server_mutex) != 0) {
+			fprintf(stderr, "pthread_mutex_lock() failed!\n");
+			failure();
+		}
+#else
 		if (pthread_cond_wait(&server_cond, &server_mutex) != 0) {
 			fprintf(stderr, "pthread_cond_wait() failed!\n");
 			failure();
 		}
+#endif
+	}
 	if (pthread_mutex_unlock(&server_mutex) != 0) {
 		fprintf(stderr, "pthread_mutex_unlock() failed!\n");
 		failure();
@@ -1356,6 +1448,11 @@ int main(int argc, char **argv)
 	gnutls_certificate_free_credentials(x509_cred);
 	gnutls_dh_params_deinit(dh_params);
 	gnutls_global_deinit();
+#endif
+
+#ifdef _WIN32
+	DeleteCriticalSection(&log_mutex);
+	DeleteCriticalSection(&server_mutex);
 #endif
 
 	return exit_code;
