@@ -789,7 +789,7 @@ static void* server_func(void* arg)
 		failure();
 	}
 	server_init = true;
-#ifndef _WIN32
+#ifndef GG_SIMULATE_WIN32_PTHREAD
 	if (pthread_cond_signal(&server_cond) != 0) {
 		fprintf(stderr, "pthread_cond_signal failed!\n");
 		failure();
@@ -1300,7 +1300,7 @@ int main(int argc, char **argv)
 		failure();
 	}
 	while (!server_init) {
-#ifdef _WIN32
+#ifdef GG_SIMULATE_WIN32_PTHREAD
 		if (pthread_mutex_unlock(&server_mutex) != 0) {
 			fprintf(stderr, "pthread_mutex_unlock() failed!\n");
 			failure();
