@@ -124,11 +124,7 @@ char *gg_proxy_password = NULL;
 #ifndef DOXYGEN
 
 #ifndef lint
-static char rcsid[]
-#ifdef __GNUC__
-__attribute__ ((unused))
-#endif
-= "$Id$";
+static char rcsid[] GG_UNUSED = "$Id$";
 #endif
 
 #endif /* DOXYGEN */

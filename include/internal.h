@@ -45,6 +45,16 @@
 	(offsetof(struct gg_login_params, member) < (glp)->struct_size || \
 	offsetof(struct gg_login_params, member) <= offsetof(struct gg_login_params, struct_size))
 
+#ifdef __GNUC__
+#  define GG_UNUSED __attribute__ ((unused))
+#  define GG_NORETURN __attribute__ ((noreturn))
+#  define GG_CDECL __attribute__ ((__cdecl__))
+#else
+#  define GG_UNUSED
+#  define GG_NORETURN
+#  define GG_CDECL
+#endif
+
 struct gg_dcc7_relay {
 	uint32_t addr;
 	uint16_t port;

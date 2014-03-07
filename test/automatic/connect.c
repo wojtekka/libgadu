@@ -131,7 +131,7 @@ static gnutls_dh_params_t dh_params;
 static bool errno_is_set = 0;
 #endif
 
-static void failure(void) __attribute__ ((noreturn));
+static void failure(void) GG_NORETURN;
 
 static void failure(void)
 {
@@ -152,8 +152,7 @@ static inline int pthread_mutex_unlock(pthread_mutex_t *mutex)
 	return 0;
 }
 
-static inline void __attribute__((__cdecl__))
-_pthread_create_body(void *args)
+static inline void GG_CDECL _pthread_create_body(void *args)
 {
 	pthread_t *th = args;
 
