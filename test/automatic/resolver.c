@@ -292,17 +292,13 @@ static int test_set_get(void)
 	if (gs == NULL)
 		return 0;
 
-#ifdef _WIN32
-	if (gg_session_get_resolver(gs) != GG_RESOLVER_WIN32) {
-		printf("Expected local win32 resolver\n");
+	if (gg_session_get_resolver(gs) != GG_RESOLVER_FORK &&
+		gg_session_get_resolver(gs) != GG_RESOLVER_PTHREAD &&
+		gg_session_get_resolver(gs) != GG_RESOLVER_WIN32)
+	{
+		printf("Expected local fork, pthread or win32 resolver\n");
 		return 0;
 	}
-#else
-	if (gg_session_get_resolver(gs) != GG_RESOLVER_FORK && gg_session_get_resolver(gs) != GG_RESOLVER_PTHREAD) {
-		printf("Expected local fork or pthread resolver\n");
-		return 0;
-	}
-#endif
 
 	gg_free_session(gs);
 
@@ -590,17 +586,13 @@ static int test_set_get(void)
 	if (gh == NULL)
 		return 0;
 
-#ifdef _WIN32
-	if (gg_http_get_resolver(gh) != GG_RESOLVER_WIN32) {
-		printf("Expected local win32 resolver\n");
+	if (gg_http_get_resolver(gh) != GG_RESOLVER_FORK &&
+		gg_http_get_resolver(gh) != GG_RESOLVER_PTHREAD &&
+		gg_http_get_resolver(gh) != GG_RESOLVER_WIN32)
+	{
+		printf("Expected local fork, pthread or win32 resolver\n");
 		return 0;
 	}
-#else
-	if (gg_http_get_resolver(gh) != GG_RESOLVER_FORK && gg_http_get_resolver(gh) != GG_RESOLVER_PTHREAD) {
-		printf("Expected local fork or pthread resolver\n");
-		return 0;
-	}
-#endif
 
 	gg_http_free(gh);
 
