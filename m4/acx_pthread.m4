@@ -7,7 +7,8 @@ dnl
 dnl Checks for GCC shared/pthread inconsistency added by
 dnl Marcin Owsiany <marcin@owsiany.pl>
 AC_DEFUN([ACX_PTHREAD],
-[AC_REQUIRE([AC_PROG_LD_GNU])dnl
+[m4_ifndef([AC_PROG_LD_GNU], [AC_DEFUN([AC_PROG_LD_GNU])])
+AC_REQUIRE([AC_PROG_LD_GNU])dnl
 AC_LANG_SAVE
 AC_LANG_C
 acx_pthread_ok=no
