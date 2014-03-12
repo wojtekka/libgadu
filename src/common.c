@@ -577,19 +577,23 @@ char *gg_proxy_auth(void)
 	if (!gg_proxy_enabled || !gg_proxy_username || !gg_proxy_password)
 		return NULL;
 
-	if (!(tmp = malloc((tmp_size = strlen(gg_proxy_username) + strlen(gg_proxy_password) + 2))))
+	tmp_size = strlen(gg_proxy_username) + strlen(gg_proxy_password) + 2;
+	tmp = malloc(tmp_size);
+	if (!tmp)
 		return NULL;
 
 	snprintf(tmp, tmp_size, "%s:%s", gg_proxy_username, gg_proxy_password);
 
-	if (!(enc = gg_base64_encode(tmp))) {
+	enc = gg_base64_encode(tmp);
+	if (!enc) {
 		free(tmp);
 		return NULL;
 	}
 
 	free(tmp);
 
-	if (!(out = malloc(strlen(enc) + 40))) {
+	out = malloc(strlen(enc) + 40);
+	if (!out) {
 		free(enc);
 		return NULL;
 	}
