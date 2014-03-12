@@ -251,10 +251,12 @@ int gg_connect(void *addr, int port, int async)
 	struct in_addr *a = addr;
 	struct sockaddr_in myaddr;
 
-	gg_debug(GG_DEBUG_FUNCTION, "** gg_connect(%s, %d, %d);\n", inet_ntoa(*a), port, async);
+	gg_debug(GG_DEBUG_FUNCTION, "** gg_connect(%s, %d, %d);\n",
+		inet_ntoa(*a), port, async);
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_connect() socket() failed (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_connect() socket() failed "
+			"(errno=%d, %s)\n", errno, strerror(errno));
 		return -1;
 	}
 
@@ -264,7 +266,8 @@ int gg_connect(void *addr, int port, int async)
 	myaddr.sin_addr.s_addr = gg_local_ip;
 
 	if (bind(sock, (struct sockaddr *) &myaddr, sizeof(myaddr)) == -1) {
-		gg_debug(GG_DEBUG_MISC, "// gg_connect() bind() failed (errno=%d, %s)\n", errno, strerror(errno));
+		gg_debug(GG_DEBUG_MISC, "// gg_connect() bind() failed "
+			"(errno=%d, %s)\n", errno, strerror(errno));
 		errno2 = errno;
 		close(sock);
 		errno = errno2;
@@ -298,7 +301,8 @@ int gg_connect(void *addr, int port, int async)
 			errno = errno2;
 			return -1;
 		}
-		gg_debug(GG_DEBUG_MISC, "// gg_connect() connect() in progress\n");
+		gg_debug(GG_DEBUG_MISC,
+			"// gg_connect() connect() in progress\n");
 	}
 
 	return sock;
