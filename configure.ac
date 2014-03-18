@@ -383,18 +383,6 @@ if test "x$enable_tests" != "xno"; then
 	AC_CHECK_LIB(c, __connect, [have_glibc="yes"], [have_glibc="no"])
 
 	dnl
-	dnl  GnuTLS dla connect
-	dnl
-
-	dnl Dla testów zawsze używaj GnuTLS, o ile tylko jest dostępne.
-	if test "x$have_gnutls" != "xyes"; then
-		PKG_CHECK_MODULES([GNUTLS], [gnutls >= 2.10.0], [
-			AC_DEFINE([HAVE_GNUTLS], [], [Defined if GnuTLS is available.])
-			have_gnutls="yes"
-		], [:])
-	fi
-
-	dnl
 	dnl  curl i expat dla search
 	dnl
 
