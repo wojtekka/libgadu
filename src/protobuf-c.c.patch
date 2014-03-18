@@ -1,5 +1,5 @@
---- protobuf-c.c.ori	2014-03-07 18:12:04.000000000 +0100
-+++ protobuf-c.c	2014-03-07 18:19:45.597386023 +0100
+--- protobuf-c.c
++++ protobuf-c.c
 @@ -58,6 +58,14 @@
       * use size_t consistently
   */
@@ -76,7 +76,15 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        {
          uint8_t simple_buffer_scratch[256];
-@@ -1812,7 +1822,7 @@
+@@ -1353,7 +1363,6 @@
+     }
+   return rv;
+ 
+-goto no_packing_needed;
+ no_packing_needed:
+   buffer->append (buffer, rv, array);
+   return rv;
+@@ -1812,7 +1821,7 @@
          bd->len = len - pref_len;
          return 1;
        }
@@ -85,7 +93,15 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        if (wire_type != PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
          return 0;
-@@ -2205,6 +2215,7 @@
+@@ -2018,7 +2027,6 @@
+   *p_n += count;
+   return TRUE;
+ 
+-goto no_unpacking_needed;
+ no_unpacking_needed:
+   memcpy (array, at, count * siz);
+   *p_n += count;
+@@ -2205,6 +2213,7 @@
        size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
        const ProtobufCFieldDescriptor *field;
        ScannedMember tmp;
