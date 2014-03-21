@@ -474,7 +474,8 @@ static void gg_resolver_fork_cleanup(void **priv_data, int force)
 	if (force)
 		kill(data->pid, SIGKILL);
 
-	waitpid(data->pid, NULL, WNOHANG);
+	/* we don't care about child's exit status, just want to clean it up */
+	(void)waitpid(data->pid, NULL, WNOHANG);
 
 	free(data);
 }
