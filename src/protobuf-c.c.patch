@@ -93,15 +93,21 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        if (wire_type != PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
          return 0;
-@@ -2018,7 +2027,6 @@
+@@ -2018,11 +2027,12 @@
    *p_n += count;
    return TRUE;
  
 -goto no_unpacking_needed;
++#if IS_LITTLE_ENDIAN
  no_unpacking_needed:
    memcpy (array, at, count * siz);
    *p_n += count;
-@@ -2205,6 +2213,7 @@
+   return TRUE;
++#endif
+ }
+ 
+ static protobuf_c_boolean
+@@ -2205,6 +2215,7 @@
        size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
        const ProtobufCFieldDescriptor *field;
        ScannedMember tmp;
