@@ -76,15 +76,20 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        {
          uint8_t simple_buffer_scratch[256];
-@@ -1353,7 +1363,6 @@
+@@ -1353,10 +1363,11 @@
      }
    return rv;
  
 -goto no_packing_needed;
++#if IS_LITTLE_ENDIAN
  no_packing_needed:
    buffer->append (buffer, rv, array);
    return rv;
-@@ -1812,7 +1821,7 @@
++#endif
+ }
+ 
+ static size_t
+@@ -1812,7 +1823,7 @@
          bd->len = len - pref_len;
          return 1;
        }
@@ -93,7 +98,7 @@
      case PROTOBUF_C_TYPE_MESSAGE:
        if (wire_type != PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
          return 0;
-@@ -2018,11 +2027,12 @@
+@@ -2018,11 +2029,12 @@
    *p_n += count;
    return TRUE;
  
@@ -107,7 +112,7 @@
  }
  
  static protobuf_c_boolean
-@@ -2205,6 +2215,7 @@
+@@ -2205,6 +2217,7 @@
        size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
        const ProtobufCFieldDescriptor *field;
        ScannedMember tmp;
