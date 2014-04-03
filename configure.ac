@@ -31,10 +31,11 @@ if test "$GCC"; then
 dnl Other warnings that may be useful:
 dnl -Wdeclaration-after-statement -Wendif-labels
 dnl -Werror-implicit-function-declaration -Wformat-security -Winit-self
-dnl -Wmissing-declarations -Wmissing-noreturn -Wpointer-arith -Wfloat-equal
+dnl -Wmissing-declarations -Wmissing-noreturn -Wfloat-equal
 	CFLAGS="$CFLAGS -Wall -Wextra -Wmissing-prototypes \
 		-Wno-unused-parameter -Waggregate-return \
-		-Wdeclaration-after-statement -Wundef -Wcast-align"
+		-Wdeclaration-after-statement -Wundef -Wcast-align \
+		-Wpointer-arith"
 fi
 
 dnl
