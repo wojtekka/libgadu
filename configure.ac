@@ -29,12 +29,12 @@ PKG_PROG_PKG_CONFIG
 
 if test "$GCC"; then
 dnl Other warnings that may be useful:
-dnl -Wcast-align -Wdeclaration-after-statement -Wendif-labels
+dnl -Wdeclaration-after-statement -Wendif-labels
 dnl -Werror-implicit-function-declaration -Wformat-security -Winit-self
 dnl -Wmissing-declarations -Wmissing-noreturn -Wpointer-arith -Wfloat-equal
 	CFLAGS="$CFLAGS -Wall -Wextra -Wmissing-prototypes \
 		-Wno-unused-parameter -Waggregate-return \
-		-Wdeclaration-after-statement -Wundef"
+		-Wdeclaration-after-statement -Wundef -Wcast-align"
 fi
 
 dnl
