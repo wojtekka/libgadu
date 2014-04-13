@@ -530,6 +530,12 @@ void gg_close(struct gg_session *sess)
 		p->event_queue = next;
 	}
 
+	while (p->imgout_queue) {
+		gg_imgout_queue_t *next = p->imgout_queue->next;
+		free(p->imgout_queue);
+		p->imgout_queue = next;
+	}
+
 	if (p->dummyfds_created) {
 		close(p->dummyfds[0]);
 		close(p->dummyfds[1]);
@@ -2073,11 +2079,13 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
  */
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size)
 {
+	struct gg_session_private *p = sess->private_data;
 	struct gg_msg_image_reply *r;
 	struct gg_send_msg s;
 	const char *tmp;
 	char buf[1910];
 	int res = -1;
+	gg_imgout_queue_t *queue = NULL, *queue_end = NULL;
 
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_image_reply(%p, %d, "
 		"\"%s\", %p, %d);\n", sess, recipient, filename, image, size);
@@ -2118,6 +2126,7 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 	r->crc32 = gg_fix32(gg_crc32(0, (const unsigned char*) image, size));
 
 	while (size > 0) {
+		gg_imgout_queue_t *it;
 		size_t buflen, chunklen;
 
 		/* \0 + struct gg_msg_image_reply */
@@ -2135,15 +2144,57 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 		size -= chunklen;
 		image += chunklen;
 
-		res = gg_send_packet(sess, GG_SEND_MSG, &s, sizeof(s), buf, buflen + chunklen, NULL);
-
-		if (res == -1)
+		it = gg_new0(sizeof(gg_imgout_queue_t));
+		if (!it)
 			break;
+		if (queue_end) {
+			queue_end->next = it;
+			queue_end = it;
+		} else {
+			queue = queue_end = it;
+		}
+
+		memcpy(&it->msg_hdr, &s, sizeof(s));
+		memcpy(it->buf, buf, buflen + chunklen);
+		it->buf_len = buflen + chunklen;
 
 		r->flag = GG_MSG_OPTION_IMAGE_REPLY_MORE;
 	}
 
+	if (p->imgout_queue) {
+		queue_end = p->imgout_queue;
+		while (queue_end->next)
+			queue_end = queue_end->next;
+		queue_end->next = queue;
+	} else {
+		p->imgout_queue = queue;
+	}
+	gg_image_sendout(sess);
+
 	return res;
+}
+
+void gg_image_sendout(struct gg_session *sess)
+{
+	struct gg_session_private *p = sess->private_data;
+
+	while (p->imgout_waiting_ack < GG_IMGOUT_WAITING_MAX && p->imgout_queue) {
+		gg_imgout_queue_t *it = p->imgout_queue;
+		int res;
+
+		p->imgout_queue = p->imgout_queue->next;
+		p->imgout_waiting_ack++;
+
+		res = gg_send_packet(sess, GG_SEND_MSG,
+			&it->msg_hdr, sizeof(it->msg_hdr),
+			it->buf, it->buf_len,
+			NULL);
+
+		free(it);
+
+		if (res == -1)
+			break;
+	}
 }
 
 static int gg_notify105_ex(struct gg_session *sess, uin_t *userlist, char *types, int count)

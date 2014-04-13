@@ -423,6 +423,7 @@ static int gg_session_handle_send_msg_ack(struct gg_session *gs, uint32_t type,
 static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 	uint32_t type, const char *ptr, size_t len, struct gg_event *ge)
 {
+	struct gg_session_private *p = gs->private_data;
 	GG110MessageAck *msg = gg110_message_ack__unpack(NULL, len, (uint8_t*)ptr);
 	size_t i;
 
@@ -465,6 +466,10 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 	gg_compat_message_ack(gs, msg->seq);
 
 	gg110_message_ack__free_unpacked(msg, NULL);
+
+	if (msg->seq == 0 && p->imgout_waiting_ack > 0)
+		p->imgout_waiting_ack--;
+	gg_image_sendout(gs);
 
 	return 0;
 }
