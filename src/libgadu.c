@@ -1516,6 +1516,32 @@ static int gg_send_message_110(struct gg_session *sess,
 	return succ ? seq : -1;
 }
 
+static char *
+gg_message_legacy_text_to_html(const char *src, gg_encoding_t encoding,
+	const unsigned char *format, size_t format_len)
+{
+	size_t len;
+	char *dst;
+
+	if (format == NULL || format_len <= 3) {
+		format = NULL;
+		format_len = 0;
+	} else {
+		format += 3;
+		format_len -= 3;
+	}
+
+	len = gg_message_text_to_html(NULL, src, encoding, format, format_len);
+
+	dst = malloc(len + 1);
+	if (dst == NULL)
+		return NULL;
+
+	gg_message_text_to_html(dst, src, encoding, format, format_len);
+
+	return dst;
+}
+
 /**
  * \internal Wysyła wiadomość.
  *
@@ -1573,6 +1599,17 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 		recipients_count == 1)
 	{
 		int is_html = (html_message != NULL);
+		char *formatted_msg = NULL;
+
+		if (formatlen > 3 && !is_html) {
+			formatted_msg = gg_message_legacy_text_to_html(
+				(const char *)message, sess->encoding, format, formatlen);
+			if (formatted_msg == NULL)
+				goto cleanup;
+			html_message = (unsigned char*)formatted_msg;
+			is_html = 1;
+		}
+
 		seq_no = gg_send_message_110(sess, recipients[0], 0,
 			(const char*)(is_html ? html_message : message),
 			is_html);
@@ -1623,7 +1660,7 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 			formatlen = 0;
 		}
 
-		if (sess->encoding == GG_ENCODING_UTF8) {
+		if (sess->encoding != GG_ENCODING_CP1250) {
 			cp_msg = recoded_msg = gg_encoding_convert(tmp_msg, sess->encoding, GG_ENCODING_CP1250, -1, -1);
 			free(tmp_msg);
 
@@ -1633,7 +1670,7 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 			cp_msg = recoded_msg = tmp_msg;
 		}
 	} else {
-		if (sess->encoding == GG_ENCODING_UTF8) {
+		if (sess->encoding != GG_ENCODING_CP1250) {
 			cp_msg = recoded_msg = gg_encoding_convert(
 				(const char*)message, sess->encoding,
 				GG_ENCODING_CP1250, -1, -1);
@@ -1646,38 +1683,24 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 	}
 
 	if (html_message == NULL) {
-		size_t len;
-		char *tmp;
-		const char *utf_msg;
-		const unsigned char *format_ = NULL;
-		size_t formatlen_ = 0;
+		char *formatted_msg;
 
-		if (sess->encoding == GG_ENCODING_UTF8) {
-			utf_msg = (const char*) message;
-		} else {
-			utf_msg = recoded_msg = gg_encoding_convert(
-				(const char*)message, sess->encoding,
-				GG_ENCODING_UTF8, -1, -1);
-
-			if (utf_msg == NULL)
-				goto cleanup;
-		}
-
-		if (format != NULL && formatlen >= 3) {
-			format_ = format + 3;
-			formatlen_ = formatlen - 3;
-		}
-
-		len = gg_message_text_to_html(NULL, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
-
-		tmp = malloc(len + 1);
-
-		if (tmp == NULL)
+		formatted_msg = gg_message_legacy_text_to_html(
+			(const char*)message, sess->encoding, format, formatlen);
+		if (formatted_msg == NULL)
 			goto cleanup;
 
-		gg_message_text_to_html(tmp, utf_msg, GG_ENCODING_UTF8, format_, formatlen_);
+		if (sess->encoding == GG_ENCODING_UTF8) {
+			utf_html_msg = recoded_html_msg = formatted_msg;
+		} else {
+			utf_html_msg = recoded_html_msg = gg_encoding_convert(
+				formatted_msg, sess->encoding,
+				GG_ENCODING_UTF8, -1, -1);
+			free(formatted_msg);
 
-		utf_html_msg = recoded_html_msg = tmp;
+			if (utf_html_msg == NULL)
+				goto cleanup;
+		}
 	} else {
 		if (sess->encoding == GG_ENCODING_UTF8) {
 			utf_html_msg = (const char*) html_message;
