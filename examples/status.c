@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	glp.password = argv[2];
 #if 0
 	glp.encoding = GG_ENCODING_UTF8;
-	glp.protocol_version = 0x2d;
+	glp.protocol_version = GG_PROTOCOL_VERSION_110;
 #endif
 	glp.status = GG_STATUS_INVISIBLE_DESCR;
 	glp.status_descr = argv[3];

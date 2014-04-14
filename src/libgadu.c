@@ -1816,8 +1816,7 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, "
 		"%u, %p)\n", sess, msgclass, recipient, message);
 
-	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110)
-	{
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110) {
 		int seq_no;
 
 		seq_no = gg_send_message_110(sess, recipient, 0, (const char*)message, 0);
