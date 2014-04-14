@@ -2117,7 +2117,7 @@ int gg_image_request(struct gg_session *sess, uin_t recipient, int size, uint32_
  */
 int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filename, const char *image, int size)
 {
-	struct gg_session_private *p = sess->private_data;
+	struct gg_session_private *p;
 	struct gg_msg_image_reply *r;
 	struct gg_send_msg s;
 	const char *tmp;
@@ -2132,6 +2132,8 @@ int gg_image_reply(struct gg_session *sess, uin_t recipient, const char *filenam
 		errno = EFAULT;
 		return -1;
 	}
+
+	p = sess->private_data;
 
 	if (sess->state != GG_STATE_CONNECTED) {
 		errno = ENOTCONN;
