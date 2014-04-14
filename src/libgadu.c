@@ -1602,8 +1602,12 @@ static int gg_send_message_common(struct gg_session *sess, int msgclass,
 		char *formatted_msg = NULL;
 
 		if (formatlen > 3 && !is_html) {
+			gg_debug_session(sess, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+				"// gg_send_message_common() using legacy "
+				"formatting with new protocol\n");
 			formatted_msg = gg_message_legacy_text_to_html(
-				(const char *)message, sess->encoding, format, formatlen);
+				(const char *)message, sess->encoding,
+				format, formatlen);
 			if (formatted_msg == NULL)
 				goto cleanup;
 			html_message = (unsigned char*)formatted_msg;
@@ -1811,6 +1815,18 @@ int gg_send_message(struct gg_session *sess, int msgclass, uin_t recipient, cons
 {
 	gg_debug_session(sess, GG_DEBUG_FUNCTION, "** gg_send_message(%p, %d, "
 		"%u, %p)\n", sess, msgclass, recipient, message);
+
+	if (sess->protocol_version >= GG_PROTOCOL_VERSION_110)
+	{
+		int seq_no;
+
+		seq_no = gg_send_message_110(sess, recipient, 0, (const char*)message, 0);
+
+		if (seq_no >= 0)
+			gg_compat_message_sent(sess, seq_no, 1, &recipient);
+
+		return seq_no;
+	}
 
 	return gg_send_message_common(sess, msgclass, 1, &recipient, message,
 		(const unsigned char*)"\x02\x06\x00\x00\x00\x08\x00\x00\x00",
