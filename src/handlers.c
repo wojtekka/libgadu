@@ -436,11 +436,11 @@ static int gg_session_handle_send_msg_ack_110(struct gg_session *gs,
 		 */
 		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
 			"// gg_session_handle_send_msg_ack_110() magic dummy1 "
-			"value 0x4000");
+			"value 0x4000\n");
 	} else if (msg->dummy1 != 0) {
 		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
 			"// gg_session_handle_send_msg_ack_110() unknown dummy1 "
-			"value: %x", msg->dummy1);
+			"value: %x\n", msg->dummy1);
 	}
 
 	gg_debug_session(gs, GG_DEBUG_VERBOSE,
