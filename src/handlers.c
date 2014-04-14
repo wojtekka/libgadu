@@ -1393,13 +1393,13 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type,
 		if (msg->data.len < sizeof(struct gg_msg_image_reply)) {
 			gg_debug_session(gs, GG_DEBUG_ERROR,
 				"// gg_session_handle_recv_msg_110() "
-				"packet too small\n");
-			return -1;
+				"packet too small (%" GG_SIZE_FMT " < %"
+				GG_SIZE_FMT ")\n", msg->data.len,
+				sizeof(struct gg_msg_image_reply));
+		} else {
+			gg_image_queue_parse(ge, (char *)msg->data.data,
+				msg->data.len, gs, sender, type);
 		}
-
-		gg_image_queue_parse(ge, (char *)msg->data.data, msg->data.len,
-			gs, sender, type);
-
 		gg110_recv_message__free_unpacked(msg, NULL);
 		return gg_ack_110(gs, GG110_ACK__TYPE__MSG, seq, ge);
 	}
