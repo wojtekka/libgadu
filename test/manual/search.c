@@ -31,8 +31,8 @@
 
 char *token, *token_secret;
 
-char *config_uin;
-char *config_password;
+char *config_uin = NULL;
+char *config_password = NULL;
 
 static int config_read(void)
 {
@@ -48,11 +48,15 @@ static int config_read(void)
 		while (strlen(buf) > 0 && isspace(buf[strlen(buf) - 1]))
 			buf[strlen(buf) - 1] = 0;
 
-		if (!strncmp(buf, "uin ", 4))
+		if (!strncmp(buf, "uin ", 4)) {
+			free(config_uin);
 			config_uin = strdup(buf + 4);
+		}
 
-		if (!strncmp(buf, "password ", 9))
+		if (!strncmp(buf, "password ", 9)) {
+			free(config_password);
 			config_password = strdup(buf + 9);
+		}
 	}
 
 	fclose(f);
