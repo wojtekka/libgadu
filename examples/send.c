@@ -46,8 +46,8 @@ int main(int argc, char **argv)
 	gg_debug_level = 255;
 
 	memset(&p, 0, sizeof(p));
-	p.uin = atoi(argv[1]);
-	p.password = argv[2];
+	p.uin = atoi(argv[2]);
+	p.password = argv[1];
 
 	if (!(sess = gg_login(&p))) {
 		printf("Nie udało się połączyć: %s\n", strerror(errno));
