@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>libgadu 1.12.0-rc3</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="Keywords" content="libgadu, libgg, gg, gadu-gadu, gadugadu, linux, unix, ekg, gpl, lgpl" />
+	</head>
+	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
+		<h1>libgadu 1.12.0-rc3</h1>
+
+		<p>6 maja 2014r.</p>
+
+		<hr />
+
+		<h3>Zmiany</h3>
+
+		<ul>
+			<li><b>Poprawka błędu bezpieczeństwa</b> w obsłudze protokołu HTTP. Odpowiednio spreparowana odpowiedź serwera może spowodować nadpisanie pamięci i wykonanie dowolnego kodu (<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-6487">CVE-2013-6487</a>, <a href="http://vrt-blog.snort.org/2014/01/vrt-2013-1001-cve-2013-6487-buffer.html">szczegóły</a>).</li>
+			<li><b>Poprawka błędu bezpieczeństwa</b> przy przesyłaniu plików za pomocą serwera pośredniczącego. Odpowiednio spreparowana odpowiedź serwera może spowodować nadpisanie pamięci i wykonanie dowolnego kodu.</li>
+			<li>Obsługa protokołu Gadu-Gadu 11.</li>
+			<li>Możliwość weryfikacji certyfikatu serwera.</li>
+			<li>Możliwość użycia własnych funkcji do połączeń TCP/TLS.</li>
+			<li>Możliwość podania nazwy serwera, nie tylko adresu.</li>
+			<li>Poprawki drobnych błędów zgłoszonych przez projekt Pidgin w ramach audytu Coverity.</li>
+			<li>Biblioteka OpenSSL nie jest już automatycznie wykrywana.</li>
+			<li>Poprawki przesyłania obrazków.</li>
+			<li>Poprawki niezawodności testów automatycznych.</li>
+		</ul>
+
+		<p>Ponieważ brak weryfikacji certyfikatu serwera był zgłaszany jako błąd bezpieczeństwa, proszę traktować tę wersję jako krytyczną aktualizację, jeśli faktycznie używano szyfrowanej transmisji.</p>
+
+		<p>Bardziej szczegółowy opis zmian API/ABI można znaleźć w <a href="../docs/group__changelog.html">dokumentacji</a>.</p>
+
+		<hr />
+
+		<h3>Pobierz</h3>
+
+		<ul>
+			<li><a href="http://github.com/wojtekka/libgadu/releases/download/1.12.0-rc3/libgadu-1.12.0-rc3.tar.gz">libgadu-1.12.0-rc3.tar.gz</a></li>
+		</ul>
+
+		<hr />
+
+		<h3>Znane błędy</h3>
+
+		<ul>
+			<li>Połączenia głosowe i przesyłanie plików przez serwer pośredniczący nie są dostatecznie dobrze przetestowane.</li>
+			<li>Nie wszystkie nowe opcje protokołu są weryfikowane przez programy testowe</li>
+		</ul>
+
+		<hr />
+
+		<div style="padding: 0.5em 0em 1.5em 0em;">
+			&copy; Copyright 2014 <a href="http://toxygen.net/kontakt.php">Wojtek Kaniewski</a> i inni
+		</div>
+	</body>
+</html>
