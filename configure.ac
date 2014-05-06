@@ -1,6 +1,6 @@
 dnl $Id$
 
-AC_INIT([libgadu], [1.12.0-rc2])
+AC_INIT([libgadu], [1.12.0-rc3])
 AC_CONFIG_SRCDIR([src/libgadu.c])
 AM_INIT_AUTOMAKE()
 
