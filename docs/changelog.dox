@@ -33,6 +33,8 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 - Możliwość sprawdzenia powodu błędu przy operacji na katalogu publicznym.
 
+- Nowy wynik operacji na liście kontaktów przechowywanej na serwerze \c GG_USERLIST100_REPLY_UPTODATE.
+
 \section changelog-1_11_3 libgadu 1.11.3
 
 - Brak zmian API/ABI.
