@@ -10,7 +10,7 @@
 	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
 		<h1>libgadu 1.12.0-rc3</h1>
 
-		<p>6 maja 2014r.</p>
+		<p>7 maja 2014r.</p>
 
 		<hr />
 
@@ -18,7 +18,7 @@
 
 		<ul>
 			<li><b>Poprawka błędu bezpieczeństwa</b> w obsłudze protokołu HTTP. Odpowiednio spreparowana odpowiedź serwera może spowodować nadpisanie pamięci i wykonanie dowolnego kodu (<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2013-6487">CVE-2013-6487</a>, <a href="http://vrt-blog.snort.org/2014/01/vrt-2013-1001-cve-2013-6487-buffer.html">szczegóły</a>).</li>
-			<li><b>Poprawka błędu bezpieczeństwa</b> przy przesyłaniu plików za pomocą serwera pośredniczącego. Odpowiednio spreparowana odpowiedź serwera może spowodować nadpisanie pamięci i wykonanie dowolnego kodu.</li>
+			<li><b>Poprawka błędu bezpieczeństwa</b> przy przesyłaniu plików za pomocą serwera pośredniczącego. Odpowiednio spreparowana odpowiedź serwera może spowodować nadpisanie pamięci.</li>
 			<li>Obsługa protokołu Gadu-Gadu 11.</li>
 			<li>Możliwość weryfikacji certyfikatu serwera.</li>
 			<li>Możliwość użycia własnych funkcji do połączeń TCP/TLS.</li>
@@ -27,6 +27,7 @@
 			<li>Biblioteka OpenSSL nie jest już automatycznie wykrywana.</li>
 			<li>Poprawki przesyłania obrazków.</li>
 			<li>Poprawki niezawodności testów automatycznych.</li>
+			<li>Poprawki niezawodności pod Windows.</li>
 		</ul>
 
 		<p>Ponieważ brak weryfikacji certyfikatu serwera był zgłaszany jako błąd bezpieczeństwa, proszę traktować tę wersję jako krytyczną aktualizację, jeśli faktycznie używano szyfrowanej transmisji.</p>
