@@ -1426,6 +1426,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 			char buf[256];
 			struct gg_dcc7_relay_reply *pkt;
 			struct gg_dcc7_relay_reply_server srv;
+			size_t max_relay_count = (sizeof(buf) - sizeof(*pkt)) / sizeof(srv);
 			int res;
 			int i;
 
@@ -1457,6 +1458,18 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			dcc->relay_index = 0;
 			dcc->relay_count = gg_fix32(pkt->rcount);
+
+			if (dcc->relay_count > 0xffff ||
+				(size_t)dcc->relay_count > max_relay_count)
+			{
+				gg_debug_dcc(dcc, GG_DEBUG_MISC,
+					"// gg_dcc7_watch_fd() relay_count out "
+					"of bounds (%d)\n", dcc->relay_count);
+				dcc->relay_count = 0;
+				free(e);
+				return NULL;
+			}
+
 			dcc->relay_list = malloc(dcc->relay_count * sizeof(gg_dcc7_relay_t));
 
 			if (dcc->relay_list == NULL) {
