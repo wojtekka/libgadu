@@ -1442,7 +1442,7 @@ struct gg_event *gg_dcc7_watch_fd(struct gg_dcc7 *dcc)
 
 			pkt = (struct gg_dcc7_relay_reply*) buf;
 
-			if (gg_fix32(pkt->magic) != GG_DCC7_RELAY_REPLY || gg_fix32(pkt->rcount) < 1 || gg_fix32(pkt->rcount > 256) || gg_fix32(pkt->len) < sizeof(*pkt) + gg_fix32(pkt->rcount) * sizeof(srv)) {
+			if (gg_fix32(pkt->magic) != GG_DCC7_RELAY_REPLY || gg_fix32(pkt->rcount) < 1 || gg_fix32(pkt->rcount) > 256 || gg_fix32(pkt->len) < sizeof(*pkt) + gg_fix32(pkt->rcount) * sizeof(srv)) {
 				gg_debug_dcc(dcc, GG_DEBUG_MISC, "// gg_dcc7_wathc_fd() invalid reply\n");
 				errno = EINVAL;
 				e->type = GG_EVENT_DCC7_ERROR;
