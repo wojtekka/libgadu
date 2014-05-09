@@ -35,10 +35,10 @@ gg_mkstemp(char *path)
 #if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
 	ret = mkstemp(path);
 #else
-	/* mktemp may be unsafe, because it creates files with predictable
-	 * names, but it's not a real problem for automatic tests.
+	/* coverity[secure_temp : FALSE]
 	 *
-	 * coverity[secure_temp]
+	 * mktemp may be unsafe, because it creates files with predictable
+	 * names, but it's not a real problem for automatic tests.
 	 */
 	if (strcmp(mktemp(path), "") == 0)
 		ret = -1;
