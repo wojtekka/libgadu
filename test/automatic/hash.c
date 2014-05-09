@@ -36,7 +36,7 @@ gg_mkstemp(char *path)
 	ret = mkstemp(path);
 #else
 #ifdef _WIN32
-	if (_mktemp_s(path, strlen(path)) != 0)
+	if (_mktemp_s(path, strlen(path) + 1) != 0)
 #else
 	/* coverity[secure_temp : FALSE]
 	 *
