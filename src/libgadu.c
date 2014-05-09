@@ -991,7 +991,8 @@ struct gg_session *gg_login(const struct gg_login_params *p)
 	} else
 		sess->protocol_version = p->protocol_version;
 
-	sess->client_version = (p->client_version) ? strdup(p->client_version) : NULL;
+	if (p->client_version && strcmp(p->client_version, "-") != 0)
+		sess->client_version = strdup(p->client_version);
 	sess->last_sysmsg = p->last_sysmsg;
 	sess->image_size = p->image_size;
 	sess->pid = -1;
