@@ -27,8 +27,16 @@
 #define GG_DEFAULT_CLIENT_VERSION_110 "11.3.45.10771"
 
 #ifdef _WIN32
-#  define GG_SIZE_FMT "Iu"
-#  define _GG_INT64_MODIFIER "I64"
+#  ifdef __COVERITY__
+#    define GG_SIZE_FMT "lu"
+#    define _GG_INT64_MODIFIER "ll"
+#    undef PRIu64
+#    undef PRIx64
+#    undef PRId64
+#  else
+#    define GG_SIZE_FMT "Iu"
+#    define _GG_INT64_MODIFIER "I64"
+#  endif
 #elif defined(_LP64)
 #  define GG_SIZE_FMT "zu"
 #  define _GG_INT64_MODIFIER "l"
