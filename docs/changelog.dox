@@ -35,6 +35,8 @@ stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
 - Nowy wynik operacji na liście kontaktów przechowywanej na serwerze \c GG_USERLIST100_REPLY_UPTODATE.
 
+- Funkcje formatujące teksty (\c gg_debug i spółka) będą miały w GCC sprawdzaną poprawność parametrów. Jeśli aplikacja jest budowana z flagami \c -Wformat i \c -Werror, kompilacja może się nie powieść.
+
 \section changelog-1_11_3 libgadu 1.11.3
 
 - Brak zmian API/ABI.
