@@ -46,8 +46,8 @@ gg_mkstemp(char *path)
 	if (strcmp(mktemp(path), "") == 0)
 #endif
 		ret = -1;
-	else /* XXX: O_CREAT shouldn't be necessary */
-		ret = open(path, O_EXCL | O_RDWR | O_CREAT);
+	else
+		ret = open(path, O_EXCL | O_RDWR);
 #endif
 	umask(old_umask);
 
