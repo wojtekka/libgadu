@@ -35,7 +35,16 @@ gg_mkstemp(char *path)
 #if defined(_BSD_SOURCE) || defined(_SVID_SOURCE) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 500)
 	ret = mkstemp(path);
 #else
+#ifdef _WIN32
+	if (_mktemp_s(path, strlen(path) + 1) != 0)
+#else
+	/* coverity[secure_temp : FALSE]
+	 *
+	 * mktemp may be unsafe, because it creates files with predictable
+	 * names, but it's not a real problem for automatic tests.
+	 */
 	if (strcmp(mktemp(path), "") == 0)
+#endif
 		ret = -1;
 	else /* XXX: O_CREAT shouldn't be necessary */
 		ret = open(path, O_EXCL | O_RDWR | O_CREAT);

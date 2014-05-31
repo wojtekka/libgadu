@@ -23,6 +23,7 @@ if HAVE_MINGW
 # To generate libgadu.lib file, do one of the following:
 # mingw: $ dlltool --def libgadu.def --output-lib libgadu.lib
 # msvc:  > lib /machine:i386 /def:libgadu.def
+# you might also need to convert libgadu.h file with declspec.sh
 libgadu.def: libgadu.def.in
 	$(AM_V_GEN)echo "LIBRARY libgadu-3.dll" > $@
 	$(AM_V_at)cat $< >> $@
