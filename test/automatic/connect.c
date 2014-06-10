@@ -42,8 +42,15 @@
 #include <gnutls/gnutls.h>
 #endif
 
-/* must be different from INADDR_LOOPBACK=127.0.0.1 */
-#define HOST_LOCAL "127.0.0.2"
+#ifndef _WIN32
+/* should not be different from 127.0.0.1, because this is the only address
+ * from 127.0.0.0/8 pool that is guaranted to be configured as a loopback */
+#  define HOST_LOCAL "127.0.0.1"
+#else
+/* must be different from INADDR_LOOPBACK=127.0.0.1, because this one is used
+ * for win32-related hacks */
+#  define HOST_LOCAL "127.0.0.2"
+#endif
 #define HOST_PROXY "proxy.example.org"
 
 #if 0
