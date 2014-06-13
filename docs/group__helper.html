@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Funkcje pomocnicze</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -99,6 +99,8 @@ Funkcje</h2></td></tr>
 <tr class="separator:gad066bae9a1c7027dfbceb7fee49e6810"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae6043b5ca096578c4c580a2f1ddba8b6"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helper.html#gae6043b5ca096578c4c580a2f1ddba8b6">gg_base64_decode</a> (const char *buf)</td></tr>
 <tr class="separator:gae6043b5ca096578c4c580a2f1ddba8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7a728c252887d9f5d0d78b49593cc181"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helper.html#ga7a728c252887d9f5d0d78b49593cc181">gg_fix64</a> (uint64_t x)</td></tr>
+<tr class="separator:ga7a728c252887d9f5d0d78b49593cc181"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae8c6817d2c15b5db3bfc4f8e39a50a4c"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helper.html#gae8c6817d2c15b5db3bfc4f8e39a50a4c">gg_fix32</a> (uint32_t x)</td></tr>
 <tr class="separator:gae8c6817d2c15b5db3bfc4f8e39a50a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae2bb699fed19a582feebe83b724aeda4"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helper.html#gae2bb699fed19a582feebe83b724aeda4">gg_fix16</a> (uint16_t x)</td></tr>
@@ -318,6 +320,31 @@ Funkcje</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga7a728c252887d9f5d0d78b49593cc181"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t gg_fix64 </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>x</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Zamienia kolejność bajtów w 64-bitowym słowie.</p>
+<p>Ze względu na little-endianowość protokołu Gadu-Gadu, na maszynach big-endianowych odwraca kolejność bajtów w słowie.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Liczba do zamiany</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Liczba z odpowiednią kolejnością bajtów </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gae8c6817d2c15b5db3bfc4f8e39a50a4c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -371,9 +398,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

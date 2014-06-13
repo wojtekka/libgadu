@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja struktury gg_image_queue</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -116,6 +116,9 @@ Pola danych</h2></td></tr>
 <tr class="memitem:aadb491cf0bec9e5a5bca558a884fa186"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structgg__image__queue.html">gg_image_queue</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__image__queue.html#aadb491cf0bec9e5a5bca558a884fa186">next</a></td></tr>
 <tr class="memdesc:aadb491cf0bec9e5a5bca558a884fa186"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kolejny element listy.  <a href="#aadb491cf0bec9e5a5bca558a884fa186">Więcej...</a><br/></td></tr>
 <tr class="separator:aadb491cf0bec9e5a5bca558a884fa186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d0990e39ae8f91a4937083eead6b65f"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__image__queue.html#a8d0990e39ae8f91a4937083eead6b65f">packet_type</a></td></tr>
+<tr class="memdesc:a8d0990e39ae8f91a4937083eead6b65f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rodzaj odbieranych pakietów.  <a href="#a8d0990e39ae8f91a4937083eead6b65f">Więcej...</a><br/></td></tr>
+<tr class="separator:a8d0990e39ae8f91a4937083eead6b65f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <div class="textblock"><p>Kolejka odbieranych obrazków. </p>
@@ -218,15 +221,30 @@ Pola danych</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a8d0990e39ae8f91a4937083eead6b65f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t packet_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Rodzaj odbieranych pakietów. </p>
+<p>W niektórych przypadkach (przy multilogowaniu) serwer wysyła nam dwie kopie obrazka jako dwa różne typy pakietów </p>
+
+</div>
+</div>
 <hr/>Dokumentacja dla tej struktury została wygenerowana z pliku:<ul>
 <li><a class="el" href="libgadu_8h.html">libgadu.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:59 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

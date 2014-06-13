@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Lista zmian</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -81,6 +81,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </div><!--header-->
 <div class="contents">
 <p>Niniejsza strona zawiera listę zmian, zwłaszcza tych mających wpływ na API lub ABI biblioteki. Poprawki dostarczające nową funkcjonalność w większości przypadków nie mają wpływ na interfejs binarny biblioteki. Nowe funkcje, stałe i pola struktur nie zmieniają dotychczasowego zachowania.</p>
+<h1><a class="anchor" id="changelog-1_12_0"></a>
+libgadu 1.12.0</h1>
+<ul>
+<li>Obsługa protokołu Gadu-Gadu 11.</li>
+<li>Wsparcie dla win32.</li>
+<li>Możliwość użycia własnych funkcji do połączeń TCP/TLS.</li>
+<li>Dodany symbol <code>gg_is_gpl_compliant</code>, definiowany wtedy i tylko wtedy, gdy biblioteka jest zgodna z licencją GPL. W związku z tym wersja kompilowana z OpenSSL nie jest zgodna binarnie z wersją GPL.</li>
+<li>Możliwość podania nazwy serwera, nie tylko adresu.</li>
+<li>Ustawienie pola <code>tls</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> na <code>GG_SSL_REQUIRED</code> powoduje odrzucenie połączenia w przypadku błędnego certyfikatu serwera.</li>
+<li>Nowe flagi debugowania: <code>GG_DEBUG_VERBOSE</code>, <code>GG_DEBUG_WARNING</code> oraz <code>GG_DEBUG_ERROR</code>.</li>
+<li>Funkcje <code>gg_debug_state</code> oraz <code>gg_debug_event</code> dodane do publicznego API.</li>
+<li>Możliwość wyłączenia funkcji zapewniających wsteczną kompatybilność (np. tych, które wpływają negatywnie na wydajność).</li>
+<li>Wysyłanie wiadomości w formacie HTML.</li>
+<li>Możliwość sprawdzenia powodu błędu przy operacji na katalogu publicznym.</li>
+<li>Nowy wynik operacji na liście kontaktów przechowywanej na serwerze <code>GG_USERLIST100_REPLY_UPTODATE</code>.</li>
+<li>Funkcje formatujące teksty (<code>gg_debug</code> i spółka) będą miały w GCC sprawdzaną poprawność parametrów. Jeśli aplikacja jest budowana z flagami <code>-Wformat</code> i <code>-Werror</code>, kompilacja może się nie powieść.</li>
+</ul>
 <h1><a class="anchor" id="changelog-1_11_3"></a>
 libgadu 1.11.3</h1>
 <ul>
@@ -100,20 +117,10 @@ libgadu 1.11.1</h1>
 libgadu 1.11.0</h1>
 <ul>
 <li>Import i eksport listy kontaktów zgodnej z Gadu-Gadu 10. Dodaje zależność od zlib. <a class="el" href="group__importexport.html">Szczegóły</a>.</li>
-</ul>
-<ul>
 <li>Uniezależnienie połączeń bezpośrednich Gadu-Gadu 7.x od zmiennych połączeń bezpośrednich Gadu-Gadu 6.x.</li>
-</ul>
-<ul>
-<li>Pole <code>tls</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> przyjmuje wartości z <code>gg_ssl_t</code>.</li>
-</ul>
-<ul>
-<li>Nowa funkcja <code><a class="el" href="group__version.html#ga70cd8e2f735c8e21fcf806e6e049226a" title="Sprawdza czy biblioteka obsługuje daną funkcję.">gg_libgadu_check_feature()</a></code> pozwala sprawdzić, czy funkcje zależne od zewnętrznych bibliotek są dostępne.</li>
-</ul>
-<ul>
+<li>Pole <code>tls</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> przyjmuje wartości z <code>gg_ssl_t</code>.</li>
+<li>Nowa funkcja <code><a class="el" href="group__version.html#ga70cd8e2f735c8e21fcf806e6e049226a" title="Sprawdza czy biblioteka obsługuje daną funkcję. ">gg_libgadu_check_feature()</a></code> pozwala sprawdzić, czy funkcje zależne od zewnętrznych bibliotek są dostępne.</li>
 <li>Nowe powody nieudanego połączenia: <code>GG_FAILURE_HUB</code> i <code>GG_FAILURE_PROXY</code>.</li>
-</ul>
-<ul>
 <li>Zmiana deskryptora w połączeniach bezpośrednich Gadu-Gadu 7.x, która wcześniej nie generowała żadnego zdarzenia, teraz będzie zwracać <code>GG_EVENT_DCC7_PENDING</code>.</li>
 </ul>
 <h1><a class="anchor" id="changelog-1_10_1"></a>
@@ -125,67 +132,41 @@ libgadu 1.10.1</h1>
 libgadu 1.10.0</h1>
 <ul>
 <li>Przywrócenie obsługi SSL dzięki szyfrowanym połączeniom Gadu-Gadu 10.</li>
-</ul>
-<ul>
 <li>Powiadomienie o pisaniu. <a class="el" href="group__messages.html#messages-typing">Szczegóły</a>.</li>
-</ul>
-<ul>
 <li>Obsługa dodatkowych informacji o kontaktach za pomocą <code>GG_EVENT_USER_DATA</code>.</li>
-</ul>
-<ul>
 <li>Obsługa dodatkowych zdarzeń XML (pakiet <code>GG_XML_ACTION</code>) za pomocą <code>GG_EVENT_XML_EVENT</code>.</li>
-</ul>
-<ul>
 <li>Obsługa multilogowania. <a class="el" href="group__login.html#login-multi">Szczegóły</a>.</li>
 </ul>
 <h1><a class="anchor" id="changelog-1_9_1"></a>
 libgadu 1.9.1</h1>
 <ul>
 <li>Opis zdarzenia <code>GG_EVENT_DCC7_DONE</code> zawiera wskaźnik do struktury połączenia, którego dotyczy.</li>
-</ul>
-<ul>
-<li>Możliwość zmian flag statusu (blokowanie odnośników od nieznajomych itd.) za pomocą pola <code>status_flags</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> lub funkcji <code><a class="el" href="group__status.html#ga58f2aededfe215bfb7ccbd6b019c94d4" title="Funkcja zmieniająca flagi statusu.">gg_change_status_flags()</a></code>.</li>
+<li>Możliwość zmian flag statusu (blokowanie odnośników od nieznajomych itd.) za pomocą pola <code>status_flags</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> lub funkcji <code><a class="el" href="group__status.html#ga58f2aededfe215bfb7ccbd6b019c94d4" title="Funkcja zmieniająca flagi statusu. ">gg_change_status_flags()</a></code>.</li>
 </ul>
 <h1><a class="anchor" id="changelog-1_9_0"></a>
 libgadu 1.9.0</h1>
 <ul>
-<li>Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole <code>encoding</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> pozwala zmienić kodowanie na UTF-8. Mimo że katalog publiczny ze strony serwera jest obsługiwany w CP1250, biblioteka dokonuje konwersji. <a class="el" href="structgg__login__params.html">Szczegóły.</a></li>
-</ul>
-<ul>
-<li>Ponieważ nowy klient przekazuje wiadomości w dwóch formatach &mdash; czysty tekst plus atrybuty i HTML, dodano pole <code>xhtml_message</code> do struktury <code><a class="el" href="structgg__event__msg.html" title="Opis zdarzeń GG_EVENT_MSG i GG_EVENT_MULTILOGON_MSG.">gg_event_msg</a></code>. Niestety, nie można jeszcze wysyłać wiadomości w tym formacie. <a class="el" href="structgg__event__msg.html">Szczegóły.</a></li>
-</ul>
-<ul>
-<li>Razem z nowym protokołem przyszły nowe statusy: <code>GG_STATUS_FFC</code>, <code>GG_STATUS_FFC_DESCR</code>, <code>GG_STATUS_DND</code> i <code>GG_STATUS_DND_DESCR</code>. Uwaga! Jeśli pole <code>protocol_features</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> zawiera <code>GG_FEATURE_IMAGE_DESCR</code>, statusy z opisami są przekazywane w inny sposób. <a class="el" href="group__status.html">Szczegóły.</a></li>
-</ul>
-<ul>
-<li>Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola <code>resolver_type</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> dla procesów i wątków, lub globalnie za pomocą funkcji <a class="el" href="libgadu_8h.html#acf8f4941ad20d3ac4f68486205af26db">gg_global_set_resolver</a> czy <a class="el" href="libgadu_8h.html#a38af79bcadc046a261666464fe7c3413">gg_global_set_custom_resolver</a>. <a class="el" href="group__build.html#build-resolver">Szczegóły.</a></li>
-</ul>
-<ul>
+<li>Podstawowa obsługa protokołu Nowego Gadu-Gadu, a co za tym idzie, wiadomości i opisy kodowane w UTF-8. Domyślnie biblioteka nadal przekazuje do aplikacji i spodziewa się od niej tekstów w CP1250, ale pole <code>encoding</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> pozwala zmienić kodowanie na UTF-8. Mimo że katalog publiczny ze strony serwera jest obsługiwany w CP1250, biblioteka dokonuje konwersji. <a class="el" href="structgg__login__params.html">Szczegóły.</a></li>
+<li>Ponieważ nowy klient przekazuje wiadomości w dwóch formatach &mdash; czysty tekst plus atrybuty i HTML, dodano pole <code>xhtml_message</code> do struktury <code><a class="el" href="structgg__event__msg.html" title="Opis zdarzeń GG_EVENT_MSG i GG_EVENT_MULTILOGON_MSG. ">gg_event_msg</a></code>. Niestety, nie można jeszcze wysyłać wiadomości w tym formacie. <a class="el" href="structgg__event__msg.html">Szczegóły.</a></li>
+<li>Razem z nowym protokołem przyszły nowe statusy: <code>GG_STATUS_FFC</code>, <code>GG_STATUS_FFC_DESCR</code>, <code>GG_STATUS_DND</code> i <code>GG_STATUS_DND_DESCR</code>. Uwaga! Jeśli pole <code>protocol_features</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> zawiera <code>GG_FEATURE_IMAGE_DESCR</code>, statusy z opisami są przekazywane w inny sposób. <a class="el" href="group__status.html">Szczegóły.</a></li>
+<li>Aplikacja może sama wybrać sposób rozwiązywania nazw serwerów &mdash; przy użyciu procesu, wątku lub we własny sposób. Można to zrobić za pomocą pola <code>resolver_type</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> dla procesów i wątków, lub globalnie za pomocą funkcji <a class="el" href="libgadu_8h.html#acf8f4941ad20d3ac4f68486205af26db">gg_global_set_resolver</a> czy <a class="el" href="libgadu_8h.html#a38af79bcadc046a261666464fe7c3413">gg_global_set_custom_resolver</a>. <a class="el" href="group__build.html#build-resolver">Szczegóły.</a></li>
 <li>Opis zdarzenia <code>GG_EVENT_DCC7_PENDING</code> zawiera wskaźnik do struktury połączenia, którego dotyczy.</li>
 </ul>
 <h1><a class="anchor" id="changelog-1_8_0"></a>
 libgadu 1.8.0</h1>
 <ul>
 <li>Połączenia bezpośrednie Gadu-Gadu 7.x. <a class="el" href="group__dcc7.html">Szczegóły.</a></li>
-</ul>
-<ul>
-<li>Pole <code>hash_type</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> określa rodzaj użytej funkcji skrótu hasła. W nowej wersji protokołu domyślnie używany jest SHA-1. <a class="el" href="structgg__login__params.html">Szczegóły.</a></li>
-</ul>
-<ul>
-<li>Pole <code>soft_timeout</code> struktur <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code> i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> informuje, że po przekroczeniu czasu określnego w polu <code>timeout</code> zamiast zrywać połączenie, należy wywołać funkcję <code><a class="el" href="group__events.html#gae28360891a3b393d606fb455564e3b3a" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.">gg_watch_fd()</a></code> lub <code><a class="el" href="group__dcc7.html#ga3053d18bcbd8d6854bc4510376451d2e" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_dcc7_watch_fd()</a></code>. <a class="el" href="group__events.html">Szczegóły.</a></li>
-</ul>
-<ul>
+<li>Pole <code>hash_type</code> struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> określa rodzaj użytej funkcji skrótu hasła. W nowej wersji protokołu domyślnie używany jest SHA-1. <a class="el" href="structgg__login__params.html">Szczegóły.</a></li>
+<li>Pole <code>soft_timeout</code> struktur <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu. ">gg_session</a></code> i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> informuje, że po przekroczeniu czasu określnego w polu <code>timeout</code> zamiast zrywać połączenie, należy wywołać funkcję <code><a class="el" href="group__events.html#gae28360891a3b393d606fb455564e3b3a" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji. ">gg_watch_fd()</a></code> lub <code><a class="el" href="group__dcc7.html#ga3053d18bcbd8d6854bc4510376451d2e" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_dcc7_watch_fd()</a></code>. <a class="el" href="group__events.html">Szczegóły.</a></li>
 <li>Zdarzenie <code>GG_EVENT_MSG</code> zawiera nowe pole <code>seq</code> zawierające numer sekwencyjny odebranej wiadomości. <a class="el" href="structgg__event__msg.html">Szczegóły.</a></li>
-</ul>
-<ul>
 <li>Nowe zdarzenie <code>GG_EVENT_XML_EVENT</code> zawiera informacje w formacie XML otrzymane od serwera. <a class="el" href="structgg__event__xml__event.html">Szczegóły.</a> </li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

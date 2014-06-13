@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Usługi HTTP</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -78,6 +78,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Struktury danych</a> &#124;
+<a href="#enum-members">Wyliczenia</a> &#124;
 <a href="#func-members">Funkcje</a>  </div>
   <div class="headertitle">
 <div class="title">Usługi HTTP<div class="ingroups"><a class="el" href="group__services.html">Usługi dodatkowe</a></div></div>  </div>
@@ -92,6 +93,23 @@ Struktury danych</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__pubdir.html">gg_pubdir</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wynik operacji na katalogu publicznym.  <a href="structgg__pubdir.html#details">Więcej...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Wyliczenia</h2></td></tr>
+<tr class="memitem:ga9dbcf23828ccbab06c656e809263931d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__http.html#ga9dbcf23828ccbab06c656e809263931d">gg_pubdir_error_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__http.html#gga9dbcf23828ccbab06c656e809263931da98d5282bb190d3d88955bf4fe7af9d50">GG_PUBDIR_ERROR_NONE</a> = 0, 
+<br/>
+&#160;&#160;<a class="el" href="group__http.html#gga9dbcf23828ccbab06c656e809263931da8f133fe982a0f7203757f09a5a6aedb5">GG_PUBDIR_ERROR_OTHER</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__http.html#gga9dbcf23828ccbab06c656e809263931dacf205ff450e3760d3eb4464d16d6f471">GG_PUBDIR_ERROR_TOKEN</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__http.html#gga9dbcf23828ccbab06c656e809263931da006fadb7531de660a167d1859122b652">GG_PUBDIR_ERROR_OLD_PASSWORD</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__http.html#gga9dbcf23828ccbab06c656e809263931da0f162b03c1619673a106d0e956d02a32">GG_PUBDIR_ERROR_NEW_PASSWORD</a>
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga9dbcf23828ccbab06c656e809263931d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Powód błędu operacji na katalogu publicznym.  <a href="group__http.html#ga9dbcf23828ccbab06c656e809263931d">Więcej...</a><br/></td></tr>
+<tr class="separator:ga9dbcf23828ccbab06c656e809263931d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Funkcje</h2></td></tr>
@@ -110,16 +128,45 @@ Funkcje</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <p>Obecnie wszystkie usługi dodatkowe są realizowane za pomocą protokołu HTTP. Przy operacjach synchronicznych należy jedynie wywołać funkcję, sprawdzić kod błędu i jeśli operacja się powiodła, należy odczytać wynik funkcji z odpowiedniej struktury.</p>
-<p>Operacje asynchroniczne różnią się od zwykłych połączeń z serwerem jedynie tym, że zakończenie operacji jest określane przez pole <code>state</code>, które przyjmuje wartość <code>GG_STATE_DONE</code> w przypadku sukcesu lub <code>GG_STATE_ERROR</code> w przypadku błędu. Podobnie jak w przypadku połączenia z serwerem, należy wywoływać funkcję <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_http_watch_fd()</a></code> po zaobserwowaniu zmian na określonym deskryptorze.</p>
-<p>Każdą operację asynchroniczną można ponadto zatrzymać w trakcie działania za pomocą funkcji <code><a class="el" href="group__http.html#gae3f4a17c9feb1c07c9532e328b17a85b" title="Kończy asynchroniczne połączenie HTTP.">gg_http_stop()</a></code>.</p>
-<p>Część operacji związanych z katalogiem publicznym w polu <code>data</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> przekazuje strukturę <code><a class="el" href="structgg__pubdir.html" title="Wynik operacji na katalogu publicznym.">gg_pubdir</a></code> zawierającą wynik danej operacji. Szczegóły znajdują się na stronach poszczególnych usług dodatkowych. </p>
+<p>Operacje asynchroniczne różnią się od zwykłych połączeń z serwerem jedynie tym, że zakończenie operacji jest określane przez pole <code>state</code>, które przyjmuje wartość <code>GG_STATE_DONE</code> w przypadku sukcesu lub <code>GG_STATE_ERROR</code> w przypadku błędu. Podobnie jak w przypadku połączenia z serwerem, należy wywoływać funkcję <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_http_watch_fd()</a></code> po zaobserwowaniu zmian na określonym deskryptorze.</p>
+<p>Każdą operację asynchroniczną można ponadto zatrzymać w trakcie działania za pomocą funkcji <code><a class="el" href="group__http.html#gae3f4a17c9feb1c07c9532e328b17a85b" title="Kończy asynchroniczne połączenie HTTP. ">gg_http_stop()</a></code>.</p>
+<p>Część operacji związanych z katalogiem publicznym w polu <code>data</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> przekazuje strukturę <code><a class="el" href="structgg__pubdir.html" title="Wynik operacji na katalogu publicznym. ">gg_pubdir</a></code> zawierającą wynik danej operacji. Szczegóły znajdują się na stronach poszczególnych usług dodatkowych. </p>
+<h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
+<a class="anchor" id="ga9dbcf23828ccbab06c656e809263931d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__http.html#ga9dbcf23828ccbab06c656e809263931d">gg_pubdir_error_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Powód błędu operacji na katalogu publicznym. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga9dbcf23828ccbab06c656e809263931da98d5282bb190d3d88955bf4fe7af9d50"></a>GG_PUBDIR_ERROR_NONE</em>&#160;</td><td class="fielddoc">
+<p>Brak błędu. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga9dbcf23828ccbab06c656e809263931da8f133fe982a0f7203757f09a5a6aedb5"></a>GG_PUBDIR_ERROR_OTHER</em>&#160;</td><td class="fielddoc">
+<p>Nieznany błąd. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga9dbcf23828ccbab06c656e809263931dacf205ff450e3760d3eb4464d16d6f471"></a>GG_PUBDIR_ERROR_TOKEN</em>&#160;</td><td class="fielddoc">
+<p>Błędny token. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga9dbcf23828ccbab06c656e809263931da006fadb7531de660a167d1859122b652"></a>GG_PUBDIR_ERROR_OLD_PASSWORD</em>&#160;</td><td class="fielddoc">
+<p>Niepoprawne stare hasło. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga9dbcf23828ccbab06c656e809263931da0f162b03c1619673a106d0e956d02a32"></a>GG_PUBDIR_ERROR_NEW_PASSWORD</em>&#160;</td><td class="fielddoc">
+<p>Niepoprawne nowe hasło. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <h2 class="groupheader">Dokumentacja funkcji</h2>
 <a class="anchor" id="gafdc928d79ae554ce1f71f02cb28859a0"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__http.html">gg_http</a>* gg_http_connect </td>
@@ -163,17 +210,12 @@ Funkcje</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Rozpoczyna połączenie HTTP. </p>
-<p>Funkcja przeprowadza połączenie HTTP przy połączeniu synchronicznym, zwracając wynik w polach struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code>, lub błąd, gdy sesja się nie powiedzie.</p>
-<p>Przy połączeniu asynchronicznym, funkcja rozpoczyna połączenie, a dalsze etapy będą przeprowadzane po wykryciu zmian (<code>watch</code>) na obserwowanym deskryptorze (<code>fd</code>) i wywołaniu funkcji <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_http_watch_fd()</a></code>.</p>
-<p>Po zakończeniu, należy zwolnić strukturę za pomocą funkcji <code><a class="el" href="group__http.html#gad7f9890845fb4af31815158e3b888ca7" title="Zwalnia zasoby po połączeniu HTTP.">gg_http_free()</a></code>. Połączenie asynchroniczne można zatrzymać w każdej chwili za pomocą <code><a class="el" href="group__http.html#gae3f4a17c9feb1c07c9532e328b17a85b" title="Kończy asynchroniczne połączenie HTTP.">gg_http_stop()</a></code>.</p>
+<p>Funkcja przeprowadza połączenie HTTP przy połączeniu synchronicznym, zwracając wynik w polach struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code>, lub błąd, gdy sesja się nie powiedzie.</p>
+<p>Przy połączeniu asynchronicznym, funkcja rozpoczyna połączenie, a dalsze etapy będą przeprowadzane po wykryciu zmian (<code>watch</code>) na obserwowanym deskryptorze (<code>fd</code>) i wywołaniu funkcji <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_http_watch_fd()</a></code>.</p>
+<p>Po zakończeniu, należy zwolnić strukturę za pomocą funkcji <code><a class="el" href="group__http.html#gad7f9890845fb4af31815158e3b888ca7" title="Zwalnia zasoby po połączeniu HTTP. ">gg_http_free()</a></code>. Połączenie asynchroniczne można zatrzymać w każdej chwili za pomocą <code><a class="el" href="group__http.html#gae3f4a17c9feb1c07c9532e328b17a85b" title="Kończy asynchroniczne połączenie HTTP. ">gg_http_stop()</a></code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">hostname</td><td>Adres serwera </td></tr>
@@ -185,7 +227,7 @@ Funkcje</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Zaalokowana struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> lub NULL, jeśli wystąpił błąd. </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Zaalokowana struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> lub NULL, jeśli wystąpił błąd. </dd></dl>
 
 </div>
 </div>
@@ -204,7 +246,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. </p>
-<p>Operacja będzie zakończona, gdy pole <code>state</code> będzie równe <code>GG_STATE_PARSING</code>. W tym miejscu działanie przejmuje zwykle funkcja korzystająca z <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_http_watch_fd()</a></code>. W przypadku błędu połączenia, pole <code>state</code> będzie równe <code>GG_STATE_ERROR</code>, a kod błędu znajdzie się w polu <code>error</code>.</p>
+<p>Operacja będzie zakończona, gdy pole <code>state</code> będzie równe <code>GG_STATE_PARSING</code>. W tym miejscu działanie przejmuje zwykle funkcja korzystająca z <code><a class="el" href="group__http.html#ga28be8503c269520f7954668b8d26dcea" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_http_watch_fd()</a></code>. W przypadku błędu połączenia, pole <code>state</code> będzie równe <code>GG_STATE_ERROR</code>, a kod błędu znajdzie się w polu <code>error</code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">h</td><td>Struktura połączenia</td></tr>
@@ -232,7 +274,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Kończy asynchroniczne połączenie HTTP. </p>
-<p>Po zatrzymaniu należy zwolnić zasoby funkcją <code><a class="el" href="group__http.html#gad7f9890845fb4af31815158e3b888ca7" title="Zwalnia zasoby po połączeniu HTTP.">gg_http_free()</a></code>.</p>
+<p>Po zatrzymaniu należy zwolnić zasoby funkcją <code><a class="el" href="group__http.html#gad7f9890845fb4af31815158e3b888ca7" title="Zwalnia zasoby po połączeniu HTTP. ">gg_http_free()</a></code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">h</td><td>Struktura połączenia </td></tr>
@@ -270,9 +312,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

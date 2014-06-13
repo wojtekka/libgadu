@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Tokeny</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -103,38 +103,35 @@ Funkcje</h2></td></tr>
 <tr class="separator:gafc103504bf9e1c48ad5ec29eac8b4f0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
-<p>W celu zarejestrowania konta lub zmiany hasła, należy pobrać z serwera token. Przy asynchronicznej operacji, po wywołaniu funkcji <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym.">gg_token()</a></code> wynikową strukturę <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> należy traktować tak jak każde połączenie HTTP. Po zakończeniu operacji asynchronicznej (<code>state</code> równe <code>GG_STATE_DONE</code>) lub wyjściu z funkcji <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym.">gg_token()</a></code> w operacji synchronicznej, w polu <code>data</code> struktury będzie znajdował się wskaźnik na strukturą <code><a class="el" href="structgg__token.html" title="Token autoryzacji niektórych operacji HTTP.">gg_token</a></code> zawierającą informacje o tokenie. W polu <code>body</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> znajdzie się obrazek tokenu o rozmiarze <code>body_size</code>. Aplikacja powinna wyświetlić token użytkownikowi w celu odczytania i przekazania treści, która następnie zostana przekazana do odpowiedniej funkcji wywołania usługi dodatkowej.</p>
+<p>W celu zarejestrowania konta lub zmiany hasła, należy pobrać z serwera token. Przy asynchronicznej operacji, po wywołaniu funkcji <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym. ">gg_token()</a></code> wynikową strukturę <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> należy traktować tak jak każde połączenie HTTP. Po zakończeniu operacji asynchronicznej (<code>state</code> równe <code>GG_STATE_DONE</code>) lub wyjściu z funkcji <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym. ">gg_token()</a></code> w operacji synchronicznej, w polu <code>data</code> struktury będzie znajdował się wskaźnik na strukturą <code><a class="el" href="structgg__token.html" title="Token autoryzacji niektórych operacji HTTP. ">gg_token</a></code> zawierającą informacje o tokenie. W polu <code>body</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> znajdzie się obrazek tokenu o rozmiarze <code>body_size</code>. Aplikacja powinna wyświetlić token użytkownikowi w celu odczytania i przekazania treści, która następnie zostana przekazana do odpowiedniej funkcji wywołania usługi dodatkowej.</p>
 <h1><a class="anchor" id="example"></a>
 Przykład pobierania tokenu</h1>
-<div class="fragment"><div class="line"><span class="keyword">struct </span><a class="code" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a> *token;</div>
+<div class="fragment"><div class="line"><span class="keyword">struct </span><a class="code" href="structgg__http.html">gg_http</a> *token;</div>
 <div class="line">FILE *f;</div>
 <div class="line"></div>
-<div class="line">token = <a class="code" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym.">gg_token</a>(0);</div>
+<div class="line">token = <a class="code" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf">gg_token</a>(0);</div>
 <div class="line"></div>
 <div class="line"><span class="keywordflow">if</span> (!token) {</div>
 <div class="line">    błąd(<span class="stringliteral">&quot;Błąd pobierania tokenu&quot;</span>);</div>
 <div class="line">    exit(1);</div>
 <div class="line">}</div>
 <div class="line"></div>
-<div class="line">plik = fopen(((<span class="keyword">struct</span> <a class="code" href="structgg__token.html" title="Token autoryzacji niektórych operacji HTTP.">gg_token</a> *) token-&gt;<a class="code" href="structgg__http.html#a735984d41155bc1032e09bece8f8d66d" title="Dane prywatne usługi HTTP.">data</a>)-&gt;tokenid, <span class="stringliteral">&quot;w&quot;</span>);</div>
+<div class="line">plik = fopen(((<span class="keyword">struct</span> <a class="code" href="structgg__token.html">gg_token</a> *) token-&gt;<a class="code" href="structgg__http.html#a735984d41155bc1032e09bece8f8d66d">data</a>)-&gt;tokenid, <span class="stringliteral">&quot;w&quot;</span>);</div>
 <div class="line"></div>
 <div class="line"><span class="keywordflow">if</span> (!plik) {</div>
 <div class="line">    błąd(<span class="stringliteral">&quot;Błąd otwarcia pliku&quot;</span>);</div>
-<div class="line">    <a class="code" href="group__token.html#gafc103504bf9e1c48ad5ec29eac8b4f0f" title="Zwalnia zasoby po operacji pobierania tokenu.">gg_token_free</a>(token);</div>
+<div class="line">    <a class="code" href="group__token.html#gafc103504bf9e1c48ad5ec29eac8b4f0f">gg_token_free</a>(token);</div>
 <div class="line">    exit(1);</div>
 <div class="line">}</div>
 <div class="line"></div>
-<div class="line">fwrite(token-&gt;<a class="code" href="structgg__http.html#a15ab326eb76ae067ffbf0e770b14350e" title="Odebrana strona.">body</a>, token-&gt;<a class="code" href="structgg__http.html#a99a3ad921f1e59ba70ba4b3de268c2a7" title="Rozmiar strony.">body_size</a>, 1, plik);</div>
+<div class="line">fwrite(token-&gt;<a class="code" href="structgg__http.html#a15ab326eb76ae067ffbf0e770b14350e">body</a>, token-&gt;<a class="code" href="structgg__http.html#a99a3ad921f1e59ba70ba4b3de268c2a7">body_size</a>, 1, plik);</div>
 <div class="line">fclose(plik);</div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__token.html#gafc103504bf9e1c48ad5ec29eac8b4f0f" title="Zwalnia zasoby po operacji pobierania tokenu.">gg_token_free</a>(token);</div>
+<div class="line"><a class="code" href="group__token.html#gafc103504bf9e1c48ad5ec29eac8b4f0f">gg_token_free</a>(token);</div>
 </div><!-- fragment --> <h2 class="groupheader">Dokumentacja funkcji</h2>
 <a class="anchor" id="ga64271e3505ae06d2e683f4298ac65edf"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__http.html">gg_http</a>* <a class="el" href="structgg__token.html">gg_token</a> </td>
@@ -144,11 +141,6 @@ Przykład pobierania tokenu</h1>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Pobiera token do autoryzacji operacji na katalogu publicznym. </p>
@@ -159,7 +151,7 @@ Przykład pobierania tokenu</h1>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
@@ -216,9 +208,9 @@ Przykład pobierania tokenu</h1>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:59 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

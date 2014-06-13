@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Katalog publiczny</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -183,42 +183,42 @@ Funkcje</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <p>Funkcje katalogu publicznego pozwalają wyszukiwać znajomych oraz manipulować informacjami o sobie (imię, nazwisko, miejscowość, rok urodzenia itd.). Każda operacja na katalogu publicznym wymaga skonstruowania odpowiedniego zapytania do serwera i ewentualnej obsłudze odpowiedzi.</p>
 <p>Wyszukiwanie może wyglądać następująco:</p>
-<div class="fragment"><div class="line"><a class="code" href="structgg__pubdir50__s.html" title="Zapytanie lub odpowiedź katalogu publicznego.">gg_pubdir50_t</a> zapytanie;</div>
+<div class="fragment"><div class="line"><a class="code" href="structgg__pubdir50__s.html">gg_pubdir50_t</a> zapytanie;</div>
 <div class="line"></div>
-<div class="line">zapytanie = <a class="code" href="group__pubdir50.html#ga0c50f3990a635f40c63ff5720900b580" title="Tworzy nowe zapytanie katalogu publicznego.">gg_pubdir50_new</a>(GG_PUBDIR50_SEARCH_REQUEST);</div>
+<div class="line">zapytanie = <a class="code" href="group__pubdir50.html#ga0c50f3990a635f40c63ff5720900b580">gg_pubdir50_new</a>(GG_PUBDIR50_SEARCH_REQUEST);</div>
 <div class="line"></div>
 <div class="line"><span class="keywordflow">if</span> (!zapytanie)</div>
 <div class="line">    błąd(<span class="stringliteral">&quot;Brak pamięci&quot;</span>);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// Jeśli szukamy danego numeru...</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5" title="Numer Gadu-Gadu.">GG_PUBDIR50_UIN</a>, <span class="stringliteral">&quot;123456&quot;</span>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5">GG_PUBDIR50_UIN</a>, <span class="stringliteral">&quot;123456&quot;</span>);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// ...lub kobiet o imieniu Anna...</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04" title="Imię">GG_PUBDIR50_FIRSTNAME</a>, <span class="stringliteral">&quot;Anna&quot;</span>);</div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bab66381abbc97ed2f90bad73f1f4b256f" title="Płeć">GG_PUBDIR50_GENDER</a>, <a class="code" href="group__pubdir50.html#ggadf764cbdea00d65edcd07bb9953ad2b7a46ab5ea4697594a9c954f61a92d4ad36" title="Kobieta.">GG_PUBDIR50_GENDER_FEMALE</a>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04">GG_PUBDIR50_FIRSTNAME</a>, <span class="stringliteral">&quot;Anna&quot;</span>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bab66381abbc97ed2f90bad73f1f4b256f">GG_PUBDIR50_GENDER</a>, <a class="code" href="group__pubdir50.html#ggadf764cbdea00d65edcd07bb9953ad2b7a46ab5ea4697594a9c954f61a92d4ad36">GG_PUBDIR50_GENDER_FEMALE</a>);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// ...lub osób urodzonych w latach 1979-1985, aktualnie dostępnych...</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32" title="Rok urodzenia lub przedział lat oddzielony spacją">GG_PUBDIR50_BIRTHYEAR</a>, <span class="stringliteral">&quot;1979 1985&quot;</span>);</div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bac3afa37fe477571969c11697fc0cc392" title="Numer początkowy wyszukiwania (tylko wyszukiwanie)">GG_PUBDIR50_START</a>, <span class="stringliteral">&quot;0&quot;</span>);</div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba7a129eb38d202462415ba8002104ee28" title="Osoba dostępna (tylko wyszukiwanie)">GG_PUBDIR50_ACTIVE</a>, <a class="code" href="group__pubdir50.html#ggabc6126af1d45847bc59afa0aa3216b04a1977bcd0c1b300c6064213932aea7aa3" title="Wyszukaj tylko osoby dostępne.">GG_PUBDIR50_ACTIVE_TRUE</a>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32">GG_PUBDIR50_BIRTHYEAR</a>, <span class="stringliteral">&quot;1979 1985&quot;</span>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bac3afa37fe477571969c11697fc0cc392">GG_PUBDIR50_START</a>, <span class="stringliteral">&quot;0&quot;</span>);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a">gg_pubdir50_add</a>(zapytanie, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba7a129eb38d202462415ba8002104ee28">GG_PUBDIR50_ACTIVE</a>, <a class="code" href="group__pubdir50.html#ggabc6126af1d45847bc59afa0aa3216b04a1977bcd0c1b300c6064213932aea7aa3">GG_PUBDIR50_ACTIVE_TRUE</a>);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// ...to po ustaleniu parametrów wywołujemy</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__pubdir50.html#gaec2469339a528ebaa763d0f32ba70ad4" title="Wysyła zapytanie katalogu publicznego do serwera.">gg_pubdir50</a>(sesja, zapytanie);</div>
+<div class="line"><a class="code" href="group__pubdir50.html#gaec2469339a528ebaa763d0f32ba70ad4">gg_pubdir50</a>(sesja, zapytanie);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// Po przetworzeniu wyników zwalniamy pamięć</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__pubdir50.html#ga8fcb3df2c5247f0a91b104cfc4d93457" title="Zwalnia zasoby po zapytaniu lub odpowiedzi katalogu publicznego.">gg_pubdir50_free</a>(zapytanie);</div>
-</div><!-- fragment --><p>Jak widać, <code><a class="el" href="group__pubdir50.html#ga0c50f3990a635f40c63ff5720900b580" title="Tworzy nowe zapytanie katalogu publicznego.">gg_pubdir50_new()</a></code> tworzy obiekt opisujący operację katalogu, <code><a class="el" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add()</a></code> dodaje kolejne pola zapytania. Pole zapytania jest w rzeczywiści stałą tekstową, np. <code>GG_PUBDIR50_UIN</code> to <code>"FmNumber"</code>. Należy pamiętać, że wszystkie argumenty są tekstami, ale nie trzeba się przejmować alokacją pamięci &mdash; biblioteka zapamięta to, co jest potrzebne. Kodowanie tekstów jest zgodne z ustawieniem sesji. Na końcu wywołujemy funkcję <code><a class="el" href="group__pubdir50.html#gaec2469339a528ebaa763d0f32ba70ad4" title="Wysyła zapytanie katalogu publicznego do serwera.">gg_pubdir50()</a></code>, która zwróci numer sekwencyjny wyszukiwania (można zachować dla późniejszego rozróżnienia wyników).</p>
+<div class="line"><a class="code" href="group__pubdir50.html#ga8fcb3df2c5247f0a91b104cfc4d93457">gg_pubdir50_free</a>(zapytanie);</div>
+</div><!-- fragment --><p>Jak widać, <code><a class="el" href="group__pubdir50.html#ga0c50f3990a635f40c63ff5720900b580" title="Tworzy nowe zapytanie katalogu publicznego. ">gg_pubdir50_new()</a></code> tworzy obiekt opisujący operację katalogu, <code><a class="el" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania. ">gg_pubdir50_add()</a></code> dodaje kolejne pola zapytania. Pole zapytania jest w rzeczywiści stałą tekstową, np. <code>GG_PUBDIR50_UIN</code> to <code>"FmNumber"</code>. Należy pamiętać, że wszystkie argumenty są tekstami, ale nie trzeba się przejmować alokacją pamięci &mdash; biblioteka zapamięta to, co jest potrzebne. Kodowanie tekstów jest zgodne z ustawieniem sesji. Na końcu wywołujemy funkcję <code><a class="el" href="group__pubdir50.html#gaec2469339a528ebaa763d0f32ba70ad4" title="Wysyła zapytanie katalogu publicznego do serwera. ">gg_pubdir50()</a></code>, która zwróci numer sekwencyjny wyszukiwania (można zachować dla późniejszego rozróżnienia wyników).</p>
 <p>Aby otrzymać wynik, należy obsłużyć zdarzenia <code>GG_EVENT_PUBDIR50_SEARCH_REPLY</code>, <code>GG_EVENT_PUBDIR50_WRITE</code> i <code>GG_EVENT_PUBDIR50_READ</code>. Dla przykładu, obsługa wyników wyszukiwania wygląda następująco:</p>
-<div class="fragment"><div class="line"><a class="code" href="structgg__pubdir50__s.html" title="Zapytanie lub odpowiedź katalogu publicznego.">gg_pubdir50_t</a> wynik;</div>
+<div class="fragment"><div class="line"><a class="code" href="structgg__pubdir50__s.html">gg_pubdir50_t</a> wynik;</div>
 <div class="line"><span class="keywordtype">int</span> i, ilosc;</div>
 <div class="line"></div>
 <div class="line">wynik = <span class="keyword">event</span>-&gt;event.pubdir50;</div>
-<div class="line">ilosc = <a class="code" href="group__pubdir50.html#gaa41ea1898947f673708a28726695d7bf" title="Zwraca liczbę wyników odpowiedzi.">gg_pubdir50_count</a>(wynik);</div>
+<div class="line">ilosc = <a class="code" href="group__pubdir50.html#gaa41ea1898947f673708a28726695d7bf">gg_pubdir50_count</a>(wynik);</div>
 <div class="line"></div>
 <div class="line"><span class="keywordflow">if</span> (ilosc &lt; 1) {</div>
 <div class="line">    wiadomość(<span class="stringliteral">&quot;Nie znaleziono&quot;</span>);</div>
@@ -228,22 +228,22 @@ Funkcje</h2></td></tr>
 <div class="line"><span class="keywordflow">for</span> (i = 0; i &lt; ilosc; i++) {</div>
 <div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span> *numer, *imie, *pseudo, *urodzony, *miasto, *status;</div>
 <div class="line"></div>
-<div class="line">    numer = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5" title="Numer Gadu-Gadu.">GG_PUBDIR50_UIN</a>);</div>
-<div class="line">    imie = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04" title="Imię">GG_PUBDIR50_FIRSTNAME</a>);</div>
-<div class="line">    pseudo = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba094061a9f09d44efee353b61acb46e3a" title="Pseudonim.">GG_PUBDIR50_NICKNAME</a>);</div>
-<div class="line">    urodzony = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32" title="Rok urodzenia lub przedział lat oddzielony spacją">GG_PUBDIR50_BIRTHYEAR</a>);</div>
-<div class="line">    miasto = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8bd24c2fcbfe7095e869c76bb0406587" title="Miejscowość">GG_PUBDIR50_CITY</a>);</div>
-<div class="line">    status = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bab36f9936222cbac8f9fa23afcaaa62bd" title="Status (tylko wynik wyszukiwania)">GG_PUBDIR50_STATUS</a>);</div>
+<div class="line">    numer = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5">GG_PUBDIR50_UIN</a>);</div>
+<div class="line">    imie = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04">GG_PUBDIR50_FIRSTNAME</a>);</div>
+<div class="line">    pseudo = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba094061a9f09d44efee353b61acb46e3a">GG_PUBDIR50_NICKNAME</a>);</div>
+<div class="line">    urodzony = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32">GG_PUBDIR50_BIRTHYEAR</a>);</div>
+<div class="line">    miasto = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55ba8bd24c2fcbfe7095e869c76bb0406587">GG_PUBDIR50_CITY</a>);</div>
+<div class="line">    status = <a class="code" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926">gg_pubdir50_get</a>(wynik, i, <a class="code" href="group__pubdir50.html#gga06fc87d81c62e9abb8790b6e5713c55bab36f9936222cbac8f9fa23afcaaa62bd">GG_PUBDIR50_STATUS</a>);</div>
 <div class="line"></div>
 <div class="line">    printf(<span class="stringliteral">&quot;Numer: %s\nImię: %s\nPseudonim: %s\n&quot;</span></div>
 <div class="line">           <span class="stringliteral">&quot;Urodzony: %s\nMiejscowość: %s\n&quot;</span>,</div>
 <div class="line">           numer, imie, pseudo, urodzony, miasto);;</div>
 <div class="line">    </div>
 <div class="line">    <span class="keywordflow">switch</span> ((status) ? atoi(status) : -1) {</div>
-<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a6de7496bfc7b238854bd0e47311dcdd5" title="Dostępny.">GG_STATUS_AVAIL</a>:</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a6de7496bfc7b238854bd0e47311dcdd5">GG_STATUS_AVAIL</a>:</div>
 <div class="line">            printf(<span class="stringliteral">&quot;Dostępny\n&quot;</span>);</div>
 <div class="line">            <span class="keywordflow">break</span>;</div>
-<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635af1a20e4446df819ec37632af915768a8" title="Zajęty.">GG_STATUS_BUSY</a>:</div>
+<div class="line">        <span class="keywordflow">case</span> <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635af1a20e4446df819ec37632af915768a8">GG_STATUS_BUSY</a>:</div>
 <div class="line">            printf(<span class="stringliteral">&quot;Zajęty\n&quot;</span>);</div>
 <div class="line">            <span class="keywordflow">break</span>;</div>
 <div class="line">        <span class="keywordflow">default</span>:</div>
@@ -253,9 +253,9 @@ Funkcje</h2></td></tr>
 <div class="line">    printf(<span class="stringliteral">&quot;\n&quot;</span>);</div>
 <div class="line">}</div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1" title="Zwalnia pamięć zajmowaną przez informację o zdarzeniu.">gg_event_free</a>(zdarzenie);</div>
-</div><!-- fragment --><p>Jeśli chcemy wiedzieć, od jakiego numeru zacząć wyszukiwanie, żeby dostać dalszą część, używamy <code><a class="el" href="group__pubdir50.html#ga9d1be0ddb8a397232c382056d7003f0f" title="Zwraca numer, od którego należy rozpocząc kolejne wyszukiwanie.">gg_pubdir50_next()</a></code>. Numer sekwencyjny otrzymamy dzięki funkcji <code><a class="el" href="group__pubdir50.html#ga1604f460b45e6d6f2dc4736e9623b6bc" title="Zwraca numer sekwencyjny zapytania lub odpowiedzi.">gg_pubdir50_seq()</a></code>.</p>
-<dl class="section note"><dt>Nota</dt><dd>W żadnym wypadku nie można się odwoływać do pól <code>gg_pubdir50_t</code>, ponieważ mogą się zmieniać między wersjami biblioteki. Dzięki odwoływaniu się przez funkcje, mamy pewność, że bez względu na zmiany API/ABI otrzymamy to samo. Dodatkowo, jeśli pojawią się nowe pola, wystarczy odwoływać się do nich tak jak do obecnych, za pomocą funkcji <code><a class="el" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania.">gg_pubdir50_add()</a></code> i <code><a class="el" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego.">gg_pubdir50_get()</a></code>. </dd></dl>
+<div class="line"><a class="code" href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1">gg_event_free</a>(zdarzenie);</div>
+</div><!-- fragment --><p>Jeśli chcemy wiedzieć, od jakiego numeru zacząć wyszukiwanie, żeby dostać dalszą część, używamy <code><a class="el" href="group__pubdir50.html#ga9d1be0ddb8a397232c382056d7003f0f" title="Zwraca numer, od którego należy rozpocząc kolejne wyszukiwanie. ">gg_pubdir50_next()</a></code>. Numer sekwencyjny otrzymamy dzięki funkcji <code><a class="el" href="group__pubdir50.html#ga1604f460b45e6d6f2dc4736e9623b6bc" title="Zwraca numer sekwencyjny zapytania lub odpowiedzi. ">gg_pubdir50_seq()</a></code>.</p>
+<dl class="section note"><dt>Nota</dt><dd>W żadnym wypadku nie można się odwoływać do pól <code>gg_pubdir50_t</code>, ponieważ mogą się zmieniać między wersjami biblioteki. Dzięki odwoływaniu się przez funkcje, mamy pewność, że bez względu na zmiany API/ABI otrzymamy to samo. Dodatkowo, jeśli pojawią się nowe pola, wystarczy odwoływać się do nich tak jak do obecnych, za pomocą funkcji <code><a class="el" href="group__pubdir50.html#ga089666a4b0c9d5b87ad65b7f7611e65a" title="Dodaje pole zapytania. ">gg_pubdir50_add()</a></code> i <code><a class="el" href="group__pubdir50.html#gafa912a68265fc939cb56614e88e2f926" title="Pobiera pole z odpowiedzi katalogu publicznego. ">gg_pubdir50_get()</a></code>. </dd></dl>
 <h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
 <a class="anchor" id="ga06fc87d81c62e9abb8790b6e5713c55b"></a>
 <div class="memitem">
@@ -269,40 +269,40 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj pola zapytania. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5"></a>GG_PUBDIR50_UIN</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba73bd72e76ef3c105c63d824d4abee6f5"></a>GG_PUBDIR50_UIN</em>&#160;</td><td class="fielddoc">
 <p>Numer Gadu-Gadu. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bab36f9936222cbac8f9fa23afcaaa62bd"></a>GG_PUBDIR50_STATUS</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bab36f9936222cbac8f9fa23afcaaa62bd"></a>GG_PUBDIR50_STATUS</em>&#160;</td><td class="fielddoc">
 <p>Status (tylko wynik wyszukiwania) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04"></a>GG_PUBDIR50_FIRSTNAME</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba0d81b2f75f7f60fc113c3b71a4482e04"></a>GG_PUBDIR50_FIRSTNAME</em>&#160;</td><td class="fielddoc">
 <p>Imię </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bae6810769ecc82bfe582167b463c7fba2"></a>GG_PUBDIR50_LASTNAME</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bae6810769ecc82bfe582167b463c7fba2"></a>GG_PUBDIR50_LASTNAME</em>&#160;</td><td class="fielddoc">
 <p>Nazwisko. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba094061a9f09d44efee353b61acb46e3a"></a>GG_PUBDIR50_NICKNAME</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba094061a9f09d44efee353b61acb46e3a"></a>GG_PUBDIR50_NICKNAME</em>&#160;</td><td class="fielddoc">
 <p>Pseudonim. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32"></a>GG_PUBDIR50_BIRTHYEAR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba8e2a38003c384ab8dadef2981d5dcc32"></a>GG_PUBDIR50_BIRTHYEAR</em>&#160;</td><td class="fielddoc">
 <p>Rok urodzenia lub przedział lat oddzielony spacją </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba8bd24c2fcbfe7095e869c76bb0406587"></a>GG_PUBDIR50_CITY</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba8bd24c2fcbfe7095e869c76bb0406587"></a>GG_PUBDIR50_CITY</em>&#160;</td><td class="fielddoc">
 <p>Miejscowość </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bab66381abbc97ed2f90bad73f1f4b256f"></a>GG_PUBDIR50_GENDER</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bab66381abbc97ed2f90bad73f1f4b256f"></a>GG_PUBDIR50_GENDER</em>&#160;</td><td class="fielddoc">
 <p>Płeć </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba7a129eb38d202462415ba8002104ee28"></a>GG_PUBDIR50_ACTIVE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba7a129eb38d202462415ba8002104ee28"></a>GG_PUBDIR50_ACTIVE</em>&#160;</td><td class="fielddoc">
 <p>Osoba dostępna (tylko wyszukiwanie) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bac3afa37fe477571969c11697fc0cc392"></a>GG_PUBDIR50_START</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55bac3afa37fe477571969c11697fc0cc392"></a>GG_PUBDIR50_START</em>&#160;</td><td class="fielddoc">
 <p>Numer początkowy wyszukiwania (tylko wyszukiwanie) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55baeb302dc24ceea0578c467c716b624c59"></a>GG_PUBDIR50_FAMILYNAME</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55baeb302dc24ceea0578c467c716b624c59"></a>GG_PUBDIR50_FAMILYNAME</em>&#160;</td><td class="fielddoc">
 <p>Nazwisko rodowe (tylko wysyłanie informacji o sobie) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba0d80e2584b6da7901e0511a1869d25e0"></a>GG_PUBDIR50_FAMILYCITY</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga06fc87d81c62e9abb8790b6e5713c55ba0d80e2584b6da7901e0511a1869d25e0"></a>GG_PUBDIR50_FAMILYCITY</em>&#160;</td><td class="fielddoc">
 <p>Miejscowość pochodzenia (tylko wysyłanie informacji o sobie) </p>
 </td></tr>
 </table>
@@ -322,10 +322,10 @@ Funkcje</h2></td></tr>
 <p>Wartość pola GG_PUBDIR50_GENDER przy wyszukiwaniu. </p>
 <p>Brak pola oznacza dowolną płeć. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggadf764cbdea00d65edcd07bb9953ad2b7a46ab5ea4697594a9c954f61a92d4ad36"></a>GG_PUBDIR50_GENDER_FEMALE</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggadf764cbdea00d65edcd07bb9953ad2b7a46ab5ea4697594a9c954f61a92d4ad36"></a>GG_PUBDIR50_GENDER_FEMALE</em>&#160;</td><td class="fielddoc">
 <p>Kobieta. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggadf764cbdea00d65edcd07bb9953ad2b7ad905fd2a845d97967c1d7ea25a42e525"></a>GG_PUBDIR50_GENDER_MALE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggadf764cbdea00d65edcd07bb9953ad2b7ad905fd2a845d97967c1d7ea25a42e525"></a>GG_PUBDIR50_GENDER_MALE</em>&#160;</td><td class="fielddoc">
 <p>Mężczyzna. </p>
 </td></tr>
 </table>
@@ -344,10 +344,10 @@ Funkcje</h2></td></tr>
 
 <p>Wartość pola GG_PUBDIR50_GENDER przy wysyłaniu informacji o sobie. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga99fb83031ce9923c84392b4e92f956b5aaadb4ff5a3e558c8de03e10b478b9225"></a>GG_PUBDIR50_GENDER_SET_FEMALE</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga99fb83031ce9923c84392b4e92f956b5aaadb4ff5a3e558c8de03e10b478b9225"></a>GG_PUBDIR50_GENDER_SET_FEMALE</em>&#160;</td><td class="fielddoc">
 <p>Kobieta. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga99fb83031ce9923c84392b4e92f956b5af6caa7b2a19bda0ea95a158769cc19ce"></a>GG_PUBDIR50_GENDER_SET_MALE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga99fb83031ce9923c84392b4e92f956b5af6caa7b2a19bda0ea95a158769cc19ce"></a>GG_PUBDIR50_GENDER_SET_MALE</em>&#160;</td><td class="fielddoc">
 <p>Mężczyzna. </p>
 </td></tr>
 </table>
@@ -366,7 +366,7 @@ Funkcje</h2></td></tr>
 
 <p>Wartość pola GG_PUBDIR50_ACTIVE. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabc6126af1d45847bc59afa0aa3216b04a1977bcd0c1b300c6064213932aea7aa3"></a>GG_PUBDIR50_ACTIVE_TRUE</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabc6126af1d45847bc59afa0aa3216b04a1977bcd0c1b300c6064213932aea7aa3"></a>GG_PUBDIR50_ACTIVE_TRUE</em>&#160;</td><td class="fielddoc">
 <p>Wyszukaj tylko osoby dostępne. </p>
 </td></tr>
 </table>
@@ -385,16 +385,16 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj zapytania lub odpowiedzi katalogu publicznego. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca86dc94118f3fd650df8530b48e430a82"></a>GG_PUBDIR50_WRITE</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca86dc94118f3fd650df8530b48e430a82"></a>GG_PUBDIR50_WRITE</em>&#160;</td><td class="fielddoc">
 <p>Wysłanie do serwera informacji o sobie. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca913497f2988a36519866620a489864d0"></a>GG_PUBDIR50_READ</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca913497f2988a36519866620a489864d0"></a>GG_PUBDIR50_READ</em>&#160;</td><td class="fielddoc">
 <p>Pobranie z serwera informacji o sobie. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca5f6b6a3266048f93912b2d1f322870ee"></a>GG_PUBDIR50_SEARCH</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca5f6b6a3266048f93912b2d1f322870ee"></a>GG_PUBDIR50_SEARCH</em>&#160;</td><td class="fielddoc">
 <p>Wyszukiwanie w katalogu publicznym. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca1a4113577bab6d0c63d15ffa98d08e54"></a>GG_PUBDIR50_SEARCH_REPLY</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggadc29c2ff13d900c2f185ee95427fb06ca1a4113577bab6d0c63d15ffa98d08e54"></a>GG_PUBDIR50_SEARCH_REPLY</em>&#160;</td><td class="fielddoc">
 <p>Wynik wyszukiwania w katalogu publicznym. </p>
 </td></tr>
 </table>
@@ -713,9 +713,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

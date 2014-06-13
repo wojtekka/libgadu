@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Lista kontaktów</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -119,15 +119,15 @@ Funkcje</h2></td></tr>
 <tr class="separator:gab79e24e6654c40f331372bd05fbd62c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
-<p>Po udanym połączeniu z serwerem, pierwszą czynnością powinno być wysłanie listy kontaktów. W innym przypadku serwer nie wyśle żadnych zakolejkowanych wiadomości, ponieważ najprawdopodobniej filtry antyspamowe traktują inaczej wiadomości od znajomych i nieznajomych. Do wysłania listy kontaktów zaraz po udanym połączeniu, nawet gdyby była pusta, należy użyć funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów.">gg_notify()</a></code> lub <code><a class="el" href="group__contacts.html#gae32ab8481e2198fca185d4179bdd8509" title="Wysyła do serwera listę kontaktów.">gg_notify_ex()</a></code>. Dodawanie i usuwanie kontaktów podczas połączenia można przeprowadzać za pomocą funkcji <code><a class="el" href="group__contacts.html#ga0ce81a9cd1af5b6f4c177053c070934f" title="Dodaje kontakt.">gg_add_notify()</a></code>, <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt.">gg_add_notify_ex()</a></code>, <code><a class="el" href="group__contacts.html#gab79e24e6654c40f331372bd05fbd62c6" title="Usuwa kontakt.">gg_remove_notify()</a></code> i <code><a class="el" href="group__contacts.html#ga987a81820cda7bae995983ae1cc45c68" title="Usuwa kontakt.">gg_remove_notify_ex()</a></code>.</p>
+<p>Po udanym połączeniu z serwerem, pierwszą czynnością powinno być wysłanie listy kontaktów. W innym przypadku serwer nie wyśle żadnych zakolejkowanych wiadomości, ponieważ najprawdopodobniej filtry antyspamowe traktują inaczej wiadomości od znajomych i nieznajomych. Do wysłania listy kontaktów zaraz po udanym połączeniu, nawet gdyby była pusta, należy użyć funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów. ">gg_notify()</a></code> lub <code><a class="el" href="group__contacts.html#gae32ab8481e2198fca185d4179bdd8509" title="Wysyła do serwera listę kontaktów. ">gg_notify_ex()</a></code>. Dodawanie i usuwanie kontaktów podczas połączenia można przeprowadzać za pomocą funkcji <code><a class="el" href="group__contacts.html#ga0ce81a9cd1af5b6f4c177053c070934f" title="Dodaje kontakt. ">gg_add_notify()</a></code>, <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt. ">gg_add_notify_ex()</a></code>, <code><a class="el" href="group__contacts.html#gab79e24e6654c40f331372bd05fbd62c6" title="Usuwa kontakt. ">gg_remove_notify()</a></code> i <code><a class="el" href="group__contacts.html#ga987a81820cda7bae995983ae1cc45c68" title="Usuwa kontakt. ">gg_remove_notify_ex()</a></code>.</p>
 <p>Przykład wysłania listy kontaktów składającej się z dwóch wpisów:</p>
-<div class="fragment"><div class="line"><a class="code" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8" title="Numer Gadu-Gadu.">uin_t</a> kontakty[] = { 12345, 67890 };</div>
+<div class="fragment"><div class="line"><a class="code" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> kontakty[] = { 12345, 67890 };</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// ...</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów.">gg_notify</a>(sesja, kontakty, 2);</div>
+<div class="line"><a class="code" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac">gg_notify</a>(sesja, kontakty, 2);</div>
 </div><!-- fragment --><p>Przykład wysłania pustej listy kontaktów, by móc odbierać wiadomości:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów.">gg_notify</a>(sesja, NULL, 0);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac">gg_notify</a>(sesja, NULL, 0);</div>
 </div><!-- fragment --><p>Po wysłaniu listy kontaktów otrzymamy informacje o statusie znajomych (za pomocą <code>GG_EVENT_NOTIFY</code>, <code>GG_EVENT_NOTIFY60</code> lub <code>GG_EVENT_NOTIFY77</code>) oraz informacje dodatkowe o kontaktach (za pomocą <code>GG_EVENT_USER_DATA</code>). </p>
 <h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
 <a class="anchor" id="gabed82baf7f470b522273a3e37c24c600"></a>
@@ -142,13 +142,13 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj kontaktu. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600ab26931f5ca16ffddc5e4b171596852a3"></a>GG_USER_NORMAL</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600ab26931f5ca16ffddc5e4b171596852a3"></a>GG_USER_NORMAL</em>&#160;</td><td class="fielddoc">
 <p>Zwykły kontakt. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600a6026bfa3e15ef10ec7a345e89fe7d92f"></a>GG_USER_BLOCKED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600a6026bfa3e15ef10ec7a345e89fe7d92f"></a>GG_USER_BLOCKED</em>&#160;</td><td class="fielddoc">
 <p>Zablokowany. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600ac64549bba19d6b06500ad4cbe86f74f6"></a>GG_USER_OFFLINE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabed82baf7f470b522273a3e37c24c600ac64549bba19d6b06500ad4cbe86f74f6"></a>GG_USER_OFFLINE</em>&#160;</td><td class="fielddoc">
 <p>Niewidoczny dla kontaktu. </p>
 </td></tr>
 </table>
@@ -199,7 +199,7 @@ Funkcje</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
     <tr><td class="paramname">userlist</td><td>Wskaźnik do tablicy numerów kontaktów </td></tr>
-    <tr><td class="paramname">types</td><td>Wskaźnik do tablicy rodzajów kontaktów </td></tr>
+    <tr><td class="paramname">types</td><td>Wskaźnik do tablicy rodzajów kontaktów. Jeżeli NULL, wszystkie kontakty są typu GG_USER_NORMAL. </td></tr>
     <tr><td class="paramname">count</td><td>Liczba kontaktów</td></tr>
   </table>
   </dd>
@@ -239,7 +239,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Wysyła do serwera listę kontaktów. </p>
-<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#gae32ab8481e2198fca185d4179bdd8509" title="Wysyła do serwera listę kontaktów.">gg_notify_ex()</a></code>, gdzie wszystkie kontakty są rodzaju <code>GG_USER_NORMAL</code>.</p>
+<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#gae32ab8481e2198fca185d4179bdd8509" title="Wysyła do serwera listę kontaktów. ">gg_notify_ex()</a></code>, gdzie wszystkie kontakty są rodzaju <code>GG_USER_NORMAL</code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
@@ -321,7 +321,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Dodaje kontakt. </p>
-<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt.">gg_add_notify_ex()</a></code>, gdzie rodzaj wszystkich kontaktów to <code>GG_USER_NORMAL</code>.</p>
+<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt. ">gg_add_notify_ex()</a></code>, gdzie rodzaj wszystkich kontaktów to <code>GG_USER_NORMAL</code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
@@ -402,7 +402,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Usuwa kontakt. </p>
-<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt.">gg_add_notify_ex()</a></code>, gdzie rodzaj wszystkich kontaktów to <code>GG_USER_NORMAL</code>.</p>
+<p>Funkcja jest odpowiednikiem <code><a class="el" href="group__contacts.html#ga98b46ee010fd5af4455db16e559b8167" title="Dodaje kontakt. ">gg_add_notify_ex()</a></code>, gdzie rodzaj wszystkich kontaktów to <code>GG_USER_NORMAL</code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
@@ -417,9 +417,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

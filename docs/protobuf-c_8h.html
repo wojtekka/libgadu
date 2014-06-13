@@ -1,0 +1,1502 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>libgadu: Dokumentacja pliku protobuf-c.h</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">libgadu
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Strona&#160;główna</span></a></li>
+      <li><a href="pages.html"><span>Dodatkowe&#160;strony</span></a></li>
+      <li><a href="modules.html"><span>Moduły</span></a></li>
+      <li><a href="annotated.html"><span>Struktury&#160;Danych</span></a></li>
+      <li class="current"><a href="files.html"><span>Pliki</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Szukaj" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>Lista&#160;plików</span></a></li>
+      <li><a href="globals.html"><span>Globalne</span></a></li>
+    </ul>
+  </div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Struktury Danych</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Pliki</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Funkcje</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Zmienne</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Definicje typów</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Wyliczenia</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Wartości wyliczeń</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Definicje</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Grupay</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>Strony</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_43e0a1f539e00dcfa1a6bc4d4fee4fc2.html">home</a></li><li class="navelem"><a class="el" href="dir_2f1d81e90a030591e75f7b21ecd501d4.html">wojtekka</a></li><li class="navelem"><a class="el" href="dir_15ece959c815e25dbd7c7c578ed1ff94.html">src</a></li><li class="navelem"><a class="el" href="dir_f81b4fb471623863d39ba398fb1031f1.html">libgadu</a></li><li class="navelem"><a class="el" href="dir_c3ea72b62a227d6f2a302515b375f46d.html">include</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Struktury danych</a> &#124;
+<a href="#define-members">Definicje</a> &#124;
+<a href="#typedef-members">Definicje typów</a> &#124;
+<a href="#enum-members">Wyliczenia</a> &#124;
+<a href="#func-members">Funkcje</a> &#124;
+<a href="#var-members">Zmienne</a>  </div>
+  <div class="headertitle">
+<div class="title">Dokumentacja pliku protobuf-c.h</div>  </div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Struktury danych</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCBinaryData.html">_ProtobufCBinaryData</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCAllocator.html">_ProtobufCAllocator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCBuffer.html">_ProtobufCBuffer</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCEnumValue.html">_ProtobufCEnumValue</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCEnumDescriptor.html">_ProtobufCEnumDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCFieldDescriptor.html">_ProtobufCFieldDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCMessageDescriptor.html">_ProtobufCMessageDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCMessage.html">_ProtobufCMessage</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCMethodDescriptor.html">_ProtobufCMethodDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCServiceDescriptor.html">_ProtobufCServiceDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCService.html">_ProtobufCService</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCMessageUnknownField.html">_ProtobufCMessageUnknownField</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCBufferSimple.html">_ProtobufCBufferSimple</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCEnumValueIndex.html">_ProtobufCEnumValueIndex</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__ProtobufCIntRange.html">_ProtobufCIntRange</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Definicje</h2></td></tr>
+<tr class="memitem:af5adb011384ca3a0a2703cf03c7debb2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#af5adb011384ca3a0a2703cf03c7debb2">PROTOBUF_C_BEGIN_DECLS</a></td></tr>
+<tr class="separator:af5adb011384ca3a0a2703cf03c7debb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f11ccbc3b615d318530afb0bfeb9f43"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a6f11ccbc3b615d318530afb0bfeb9f43">PROTOBUF_C_END_DECLS</a></td></tr>
+<tr class="separator:a6f11ccbc3b615d318530afb0bfeb9f43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a179a4fd25f83d62936c36b332ea2db5f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a179a4fd25f83d62936c36b332ea2db5f">PROTOBUF_C_DEPRECATED</a></td></tr>
+<tr class="separator:a179a4fd25f83d62936c36b332ea2db5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a218dc8664e2fbd20c67b78937f08918f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a218dc8664e2fbd20c67b78937f08918f">PROTOBUF_C_MAJOR</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a218dc8664e2fbd20c67b78937f08918f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c8dfb95fc404715c48cbcc485956242"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a3c8dfb95fc404715c48cbcc485956242">PROTOBUF_C_MINOR</a>&#160;&#160;&#160;14</td></tr>
+<tr class="separator:a3c8dfb95fc404715c48cbcc485956242"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78cd91c92b4ef7c79313d0c480feca1c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a></td></tr>
+<tr class="separator:a78cd91c92b4ef7c79313d0c480feca1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af76d3be26e3fe42dbcb5e8a7b2c8154c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#af76d3be26e3fe42dbcb5e8a7b2c8154c">PROTOBUF_C_OFFSETOF</a>(struct, member)&#160;&#160;&#160;offsetof(struct, member)</td></tr>
+<tr class="separator:af76d3be26e3fe42dbcb5e8a7b2c8154c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea4595651cb3e0920535d5ea496a3868"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#aea4595651cb3e0920535d5ea496a3868">PROTOBUF_C_ASSERT</a>(condition)&#160;&#160;&#160;assert(condition)</td></tr>
+<tr class="separator:aea4595651cb3e0920535d5ea496a3868"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a3952ffa48192cc8e4cf9e18285657b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a8a3952ffa48192cc8e4cf9e18285657b">PROTOBUF_C_ASSERT_NOT_REACHED</a>()&#160;&#160;&#160;assert(0)</td></tr>
+<tr class="separator:a8a3952ffa48192cc8e4cf9e18285657b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38a0bc9ff1d31284c7e0ff958103b960"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a38a0bc9ff1d31284c7e0ff958103b960">PROTOBUF_C_MESSAGE_INIT</a>(descriptor)&#160;&#160;&#160;{ descriptor, 0, NULL }</td></tr>
+<tr class="separator:a38a0bc9ff1d31284c7e0ff958103b960"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d0aff4451c876c7fa4df6c590feb775"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a1d0aff4451c876c7fa4df6c590feb775">PROTOBUF_C_BUFFER_SIMPLE_INIT</a>(array_of_bytes)</td></tr>
+<tr class="separator:a1d0aff4451c876c7fa4df6c590feb775"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ccc14c3d392606d993581def958522e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a6ccc14c3d392606d993581def958522e">PROTOBUF_C_BUFFER_SIMPLE_CLEAR</a>(simp_buf)</td></tr>
+<tr class="separator:a6ccc14c3d392606d993581def958522e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1b4897d7bc851315c2f76aaf014aa1f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ac1b4897d7bc851315c2f76aaf014aa1f">protobuf_c_type_to_ctype</a>(type)&#160;&#160;&#160;((<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a>)(protobuf_c_type_to_ctype_array[(type)]))</td></tr>
+<tr class="separator:ac1b4897d7bc851315c2f76aaf014aa1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a672ed66b6b1a4b1717f33c59d9debcbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a672ed66b6b1a4b1717f33c59d9debcbc">_PROTOBUF_C_FORCE_ENUM_TO_BE_INT_SIZE</a>(enum_name)&#160;&#160;&#160;, _##enum_name##_IS_INT_SIZE = INT_MAX</td></tr>
+<tr class="separator:a672ed66b6b1a4b1717f33c59d9debcbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56d699a9bef4758bbed39b4d8d3a584c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a56d699a9bef4758bbed39b4d8d3a584c">PROTOBUF_C_SERVICE_DESCRIPTOR_MAGIC</a>&#160;&#160;&#160;0x14159bc3</td></tr>
+<tr class="separator:a56d699a9bef4758bbed39b4d8d3a584c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcac61f7cb03bac6b9d425c4d79d86b8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#adcac61f7cb03bac6b9d425c4d79d86b8">PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC</a>&#160;&#160;&#160;0x28aaeef9</td></tr>
+<tr class="separator:adcac61f7cb03bac6b9d425c4d79d86b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3431021472547a553b41bb0d790e0bb2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a3431021472547a553b41bb0d790e0bb2">PROTOBUF_C_ENUM_DESCRIPTOR_MAGIC</a>&#160;&#160;&#160;0x114315af</td></tr>
+<tr class="separator:a3431021472547a553b41bb0d790e0bb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Definicje typów</h2></td></tr>
+<tr class="memitem:a98475218bcbd7a2171589414021c2633"><td class="memItemLeft" align="right" valign="top">typedef int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a98475218bcbd7a2171589414021c2633">protobuf_c_boolean</a></td></tr>
+<tr class="separator:a98475218bcbd7a2171589414021c2633"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09ff58504259204be695791ef88a8c3c"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCBinaryData.html">_ProtobufCBinaryData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a09ff58504259204be695791ef88a8c3c">ProtobufCBinaryData</a></td></tr>
+<tr class="separator:a09ff58504259204be695791ef88a8c3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17ea01a73cfc22e3d73c0e879cd2406a"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCIntRange.html">_ProtobufCIntRange</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a17ea01a73cfc22e3d73c0e879cd2406a">ProtobufCIntRange</a></td></tr>
+<tr class="separator:a17ea01a73cfc22e3d73c0e879cd2406a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f96c8397a1eeb2b09bc589018b4c92b"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCAllocator.html">_ProtobufCAllocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a></td></tr>
+<tr class="separator:a7f96c8397a1eeb2b09bc589018b4c92b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad05eedb0d00a4a5ff6c0c2dc77b6e20a"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCBuffer.html">_ProtobufCBuffer</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a></td></tr>
+<tr class="separator:ad05eedb0d00a4a5ff6c0c2dc77b6e20a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae363a8ab19713d9c4a46916ce6226707"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCEnumValue.html">_ProtobufCEnumValue</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a></td></tr>
+<tr class="separator:ae363a8ab19713d9c4a46916ce6226707"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3754e72c0f4ab0828e6a902a96a466d5"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCEnumValueIndex.html">_ProtobufCEnumValueIndex</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a3754e72c0f4ab0828e6a902a96a466d5">ProtobufCEnumValueIndex</a></td></tr>
+<tr class="separator:a3754e72c0f4ab0828e6a902a96a466d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06615b608f1a7dfd5cf9bef52559bcc7"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCEnumDescriptor.html">_ProtobufCEnumDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a></td></tr>
+<tr class="separator:a06615b608f1a7dfd5cf9bef52559bcc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad45d29fa8a224d79290d614498e18e5e"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCMessageDescriptor.html">_ProtobufCMessageDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a></td></tr>
+<tr class="separator:ad45d29fa8a224d79290d614498e18e5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73ef6e7f3a73a510f2cd595273748bbe"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCFieldDescriptor.html">_ProtobufCFieldDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a></td></tr>
+<tr class="separator:a73ef6e7f3a73a510f2cd595273748bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca1046c4d7d01a0a5b2e91a5d5a6f74f"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCMessage.html">_ProtobufCMessage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a></td></tr>
+<tr class="separator:aca1046c4d7d01a0a5b2e91a5d5a6f74f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04786bd14a1f7de6f46b1f0a1bde907d"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a04786bd14a1f7de6f46b1f0a1bde907d">ProtobufCMessageInit</a> )(<a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *)</td></tr>
+<tr class="separator:a04786bd14a1f7de6f46b1f0a1bde907d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a543ac2396acfcc4f46d1e74c54ef2ac8"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCMessageUnknownField.html">_ProtobufCMessageUnknownField</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a543ac2396acfcc4f46d1e74c54ef2ac8">ProtobufCMessageUnknownField</a></td></tr>
+<tr class="separator:a543ac2396acfcc4f46d1e74c54ef2ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd25f1f3af8908062a50f57dec51df94"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCMethodDescriptor.html">_ProtobufCMethodDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#abd25f1f3af8908062a50f57dec51df94">ProtobufCMethodDescriptor</a></td></tr>
+<tr class="separator:abd25f1f3af8908062a50f57dec51df94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ffcc283baf0fbc04bfb436e0c20572d"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCServiceDescriptor.html">_ProtobufCServiceDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a></td></tr>
+<tr class="separator:a9ffcc283baf0fbc04bfb436e0c20572d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ffe98431bfeec584dec983e598c9d01"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__ProtobufCService.html">_ProtobufCService</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a></td></tr>
+<tr class="separator:a0ffe98431bfeec584dec983e598c9d01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf1115ec583b31c751f3b019a378ed4c"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#acf1115ec583b31c751f3b019a378ed4c">ProtobufCClosure</a> )(const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message, void *closure_data)</td></tr>
+<tr class="separator:acf1115ec583b31c751f3b019a378ed4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a268e7d0a2b883347b3b5b4d24a29bdd3"><td class="memItemLeft" align="right" valign="top">typedef struct <br class="typebreak"/>
+<a class="el" href="struct__ProtobufCBufferSimple.html">_ProtobufCBufferSimple</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a268e7d0a2b883347b3b5b4d24a29bdd3">ProtobufCBufferSimple</a></td></tr>
+<tr class="separator:a268e7d0a2b883347b3b5b4d24a29bdd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac41482e2fa31e2ae28322441991f77d9"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ac41482e2fa31e2ae28322441991f77d9">ProtobufCServiceDestroy</a> )(<a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *service)</td></tr>
+<tr class="separator:ac41482e2fa31e2ae28322441991f77d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Wyliczenia</h2></td></tr>
+<tr class="memitem:a5ec2e3fd5bbe4c5f6a64b06b7425d0e5"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a5ec2e3fd5bbe4c5f6a64b06b7425d0e5">ProtobufCLabel</a> { <br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a5ec2e3fd5bbe4c5f6a64b06b7425d0e5a407dd9d769a377e156a6c945647bccbb">PROTOBUF_C_LABEL_REQUIRED</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a5ec2e3fd5bbe4c5f6a64b06b7425d0e5abc861df7f96354b08c62397e5a1c1526">PROTOBUF_C_LABEL_OPTIONAL</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a5ec2e3fd5bbe4c5f6a64b06b7425d0e5a2603fa5b6f8effddfedf61cd0b423d86">PROTOBUF_C_LABEL_REPEATED</a>
+<br/>
+ }</td></tr>
+<tr class="separator:a5ec2e3fd5bbe4c5f6a64b06b7425d0e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a784625188e935a74bc4577297b8c6802"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802">ProtobufCType</a> { <br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a54afdba64cff6fabf91b40fe31dec281">PROTOBUF_C_TYPE_INT32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a274ea5920a7c3a4c60ad44cb5b83ffe7">PROTOBUF_C_TYPE_SINT32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a85d90c50c21853765d70d46529daaa9d">PROTOBUF_C_TYPE_SFIXED32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a888a0648e4a7a60de4c85c9478a28943">PROTOBUF_C_TYPE_INT64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802adf45606aca4d584a2dcd7f6c6e65813e">PROTOBUF_C_TYPE_SINT64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a331f878e354cff599669429dbf9c4ce8">PROTOBUF_C_TYPE_SFIXED64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802ae09ad26f344a01b2553f018a2a1c6395">PROTOBUF_C_TYPE_UINT32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802aac3030ee5e8dd5344379ee300a82202e">PROTOBUF_C_TYPE_FIXED32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a7328d807873e30732d7b30d61f545943">PROTOBUF_C_TYPE_UINT64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a320288786ed4bd2c54c9e36b4c654b45">PROTOBUF_C_TYPE_FIXED64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a952cd3b1559601eda9e13bc031ce8124">PROTOBUF_C_TYPE_FLOAT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802ac9bd87c605d9b91c8ecbda3b8d0a21d0">PROTOBUF_C_TYPE_DOUBLE</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802adabbab95a284dd090d4ad06d5efe15a4">PROTOBUF_C_TYPE_BOOL</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a90b88be968f415cbc571fe9f594eefc3">PROTOBUF_C_TYPE_ENUM</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a6b4c1ad9006305661fbc64cb510718a3">PROTOBUF_C_TYPE_STRING</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a3fcef85f6edbc4b69b4dc3590ad172e8">PROTOBUF_C_TYPE_BYTES</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802a7f7176385f20b3c44770b99dbde34302">PROTOBUF_C_TYPE_MESSAGE</a>
+<br/>
+ }</td></tr>
+<tr class="separator:a784625188e935a74bc4577297b8c6802"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58f35889606ee435ad29a83bcea23ca6"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6">ProtobufCWireType</a> { <br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6ad9cff26eff936f5ba95c039a63b9d1b3">PROTOBUF_C_WIRE_TYPE_VARINT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6acddea9eb6cfa51d2515770b358b24f8f">PROTOBUF_C_WIRE_TYPE_64BIT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6abee5e7e065cb28f5d9ef94ad62863edc">PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6a06f43a2208e1a2e764afbb7b2a91023b">PROTOBUF_C_WIRE_TYPE_START_GROUP</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6a55ffe8468e484a11ffcca9c0bf3caf73">PROTOBUF_C_WIRE_TYPE_END_GROUP</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6a005bd9cbc420ac8413f7c624eb2d5cee">PROTOBUF_C_WIRE_TYPE_32BIT</a>
+<br/>
+ }</td></tr>
+<tr class="separator:a58f35889606ee435ad29a83bcea23ca6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b77fdd1c1cb2a8c120345e51e33c063"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a> { <br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a5c0453ee6f9611a843734322085d01ff">PROTOBUF_C_CTYPE_INT32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a45eaa0d3e6d7c64f366c282c2b1a9493">PROTOBUF_C_CTYPE_UINT32</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063af5f6987e79af9410d5c0e77e391651aa">PROTOBUF_C_CTYPE_INT64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a7faa09bf955ace9e3a6f93476926b822">PROTOBUF_C_CTYPE_UINT64</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a1d44b8b1ba58bd577ab2e86d1d3ab1e7">PROTOBUF_C_CTYPE_FLOAT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063ada82af1c25a3cc5ecc0f5acf6719ae42">PROTOBUF_C_CTYPE_DOUBLE</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a18f487ce6965bfc9379d5c2578e6e7c6">PROTOBUF_C_CTYPE_BOOL</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a944aa93c27038d6d3f61930c845bab97">PROTOBUF_C_CTYPE_ENUM</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a0e8eb89b021a6e5490e3e3dd3c684fcd">PROTOBUF_C_CTYPE_STRING</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063af575555d7539bd487fc8bc0ee26354bc">PROTOBUF_C_CTYPE_BYTES</a>, 
+<br/>
+&#160;&#160;<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063a41e980c31ee1906690988df8fa486ad4">PROTOBUF_C_CTYPE_MESSAGE</a>
+<br/>
+ }</td></tr>
+<tr class="separator:a0b77fdd1c1cb2a8c120345e51e33c063"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Funkcje</h2></td></tr>
+<tr class="memitem:a1abb19b14caaa0e7fc0b932d73077c1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a1abb19b14caaa0e7fc0b932d73077c1d">protobuf_c_message_get_packed_size</a> (const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message)</td></tr>
+<tr class="separator:a1abb19b14caaa0e7fc0b932d73077c1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a432a895c3c5c73c9e87ccb6f29a2bd05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a432a895c3c5c73c9e87ccb6f29a2bd05">protobuf_c_message_pack</a> (const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message, uint8_t *out)</td></tr>
+<tr class="separator:a432a895c3c5c73c9e87ccb6f29a2bd05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58fa3424d8fd9b9df6e8c7749da70114"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a58fa3424d8fd9b9df6e8c7749da70114">protobuf_c_message_pack_to_buffer</a> (const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message, <a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a> *buffer)</td></tr>
+<tr class="separator:a58fa3424d8fd9b9df6e8c7749da70114"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb142a35a98a037cc6033930cfafff6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#aeb142a35a98a037cc6033930cfafff6f">protobuf_c_message_unpack</a> (const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *, <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> *allocator, size_t len, const uint8_t *data)</td></tr>
+<tr class="separator:aeb142a35a98a037cc6033930cfafff6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87bb387d77826383151bb29f5c6e4f81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a87bb387d77826383151bb29f5c6e4f81">protobuf_c_message_free_unpacked</a> (<a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message, <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> *allocator)</td></tr>
+<tr class="separator:a87bb387d77826383151bb29f5c6e4f81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaaa1f65d70b3e12d6b7ea65524485f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#acaaa1f65d70b3e12d6b7ea65524485f5">protobuf_c_message_init</a> (const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *, void *message)</td></tr>
+<tr class="separator:acaaa1f65d70b3e12d6b7ea65524485f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9df9841d948f6351f5a3762329165016"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a9df9841d948f6351f5a3762329165016">protobuf_c_service_destroy</a> (<a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *)</td></tr>
+<tr class="separator:a9df9841d948f6351f5a3762329165016"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a389fd1bb1ff76bd49d56436c31f36503"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <br class="typebreak"/>
+<a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a389fd1bb1ff76bd49d56436c31f36503">protobuf_c_enum_descriptor_get_value_by_name</a> (const <a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a> *desc, const char *name)</td></tr>
+<tr class="separator:a389fd1bb1ff76bd49d56436c31f36503"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4311361003c4d93d39edbd64846bbc0e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <br class="typebreak"/>
+<a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a4311361003c4d93d39edbd64846bbc0e">protobuf_c_enum_descriptor_get_value</a> (const <a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a> *desc, int value)</td></tr>
+<tr class="separator:a4311361003c4d93d39edbd64846bbc0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9186c52d692f838fc90c81806c6a3c98"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <br class="typebreak"/>
+<a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a9186c52d692f838fc90c81806c6a3c98">protobuf_c_message_descriptor_get_field_by_name</a> (const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *desc, const char *name)</td></tr>
+<tr class="separator:a9186c52d692f838fc90c81806c6a3c98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c2bc9adbe3ff996a6f786b015395e52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <br class="typebreak"/>
+<a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a1c2bc9adbe3ff996a6f786b015395e52">protobuf_c_message_descriptor_get_field</a> (const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *desc, unsigned value)</td></tr>
+<tr class="separator:a1c2bc9adbe3ff996a6f786b015395e52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a73549ce38a45fe80845560ec055aae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <br class="typebreak"/>
+<a class="el" href="protobuf-c_8h.html#abd25f1f3af8908062a50f57dec51df94">ProtobufCMethodDescriptor</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a8a73549ce38a45fe80845560ec055aae">protobuf_c_service_descriptor_get_method_by_name</a> (const <a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a> *desc, const char *name)</td></tr>
+<tr class="separator:a8a73549ce38a45fe80845560ec055aae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77c3e1d9a80bb883ed9f064a59c3d4f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a77c3e1d9a80bb883ed9f064a59c3d4f7">protobuf_c_type_to_ctype</a> (<a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802">ProtobufCType</a> type)</td></tr>
+<tr class="separator:a77c3e1d9a80bb883ed9f064a59c3d4f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a275cd4262dea729e6e9165c074306860"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a275cd4262dea729e6e9165c074306860">protobuf_c_buffer_simple_append</a> (<a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a> *buffer, size_t len, const unsigned char *data)</td></tr>
+<tr class="separator:a275cd4262dea729e6e9165c074306860"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdeb2d517e73dbecb17b377b95d54182"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#acdeb2d517e73dbecb17b377b95d54182">protobuf_c_int_ranges_lookup</a> (unsigned n_ranges, <a class="el" href="protobuf-c_8h.html#a17ea01a73cfc22e3d73c0e879cd2406a">ProtobufCIntRange</a> *ranges)</td></tr>
+<tr class="separator:acdeb2d517e73dbecb17b377b95d54182"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae77a58ba287f0f9c0bf1107cee953f6f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ae77a58ba287f0f9c0bf1107cee953f6f">protobuf_c_service_generated_init</a> (<a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *service, const <a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a> *descriptor, <a class="el" href="protobuf-c_8h.html#ac41482e2fa31e2ae28322441991f77d9">ProtobufCServiceDestroy</a> destroy)</td></tr>
+<tr class="separator:ae77a58ba287f0f9c0bf1107cee953f6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81246002e01dcf8787750da3dbf410de"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a81246002e01dcf8787750da3dbf410de">protobuf_c_service_invoke_internal</a> (<a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *service, unsigned method_index, const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *input, <a class="el" href="protobuf-c_8h.html#acf1115ec583b31c751f3b019a378ed4c">ProtobufCClosure</a> closure, void *closure_data)</td></tr>
+<tr class="separator:a81246002e01dcf8787750da3dbf410de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Zmienne</h2></td></tr>
+<tr class="memitem:ae3c92eca60edb4fb93230a1f0c9a9fae"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ae3c92eca60edb4fb93230a1f0c9a9fae">protobuf_c_major</a></td></tr>
+<tr class="separator:ae3c92eca60edb4fb93230a1f0c9a9fae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac37437d6aece4508ad1c2adc3b69bb8e"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#ac37437d6aece4508ad1c2adc3b69bb8e">protobuf_c_minor</a></td></tr>
+<tr class="separator:ac37437d6aece4508ad1c2adc3b69bb8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a165e548b27a49a53a89f7d6986d2df6a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a165e548b27a49a53a89f7d6986d2df6a">protobuf_c_default_allocator</a></td></tr>
+<tr class="separator:a165e548b27a49a53a89f7d6986d2df6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a014bd4402d521505c1e955f2a7af43cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a014bd4402d521505c1e955f2a7af43cd">protobuf_c_system_allocator</a></td></tr>
+<tr class="separator:a014bd4402d521505c1e955f2a7af43cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a96f4847ed5288d132d1214517df404"><td class="memItemLeft" align="right" valign="top"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="protobuf-c_8h.html#a6a96f4847ed5288d132d1214517df404">protobuf_c_out_of_memory</a> )(void)</td></tr>
+<tr class="separator:a6a96f4847ed5288d132d1214517df404"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">Dokumentacja definicji</h2>
+<a class="anchor" id="af5adb011384ca3a0a2703cf03c7debb2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_BEGIN_DECLS</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a6f11ccbc3b615d318530afb0bfeb9f43"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_END_DECLS</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a179a4fd25f83d62936c36b332ea2db5f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_DEPRECATED</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a218dc8664e2fbd20c67b78937f08918f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_MAJOR&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a3c8dfb95fc404715c48cbcc485956242"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_MINOR&#160;&#160;&#160;14</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a78cd91c92b4ef7c79313d0c480feca1c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_API</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="af76d3be26e3fe42dbcb5e8a7b2c8154c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_OFFSETOF</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">struct, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">member&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;offsetof(struct, member)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aea4595651cb3e0920535d5ea496a3868"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_ASSERT</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">condition</td><td>)</td>
+          <td>&#160;&#160;&#160;assert(condition)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a8a3952ffa48192cc8e4cf9e18285657b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_ASSERT_NOT_REACHED</td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td>&#160;&#160;&#160;assert(0)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a38a0bc9ff1d31284c7e0ff958103b960"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_MESSAGE_INIT</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">descriptor</td><td>)</td>
+          <td>&#160;&#160;&#160;{ descriptor, 0, NULL }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a1d0aff4451c876c7fa4df6c590feb775"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_BUFFER_SIMPLE_INIT</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">array_of_bytes</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Wartość:</b><div class="fragment"><div class="line">{ { <a class="code" href="protobuf-c_8h.html#a275cd4262dea729e6e9165c074306860">protobuf_c_buffer_simple_append</a> }, \</div>
+<div class="line">  sizeof(array_of_bytes), 0, (array_of_bytes), 0 }</div>
+<div class="ttc" id="protobuf-c_8h_html_a275cd4262dea729e6e9165c074306860"><div class="ttname"><a href="protobuf-c_8h.html#a275cd4262dea729e6e9165c074306860">protobuf_c_buffer_simple_append</a></div><div class="ttdeci">void protobuf_c_buffer_simple_append(ProtobufCBuffer *buffer, size_t len, const unsigned char *data)</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a class="anchor" id="a6ccc14c3d392606d993581def958522e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_BUFFER_SIMPLE_CLEAR</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">simp_buf</td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Wartość:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> { <span class="keywordflow">if</span> ((simp_buf)-&gt;must_free_data) <a class="code" href="protobuf-c_8h.html#a165e548b27a49a53a89f7d6986d2df6a">\</a></div>
+<div class="line"><a class="code" href="protobuf-c_8h.html#a165e548b27a49a53a89f7d6986d2df6a">         protobuf_c_default_allocator</a>.<a class="code" href="struct__ProtobufCAllocator.html#aed34d25f3f9dbd0f47f3d8d20a466842">free</a> (&amp;<a class="code" href="protobuf-c_8h.html#a165e548b27a49a53a89f7d6986d2df6a">protobuf_c_default_allocator</a>.<a class="code" href="struct__ProtobufCAllocator.html#a546c5f8cb7192032d47881c1837ac91d">allocator_data</a>, (simp_buf)-&gt;data); } <span class="keywordflow">while</span> (0)</div>
+<div class="ttc" id="struct__ProtobufCAllocator_html_a546c5f8cb7192032d47881c1837ac91d"><div class="ttname"><a href="struct__ProtobufCAllocator.html#a546c5f8cb7192032d47881c1837ac91d">_ProtobufCAllocator::allocator_data</a></div><div class="ttdeci">void * allocator_data</div><div class="ttdef"><b>Definition:</b> protobuf-c.h:130</div></div>
+<div class="ttc" id="struct__ProtobufCAllocator_html_aed34d25f3f9dbd0f47f3d8d20a466842"><div class="ttname"><a href="struct__ProtobufCAllocator.html#aed34d25f3f9dbd0f47f3d8d20a466842">_ProtobufCAllocator::free</a></div><div class="ttdeci">void(* free)(void *allocator_data, void *pointer)</div><div class="ttdef"><b>Definition:</b> protobuf-c.h:127</div></div>
+<div class="ttc" id="protobuf-c_8h_html_a165e548b27a49a53a89f7d6986d2df6a"><div class="ttname"><a href="protobuf-c_8h.html#a165e548b27a49a53a89f7d6986d2df6a">protobuf_c_default_allocator</a></div><div class="ttdeci">PROTOBUF_C_API ProtobufCAllocator protobuf_c_default_allocator</div><div class="ttdef"><b>Definition:</b> protobuf-c.c:183</div></div>
+</div><!-- fragment -->
+</div>
+</div>
+<a class="anchor" id="ac1b4897d7bc851315c2f76aaf014aa1f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define protobuf_c_type_to_ctype</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">type</td><td>)</td>
+          <td>&#160;&#160;&#160;((<a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a>)(protobuf_c_type_to_ctype_array[(type)]))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a672ed66b6b1a4b1717f33c59d9debcbc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define _PROTOBUF_C_FORCE_ENUM_TO_BE_INT_SIZE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">enum_name</td><td>)</td>
+          <td>&#160;&#160;&#160;, _##enum_name##_IS_INT_SIZE = INT_MAX</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a56d699a9bef4758bbed39b4d8d3a584c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_SERVICE_DESCRIPTOR_MAGIC&#160;&#160;&#160;0x14159bc3</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="adcac61f7cb03bac6b9d425c4d79d86b8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC&#160;&#160;&#160;0x28aaeef9</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a3431021472547a553b41bb0d790e0bb2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PROTOBUF_C_ENUM_DESCRIPTOR_MAGIC&#160;&#160;&#160;0x114315af</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja definicji typów</h2>
+<a class="anchor" id="a98475218bcbd7a2171589414021c2633"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int <a class="el" href="protobuf-c_8h.html#a98475218bcbd7a2171589414021c2633">protobuf_c_boolean</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a09ff58504259204be695791ef88a8c3c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCBinaryData.html">_ProtobufCBinaryData</a> <a class="el" href="protobuf-c_8h.html#a09ff58504259204be695791ef88a8c3c">ProtobufCBinaryData</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a17ea01a73cfc22e3d73c0e879cd2406a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCIntRange.html">_ProtobufCIntRange</a> <a class="el" href="protobuf-c_8h.html#a17ea01a73cfc22e3d73c0e879cd2406a">ProtobufCIntRange</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a7f96c8397a1eeb2b09bc589018b4c92b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCAllocator.html">_ProtobufCAllocator</a> <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ad05eedb0d00a4a5ff6c0c2dc77b6e20a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCBuffer.html">_ProtobufCBuffer</a> <a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ae363a8ab19713d9c4a46916ce6226707"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCEnumValue.html">_ProtobufCEnumValue</a> <a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a3754e72c0f4ab0828e6a902a96a466d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCEnumValueIndex.html">_ProtobufCEnumValueIndex</a> <a class="el" href="protobuf-c_8h.html#a3754e72c0f4ab0828e6a902a96a466d5">ProtobufCEnumValueIndex</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a06615b608f1a7dfd5cf9bef52559bcc7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCEnumDescriptor.html">_ProtobufCEnumDescriptor</a> <a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ad45d29fa8a224d79290d614498e18e5e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCMessageDescriptor.html">_ProtobufCMessageDescriptor</a> <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a73ef6e7f3a73a510f2cd595273748bbe"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCFieldDescriptor.html">_ProtobufCFieldDescriptor</a> <a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aca1046c4d7d01a0a5b2e91a5d5a6f74f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCMessage.html">_ProtobufCMessage</a> <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a04786bd14a1f7de6f46b1f0a1bde907d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* ProtobufCMessageInit)(<a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a543ac2396acfcc4f46d1e74c54ef2ac8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCMessageUnknownField.html">_ProtobufCMessageUnknownField</a> <a class="el" href="protobuf-c_8h.html#a543ac2396acfcc4f46d1e74c54ef2ac8">ProtobufCMessageUnknownField</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="abd25f1f3af8908062a50f57dec51df94"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCMethodDescriptor.html">_ProtobufCMethodDescriptor</a> <a class="el" href="protobuf-c_8h.html#abd25f1f3af8908062a50f57dec51df94">ProtobufCMethodDescriptor</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9ffcc283baf0fbc04bfb436e0c20572d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCServiceDescriptor.html">_ProtobufCServiceDescriptor</a> <a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a0ffe98431bfeec584dec983e598c9d01"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCService.html">_ProtobufCService</a> <a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="acf1115ec583b31c751f3b019a378ed4c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* ProtobufCClosure)(const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *message, void *closure_data)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a268e7d0a2b883347b3b5b4d24a29bdd3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="struct__ProtobufCBufferSimple.html">_ProtobufCBufferSimple</a> <a class="el" href="protobuf-c_8h.html#a268e7d0a2b883347b3b5b4d24a29bdd3">ProtobufCBufferSimple</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ac41482e2fa31e2ae28322441991f77d9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* ProtobufCServiceDestroy)(<a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *service)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
+<a class="anchor" id="a5ec2e3fd5bbe4c5f6a64b06b7425d0e5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="protobuf-c_8h.html#a5ec2e3fd5bbe4c5f6a64b06b7425d0e5">ProtobufCLabel</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="a5ec2e3fd5bbe4c5f6a64b06b7425d0e5a407dd9d769a377e156a6c945647bccbb"></a>PROTOBUF_C_LABEL_REQUIRED</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a5ec2e3fd5bbe4c5f6a64b06b7425d0e5abc861df7f96354b08c62397e5a1c1526"></a>PROTOBUF_C_LABEL_OPTIONAL</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a5ec2e3fd5bbe4c5f6a64b06b7425d0e5a2603fa5b6f8effddfedf61cd0b423d86"></a>PROTOBUF_C_LABEL_REPEATED</em>&#160;</td><td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="a784625188e935a74bc4577297b8c6802"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802">ProtobufCType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a54afdba64cff6fabf91b40fe31dec281"></a>PROTOBUF_C_TYPE_INT32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a274ea5920a7c3a4c60ad44cb5b83ffe7"></a>PROTOBUF_C_TYPE_SINT32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a85d90c50c21853765d70d46529daaa9d"></a>PROTOBUF_C_TYPE_SFIXED32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a888a0648e4a7a60de4c85c9478a28943"></a>PROTOBUF_C_TYPE_INT64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802adf45606aca4d584a2dcd7f6c6e65813e"></a>PROTOBUF_C_TYPE_SINT64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a331f878e354cff599669429dbf9c4ce8"></a>PROTOBUF_C_TYPE_SFIXED64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802ae09ad26f344a01b2553f018a2a1c6395"></a>PROTOBUF_C_TYPE_UINT32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802aac3030ee5e8dd5344379ee300a82202e"></a>PROTOBUF_C_TYPE_FIXED32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a7328d807873e30732d7b30d61f545943"></a>PROTOBUF_C_TYPE_UINT64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a320288786ed4bd2c54c9e36b4c654b45"></a>PROTOBUF_C_TYPE_FIXED64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a952cd3b1559601eda9e13bc031ce8124"></a>PROTOBUF_C_TYPE_FLOAT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802ac9bd87c605d9b91c8ecbda3b8d0a21d0"></a>PROTOBUF_C_TYPE_DOUBLE</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802adabbab95a284dd090d4ad06d5efe15a4"></a>PROTOBUF_C_TYPE_BOOL</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a90b88be968f415cbc571fe9f594eefc3"></a>PROTOBUF_C_TYPE_ENUM</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a6b4c1ad9006305661fbc64cb510718a3"></a>PROTOBUF_C_TYPE_STRING</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a3fcef85f6edbc4b69b4dc3590ad172e8"></a>PROTOBUF_C_TYPE_BYTES</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a784625188e935a74bc4577297b8c6802a7f7176385f20b3c44770b99dbde34302"></a>PROTOBUF_C_TYPE_MESSAGE</em>&#160;</td><td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="protobuf-c_8h.html#a58f35889606ee435ad29a83bcea23ca6">ProtobufCWireType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6ad9cff26eff936f5ba95c039a63b9d1b3"></a>PROTOBUF_C_WIRE_TYPE_VARINT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6acddea9eb6cfa51d2515770b358b24f8f"></a>PROTOBUF_C_WIRE_TYPE_64BIT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6abee5e7e065cb28f5d9ef94ad62863edc"></a>PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6a06f43a2208e1a2e764afbb7b2a91023b"></a>PROTOBUF_C_WIRE_TYPE_START_GROUP</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6a55ffe8468e484a11ffcca9c0bf3caf73"></a>PROTOBUF_C_WIRE_TYPE_END_GROUP</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a58f35889606ee435ad29a83bcea23ca6a005bd9cbc420ac8413f7c624eb2d5cee"></a>PROTOBUF_C_WIRE_TYPE_32BIT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a5c0453ee6f9611a843734322085d01ff"></a>PROTOBUF_C_CTYPE_INT32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a45eaa0d3e6d7c64f366c282c2b1a9493"></a>PROTOBUF_C_CTYPE_UINT32</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063af5f6987e79af9410d5c0e77e391651aa"></a>PROTOBUF_C_CTYPE_INT64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a7faa09bf955ace9e3a6f93476926b822"></a>PROTOBUF_C_CTYPE_UINT64</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a1d44b8b1ba58bd577ab2e86d1d3ab1e7"></a>PROTOBUF_C_CTYPE_FLOAT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063ada82af1c25a3cc5ecc0f5acf6719ae42"></a>PROTOBUF_C_CTYPE_DOUBLE</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a18f487ce6965bfc9379d5c2578e6e7c6"></a>PROTOBUF_C_CTYPE_BOOL</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a944aa93c27038d6d3f61930c845bab97"></a>PROTOBUF_C_CTYPE_ENUM</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a0e8eb89b021a6e5490e3e3dd3c684fcd"></a>PROTOBUF_C_CTYPE_STRING</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063af575555d7539bd487fc8bc0ee26354bc"></a>PROTOBUF_C_CTYPE_BYTES</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a0b77fdd1c1cb2a8c120345e51e33c063a41e980c31ee1906690988df8fa486ad4"></a>PROTOBUF_C_CTYPE_MESSAGE</em>&#160;</td><td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja funkcji</h2>
+<a class="anchor" id="a1abb19b14caaa0e7fc0b932d73077c1d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t protobuf_c_message_get_packed_size </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a432a895c3c5c73c9e87ccb6f29a2bd05"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t protobuf_c_message_pack </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t *&#160;</td>
+          <td class="paramname"><em>out</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a58fa3424d8fd9b9df6e8c7749da70114"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> size_t protobuf_c_message_pack_to_buffer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a> *&#160;</td>
+          <td class="paramname"><em>buffer</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aeb142a35a98a037cc6033930cfafff6f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a>* protobuf_c_message_unpack </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> *&#160;</td>
+          <td class="paramname"><em>allocator</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a87bb387d77826383151bb29f5c6e4f81"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void protobuf_c_message_free_unpacked </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td>
+          <td class="paramname"><em>message</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> *&#160;</td>
+          <td class="paramname"><em>allocator</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="acaaa1f65d70b3e12d6b7ea65524485f5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void protobuf_c_message_init </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9df9841d948f6351f5a3762329165016"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void protobuf_c_service_destroy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a389fd1bb1ff76bd49d56436c31f36503"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a>* protobuf_c_enum_descriptor_get_value_by_name </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a4311361003c4d93d39edbd64846bbc0e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <a class="el" href="protobuf-c_8h.html#ae363a8ab19713d9c4a46916ce6226707">ProtobufCEnumValue</a>* protobuf_c_enum_descriptor_get_value </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#a06615b608f1a7dfd5cf9bef52559bcc7">ProtobufCEnumDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9186c52d692f838fc90c81806c6a3c98"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a>* protobuf_c_message_descriptor_get_field_by_name </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a1c2bc9adbe3ff996a6f786b015395e52"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <a class="el" href="protobuf-c_8h.html#a73ef6e7f3a73a510f2cd595273748bbe">ProtobufCFieldDescriptor</a>* protobuf_c_message_descriptor_get_field </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#ad45d29fa8a224d79290d614498e18e5e">ProtobufCMessageDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a8a73549ce38a45fe80845560ec055aae"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> const <a class="el" href="protobuf-c_8h.html#abd25f1f3af8908062a50f57dec51df94">ProtobufCMethodDescriptor</a>* protobuf_c_service_descriptor_get_method_by_name </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>desc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a77c3e1d9a80bb883ed9f064a59c3d4f7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a0b77fdd1c1cb2a8c120345e51e33c063">ProtobufCCType</a> protobuf_c_type_to_ctype </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a784625188e935a74bc4577297b8c6802">ProtobufCType</a>&#160;</td>
+          <td class="paramname"><em>type</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a275cd4262dea729e6e9165c074306860"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void protobuf_c_buffer_simple_append </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#ad05eedb0d00a4a5ff6c0c2dc77b6e20a">ProtobufCBuffer</a> *&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="acdeb2d517e73dbecb17b377b95d54182"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int protobuf_c_int_ranges_lookup </td>
+          <td>(</td>
+          <td class="paramtype">unsigned&#160;</td>
+          <td class="paramname"><em>n_ranges</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a17ea01a73cfc22e3d73c0e879cd2406a">ProtobufCIntRange</a> *&#160;</td>
+          <td class="paramname"><em>ranges</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ae77a58ba287f0f9c0bf1107cee953f6f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void protobuf_c_service_generated_init </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *&#160;</td>
+          <td class="paramname"><em>service</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#a9ffcc283baf0fbc04bfb436e0c20572d">ProtobufCServiceDescriptor</a> *&#160;</td>
+          <td class="paramname"><em>descriptor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#ac41482e2fa31e2ae28322441991f77d9">ProtobufCServiceDestroy</a>&#160;</td>
+          <td class="paramname"><em>destroy</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a81246002e01dcf8787750da3dbf410de"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void protobuf_c_service_invoke_internal </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#a0ffe98431bfeec584dec983e598c9d01">ProtobufCService</a> *&#160;</td>
+          <td class="paramname"><em>service</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned&#160;</td>
+          <td class="paramname"><em>method_index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="protobuf-c_8h.html#aca1046c4d7d01a0a5b2e91a5d5a6f74f">ProtobufCMessage</a> *&#160;</td>
+          <td class="paramname"><em>input</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="protobuf-c_8h.html#acf1115ec583b31c751f3b019a378ed4c">ProtobufCClosure</a>&#160;</td>
+          <td class="paramname"><em>closure</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>closure_data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja zmiennych</h2>
+<a class="anchor" id="ae3c92eca60edb4fb93230a1f0c9a9fae"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned protobuf_c_major</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ac37437d6aece4508ad1c2adc3b69bb8e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned protobuf_c_minor</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a165e548b27a49a53a89f7d6986d2df6a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> protobuf_c_default_allocator</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a014bd4402d521505c1e955f2a7af43cd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> <a class="el" href="protobuf-c_8h.html#a7f96c8397a1eeb2b09bc589018b4c92b">ProtobufCAllocator</a> protobuf_c_system_allocator</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a6a96f4847ed5288d132d1214517df404"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="protobuf-c_8h.html#a78cd91c92b4ef7c79313d0c480feca1c">PROTOBUF_C_API</a> void(* protobuf_c_out_of_memory)(void)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.6
+</small></address>
+</body>
+</html>

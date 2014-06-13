@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja pliku dcc.c</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -114,10 +114,10 @@ Funkcje</h2></td></tr>
 <tr class="memitem:a717306df8c9b2ddc61e3dc9dc071f62f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dcc_8c.html#a717306df8c9b2ddc61e3dc9dc071f62f">gg_dcc_fill_filetime</a> (uint32_t ut, uint32_t *ft)</td></tr>
 <tr class="separator:a717306df8c9b2ddc61e3dc9dc071f62f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae3da65bbe7c3218cb2e502f021032b68"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dcc6.html#gae3da65bbe7c3218cb2e502f021032b68">gg_dcc_fill_file_info</a> (struct <a class="el" href="structgg__dcc.html">gg_dcc</a> *d, const char *filename)</td></tr>
-<tr class="memdesc:gae3da65bbe7c3218cb2e502f021032b68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wypełnia pola struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x.">gg_dcc</a></code> niezbędne do wysłania pliku.  <a href="group__dcc6.html#gae3da65bbe7c3218cb2e502f021032b68">Więcej...</a><br/></td></tr>
+<tr class="memdesc:gae3da65bbe7c3218cb2e502f021032b68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wypełnia pola struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x. ">gg_dcc</a></code> niezbędne do wysłania pliku.  <a href="group__dcc6.html#gae3da65bbe7c3218cb2e502f021032b68">Więcej...</a><br/></td></tr>
 <tr class="separator:gae3da65bbe7c3218cb2e502f021032b68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacb0489366604e61863ca167173f16076"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dcc6.html#gacb0489366604e61863ca167173f16076">gg_dcc_fill_file_info2</a> (struct <a class="el" href="structgg__dcc.html">gg_dcc</a> *d, const char *filename, const char *local_filename)</td></tr>
-<tr class="memdesc:gacb0489366604e61863ca167173f16076"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wypełnia pola struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x.">gg_dcc</a></code> niezbędne do wysłania pliku.  <a href="group__dcc6.html#gacb0489366604e61863ca167173f16076">Więcej...</a><br/></td></tr>
+<tr class="memdesc:gacb0489366604e61863ca167173f16076"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wypełnia pola struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x. ">gg_dcc</a></code> niezbędne do wysłania pliku.  <a href="group__dcc6.html#gacb0489366604e61863ca167173f16076">Więcej...</a><br/></td></tr>
 <tr class="separator:gacb0489366604e61863ca167173f16076"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3829da44453c5964c27acba0e79f0cd"><td class="memItemLeft" align="right" valign="top">static struct <a class="el" href="structgg__dcc.html">gg_dcc</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="dcc_8c.html#ab3829da44453c5964c27acba0e79f0cd">gg_dcc_transfer</a> (uint32_t ip, uint16_t port, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> my_uin, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> peer_uin, int type)</td></tr>
 <tr class="separator:ab3829da44453c5964c27acba0e79f0cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -181,22 +181,32 @@ Funkcje</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Wartość:</b><div class="fragment"><div class="line">{ \</div>
-<div class="line">        int tmp = read(fd, buf, size); \</div>
+<div class="line">        int _tmp = recv(fd, buf, size, 0); \</div>
 <div class="line">        \</div>
-<div class="line">        if (tmp &lt; (<span class="keywordtype">int</span>) size) { \</div>
-<div class="line">                if (tmp == -1) { \</div>
-<div class="line">                        gg_debug(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace" title="Rejestracja różnych informacji.">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() read() failed (errno=%d, %s)\n&quot;</span>, errno, strerror(errno)); \</div>
-<div class="line">                } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (tmp == 0) { \</div>
-<div class="line">                        gg_debug(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace" title="Rejestracja różnych informacji.">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() read() failed, connection broken\n&quot;</span>); \</div>
-<div class="line">                } <span class="keywordflow">else</span> { \</div>
-<div class="line">                        gg_debug(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace" title="Rejestracja różnych informacji.">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() read() failed (%d bytes, %d needed)\n&quot;</span>, tmp, size); \</div>
+<div class="line">        if (_tmp &lt; (<span class="keywordtype">int</span>) size) { \</div>
+<div class="line">                if (_tmp == -1) { <a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">\</a></div>
+<div class="line"><a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">			gg_debug</a>(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() recv() failed &quot;</span> \</div>
+<div class="line">                                <span class="stringliteral">&quot;(errno=%d, %s)\n&quot;</span>, errno, strerror(errno)); \</div>
+<div class="line">                } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (_tmp == 0) { <a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">\</a></div>
+<div class="line"><a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">			gg_debug</a>(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() recv() failed, &quot;</span> \</div>
+<div class="line">                                <span class="stringliteral">&quot;connection broken\n&quot;</span>); \</div>
+<div class="line">                } <span class="keywordflow">else</span> { <a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">\</a></div>
+<div class="line"><a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">			gg_debug</a>(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() recv() failed &quot;</span> \</div>
+<div class="line">                                <span class="stringliteral">&quot;(%d bytes, %&quot;</span> <a class="code" href="internal_8h.html#a165abaf45e29ff02a063af1eaf69b8c2">GG_SIZE_FMT</a> <span class="stringliteral">&quot; needed)\n&quot;</span>, \</div>
+<div class="line">                                _tmp, size); \</div>
 <div class="line">                } \</div>
-<div class="line">                e-&gt;type = <a class="code" href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949" title="Błąd połączenia bezpośredniego (6.x)">GG_EVENT_DCC_ERROR</a>; \</div>
-<div class="line">                e-&gt;event.dcc_error = <a class="code" href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9" title="Błąd negocjacji.">GG_ERROR_DCC_HANDSHAKE</a>; \</div>
+<div class="line">                e-&gt;type = <a class="code" href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949">GG_EVENT_DCC_ERROR</a>; \</div>
+<div class="line">                e-&gt;event.dcc_error = <a class="code" href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9">GG_ERROR_DCC_HANDSHAKE</a>; \</div>
 <div class="line">                return e; \</div>
-<div class="line">        } \</div>
-<div class="line">        gg_dcc_debug_data(<span class="stringliteral">&quot;read&quot;</span>, fd, buf, size); \</div>
+<div class="line">        } <a class="code" href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">\</a></div>
+<div class="line"><a class="code" href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">	gg_dcc_debug_data</a>(<span class="stringliteral">&quot;read&quot;</span>, fd, buf, size); \</div>
 <div class="line">}</div>
+<div class="ttc" id="group__debug_html_ga04e37a5baf3dceb9bd20f9a0de2044a3"><div class="ttname"><a href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">gg_debug</a></div><div class="ttdeci">void gg_debug(int level, const char *format,...)</div><div class="ttdef"><b>Definition:</b> debug.c:121</div></div>
+<div class="ttc" id="internal_8h_html_a165abaf45e29ff02a063af1eaf69b8c2"><div class="ttname"><a href="internal_8h.html#a165abaf45e29ff02a063af1eaf69b8c2">GG_SIZE_FMT</a></div><div class="ttdeci">#define GG_SIZE_FMT</div><div class="ttdef"><b>Definition:</b> internal.h:44</div></div>
+<div class="ttc" id="group__debug_html_ga40e449afb3f941037e1227afe28ddace"><div class="ttname"><a href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a></div><div class="ttdeci">#define GG_DEBUG_MISC</div><div class="ttdoc">Rejestracja różnych informacji. </div><div class="ttdef"><b>Definition:</b> libgadu.h:1590</div></div>
+<div class="ttc" id="dcc_8c_html_aae3d6d05903413f0e00b2274717de998"><div class="ttname"><a href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">gg_dcc_debug_data</a></div><div class="ttdeci">static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsigned int size)</div><div class="ttdef"><b>Definition:</b> dcc.c:49</div></div>
+<div class="ttc" id="libgadu_8h_html_a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9"><div class="ttname"><a href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9">GG_ERROR_DCC_HANDSHAKE</a></div><div class="ttdoc">Błąd negocjacji. </div><div class="ttdef"><b>Definition:</b> libgadu.h:952</div></div>
+<div class="ttc" id="group__events_html_gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949"><div class="ttname"><a href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949">GG_EVENT_DCC_ERROR</a></div><div class="ttdoc">Błąd połączenia bezpośredniego (6.x) </div><div class="ttdef"><b>Definition:</b> libgadu.h:867</div></div>
 </div><!-- fragment --><p>Odbiera dane z połączenia bezpośredniego z obsługą błędów.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
@@ -239,20 +249,29 @@ Funkcje</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Wartość:</b><div class="fragment"><div class="line">{ \</div>
-<div class="line">        int tmp; \</div>
-<div class="line">        gg_dcc_debug_data(<span class="stringliteral">&quot;write&quot;</span>, fd, buf, size); \</div>
-<div class="line">        tmp = write(fd, buf, size); \</div>
-<div class="line">        if (tmp &lt; (<span class="keywordtype">int</span>) size) { \</div>
-<div class="line">                if (tmp == -1) { \</div>
-<div class="line">                        gg_debug(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace" title="Rejestracja różnych informacji.">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() write() failed (errno=%d, %s)\n&quot;</span>, errno, strerror(errno)); \</div>
-<div class="line">                } <span class="keywordflow">else</span> { \</div>
-<div class="line">                        gg_debug(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace" title="Rejestracja różnych informacji.">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() write() failed (%d needed, %d done)\n&quot;</span>, size, tmp); \</div>
+<div class="line">        int write_res; <a class="code" href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">\</a></div>
+<div class="line"><a class="code" href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">	gg_dcc_debug_data</a>(<span class="stringliteral">&quot;write&quot;</span>, fd, buf, size); \</div>
+<div class="line">        write_res = send(fd, buf, size, 0); \</div>
+<div class="line">        if (write_res &lt; (<span class="keywordtype">int</span>) size) { \</div>
+<div class="line">                if (write_res == -1) { <a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">\</a></div>
+<div class="line"><a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">			gg_debug</a>(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() send() &quot;</span> \</div>
+<div class="line">                                <span class="stringliteral">&quot;failed (errno=%d, %s)\n&quot;</span>, errno, strerror(errno)); \</div>
+<div class="line">                } <span class="keywordflow">else</span> { <a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">\</a></div>
+<div class="line"><a class="code" href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">			gg_debug</a>(<a class="code" href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a>, <span class="stringliteral">&quot;// gg_dcc_watch_fd() send() &quot;</span> \</div>
+<div class="line">                                <span class="stringliteral">&quot;failed (%&quot;</span> <a class="code" href="internal_8h.html#a165abaf45e29ff02a063af1eaf69b8c2">GG_SIZE_FMT</a> <span class="stringliteral">&quot; needed, %d done)\n&quot;</span>, \</div>
+<div class="line">                                size, write_res); \</div>
 <div class="line">                } \</div>
-<div class="line">                e-&gt;type = <a class="code" href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949" title="Błąd połączenia bezpośredniego (6.x)">GG_EVENT_DCC_ERROR</a>; \</div>
-<div class="line">                e-&gt;event.dcc_error = <a class="code" href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9" title="Błąd negocjacji.">GG_ERROR_DCC_HANDSHAKE</a>; \</div>
+<div class="line">                e-&gt;type = <a class="code" href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949">GG_EVENT_DCC_ERROR</a>; \</div>
+<div class="line">                e-&gt;event.dcc_error = <a class="code" href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9">GG_ERROR_DCC_HANDSHAKE</a>; \</div>
 <div class="line">                return e; \</div>
 <div class="line">        } \</div>
 <div class="line">}</div>
+<div class="ttc" id="group__debug_html_ga04e37a5baf3dceb9bd20f9a0de2044a3"><div class="ttname"><a href="group__debug.html#ga04e37a5baf3dceb9bd20f9a0de2044a3">gg_debug</a></div><div class="ttdeci">void gg_debug(int level, const char *format,...)</div><div class="ttdef"><b>Definition:</b> debug.c:121</div></div>
+<div class="ttc" id="internal_8h_html_a165abaf45e29ff02a063af1eaf69b8c2"><div class="ttname"><a href="internal_8h.html#a165abaf45e29ff02a063af1eaf69b8c2">GG_SIZE_FMT</a></div><div class="ttdeci">#define GG_SIZE_FMT</div><div class="ttdef"><b>Definition:</b> internal.h:44</div></div>
+<div class="ttc" id="group__debug_html_ga40e449afb3f941037e1227afe28ddace"><div class="ttname"><a href="group__debug.html#ga40e449afb3f941037e1227afe28ddace">GG_DEBUG_MISC</a></div><div class="ttdeci">#define GG_DEBUG_MISC</div><div class="ttdoc">Rejestracja różnych informacji. </div><div class="ttdef"><b>Definition:</b> libgadu.h:1590</div></div>
+<div class="ttc" id="dcc_8c_html_aae3d6d05903413f0e00b2274717de998"><div class="ttname"><a href="dcc_8c.html#aae3d6d05903413f0e00b2274717de998">gg_dcc_debug_data</a></div><div class="ttdeci">static void gg_dcc_debug_data(const char *prefix, int fd, const void *buf, unsigned int size)</div><div class="ttdef"><b>Definition:</b> dcc.c:49</div></div>
+<div class="ttc" id="libgadu_8h_html_a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9"><div class="ttname"><a href="libgadu_8h.html#a8a7800a03f87e95ca36303f0cdf0d163a82b70a0c369d12697a1e90072080ccf9">GG_ERROR_DCC_HANDSHAKE</a></div><div class="ttdoc">Błąd negocjacji. </div><div class="ttdef"><b>Definition:</b> libgadu.h:952</div></div>
+<div class="ttc" id="group__events_html_gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949"><div class="ttname"><a href="group__events.html#gga3dd02c0d2ff1d304d134f677faf66cfcaf5c56930008b944423b5ea3927520949">GG_EVENT_DCC_ERROR</a></div><div class="ttdoc">Błąd połączenia bezpośredniego (6.x) </div><div class="ttdef"><b>Definition:</b> libgadu.h:867</div></div>
 </div><!-- fragment --><p>Wysyła dane do połączenia bezpośredniego z obsługą błędów.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
@@ -410,7 +429,7 @@ Funkcje</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">read</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -425,7 +444,7 @@ Funkcje</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x.">gg_dcc</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x. ">gg_dcc</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
@@ -451,8 +470,8 @@ Funkcje</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>Funkcja zwrotna połączenia bezpośredniego.</p>
-<p>Pole <code>callback</code> struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x.">gg_dcc</a></code> zawiera wskaźnik do tej funkcji. Wywołuje ona <code><a class="el" href="group__events.html#gae28360891a3b393d606fb455564e3b3a" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.">gg_watch_fd()</a></code> i zachowuje wynik w polu <code>event</code>.</p>
-<dl class="section note"><dt>Nota</dt><dd>Funkcjonalność funkcjo zwrotnej nie jest już wspierana.</dd></dl>
+<p>Pole <code>callback</code> struktury <code><a class="el" href="structgg__dcc.html" title="Połączenie bezpośrednie do wersji Gadu-Gadu 6.x. ">gg_dcc</a></code> zawiera wskaźnik do tej funkcji. Wywołuje ona <code><a class="el" href="group__dcc6.html#ga9804ea6dffcb077cd5f7a90d4120dc9b" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_dcc_watch_fd()</a></code> i zachowuje wynik w polu <code>event</code>.</p>
+<dl class="section note"><dt>Nota</dt><dd>Funkcjonalność funkcji zwrotnej nie jest już wspierana.</dd></dl>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">d</td><td>Struktura połączenia</td></tr>
@@ -466,9 +485,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja pliku resolver.h</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -95,11 +95,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Funkcje</h2></td></tr>
-<tr class="memitem:a2cf32a6da46b0f24563cb8cc4e5a5134"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8h.html#a2cf32a6da46b0f24563cb8cc4e5a5134">gg_gethostbyname_real</a> (const char *hostname, struct in_addr **result, int *count, int pthread)</td></tr>
-<tr class="separator:a2cf32a6da46b0f24563cb8cc4e5a5134"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a508cf63e70e3c1405ec9c07b3f299ee3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8h.html#a508cf63e70e3c1405ec9c07b3f299ee3">gg_gethostbyname_real</a> (const char *hostname, struct in_addr **result, unsigned int *count, int pthread)</td></tr>
+<tr class="separator:a508cf63e70e3c1405ec9c07b3f299ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8563d87dff2099a7fb68cc30ad051447"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8h.html#a8563d87dff2099a7fb68cc30ad051447">gg_resolver_recv</a> (int fd, void *buf, size_t len)</td></tr>
+<tr class="memdesc:a8563d87dff2099a7fb68cc30ad051447"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odczytuje dane z procesu/wątku rozwiązywania nazw.  <a href="#a8563d87dff2099a7fb68cc30ad051447">Więcej...</a><br/></td></tr>
+<tr class="separator:a8563d87dff2099a7fb68cc30ad051447"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Dokumentacja funkcji</h2>
-<a class="anchor" id="a2cf32a6da46b0f24563cb8cc4e5a5134"></a>
+<a class="anchor" id="a508cf63e70e3c1405ec9c07b3f299ee3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -118,7 +121,7 @@ Funkcje</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *&#160;</td>
+          <td class="paramtype">unsigned int *&#160;</td>
           <td class="paramname"><em>count</em>, </td>
         </tr>
         <tr>
@@ -149,12 +152,55 @@ Funkcje</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a8563d87dff2099a7fb68cc30ad051447"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_resolver_recv </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Odczytuje dane z procesu/wątku rozwiązywania nazw. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>Deskryptor </td></tr>
+    <tr><td class="paramname">buf</td><td>Wskaźnik na bufor </td></tr>
+    <tr><td class="paramname">len</td><td>Długość bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Patrz recv() i read(). </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

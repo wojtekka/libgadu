@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja struktury gg_event_msg</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -123,8 +123,14 @@ Pola danych</h2></td></tr>
 <tr class="memdesc:aaf1b939170b82732448a965a5b33ad4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Numer sekwencyjny wiadomości.  <a href="#aaf1b939170b82732448a965a5b33ad4e">Więcej...</a><br/></td></tr>
 <tr class="separator:aaf1b939170b82732448a965a5b33ad4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a520bd874cebe3f03920f78c61e0deb0e"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__event__msg.html#a520bd874cebe3f03920f78c61e0deb0e">xhtml_message</a></td></tr>
-<tr class="memdesc:a520bd874cebe3f03920f78c61e0deb0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Treść wiadomości w formacie XHTML (może być równe <code>NULL</code>, jeśli wiadomość nie zawiera treści XHTML)  <a href="#a520bd874cebe3f03920f78c61e0deb0e">Więcej...</a><br/></td></tr>
+<tr class="memdesc:a520bd874cebe3f03920f78c61e0deb0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Treść wiadomości w formacie XHTML.  <a href="#a520bd874cebe3f03920f78c61e0deb0e">Więcej...</a><br/></td></tr>
 <tr class="separator:a520bd874cebe3f03920f78c61e0deb0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0615e830bea06f5c53cbbb394fb965a7"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__event__msg.html#a0615e830bea06f5c53cbbb394fb965a7">chat_id</a></td></tr>
+<tr class="memdesc:a0615e830bea06f5c53cbbb394fb965a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Identyfikator konferencji lub 0, jeżeli jest to zwykła wiadomość (11.0)  <a href="#a0615e830bea06f5c53cbbb394fb965a7">Więcej...</a><br/></td></tr>
+<tr class="separator:a0615e830bea06f5c53cbbb394fb965a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a899a76dc5f03f0d4ea3793c339e07ee9"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__event__msg.html#a899a76dc5f03f0d4ea3793c339e07ee9">flags</a></td></tr>
+<tr class="memdesc:a899a76dc5f03f0d4ea3793c339e07ee9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flagi wiadomości (11.0)  <a href="#a899a76dc5f03f0d4ea3793c339e07ee9">Więcej...</a><br/></td></tr>
+<tr class="separator:a899a76dc5f03f0d4ea3793c339e07ee9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <div class="textblock"><p>Opis zdarzeń <code>GG_EVENT_MSG</code> i <code>GG_EVENT_MULTILOGON_MSG</code>. </p>
@@ -265,7 +271,35 @@ Pola danych</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Treść wiadomości w formacie XHTML (może być równe <code>NULL</code>, jeśli wiadomość nie zawiera treści XHTML) </p>
+<p>Treść wiadomości w formacie XHTML. </p>
+
+</div>
+</div>
+<a class="anchor" id="a0615e830bea06f5c53cbbb394fb965a7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t chat_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Identyfikator konferencji lub 0, jeżeli jest to zwykła wiadomość (11.0) </p>
+
+</div>
+</div>
+<a class="anchor" id="a899a76dc5f03f0d4ea3793c339e07ee9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t flags</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Flagi wiadomości (11.0) </p>
 
 </div>
 </div>
@@ -275,9 +309,9 @@ Pola danych</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:59 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

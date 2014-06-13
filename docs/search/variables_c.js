@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['magic',['magic',['../struct__ProtobufCEnumDescriptor.html#a57f54349f4fd1cbbb52058812e146af2',1,'_ProtobufCEnumDescriptor::magic()'],['../struct__ProtobufCMessageDescriptor.html#a57f54349f4fd1cbbb52058812e146af2',1,'_ProtobufCMessageDescriptor::magic()'],['../struct__ProtobufCServiceDescriptor.html#a57f54349f4fd1cbbb52058812e146af2',1,'_ProtobufCServiceDescriptor::magic()'],['../structgg__dcc7__relay__req.html#a57f54349f4fd1cbbb52058812e146af2',1,'gg_dcc7_relay_req::magic()'],['../structgg__dcc7__relay__reply.html#a57f54349f4fd1cbbb52058812e146af2',1,'gg_dcc7_relay_reply::magic()'],['../structgg__dcc7__welcome__server.html#a57f54349f4fd1cbbb52058812e146af2',1,'gg_dcc7_welcome_server::magic()']]],
+  ['max_5falloca',['max_alloca',['../struct__ProtobufCAllocator.html#a6e92cc3c850ab0a72c990340c7ac038e',1,'_ProtobufCAllocator']]],
+  ['message',['message',['../structgg__event__msg.html#abb13456032cf48eaa794391b6ed937c7',1,'gg_event_msg']]],
+  ['message_5finit',['message_init',['../struct__ProtobufCMessageDescriptor.html#ae3ebf06b146fe8e38ec3b30639fc8593',1,'_ProtobufCMessageDescriptor']]],
+  ['method_5findices_5fby_5fname',['method_indices_by_name',['../struct__ProtobufCServiceDescriptor.html#a12aa245bea61ab3355588481a748f080',1,'_ProtobufCServiceDescriptor']]],
+  ['methods',['methods',['../struct__ProtobufCServiceDescriptor.html#a9d7b7c5cef9dc0d66d38e9ab345e494c',1,'_ProtobufCServiceDescriptor']]],
+  ['min_5flength',['min_length',['../structgg__packet__handler__t.html#af12d20ca87aca233534fbbf6a490bbfd',1,'gg_packet_handler_t']]],
+  ['mode',['mode',['../structgg__file__info.html#a6b29e4f37f4482274af785ad5ffe96a7',1,'gg_file_info']]],
+  ['msg',['msg',['../uniongg__event__union.html#a2f374414717d903a315a819bc56edca5',1,'gg_event_union']]],
+  ['msg_5fhdr',['msg_hdr',['../struct__gg__imgout__queue__t.html#ae30de009f580bf27a6ed39418cf296f9',1,'_gg_imgout_queue_t']]],
+  ['msg_5fid',['msg_id',['../struct__GG110MessageAck.html#aae96dbdeeda1de92c19b7671d6b58c34',1,'_GG110MessageAck::msg_id()'],['../struct__GG110RecvMessage.html#aae96dbdeeda1de92c19b7671d6b58c34',1,'_GG110RecvMessage::msg_id()'],['../struct__GG110ChatInfoUpdate.html#aae96dbdeeda1de92c19b7671d6b58c34',1,'_GG110ChatInfoUpdate::msg_id()'],['../struct__GG112TransferInfoFile.html#aae96dbdeeda1de92c19b7671d6b58c34',1,'_GG112TransferInfoFile::msg_id()'],['../struct__GG112TransferInfo.html#aae96dbdeeda1de92c19b7671d6b58c34',1,'_GG112TransferInfo::msg_id()']]],
+  ['msg_5fplain',['msg_plain',['../struct__GG110RecvMessage.html#abd1c5eab29be298f6e5d80b9f401376f',1,'_GG110RecvMessage::msg_plain()'],['../struct__GG110SendMessage.html#abd1c5eab29be298f6e5d80b9f401376f',1,'_GG110SendMessage::msg_plain()']]],
+  ['msg_5ftype',['msg_type',['../structgg__event__ack110.html#af95f620c0e85b634c0caee87127b12a8',1,'gg_event_ack110::msg_type()'],['../struct__GG110MessageAck.html#a7c8345b239be73c27a0641930f7ff283',1,'_GG110MessageAck::msg_type()']]],
+  ['msg_5fxhtml',['msg_xhtml',['../struct__GG110RecvMessage.html#a10322cf3273547b47f4cdad151ded2bd',1,'_GG110RecvMessage::msg_xhtml()'],['../struct__GG110SendMessage.html#a10322cf3273547b47f4cdad151ded2bd',1,'_GG110SendMessage::msg_xhtml()']]],
+  ['msgclass',['msgclass',['../structgg__event__msg.html#a0ceb8275703d4f7e863938f60fdb93f1',1,'gg_event_msg::msgclass()'],['../structgg__send__msg.html#add6332082a3f6241633080da700713d2',1,'gg_send_msg::msgclass()'],['../structgg__recv__msg.html#add6332082a3f6241633080da700713d2',1,'gg_recv_msg::msgclass()'],['../structgg__send__msg80.html#add6332082a3f6241633080da700713d2',1,'gg_send_msg80::msgclass()'],['../structgg__recv__msg80.html#add6332082a3f6241633080da700713d2',1,'gg_recv_msg80::msgclass()']]],
+  ['mtime',['mtime',['../structgg__file__info.html#ab127fe9b2ed74e13dba2e2d668c951d9',1,'gg_file_info']]],
+  ['multilogon_5finfo',['multilogon_info',['../uniongg__event__union.html#a5a1264be4c34c855235693f83fd9f90b',1,'gg_event_union']]],
+  ['multilogon_5fmsg',['multilogon_msg',['../uniongg__event__union.html#ad2c1399744a0170f0fd0f547816306d0',1,'gg_event_union']]],
+  ['must_5ffree_5fdata',['must_free_data',['../struct__ProtobufCBufferSimple.html#adbaf2b97c06b8871d667e36cb5f5973f',1,'_ProtobufCBufferSimple']]]
+];

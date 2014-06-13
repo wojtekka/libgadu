@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Połączenia bezpośrednie od wersji Gadu-Gadu 7.x</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -113,20 +113,18 @@ Funkcje</h2></td></tr>
 <tr class="separator:ga5ed5817b7fb53ea3d64b04f4b550ff35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
-<p>Przesyłanie plików zgodne z Gadu-Gadu 7.x jest znacznie prostsze niż w wersji <a class="el" href="group__dcc6.html">6.x</a>. Podobnie jak poprzednio, każde połączenie jest opisane przez strukturę <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code>. Nie ma konieczności otwierania gniazda nasłuchującego, ponieważ jest tworzone dla każdego połączenia osobno.</p>
-<p>Gdy chcemy wysłać plik, wywołujemy <code><a class="el" href="group__dcc7.html#gadd203269b1b26d806cfca9341f7465ae" title="Rozpoczyna wysyłanie pliku o danej nazwie.">gg_dcc7_send_file()</a></code> i obserwujemy zdarzenia zarówno z <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code>, jak i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code>. Parametry funkcji to struktura sesji, numer odbiorcy, nazwa pliku, nazwa pliku w kodowaniu CP1250 (jeśli NULL to brana jest oryginalna nazwa) i skrót pliku wyznaczony algorytmem SHA1 (jeśli NULL to biblioteka liczy, blokując na ten czas działanie aplikacji). Wysyłanie jest praktycznie bezobsługowe, wystarczy zareagować na zdarzenie <code>GG_EVENT_DCC7_DONE</code> i <code>GG_EVENT_DCC7_ERROR</code> w <a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a> oraz <code>GG_EVENT_DCC7_REJECTED</code> i <code>GG_EVENT_DCC7_ERROR</code> w <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code>, żeby wiedzieć, kiedy zwolnić zasoby funkcją <code><a class="el" href="group__dcc7.html#ga5ed5817b7fb53ea3d64b04f4b550ff35" title="Zwalnia zasoby używane przez połączenie bezpośrednie.">gg_dcc7_free()</a></code>.</p>
-<p>Jeśli ktoś do nas wysyła plik, otrzymamy zdarzenie <code>GG_EVENT_DCC7_NEW</code> z sesji. Należy przygotować deskryptor otwarty do zapisu, wpisać jego wartość do pola <code>file_fd</code> struktury <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> i wywołać <code><a class="el" href="group__dcc7.html#ga069cdebd3e41c42ca918e3221a1e2b0f" title="Potwierdza chęć odebrania pliku.">gg_dcc7_accept()</a></code> albo od razu wywołać <code><a class="el" href="group__dcc7.html#ga7ed0a6e2e7d0e8c2a9f735bd9a9b2af6" title="Odrzuca próbę przesłania pliku.">gg_dcc7_reject()</a></code>, jeśli nie chcemy połączenia. Tak samo jak przy wysyłaniu, wystarczy obsłużyć <code>GG_EVENT_DCC7_DONE</code> w strukturze <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> i <code>GG_EVENT_DCC7_ERROR</code> w strukturach <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu.">gg_session</a></code> i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code>.</p>
-<p>Deskryptor połączenia (pole <code>fd</code> struktury <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code>) może zmienić się po wywołaniu funkcji <code><a class="el" href="group__dcc7.html#ga069cdebd3e41c42ca918e3221a1e2b0f" title="Potwierdza chęć odebrania pliku.">gg_dcc7_accept()</a></code> lub otrzymaniu jednego ze zdarzeń: <code>GG_EVENT_DCC7_CONNECTED</code>, <code>GG_EVENT_DCC7_ACCEPT</code>, <code>GG_EVENT_DCC7_PENDING</code>.</p>
+<p>Przesyłanie plików zgodne z Gadu-Gadu 7.x jest znacznie prostsze niż w wersji <a class="el" href="group__dcc6.html">6.x</a>. Podobnie jak poprzednio, każde połączenie jest opisane przez strukturę <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code>. Nie ma konieczności otwierania gniazda nasłuchującego, ponieważ jest tworzone dla każdego połączenia osobno.</p>
+<p>Gdy chcemy wysłać plik, wywołujemy <code><a class="el" href="group__dcc7.html#gadd203269b1b26d806cfca9341f7465ae" title="Rozpoczyna wysyłanie pliku o danej nazwie. ">gg_dcc7_send_file()</a></code> i obserwujemy zdarzenia zarówno z <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu. ">gg_session</a></code>, jak i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code>. Parametry funkcji to struktura sesji, numer odbiorcy, nazwa pliku, nazwa pliku w kodowaniu CP1250 (jeśli NULL to brana jest oryginalna nazwa) i skrót pliku wyznaczony algorytmem SHA1 (jeśli NULL to biblioteka liczy, blokując na ten czas działanie aplikacji). Wysyłanie jest praktycznie bezobsługowe, wystarczy zareagować na zdarzenie <code>GG_EVENT_DCC7_DONE</code> i <code>GG_EVENT_DCC7_ERROR</code> w <a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a> oraz <code>GG_EVENT_DCC7_REJECTED</code> i <code>GG_EVENT_DCC7_ERROR</code> w <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu. ">gg_session</a></code>, żeby wiedzieć, kiedy zwolnić zasoby funkcją <code><a class="el" href="group__dcc7.html#ga5ed5817b7fb53ea3d64b04f4b550ff35" title="Zwalnia zasoby używane przez połączenie bezpośrednie. ">gg_dcc7_free()</a></code>.</p>
+<p>Jeśli ktoś do nas wysyła plik, otrzymamy zdarzenie <code>GG_EVENT_DCC7_NEW</code> z sesji. Należy przygotować deskryptor otwarty do zapisu, wpisać jego wartość do pola <code>file_fd</code> struktury <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> i wywołać <code><a class="el" href="group__dcc7.html#ga069cdebd3e41c42ca918e3221a1e2b0f" title="Potwierdza chęć odebrania pliku. ">gg_dcc7_accept()</a></code> albo od razu wywołać <code><a class="el" href="group__dcc7.html#ga7ed0a6e2e7d0e8c2a9f735bd9a9b2af6" title="Odrzuca próbę przesłania pliku. ">gg_dcc7_reject()</a></code>, jeśli nie chcemy połączenia. Tak samo jak przy wysyłaniu, wystarczy obsłużyć <code>GG_EVENT_DCC7_DONE</code> w strukturze <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> i <code>GG_EVENT_DCC7_ERROR</code> w strukturach <code><a class="el" href="structgg__session.html" title="Sesja Gadu-Gadu. ">gg_session</a></code> i <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code>.</p>
+<p>Deskryptor połączenia (pole <code>fd</code> struktury <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code>) może zmienić się po wywołaniu funkcji <code><a class="el" href="group__dcc7.html#ga069cdebd3e41c42ca918e3221a1e2b0f" title="Potwierdza chęć odebrania pliku. ">gg_dcc7_accept()</a></code> lub otrzymaniu jednego ze zdarzeń: <code>GG_EVENT_DCC7_CONNECTED</code>, <code>GG_EVENT_DCC7_ACCEPT</code>, <code>GG_EVENT_DCC7_PENDING</code>.</p>
 <h1><a class="anchor" id="dcc7-settings"></a>
 Opcje połączeń</h1>
-<p>Ponieważ jedna ze stron odbiera połączenie bezpośrednie, konieczne jest nasłuchiwanie na porcie TCP. Domyślne ustawienia pozwalają na poprawną pracę jeśli co najmniej jedna ze stron połączenia ma bezpośredni dostęp do sieci, bez translacji adresów i/lub portów. Pole <a class="el" href="structgg__login__params.html#afe8103a5a3168019d3be70abe5a3c542"><code>client_addr</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> mówi na jakim adresie należy nasłuchiwać. Domyślna wartość <code>0.0.0.0</code> powoduje nasłuchiwanie na wszystkich dostępnych interfejsach komputera. Pole <a class="el" href="structgg__login__params.html#a227d901bc6fb3e4ed6ad9640054c7849"><code>client_port</code> </a>mówi na którym porcie należy nasłuchiwać. Domyślna wartość <code>0</code> powoduje nasłuchiwanie na losowym dostępnym porcie. Należy zwrócić uwagę, że jeśli jedno połączenie będzie nasłuchiwać na danym porcie, inne już nie będzie w stanie, co spowoduje błąd.</p>
+<p>Ponieważ jedna ze stron odbiera połączenie bezpośrednie, konieczne jest nasłuchiwanie na porcie TCP. Domyślne ustawienia pozwalają na poprawną pracę jeśli co najmniej jedna ze stron połączenia ma bezpośredni dostęp do sieci, bez translacji adresów i/lub portów. Pole <a class="el" href="structgg__login__params.html#afe8103a5a3168019d3be70abe5a3c542"><code>client_addr</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> mówi na jakim adresie należy nasłuchiwać. Domyślna wartość <code>0.0.0.0</code> powoduje nasłuchiwanie na wszystkich dostępnych interfejsach komputera. Pole <a class="el" href="structgg__login__params.html#a227d901bc6fb3e4ed6ad9640054c7849"><code>client_port</code> </a>mówi na którym porcie należy nasłuchiwać. Domyślna wartość <code>0</code> powoduje nasłuchiwanie na losowym dostępnym porcie. Należy zwrócić uwagę, że jeśli jedno połączenie będzie nasłuchiwać na danym porcie, inne już nie będzie w stanie, co spowoduje błąd.</p>
 <p>Druga para ustawień dotyczy publicznego adresu i portu. Ta strona połączenia, która nasłuchuje na porcie TCP wysyła do drugiej strony swój adres i numer portu. Pole <a class="el" href="structgg__login__params.html#a9098d15d77ef7bd951a05eb7451bc450"><code>external_addr</code> </a>mówi jaki adres zostanie wysłany. Domyślna wartość <code>0.0.0.0</code> powoduje wysłanie adresu IP, z którego sesja łączy się z serwerem. Pole <a class="el" href="structgg__login__params.html#a4579a6a3bb00195b8f1b0dbcf10984e5"><code>external_port</code> </a>mówi jaki port zostanie wysłany. Domyślna wartość <code>0</code> powoduje wysłane portu, na którym połączenie nasłuchuje.</p>
 <h1><a class="anchor" id="dcc7-todo"></a>
 Do zrobienia</h1>
 <ul>
 <li>Rozmowy głosowe.</li>
-</ul>
-<ul>
 <li>Nawiązywanie połączeń przez serwer. </li>
 </ul>
 <h2 class="groupheader">Dokumentacja funkcji</h2>
@@ -187,12 +185,12 @@ Do zrobienia</h1>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">read</span></span>  </td>
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 <p>Rozpoczyna wysyłanie pliku.</p>
-<p>Funkcja jest wykorzystywana przez <code><a class="el" href="group__dcc7.html#gadd203269b1b26d806cfca9341f7465ae" title="Rozpoczyna wysyłanie pliku o danej nazwie.">gg_dcc7_send_file()</a></code> oraz <code>gg_dcc_send_file_fd()</code>.</p>
+<p>Funkcja jest wykorzystywana przez <code><a class="el" href="group__dcc7.html#gadd203269b1b26d806cfca9341f7465ae" title="Rozpoczyna wysyłanie pliku o danej nazwie. ">gg_dcc7_send_file()</a></code> oraz <code>gg_dcc_send_file_fd()</code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
@@ -205,16 +203,13 @@ Do zrobienia</h1>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
 <a class="anchor" id="gadd203269b1b26d806cfca9341f7465ae"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__dcc7.html">gg_dcc7</a>* gg_dcc7_send_file </td>
@@ -252,11 +247,6 @@ Do zrobienia</h1>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Rozpoczyna wysyłanie pliku o danej nazwie. </p>
@@ -270,16 +260,13 @@ Do zrobienia</h1>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
 <a class="anchor" id="ga99b4d40b7b138403ef306f50838f98ca"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__dcc7.html">gg_dcc7</a>* gg_dcc7_send_file_fd </td>
@@ -323,11 +310,6 @@ Do zrobienia</h1>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Rozpoczyna wysyłanie pliku o danym deskryptorze.</p>
 <dl class="section note"><dt>Nota</dt><dd>Wysyłanie pliku nie będzie działać poprawnie, jeśli deskryptor źródłowy jest w trybie nieblokującym i w pewnym momencie zabraknie danych.</dd></dl>
@@ -342,7 +324,7 @@ Do zrobienia</h1>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x.">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__dcc7.html" title="Połączenie bezpośrednie od wersji Gadu-Gadu 7.x. ">gg_dcc7</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
@@ -422,9 +404,6 @@ Do zrobienia</h1>
 <a class="anchor" id="ga3053d18bcbd8d6854bc4510376451d2e"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__event.html">gg_event</a>* gg_dcc7_watch_fd </td>
@@ -434,15 +413,10 @@ Do zrobienia</h1>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. </p>
-<p>Funkcja zwraca strukturę zdarzenia <code><a class="el" href="structgg__event.html" title="Opis zdarzenia.">gg_event</a></code>. Jeśli rodzaj zdarzenia to <code>GG_EVENT_NONE</code>, nie wydarzyło się jeszcze nic wartego odnotowania. Strukturę zdarzenia należy zwolnić funkcja <code><a class="el" href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1" title="Zwalnia pamięć zajmowaną przez informację o zdarzeniu.">gg_event_free()</a></code>.</p>
+<p>Funkcja zwraca strukturę zdarzenia <code><a class="el" href="structgg__event.html" title="Opis zdarzenia. ">gg_event</a></code>. Jeśli rodzaj zdarzenia to <code>GG_EVENT_NONE</code>, nie wydarzyło się jeszcze nic wartego odnotowania. Strukturę zdarzenia należy zwolnić funkcja <code><a class="el" href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1" title="Zwalnia pamięć zajmowaną przez informację o zdarzeniu. ">gg_event_free()</a></code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">dcc</td><td>Struktura połączenia</td></tr>
@@ -480,9 +454,9 @@ Do zrobienia</h1>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

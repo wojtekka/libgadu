@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Zmiana hasła</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -96,14 +96,11 @@ Funkcje</h2></td></tr>
 <tr class="separator:ga7c41f3d3b15a61a37a058c0d1a5b7e6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
-<p>Po zakończeniu operacji, pole <code>data</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> zawiera wskaźnik do struktury <code><a class="el" href="structgg__pubdir.html" title="Wynik operacji na katalogu publicznym.">gg_pubdir</a></code>. Ta ostatnia w polu <code>success</code> określa, czy operacja się powiodła. </p>
+<p>Po zakończeniu operacji, pole <code>data</code> struktury <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> zawiera wskaźnik do struktury <code><a class="el" href="structgg__pubdir.html" title="Wynik operacji na katalogu publicznym. ">gg_pubdir</a></code>. Ta ostatnia w polu <code>success</code> określa, czy operacja się powiodła. </p>
 <h2 class="groupheader">Dokumentacja funkcji</h2>
 <a class="anchor" id="gaf10ac8b17b385a931fcb7c388bcffec9"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct <a class="el" href="structgg__http.html">gg_http</a>* gg_change_passwd4 </td>
@@ -153,15 +150,10 @@ Funkcje</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Zmienia hasło użytkownika. </p>
-<p>Wymaga wcześniejszego pobrania tokenu za pomocą <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym.">gg_token()</a></code>.</p>
+<p>Wymaga wcześniejszego pobrania tokenu za pomocą <code><a class="el" href="group__token.html#ga64271e3505ae06d2e683f4298ac65edf" title="Pobiera token do autoryzacji operacji na katalogu publicznym. ">gg_token()</a></code>.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">uin</td><td>Numer Gadu-Gadu </td></tr>
@@ -174,7 +166,7 @@ Funkcje</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP.">gg_http</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Struktura <code><a class="el" href="structgg__http.html" title="Połączenie HTTP. ">gg_http</a></code> lub <code>NULL</code> w przypadku błędu </dd></dl>
 
 </div>
 </div>
@@ -194,7 +186,7 @@ Funkcje</h2></td></tr>
 
 <p>Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. </p>
 <p>Operacja będzie zakończona, gdy pole <code>state</code> będzie równe <code>GG_STATE_DONE</code>. Jeśli wystąpi błąd, <code>state</code> będzie równe <code>GG_STATE_ERROR</code>, a kod błędu znajdzie się w polu <code>error</code>.</p>
-<dl class="section note"><dt>Nota</dt><dd>W rzeczywistości funkcja jest makrem rozwijanym do <code><a class="el" href="pubdir_8c.html#aa4c0c6c8fbf96fd74b5b754dd4b58e8e" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia.">gg_pubdir_watch_fd()</a></code>.</dd></dl>
+<dl class="section note"><dt>Nota</dt><dd>W rzeczywistości funkcja jest makrem rozwijanym do <code><a class="el" href="pubdir_8c.html#aa4c0c6c8fbf96fd74b5b754dd4b58e8e" title="Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze połączenia. ">gg_pubdir_watch_fd()</a></code>.</dd></dl>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">h</td><td>Struktura połączenia</td></tr>
@@ -220,7 +212,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Zwalnia zasoby po operacji. </p>
-<dl class="section note"><dt>Nota</dt><dd>W rzeczywistości funkcja jest makrem rozwijanym do <code><a class="el" href="pubdir_8c.html#adbec3a9e695d5f3f08bc5a6132ebfffb" title="Zwalnia zasoby po operacji na katalogu publicznym.">gg_pubdir_free()</a></code>.</dd></dl>
+<dl class="section note"><dt>Nota</dt><dd>W rzeczywistości funkcja jest makrem rozwijanym do <code><a class="el" href="pubdir_8c.html#adbec3a9e695d5f3f08bc5a6132ebfffb" title="Zwalnia zasoby po operacji na katalogu publicznym. ">gg_pubdir_free()</a></code>.</dd></dl>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramname">h</td><td>Struktura połączenia </td></tr>
@@ -233,9 +225,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

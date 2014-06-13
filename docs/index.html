@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: libgadu</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -81,8 +81,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><em>libgadu</em> jest biblioteką przeznaczoną do obsługi protokołu komunikatora Gadu-Gadu. Przez dłuższy czas była integralną częścią <a href="http://ekg.chmurka.net/">Eksperymentalnego Klienta Gadu-Gadu</a>, lecz ze względu na problemy z dystrybucją pakietów i wykorzystaniem w innych projektach, została wydzielona. Własnościowy protokół został rozszyfrowany metodą <a class="el" href="group__re.html">inżynierii wstecznej</a> (ang. <em>"reverse engineering"</em>), przez co <em>libgadu</em> może nie być w 100% zgodna z pierwowzorem.</p>
-<p>Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1, której treść znajduje się w pliku <code>COPYING</code>. Biblioteka została napisana w języku C i jest niezależna od systemu operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach konsolowych, jak i graficznych GTK+ i Qt.</p>
-<p>Strona projektu znajduje się pod adresem <a href="http://toxygen.net/libgadu/">http://toxygen.net/libgadu/</a>. Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną <a href="http://lists.ziew.org/mailman/listinfo/libgadu-devel">libgadu-devel</a> poświęconą rozwojowi biblioteki, programowaniu przy jej użyciu oraz protokołowi Gadu-Gadu. Istnieje również lista <a href="http://lists.ziew.org/mailman/listinfo/libgadu-commit">libgadu-commit</a>, na którą są wysyłane informacje o zmianach w kodzie źródłowym.</p>
+<p>Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1, której treść znajduje się w pliku <code>COPYING</code>. Biblioteka została napisana w języku C i jest niezależna od systemu operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS i Win32. Używana jest w aplikacjach konsolowych, jak i graficznych GTK+ i Qt.</p>
+<p>Strona projektu znajduje się pod adresem <a href="http://libgadu.net/">http://libgadu.net/</a>. Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną <a href="http://lists.ziew.org/mailman/listinfo/libgadu-devel">libgadu-devel</a> poświęconą rozwojowi biblioteki, programowaniu przy jej użyciu oraz protokołowi Gadu-Gadu. Istnieje również lista <a href="http://lists.ziew.org/mailman/listinfo/libgadu-commit">libgadu-commit</a>, na którą są wysyłane informacje o zmianach w kodzie źródłowym.</p>
 <p>Dokumentację podzielono na następujące działy:</p>
 <ul>
 <li>Funkcje związane połączeniem<ul>
@@ -90,14 +90,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <li><a class="el" href="group__events.html">Obsługa zdarzeń</a></li>
 <li><a class="el" href="group__contacts.html">Lista kontaktów</a></li>
 <li><a class="el" href="group__messages.html">Wiadomości</a></li>
+<li><a class="el" href="group__chat.html">Konferencje</a></li>
 <li><a class="el" href="group__status.html">Zmiana statusu użytkownika</a></li>
 <li><a class="el" href="group__pubdir50.html">Katalog publiczny</a></li>
 <li><a class="el" href="group__importexport.html">Import i eksport listy kontaktów</a> <br/>
 </li>
 </ul>
 </li>
-</ul>
-<ul>
 <li>Funkcje związane z usługami dodatkowymi<ul>
 <li><a class="el" href="group__http.html">Usługi HTTP</a></li>
 <li><a class="el" href="group__token.html">Tokeny</a></li>
@@ -108,27 +107,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </li>
 </ul>
 </li>
-</ul>
-<ul>
 <li>Funkcje związane z połączeniami bezpośrednimi<ul>
 <li><a class="el" href="group__dcc6.html">Połączenia bezpośrednie do wersji Gadu-Gadu 6.x</a></li>
 <li><a class="el" href="group__dcc7.html">Połączenia bezpośrednie od wersji Gadu-Gadu 7.x</a> <br/>
 </li>
 </ul>
 </li>
-</ul>
-<ul>
 <li>Pozostałe funkcje<ul>
 <li><a class="el" href="group__version.html">Informacje o bibliotece</a></li>
 <li><a class="el" href="group__proxy.html">Serwer pośredniczący</a></li>
 <li><a class="el" href="group__ip.html">Konfiguracja IP</a></li>
+<li><a class="el" href="group__socketmanager.html">Własne funkcje do nawiązywania połączeń TCP/TLS</a></li>
 <li><a class="el" href="group__debug.html">Odpluskwianie</a></li>
 <li><a class="el" href="group__helper.html">Funkcje pomocnicze</a></li>
 <li><a class="el" href="todo.html">Lista rzeczy do zrobienia</a></li>
 </ul>
 </li>
-</ul>
-<ul>
 <li>Informacje dodatkowe<ul>
 <li><a class="el" href="group__changelog.html">Lista zmian</a></li>
 <li><a class="el" href="group__re.html">Użycie inżynierii wstecznej</a></li>
@@ -143,9 +137,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:59 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

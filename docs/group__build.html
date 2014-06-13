@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Kompilacja</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -80,10 +80,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <div class="title">Kompilacja</div>  </div>
 </div><!--header-->
 <div class="contents">
-<p>Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows</p>
-<ul>
-<li>Cygwin) przeprowadza się według typowego schematu:</li>
-</ul>
+<p>Kompilację biblioteki na systemach uniksowych lub uniksopodobnych (np. Windows + Cygwin) przeprowadza się według typowego schematu:</p>
 <div class="fragment"><div class="line">$ ./configure</div>
 <div class="line">$ make</div>
 <div class="line"><span class="preprocessor"># make install</span></div>
@@ -97,30 +94,14 @@ Kompilacja skrośna</h1>
 <p>Przy kompilacji skrośnej konieczne jest użycie parametru <code>&ndash;with-c99-vsnprintf</code> lub <code>&ndash;without-c99-vsnprintf</code> w skrypcie <code>configure</code>, który mówi o tym, że funkcje rodziny <code>sprintf()</code> na docelowej platformie są zgodne lub niezgodne ze standardem C99. Jeśli żaden z powyższych parametrów nie zostanie użyty, skrypt <code>configure</code> spróbuje uruchomić program testowy, co przy kompilacji skrośnej się nie powiedzie.</p>
 <h1><a class="anchor" id="build-resolver"></a>
 Rozwiązywanie nazw</h1>
-<p>Biblioteka oferuje dwa sposoby rozwiązywania nazw serwerów w trybie asynchronicznym: za pomocą osobnego procesu lub za pomocą osobnego wątku. Druga możliwość jest zalecana dla programów, które korzystają z wątków systemowych, ponieważ użycie funkcji <code>fork()</code> do tworzenia procesu potomnego w aplikacji korzystającej z wątków może powodować problemy. W wersjach wcześniejszych niż 1.9.0 sposób rozwiązywania nazw był wybierany na etapie kompilacji, co powodowało problemy, gdy w systemie były zainstalowane aplikacje korzystające i niekorzystające z wątków systemowych. Od wersji 1.9.0, jeśli jest to możliwe, kompilowane są obie wersje, a wybór jest dokonywany przez aplikację. Dostępność opcji przedstawia poniższa tabela:</p>
-<table class="doxtable">
-<tr>
-<th>Opcja <code>configure</code>  </th><th>pthread dostępne </th><th>pthread niedostępne  </th></tr>
-<tr>
-<td>brak </td><td><code>GG_RESOLVER_FORK</code> (domyślnie)<br/>
-<code>GG_RESOLVER_PTHREAD</code> <br/>
-<code>GG_RESOLVER_CUSTOM</code>  </td><td><code>GG_RESOLVER_FORK</code> (domyślnie)<br/>
-<code>GG_RESOLVER_CUSTOM</code>   </td></tr>
-<tr>
-<td><code>&ndash;with-pthread</code>  </td><td><code>GG_RESOLVER_FORK</code> <br/>
-<code>GG_RESOLVER_PTHREAD</code> (domyślnie)<br/>
-<code>GG_RESOLVER_CUSTOM</code>  </td><td>błąd  </td></tr>
-<tr>
-<td><code>&ndash;without-pthread</code>  </td><td><code>GG_RESOLVER_FORK</code> (domyślnie)<br/>
-<code>GG_RESOLVER_CUSTOM</code>  </td><td><code>GG_RESOLVER_FORK</code> (domyślnie)<br/>
-<code>GG_RESOLVER_CUSTOM</code>   </td></tr>
-</table>
+<p>Biblioteka oferuje dwa sposoby rozwiązywania nazw serwerów w trybie asynchronicznym: za pomocą osobnego procesu lub za pomocą osobnego wątku. Druga możliwość jest zalecana dla programów, które korzystają z wątków systemowych, ponieważ użycie funkcji <code>fork()</code> do tworzenia procesu potomnego w aplikacji korzystającej z wątków może powodować problemy. W wersjach wcześniejszych niż 1.9.0 sposób rozwiązywania nazw był wybierany na etapie kompilacji, co powodowało problemy, gdy w systemie były zainstalowane aplikacje korzystające i niekorzystające z wątków systemowych. Od wersji 1.9.0, jeśli jest to możliwe, kompilowane są obie wersje, a wybór jest dokonywany przez aplikację.</p>
+<p>Od wersji 1.12.0 domyślna metoda to <code>GG_RESOLVER_PTHREAD</code> (użycie wątków pthread), bez możliwości wybrania priorytetu na etapie kompilacji. Jeżeli ta jest niedostępna (lub zostanie wyłączona przełącznikiem <code>&ndash;without-pthread</code>), użyta zostanie &ndash; w zależności od systemu &ndash; <code>GG_RESOLVER_WIN32</code> (użycie natywnych wątków win32) lub <code>GG_RESOLVER_FORK</code> (użycie osobnego procesu). W razie potrzeby można użyć własnej implementacji, ustawianej za pomocą funkcji <code>gg_*_set_custom_resolver</code>(). </p>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

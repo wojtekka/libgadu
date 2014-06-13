@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Zmiana statusu użytkownika</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -123,6 +123,10 @@ Wyliczenia</h2></td></tr>
 <br/>
 &#160;&#160;<a class="el" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a5f646f58e8318fdd406515f172409984">GG_STATUS_BLOCKED</a>, 
 <br/>
+&#160;&#160;<a class="el" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a3c4a0a0192d24b9a2e7c744a5c42bd89">GG_STATUS_GGPLUS</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635ac5cd6774e7300493d1da1ccfbfa5fb03">GG_STATUS_NOT_SET</a>, 
+<br/>
 &#160;&#160;<a class="el" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a3446245589785d5d3fb2bf853b8570a9">GG_STATUS_IMAGE_MASK</a>, 
 <br/>
 &#160;&#160;<a class="el" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a751274ca439af36cf51857c3abff5ca5">GG_STATUS_DESCR_MASK</a>, 
@@ -136,6 +140,8 @@ Wyliczenia</h2></td></tr>
 &#160;&#160;<a class="el" href="group__status.html#gga0411cd49bb5b71852cecd93bcbf0ca2da9f1d5a518285204349318271d4b45ad1">GG_STATUS_FLAG_UNKNOWN</a>, 
 <br/>
 &#160;&#160;<a class="el" href="group__status.html#gga0411cd49bb5b71852cecd93bcbf0ca2dacda19e8cf3373c2f6754b41da6338411">GG_STATUS_FLAG_VIDEO</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__status.html#gga0411cd49bb5b71852cecd93bcbf0ca2da3a2744cac95631b893bd453caecd0520">GG_STATUS_FLAG_INHERIT</a>, 
 <br/>
 &#160;&#160;<a class="el" href="group__status.html#gga0411cd49bb5b71852cecd93bcbf0ca2da027d6221772b2a13446021c7eb32a8c5">GG_STATUS_FLAG_MOBILE</a>, 
 <br/>
@@ -153,20 +159,20 @@ Funkcje</h2></td></tr>
 <tr class="memitem:ga88e51a8ffa11ab83ce5be8ae6d244fa5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__status.html#ga88e51a8ffa11ab83ce5be8ae6d244fa5">gg_change_status_descr</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int status, const char *descr)</td></tr>
 <tr class="memdesc:ga88e51a8ffa11ab83ce5be8ae6d244fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zmienia status użytkownika na status opisowy.  <a href="#ga88e51a8ffa11ab83ce5be8ae6d244fa5">Więcej...</a><br/></td></tr>
 <tr class="separator:ga88e51a8ffa11ab83ce5be8ae6d244fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0487618b7521b1900bf4771971084bb0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__status.html#ga0487618b7521b1900bf4771971084bb0">gg_change_status_descr_time</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int status, const char *descr, int time)</td></tr>
-<tr class="memdesc:ga0487618b7521b1900bf4771971084bb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zmienia status użytkownika na status opisowy z podanym czasem powrotu.  <a href="#ga0487618b7521b1900bf4771971084bb0">Więcej...</a><br/></td></tr>
-<tr class="separator:ga0487618b7521b1900bf4771971084bb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga31e8f871f90611fcc7e1b2638a8740dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__status.html#ga31e8f871f90611fcc7e1b2638a8740dd">gg_change_status_descr_time</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int status, const char *descr, int ts)</td></tr>
+<tr class="memdesc:ga31e8f871f90611fcc7e1b2638a8740dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zmienia status użytkownika na status opisowy z podanym czasem powrotu.  <a href="#ga31e8f871f90611fcc7e1b2638a8740dd">Więcej...</a><br/></td></tr>
+<tr class="separator:ga31e8f871f90611fcc7e1b2638a8740dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga58f2aededfe215bfb7ccbd6b019c94d4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__status.html#ga58f2aededfe215bfb7ccbd6b019c94d4">gg_change_status_flags</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int flags)</td></tr>
 <tr class="memdesc:ga58f2aededfe215bfb7ccbd6b019c94d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Funkcja zmieniająca flagi statusu.  <a href="#ga58f2aededfe215bfb7ccbd6b019c94d4">Więcej...</a><br/></td></tr>
 <tr class="separator:ga58f2aededfe215bfb7ccbd6b019c94d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
-<p>Domyślnym statusem użytkownika po połączeniu z serwerem jest <code>GG_STATUS_AVAIL</code>. Domyślny status połączenia można zmienić za pomocą pól <a class="el" href="structgg__login__params.html#a6e27f49150e9a14580fb313cc2777e00"><code>status</code> </a>i <a class="el" href="structgg__login__params.html#af9c9eacba3895d4a0721542c8868a1c5"><code>status_descr</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code>. Już po połączeniu z serwerem, status można zmieniać za pomocą poniższych funkcji.</p>
+<p>Domyślnym statusem użytkownika po połączeniu z serwerem jest <code>GG_STATUS_AVAIL</code>. Domyślny status połączenia można zmienić za pomocą pól <a class="el" href="structgg__login__params.html#a6e27f49150e9a14580fb313cc2777e00"><code>status</code> </a>i <a class="el" href="structgg__login__params.html#af9c9eacba3895d4a0721542c8868a1c5"><code>status_descr</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code>. Już po połączeniu z serwerem, status można zmieniać za pomocą poniższych funkcji.</p>
 <p>Przykład zmiany stanu na zajęty z opisem, widoczny tylko dla znajomych:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__status.html#ga88e51a8ffa11ab83ce5be8ae6d244fa5" title="Zmienia status użytkownika na status opisowy.">gg_change_status_descr</a>(sesja, <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a7d89f3d90ff911f8d25292e90de476e3" title="Niewidoczny z opisem (tylko własny status)">GG_STATUS_INVISIBLE_DESCR</a> | <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a3dbc98efe862d34c565094f49c7e70bd" title="Flaga bitowa dostępności tylko dla znajomych.">GG_STATUS_FRIENDS_MASK</a>, <span class="stringliteral">&quot;Nie przeszkadzać!&quot;</span>);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__status.html#ga88e51a8ffa11ab83ce5be8ae6d244fa5">gg_change_status_descr</a>(sesja, <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a7d89f3d90ff911f8d25292e90de476e3">GG_STATUS_INVISIBLE_DESCR</a> | <a class="code" href="group__status.html#gga726ca809ffd3d67ab4b8476646f26635a3dbc98efe862d34c565094f49c7e70bd">GG_STATUS_FRIENDS_MASK</a>, <span class="stringliteral">&quot;Nie przeszkadzać!&quot;</span>);</div>
 </div><!-- fragment --><p>Aby obserwować zmiany statusu kontaktów, należy najpierw <a class="el" href="group__contacts.html">dodać do listy konktaktów</a> ich identyfikatory, a następnie obsługiwać <a class="el" href="group__events.html#events-list">zdarzenia</a> związane ze zmianami statusu.</p>
-<p>Jeśli pole <a class="el" href="structgg__login__params.html#acfd337486f19499ea8d1f20030600240"><code>protocol_features</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> zawiera <code>GG_FEATURE_IMAGE_DESCR</code>, informacja o tym, że status zawiera opis, jest dodatkowo przekazywana za pomocą flagi <code>GG_STATUS_DESCR_MASK</code>. To samo dotyczy zmiany statusów osób z listy kontaktów.</p>
-<p>Część opcji jest dostępna w postaci flag statusu, np. otrzymywanie linków od nieznajomych czy figurowanie jako klient mobilny. Można je ustawić za pomocą pola <a class="el" href="structgg__login__params.html#ad84f42de4f92baa08f0eeefb77f584d1"><code>status_flags</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu.">gg_login_params</a></code> lub funkcją <code><a class="el" href="group__status.html#ga58f2aededfe215bfb7ccbd6b019c94d4" title="Funkcja zmieniająca flagi statusu.">gg_change_status_flags()</a></code>.</p>
+<p>Jeśli pole <a class="el" href="structgg__login__params.html#acfd337486f19499ea8d1f20030600240"><code>protocol_features</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> zawiera <code>GG_FEATURE_IMAGE_DESCR</code>, informacja o tym, że status zawiera opis, jest dodatkowo przekazywana za pomocą flagi <code>GG_STATUS_DESCR_MASK</code>. To samo dotyczy zmiany statusów osób z listy kontaktów.</p>
+<p>Część opcji jest dostępna w postaci flag statusu, np. otrzymywanie linków od nieznajomych czy figurowanie jako klient mobilny. Można je ustawić za pomocą pola <a class="el" href="structgg__login__params.html#ad84f42de4f92baa08f0eeefb77f584d1"><code>status_flags</code> </a>struktury <code><a class="el" href="structgg__login__params.html" title="Parametry połączenia z serwerem Gadu-Gadu. ">gg_login_params</a></code> lub funkcją <code><a class="el" href="group__status.html#ga58f2aededfe215bfb7ccbd6b019c94d4" title="Funkcja zmieniająca flagi statusu. ">gg_change_status_flags()</a></code>.</p>
 <dl class="bug"><dt><b><a class="el" href="bug.html#_bug000004">Błąd:</a></b></dt><dd>Nie ma możliwości poprawnego odbierania statusów zawierających czas powrotu.</dd></dl>
 <h2 class="groupheader">Dokumentacja definicji</h2>
 <a class="anchor" id="gafd99f3af6281b03af00a09bbbd5d9a90"></a>
@@ -211,52 +217,58 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaje statusów użytkownika. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635ac1452e77ce8f69f714b39692539e39d8"></a>GG_STATUS_NOT_AVAIL</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635ac1452e77ce8f69f714b39692539e39d8"></a>GG_STATUS_NOT_AVAIL</em>&#160;</td><td class="fielddoc">
 <p>Niedostępny. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635adafbcf7d8b305656a1cadaa97e56511b"></a>GG_STATUS_NOT_AVAIL_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635adafbcf7d8b305656a1cadaa97e56511b"></a>GG_STATUS_NOT_AVAIL_DESCR</em>&#160;</td><td class="fielddoc">
 <p>Niedostępny z opisem. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a0147a51b3e51ebbe4b531484680a284f"></a>GG_STATUS_FFC</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a0147a51b3e51ebbe4b531484680a284f"></a>GG_STATUS_FFC</em>&#160;</td><td class="fielddoc">
 <p>PoGGadaj ze mną </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a38d8fa737209abfaeac60aadc1f6d049"></a>GG_STATUS_FFC_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a38d8fa737209abfaeac60aadc1f6d049"></a>GG_STATUS_FFC_DESCR</em>&#160;</td><td class="fielddoc">
 <p>PoGGadaj ze mną z opisem. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a6de7496bfc7b238854bd0e47311dcdd5"></a>GG_STATUS_AVAIL</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a6de7496bfc7b238854bd0e47311dcdd5"></a>GG_STATUS_AVAIL</em>&#160;</td><td class="fielddoc">
 <p>Dostępny. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a96ddacc4494b37dc0459081abd543049"></a>GG_STATUS_AVAIL_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a96ddacc4494b37dc0459081abd543049"></a>GG_STATUS_AVAIL_DESCR</em>&#160;</td><td class="fielddoc">
 <p>Dostępny z opisem. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635af1a20e4446df819ec37632af915768a8"></a>GG_STATUS_BUSY</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635af1a20e4446df819ec37632af915768a8"></a>GG_STATUS_BUSY</em>&#160;</td><td class="fielddoc">
 <p>Zajęty. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a7c003801dc039e501a5c1a851798dfdd"></a>GG_STATUS_BUSY_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a7c003801dc039e501a5c1a851798dfdd"></a>GG_STATUS_BUSY_DESCR</em>&#160;</td><td class="fielddoc">
 <p>Zajęty z opisem. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a45efac7df643e10435bb0ca10ff573c9"></a>GG_STATUS_DND</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a45efac7df643e10435bb0ca10ff573c9"></a>GG_STATUS_DND</em>&#160;</td><td class="fielddoc">
 <p>Nie przeszkadzać </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a9d6eb1066639dc26abecc4ceacbe61bb"></a>GG_STATUS_DND_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a9d6eb1066639dc26abecc4ceacbe61bb"></a>GG_STATUS_DND_DESCR</em>&#160;</td><td class="fielddoc">
 <p>Nie przeszakdzać z opisem. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635af2b588726951b1fd46caf5179f74c1a2"></a>GG_STATUS_INVISIBLE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635af2b588726951b1fd46caf5179f74c1a2"></a>GG_STATUS_INVISIBLE</em>&#160;</td><td class="fielddoc">
 <p>Niewidoczny (tylko własny status) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a7d89f3d90ff911f8d25292e90de476e3"></a>GG_STATUS_INVISIBLE_DESCR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a7d89f3d90ff911f8d25292e90de476e3"></a>GG_STATUS_INVISIBLE_DESCR</em>&#160;</td><td class="fielddoc">
 <p>Niewidoczny z opisem (tylko własny status) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a5f646f58e8318fdd406515f172409984"></a>GG_STATUS_BLOCKED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a5f646f58e8318fdd406515f172409984"></a>GG_STATUS_BLOCKED</em>&#160;</td><td class="fielddoc">
 <p>Zablokowany (tylko status innych) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a3446245589785d5d3fb2bf853b8570a9"></a>GG_STATUS_IMAGE_MASK</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a3c4a0a0192d24b9a2e7c744a5c42bd89"></a>GG_STATUS_GGPLUS</em>&#160;</td><td class="fielddoc">
+<p>Status "Korzystam z GG Plus". </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635ac5cd6774e7300493d1da1ccfbfa5fb03"></a>GG_STATUS_NOT_SET</em>&#160;</td><td class="fielddoc">
+<p>Status nie ustawiony (przy logowaniu się do sieci) </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a3446245589785d5d3fb2bf853b8570a9"></a>GG_STATUS_IMAGE_MASK</em>&#160;</td><td class="fielddoc">
 <p>Flaga bitowa oznaczająca opis graficzny (tylko jeśli wybrano <code>GG_FEATURE_IMAGE_DESCR</code>) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a751274ca439af36cf51857c3abff5ca5"></a>GG_STATUS_DESCR_MASK</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a751274ca439af36cf51857c3abff5ca5"></a>GG_STATUS_DESCR_MASK</em>&#160;</td><td class="fielddoc">
 <p>Flaga bitowa oznaczająca status z opisem (tylko jeśli wybrano <code>GG_FEATURE_IMAGE_DESCR</code>) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a3dbc98efe862d34c565094f49c7e70bd"></a>GG_STATUS_FRIENDS_MASK</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga726ca809ffd3d67ab4b8476646f26635a3dbc98efe862d34c565094f49c7e70bd"></a>GG_STATUS_FRIENDS_MASK</em>&#160;</td><td class="fielddoc">
 <p>Flaga bitowa dostępności tylko dla znajomych. </p>
 </td></tr>
 </table>
@@ -276,16 +288,19 @@ Funkcje</h2></td></tr>
 <p>Rodzaje statusów użytkownika. </p>
 <p>Mapa bitowa. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2da9f1d5a518285204349318271d4b45ad1"></a>GG_STATUS_FLAG_UNKNOWN</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2da9f1d5a518285204349318271d4b45ad1"></a>GG_STATUS_FLAG_UNKNOWN</em>&#160;</td><td class="fielddoc">
 <p>Przeznaczenie nieznane, ale występuje zawsze. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2dacda19e8cf3373c2f6754b41da6338411"></a>GG_STATUS_FLAG_VIDEO</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2dacda19e8cf3373c2f6754b41da6338411"></a>GG_STATUS_FLAG_VIDEO</em>&#160;</td><td class="fielddoc">
 <p>Klient obsługuje wideorozmowy. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2da027d6221772b2a13446021c7eb32a8c5"></a>GG_STATUS_FLAG_MOBILE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2da3a2744cac95631b893bd453caecd0520"></a>GG_STATUS_FLAG_INHERIT</em>&#160;</td><td class="fielddoc">
+<p>Synchronizacja statusu do innych klientów (przy logowaniu się do sieci) </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2da027d6221772b2a13446021c7eb32a8c5"></a>GG_STATUS_FLAG_MOBILE</em>&#160;</td><td class="fielddoc">
 <p>Klient mobilny (ikona telefonu komórkowego) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2daf649d0db804bb697c21c4006f7295a65"></a>GG_STATUS_FLAG_SPAM</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga0411cd49bb5b71852cecd93bcbf0ca2daf649d0db804bb697c21c4006f7295a65"></a>GG_STATUS_FLAG_SPAM</em>&#160;</td><td class="fielddoc">
 <p>Klient chce otrzymywać linki od nieznajomych. </p>
 </td></tr>
 </table>
@@ -364,7 +379,7 @@ Funkcje</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
     <tr><td class="paramname">status</td><td>Nowy status użytkownika </td></tr>
-    <tr><td class="paramname">descr</td><td>Opis statusu użytkownika</td></tr>
+    <tr><td class="paramname">descr</td><td>Opis statusu użytkownika (lub <code>NULL</code>)</td></tr>
   </table>
   </dd>
 </dl>
@@ -372,7 +387,7 @@ Funkcje</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga0487618b7521b1900bf4771971084bb0"></a>
+<a class="anchor" id="ga31e8f871f90611fcc7e1b2638a8740dd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -398,7 +413,7 @@ Funkcje</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>time</em>&#160;</td>
+          <td class="paramname"><em>ts</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -414,7 +429,7 @@ Funkcje</h2></td></tr>
     <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
     <tr><td class="paramname">status</td><td>Nowy status użytkownika </td></tr>
     <tr><td class="paramname">descr</td><td>Opis statusu użytkownika </td></tr>
-    <tr><td class="paramname">time</td><td>Czas powrotu w postaci uniksowego znacznika czasu</td></tr>
+    <tr><td class="paramname">ts</td><td>Czas powrotu w postaci uniksowego znacznika czasu</td></tr>
   </table>
   </dd>
 </dl>
@@ -455,16 +470,16 @@ Funkcje</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu</dd></dl>
-<dl class="section note"><dt>Nota</dt><dd>Aby zmiany weszły w życie, należy ponownie ustawić status za pomocą funkcji z rodziny <code><a class="el" href="group__status.html#gac39145f5cc6c166730011aafc150c8af" title="Zmienia status użytkownika.">gg_change_status()</a></code>. </dd></dl>
+<dl class="section note"><dt>Nota</dt><dd>Aby zmiany weszły w życie, należy ponownie ustawić status za pomocą funkcji z rodziny <code><a class="el" href="group__status.html#gac39145f5cc6c166730011aafc150c8af" title="Zmienia status użytkownika. ">gg_change_status()</a></code>. </dd></dl>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

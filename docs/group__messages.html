@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Wiadomości</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -80,7 +80,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <a href="#nested-classes">Struktury danych</a> &#124;
 <a href="#define-members">Definicje</a> &#124;
 <a href="#enum-members">Wyliczenia</a> &#124;
-<a href="#func-members">Funkcje</a>  </div>
+<a href="#func-members">Funkcje</a> &#124;
+<a href="#var-members">Zmienne</a>  </div>
   <div class="headertitle">
 <div class="title">Wiadomości<div class="ingroups"><a class="el" href="group__session.html">Połączenie z serwerem</a></div></div>  </div>
 </div><!--header-->
@@ -157,12 +158,18 @@ Funkcje</h2></td></tr>
 <tr class="memitem:ga2a30ed0ecd9691b7af77406619087a67"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga2a30ed0ecd9691b7af77406619087a67">gg_send_message_richtext</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> recipient, const unsigned char *message, const unsigned char *format, int formatlen)</td></tr>
 <tr class="memdesc:ga2a30ed0ecd9691b7af77406619087a67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła wiadomość formatowaną.  <a href="#ga2a30ed0ecd9691b7af77406619087a67">Więcej...</a><br/></td></tr>
 <tr class="separator:ga2a30ed0ecd9691b7af77406619087a67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1c21ea124d1b79cfc16c0733d3833ebe"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga1c21ea124d1b79cfc16c0733d3833ebe">gg_send_message_html</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> recipient, const unsigned char *html_message)</td></tr>
+<tr class="memdesc:ga1c21ea124d1b79cfc16c0733d3833ebe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła formatowaną wiadomość HTML.  <a href="#ga1c21ea124d1b79cfc16c0733d3833ebe">Więcej...</a><br/></td></tr>
+<tr class="separator:ga1c21ea124d1b79cfc16c0733d3833ebe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga48f3197c621872c670f49fe0d1ac25eb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga48f3197c621872c670f49fe0d1ac25eb">gg_send_message_confer</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, int recipients_count, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *recipients, const unsigned char *message)</td></tr>
 <tr class="memdesc:ga48f3197c621872c670f49fe0d1ac25eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła wiadomość w ramach konferencji.  <a href="#ga48f3197c621872c670f49fe0d1ac25eb">Więcej...</a><br/></td></tr>
 <tr class="separator:ga48f3197c621872c670f49fe0d1ac25eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0e5df383eeac438710656704fa4bdd30"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga0e5df383eeac438710656704fa4bdd30">gg_send_message_confer_richtext</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, int recipients_count, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *recipients, const unsigned char *message, const unsigned char *format, int formatlen)</td></tr>
 <tr class="memdesc:ga0e5df383eeac438710656704fa4bdd30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła wiadomość formatowaną w ramach konferencji.  <a href="#ga0e5df383eeac438710656704fa4bdd30">Więcej...</a><br/></td></tr>
 <tr class="separator:ga0e5df383eeac438710656704fa4bdd30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacc9111b04eec5bd62db47dcb591487dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#gacc9111b04eec5bd62db47dcb591487dd">gg_send_message_confer_html</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, int recipients_count, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *recipients, const unsigned char *html_message)</td></tr>
+<tr class="memdesc:gacc9111b04eec5bd62db47dcb591487dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła formatowaną wiadomość HTML w ramach konferencji.  <a href="#gacc9111b04eec5bd62db47dcb591487dd">Więcej...</a><br/></td></tr>
+<tr class="separator:gacc9111b04eec5bd62db47dcb591487dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2c03e907a237f1de9a0e22b252e333c5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga2c03e907a237f1de9a0e22b252e333c5">gg_send_message_ctcp</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, int msgclass, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> recipient, const unsigned char *message, int message_len)</td></tr>
 <tr class="memdesc:ga2c03e907a237f1de9a0e22b252e333c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła wiadomość binarną przeznaczoną dla klienta.  <a href="#ga2c03e907a237f1de9a0e22b252e333c5">Więcej...</a><br/></td></tr>
 <tr class="separator:ga2c03e907a237f1de9a0e22b252e333c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,20 +182,25 @@ Funkcje</h2></td></tr>
 <tr class="memitem:ga27a5bb1766cbb99dae4e862eec635899"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga27a5bb1766cbb99dae4e862eec635899">gg_typing_notification</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, <a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> recipient, int length)</td></tr>
 <tr class="memdesc:ga27a5bb1766cbb99dae4e862eec635899"><td class="mdescLeft">&#160;</td><td class="mdescRight">Informuje rozmówcę o pisaniu wiadomości.  <a href="#ga27a5bb1766cbb99dae4e862eec635899">Więcej...</a><br/></td></tr>
 <tr class="separator:ga27a5bb1766cbb99dae4e862eec635899"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Zmienne</h2></td></tr>
+<tr class="memitem:ga7ede75e0b0ffb7838e996bd19a65c651"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structgg__header.html">gg_header</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga7ede75e0b0ffb7838e996bd19a65c651">GG_PACKED</a></td></tr>
+<tr class="separator:ga7ede75e0b0ffb7838e996bd19a65c651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <p>Wysyłanie zwykłych wiadomości jest prostą operacją i większości przypadków wystarczy użycie funkcji <code>gg_send_message:</code> </p>
-<div class="fragment"><div class="line"><a class="code" href="group__messages.html#gabcc076e57528b91518f573f59fadde08" title="Wysyła wiadomość do użytkownika.">gg_send_message</a>(sesja, <a class="code" href="group__messages.html#ggab04a0655cd1e3bcac5e8f48c18df1a57afcc792ce83299a41ea087b5595af0a29" title="Wiadomość ma pojawić się w oknie rozmowy.">GG_CLASS_CHAT</a>, odbiorca, treść);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__messages.html#gabcc076e57528b91518f573f59fadde08">gg_send_message</a>(sesja, <a class="code" href="group__messages.html#ggab04a0655cd1e3bcac5e8f48c18df1a57afcc792ce83299a41ea087b5595af0a29">GG_CLASS_CHAT</a>, odbiorca, treść);</div>
 </div><!-- fragment --><p>Funkcja zwraca numer sekwencyjny wiadomości, który może zostać użyty do potwierdzenia dostarczenia wiadomości za pomocą zdarzenia <a class="el" href="group__events.html#events-list"><code>GG_EVENT_ACK</code> </a>. Wiadomości przeznaczone do wyświetlania w osobny oknie były wykorzystywane w starszych wersjach Gadu-Gadu, gdzie istniały osobne opcje &mdash; wiadomości i rozmowa. Obecnie wykorzystuje się wiadomość typu <code>GG_CLASS_CHAT</code>.</p>
-<p>Wiadomość, która ma zawierać formatowanie tekstu, musi zostać wysłana za pomocą funkcji <code><a class="el" href="group__messages.html#ga2a30ed0ecd9691b7af77406619087a67" title="Wysyła wiadomość formatowaną.">gg_send_message_richtext()</a></code>. Wiadomości konferencyjne wysyła się funkcjami <code><a class="el" href="group__messages.html#ga48f3197c621872c670f49fe0d1ac25eb" title="Wysyła wiadomość w ramach konferencji.">gg_send_message_confer()</a></code> lub <code><a class="el" href="group__messages.html#ga0e5df383eeac438710656704fa4bdd30" title="Wysyła wiadomość formatowaną w ramach konferencji.">gg_send_message_confer_richtext()</a></code>.</p>
+<p>Wiadomość, która ma zawierać formatowanie tekstu, musi zostać wysłana za pomocą funkcji <code><a class="el" href="group__messages.html#ga2a30ed0ecd9691b7af77406619087a67" title="Wysyła wiadomość formatowaną. ">gg_send_message_richtext()</a></code>. Wiadomości konferencyjne wysyła się funkcjami <code><a class="el" href="group__messages.html#ga48f3197c621872c670f49fe0d1ac25eb" title="Wysyła wiadomość w ramach konferencji. ">gg_send_message_confer()</a></code> lub <code><a class="el" href="group__messages.html#ga0e5df383eeac438710656704fa4bdd30" title="Wysyła wiadomość formatowaną w ramach konferencji. ">gg_send_message_confer_richtext()</a></code>.</p>
 <h1><a class="anchor" id="messages-conference"></a>
 Wiadomości konferencyjne</h1>
 <p>Rozmowy konferencyjne w Gadu-Gadu polegają na wysyłaniu tej samej wiadomości do wszystkich uczestników wraz z metainformacją zawierającą listę uczestników. Osoba, która pierwsza wyśle wiadomość, dołącza listę rozmówców do wiadomości, z której korzysta się przy wysyłaniu odpowiedzi. Z tego powodu nie ma możliwości dołączania się lub opuszczania "pokojów" &mdash; po zamknięciu rozmowy konferencyjnej należy ignorować kolejne wiadomości, ponieważ inni uczestnicy nie są o tym fakcie informowani.</p>
-<p>Funkcje <code><a class="el" href="group__messages.html#ga48f3197c621872c670f49fe0d1ac25eb" title="Wysyła wiadomość w ramach konferencji.">gg_send_message_confer()</a></code> i <code><a class="el" href="group__messages.html#ga0e5df383eeac438710656704fa4bdd30" title="Wysyła wiadomość formatowaną w ramach konferencji.">gg_send_message_confer_richtext()</a></code> zajmują się wysłaniem wiadomości do wszystkich uczestników oraz dołączaniem odpowiednich metainformowacji. Aplikacja musi jedynie dołączyć listę rozmówców w postaci listy ich identyfikatorów.</p>
+<p>Funkcje <code><a class="el" href="group__messages.html#ga48f3197c621872c670f49fe0d1ac25eb" title="Wysyła wiadomość w ramach konferencji. ">gg_send_message_confer()</a></code> i <code><a class="el" href="group__messages.html#ga0e5df383eeac438710656704fa4bdd30" title="Wysyła wiadomość formatowaną w ramach konferencji. ">gg_send_message_confer_richtext()</a></code> zajmują się wysłaniem wiadomości do wszystkich uczestników oraz dołączaniem odpowiednich metainformowacji. Aplikacja musi jedynie dołączyć listę rozmówców w postaci listy ich identyfikatorów.</p>
 <p>Po odebraniu wiadomości konferencyjnej za pomocą zdarzenia <a class="el" href="group__events.html#events-list"><code>GG_EVENT_MSG</code> ,</a>pola <a class="el" href="structgg__event__msg.html#ae3808a5fcb7a3f364bc8787a3e2153a4">recipients_count</a> oraz <a class="el" href="structgg__event__msg.html#afa2b7b0fbff40978a6a229de528cb736">recipients</a> struktury zdarzenia określają listę rozmówców.</p>
 <h1><a class="anchor" id="messages-richtext"></a>
 Wiadomości formatowane</h1>
-<p>Wiadomości formatowane zawierają metainformacje opisujące formatowanie poszczególnych fragmentów tekstu. Blok metainformacji zawiera dowolną liczbę struktur <code><a class="el" href="structgg__msg__richtext__format.html" title="Struktura opisująca formatowanie tekstu.">gg_msg_richtext_format</a></code>. Pole <code>position</code> określa pierwszy znak, którego dotyczy formatowanie. Pole <code>font</code> jest sumą logiczną atrybutów:</p>
+<p>Wiadomości formatowane zawierają metainformacje opisujące formatowanie poszczególnych fragmentów tekstu. Blok metainformacji zawiera dowolną liczbę struktur <code><a class="el" href="structgg__msg__richtext__format.html" title="Struktura opisująca formatowanie tekstu. ">gg_msg_richtext_format</a></code>. Pole <code>position</code> określa pierwszy znak, którego dotyczy formatowanie. Pole <code>font</code> jest sumą logiczną atrybutów:</p>
 <ul>
 <li>
 <code>GG_FONT_BOLD</code> &mdash; pogrubienie, </li>
@@ -201,8 +213,8 @@ Wiadomości formatowane</h1>
 <li>
 <code>GG_FONT_IMAGE</code> &mdash; obrazek. </li>
 </ul>
-<p>Jeśli występuje atrybut <code>GG_FONT_COLOR</code>, zaraz za strukturą <code><a class="el" href="structgg__msg__richtext__format.html" title="Struktura opisująca formatowanie tekstu.">gg_msg_richtext_format</a></code> znajduje się struktura <code><a class="el" href="structgg__msg__richtext__color.html" title="Struktura opisującą kolor tekstu dla atrybutu GG_FONT_COLOR.">gg_msg_richtext_color</a></code> opisująca kolor za pomocą składowych RGB.</p>
-<p>Jeśli występuje atrybut <code>GG_FONT_IMAGE</code>, za strukturą znajduje się struktura <code><a class="el" href="structgg__msg__richtext__image.html" title="Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu GG_FONT_IMAGE.">gg_msg_richtext_image</a></code>. Pole <code>unknown1</code> zawiera rozmiar (0x09) oraz rodzaj struktury (0x01), ale ze względów historycznych jest liczbą 16-bitową i należy przypisać mu wartość <code>0x0109</code>. Pola <code>size</code> i <code>crc32</code> identyfikują obrazek, który można pobrać od nadawcy lub z dysku lokalnego, jeśli był już wcześniej pobierany (np. często używana ikonka). Opis pobierania obrazków od nadawcy znajduje się <a class="el" href="group__messages.html#messages-images">poniżej</a>.</p>
+<p>Jeśli występuje atrybut <code>GG_FONT_COLOR</code>, zaraz za strukturą <code><a class="el" href="structgg__msg__richtext__format.html" title="Struktura opisująca formatowanie tekstu. ">gg_msg_richtext_format</a></code> znajduje się struktura <code><a class="el" href="structgg__msg__richtext__color.html" title="Struktura opisującą kolor tekstu dla atrybutu GG_FONT_COLOR. ">gg_msg_richtext_color</a></code> opisująca kolor za pomocą składowych RGB.</p>
+<p>Jeśli występuje atrybut <code>GG_FONT_IMAGE</code>, za strukturą znajduje się struktura <code><a class="el" href="structgg__msg__richtext__image.html" title="Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu GG_FONT_IMAGE. ">gg_msg_richtext_image</a></code>. Pole <code>unknown1</code> zawiera rozmiar (0x09) oraz rodzaj struktury (0x01), ale ze względów historycznych jest liczbą 16-bitową i należy przypisać mu wartość <code>0x0109</code>. Pola <code>size</code> i <code>crc32</code> identyfikują obrazek, który można pobrać od nadawcy lub z dysku lokalnego, jeśli był już wcześniej pobierany (np. często używana ikonka). Opis pobierania obrazków od nadawcy znajduje się <a class="el" href="group__messages.html#messages-images">poniżej</a>.</p>
 <dl class="section note"><dt>Nota</dt><dd>Biblioteka nie ingeruje w zawartość bloku formatowania, więc kolejność bajtów może się różnić od używanej na danej architekturze. By pobrać lub określić poszczególne wartości, należy użyć funkcji <code><a class="el" href="group__helper.html#gae2bb699fed19a582feebe83b724aeda4">gg_fix16()</a></code> i <code><a class="el" href="group__helper.html#gae8c6817d2c15b5db3bfc4f8e39a50a4c">gg_fix32()</a></code>, które w razie konieczności dokonają konwersji.</dd>
 <dd>
 Należy pamiętać, że rozmiar bloku formatowania jest określany w bajtach, nie liczbie struktur.</dd>
@@ -217,16 +229,16 @@ Potwierdzenie doręczenia</h1>
 <p>Każda przesyłana wiadomość zawiera numer sekwencyjny, który może zostać użyty do potwierdzenia doręczenia. Zdarzenie <a class="el" href="group__events.html#events-list"><code>GG_EVENT_ACK</code>  zawiera informację o doręczeniu</a>lub powód niedoręczenia, chyba że wiadomość została wysłania z klasą <code>GG_CLASS_ACK</code>. Lista kodów jest opisana poniżej.</p>
 <h1><a class="anchor" id="messages-images"></a>
 Pobieranie i wysyłanie obrazków</h1>
-<p>Po odebraniu wiadomości zawierającej strukturę <code><a class="el" href="structgg__msg__richtext__image.html" title="Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu GG_FONT_IMAGE.">gg_msg_richtext_image</a></code>, mając informację o rozmiarze i sumie kontrolnej obrazka, należy użyć funkcji:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__messages.html#gad8f4addf7ac77bb992e42eb6e2de5b60" title="Wysyła żądanie obrazka o podanych parametrach.">gg_image_request</a>(sesja, nadawca, rozmiar, crc);</div>
+<p>Po odebraniu wiadomości zawierającej strukturę <code><a class="el" href="structgg__msg__richtext__image.html" title="Strukturya opisująca obrazek wstawiony do wiadomości dla atrubutu GG_FONT_IMAGE. ">gg_msg_richtext_image</a></code>, mając informację o rozmiarze i sumie kontrolnej obrazka, należy użyć funkcji:</p>
+<div class="fragment"><div class="line"><a class="code" href="group__messages.html#gad8f4addf7ac77bb992e42eb6e2de5b60">gg_image_request</a>(sesja, nadawca, rozmiar, crc);</div>
 </div><!-- fragment --><p>Następnie należy oczekiwać na zdarzenie <a class="el" href="group__events.html#events-list"><code>GG_EVENT_IMAGE_REPLY</code> </a>, które będzie zawierać rozmiar pliku (<code>size</code>) i sumę kontrolą (<code>crc32</code>) do identifikacji zdarzenia, oraz nazwę obrazka (<code>filename</code>) i jego treść (<code>image</code>). Rodzaj pliku graficznego nie jest określony przy transmisji, więc należy go rozpoznać po rozszerzeniu lub treści.</p>
 <dl class="section note"><dt>Nota</dt><dd>Biblioteka ignoruje wszystkie obrazki, które nie były zamówione, żeby uniknąć zajęcia całej dostępnej pamięci, na wypadek gdyby ktoś nieustannie próbował wysyłać niekompletne obrazki.</dd></dl>
 <p>Jeśli została wysłana wiadomość graficzną, należy obsługiwać zdarzenie <a class="el" href="group__events.html#events-list"><code>GG_EVENT_IMAGE_REQUEST</code> , które w polach</a><code>size</code> i <code>crc32</code> zawiera informacje o obrazku, którego potrzebuje nasz rozmówca. Obrazek wysyła się funkcją:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__messages.html#ga8d1a50a10b076d0006c8b1b301394bd2" title="Wysyła żądany obrazek.">gg_image_reply</a>(sesja, odbiorca, nazwa_pliku, obrazek, długość_obrazka);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__messages.html#ga8d1a50a10b076d0006c8b1b301394bd2">gg_image_reply</a>(sesja, odbiorca, nazwa_pliku, obrazek, długość_obrazka);</div>
 </div><!-- fragment --><h1><a class="anchor" id="messages-typing"></a>
 Powiadomienie o pisaniu</h1>
 <p>Począwszy od Gadu-Gadu 10 rozmówca jest informowany o tym, że jesteśmy w trakcie pisania wiadomości:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__messages.html#ga27a5bb1766cbb99dae4e862eec635899" title="Informuje rozmówcę o pisaniu wiadomości.">gg_typing_notification</a>(sesja, odbiorca, długość_wiadomości);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__messages.html#ga27a5bb1766cbb99dae4e862eec635899">gg_typing_notification</a>(sesja, odbiorca, długość_wiadomości);</div>
 </div><!-- fragment --><p>Informacje o pisaniu przesyłane są do aplikacji za pomocą zdarzenia <a class="el" href="group__events.html#events-list"><code>GG_EVENT_TYPING_NOTIFICATION</code> .</a></p>
 <h2 class="groupheader">Dokumentacja definicji</h2>
 <a class="anchor" id="ga702ddbf340747a609a56241526b19b8e"></a>
@@ -257,19 +269,19 @@ Powiadomienie o pisaniu</h1>
 <p>Klasy wiadomości. </p>
 <p>Wartości są maskami bitowymi, które w większości przypadków można łączyć (połączenie <code>GG_CLASS_MSG</code> i <code>GG_CLASS_CHAT</code> nie ma sensu). </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a8163c1c845c6cc766ba4d1b0d8a60c36"></a>GG_CLASS_MSG</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a8163c1c845c6cc766ba4d1b0d8a60c36"></a>GG_CLASS_MSG</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość ma pojawić się w osobnym oknie. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57afcc792ce83299a41ea087b5595af0a29"></a>GG_CLASS_CHAT</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57afcc792ce83299a41ea087b5595af0a29"></a>GG_CLASS_CHAT</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość ma pojawić się w oknie rozmowy. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a5ef165db4874c852e49aeca51a7128e9"></a>GG_CLASS_CTCP</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a5ef165db4874c852e49aeca51a7128e9"></a>GG_CLASS_CTCP</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość przeznaczona dla klienta Gadu-Gadu. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57ad31aaba07e24c54eb136739fdf0f35ce"></a>GG_CLASS_ACK</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57ad31aaba07e24c54eb136739fdf0f35ce"></a>GG_CLASS_ACK</em>&#160;</td><td class="fielddoc">
 <p>Klient nie życzy sobie potwierdzenia. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a29acd1b8de6f0ff5e72a25ff083a3d47"></a>GG_CLASS_QUEUED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggab04a0655cd1e3bcac5e8f48c18df1a57a29acd1b8de6f0ff5e72a25ff083a3d47"></a>GG_CLASS_QUEUED</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość zakolejkowana na serwerze (tylko przy odbieraniu) </p>
 </td></tr>
 </table>
@@ -288,15 +300,15 @@ Powiadomienie o pisaniu</h1>
 
 <p>Atrybuty formatowania wiadomości. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a94c148486240df0354a8123ee5dd06c5"></a>GG_FONT_BOLD</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a94c148486240df0354a8123ee5dd06c5"></a>GG_FONT_BOLD</em>&#160;</td><td class="fielddoc">
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a8a000abdc55fed561d4871ac9f976305"></a>GG_FONT_ITALIC</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a8a000abdc55fed561d4871ac9f976305"></a>GG_FONT_ITALIC</em>&#160;</td><td class="fielddoc">
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a1f3a57de68f8b37cfe5cc6fc6c59248e"></a>GG_FONT_UNDERLINE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a1f3a57de68f8b37cfe5cc6fc6c59248e"></a>GG_FONT_UNDERLINE</em>&#160;</td><td class="fielddoc">
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a802285a52382aa39fdc1fc0fc0b5849c"></a>GG_FONT_COLOR</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a802285a52382aa39fdc1fc0fc0b5849c"></a>GG_FONT_COLOR</em>&#160;</td><td class="fielddoc">
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a756b07e02fb68e90274cf6471616400d"></a>GG_FONT_IMAGE</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a756b07e02fb68e90274cf6471616400d"></a>GG_FONT_IMAGE</em>&#160;</td><td class="fielddoc">
 </td></tr>
 </table>
 
@@ -314,19 +326,19 @@ Powiadomienie o pisaniu</h1>
 
 <p>Status doręczenia wiadomości. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035dae3901917057a6657a756e5668d20a5ce"></a>GG_ACK_DELIVERED</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035dae3901917057a6657a756e5668d20a5ce"></a>GG_ACK_DELIVERED</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość dostarczono. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da76575d0bafcb1e0e8a45d08788dc5b08"></a>GG_ACK_QUEUED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da76575d0bafcb1e0e8a45d08788dc5b08"></a>GG_ACK_QUEUED</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość zakolejkowano z powodu niedostępności odbiorcy. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da22cd918071954d3b6d39333ee85ddac7"></a>GG_ACK_BLOCKED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da22cd918071954d3b6d39333ee85ddac7"></a>GG_ACK_BLOCKED</em>&#160;</td><td class="fielddoc">
 <p>Wiadomość zablokowana przez serwer (spam, świąteczne ograniczenia itd.) </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da8cf3fd01604ed358e04bcfc4c7ffc732"></a>GG_ACK_MBOXFULL</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da8cf3fd01604ed358e04bcfc4c7ffc732"></a>GG_ACK_MBOXFULL</em>&#160;</td><td class="fielddoc">
 <p>Wiadomości nie dostarczono z powodu zapełnionej kolejki wiadomości odbiorcy. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da34c0aa23f1f67c05dc0034318339d486"></a>GG_ACK_NOT_DELIVERED</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggabc5c98fcc1211af2b80116dd6e0a035da34c0aa23f1f67c05dc0034318339d486"></a>GG_ACK_NOT_DELIVERED</em>&#160;</td><td class="fielddoc">
 <p>Wiadomości nie dostarczono (tylko dla <code>GG_CLASS_CTCP</code>). </p>
 </td></tr>
 </table>
@@ -443,6 +455,57 @@ Powiadomienie o pisaniu</h1>
     <tr><td class="paramname">message</td><td>Treść wiadomości </td></tr>
     <tr><td class="paramname">format</td><td>Informacje o formatowaniu </td></tr>
     <tr><td class="paramname">formatlen</td><td>Długość informacji o formatowaniu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Numer sekwencyjny wiadomości lub -1 w przypadku błędu. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga1c21ea124d1b79cfc16c0733d3833ebe"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_send_message_html </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>msgclass</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a>&#160;</td>
+          <td class="paramname"><em>recipient</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>html_message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wysyła formatowaną wiadomość HTML. </p>
+<p>Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać do potwierdzenia.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">msgclass</td><td>Klasa wiadomości </td></tr>
+    <tr><td class="paramname">recipient</td><td>Numer adresata </td></tr>
+    <tr><td class="paramname">html_message</td><td>Treść wiadomości HTML</td></tr>
   </table>
   </dd>
 </dl>
@@ -573,6 +636,64 @@ Powiadomienie o pisaniu</h1>
     <tr><td class="paramname">message</td><td>Treść wiadomości </td></tr>
     <tr><td class="paramname">format</td><td>Informacje o formatowaniu </td></tr>
     <tr><td class="paramname">formatlen</td><td>Długość informacji o formatowaniu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Numer sekwencyjny wiadomości lub -1 w przypadku błędu. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gacc9111b04eec5bd62db47dcb591487dd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_send_message_confer_html </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>msgclass</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>recipients_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="libgadu_8h.html#a33f630ba74294027f9bcda26ed49cdc8">uin_t</a> *&#160;</td>
+          <td class="paramname"><em>recipients</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const unsigned char *&#160;</td>
+          <td class="paramname"><em>html_message</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wysyła formatowaną wiadomość HTML w ramach konferencji. </p>
+<p>Zwraca losowy numer sekwencyjny, który można zignorować albo wykorzystać do potwierdzenia.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">msgclass</td><td>Klasa wiadomości </td></tr>
+    <tr><td class="paramname">recipients_count</td><td>Liczba adresatów </td></tr>
+    <tr><td class="paramname">recipients</td><td>Wskaźnik do tablicy z numerami adresatów </td></tr>
+    <tr><td class="paramname">html_message</td><td>Treść wiadomości HTML</td></tr>
   </table>
   </dd>
 </dl>
@@ -789,12 +910,25 @@ Powiadomienie o pisaniu</h1>
 
 </div>
 </div>
+<h2 class="groupheader">Dokumentacja zmiennych</h2>
+<a class="anchor" id="ga7ede75e0b0ffb7838e996bd19a65c651"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structgg__chat__left.html">gg_chat_left</a> GG_PACKED</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

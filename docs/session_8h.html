@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja pliku session.h</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -100,10 +100,6 @@ Definicje</h2></td></tr>
 <tr class="separator:ac217f462145fd51c6a78959b5f01e1b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabcdc4b37b9b3e8f4b907e036b1e98bc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="session_8h.html#aabcdc4b37b9b3e8f4b907e036b1e98bc">GG_SESSION_CHECK_CONNECTED</a>(gs, result)</td></tr>
 <tr class="separator:aabcdc4b37b9b3e8f4b907e036b1e98bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2a41bd2f3415ecb08e36288cd9bfb23"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="session_8h.html#ad2a41bd2f3415ecb08e36288cd9bfb23">GG_SESSION_IS_PROTOCOL_7_7</a>(gs)&#160;&#160;&#160;((gs)-&gt;protocol_version &gt;= 0x2a)</td></tr>
-<tr class="separator:ad2a41bd2f3415ecb08e36288cd9bfb23"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac9fa35805e0ebe4a290fecf4998dee1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="session_8h.html#aac9fa35805e0ebe4a290fecf4998dee1">GG_SESSION_IS_PROTOCOL_8_0</a>(gs)&#160;&#160;&#160;((gs)-&gt;protocol_version &gt;= 0x2d)</td></tr>
-<tr class="separator:aac9fa35805e0ebe4a290fecf4998dee1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06cdde62ed38e5d5527c4ad4799553ac"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="session_8h.html#a06cdde62ed38e5d5527c4ad4799553ac">GG_SESSION_IS_IDLE</a>(gs)&#160;&#160;&#160;((gs)-&gt;state == <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7abdcebd9d60be74df0c476b30c6a009db">GG_STATE_IDLE</a>)</td></tr>
 <tr class="separator:a06cdde62ed38e5d5527c4ad4799553ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad909492906a7ef525f09087ad3c815c4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="session_8h.html#ad909492906a7ef525f09087ad3c815c4">GG_SESSION_IS_CONNECTING</a>(gs)&#160;&#160;&#160;((gs)-&gt;state != <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7abdcebd9d60be74df0c476b30c6a009db">GG_STATE_IDLE</a> &amp;&amp; (gs)-&gt;state != <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7a751f461af644b2b4aef39181a2b8b428">GG_STATE_CONNECTED</a>)</td></tr>
@@ -172,47 +168,17 @@ Funkcje</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Wartość:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> { \</div>
-<div class="line">                GG_SESSION_CHECK(gs, result); \</div>
+<b>Wartość:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> { <a class="code" href="session_8h.html#ac217f462145fd51c6a78959b5f01e1b3">\</a></div>
+<div class="line"><a class="code" href="session_8h.html#ac217f462145fd51c6a78959b5f01e1b3">		GG_SESSION_CHECK</a>(gs, result); \</div>
 <div class="line">                \</div>
 <div class="line">                if (!<a class="code" href="session_8h.html#a71266feaf8fbcd28fcb8576a6d43cb3b">GG_SESSION_IS_CONNECTED</a>(gs)) { \</div>
 <div class="line">                        errno = ENOTCONN; \</div>
 <div class="line">                        return (result); \</div>
 <div class="line">                } \</div>
 <div class="line">        } <span class="keywordflow">while</span> (0)</div>
+<div class="ttc" id="session_8h_html_a71266feaf8fbcd28fcb8576a6d43cb3b"><div class="ttname"><a href="session_8h.html#a71266feaf8fbcd28fcb8576a6d43cb3b">GG_SESSION_IS_CONNECTED</a></div><div class="ttdeci">#define GG_SESSION_IS_CONNECTED(gs)</div><div class="ttdef"><b>Definition:</b> session.h:46</div></div>
+<div class="ttc" id="session_8h_html_ac217f462145fd51c6a78959b5f01e1b3"><div class="ttname"><a href="session_8h.html#ac217f462145fd51c6a78959b5f01e1b3">GG_SESSION_CHECK</a></div><div class="ttdeci">#define GG_SESSION_CHECK(gs, result)</div><div class="ttdef"><b>Definition:</b> session.h:26</div></div>
 </div><!-- fragment -->
-</div>
-</div>
-<a class="anchor" id="ad2a41bd2f3415ecb08e36288cd9bfb23"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define GG_SESSION_IS_PROTOCOL_7_7</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">gs</td><td>)</td>
-          <td>&#160;&#160;&#160;((gs)-&gt;protocol_version &gt;= 0x2a)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a class="anchor" id="aac9fa35805e0ebe4a290fecf4998dee1"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define GG_SESSION_IS_PROTOCOL_8_0</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">gs</td><td>)</td>
-          <td>&#160;&#160;&#160;((gs)-&gt;protocol_version &gt;= 0x2d)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
 </div>
 </div>
 <a class="anchor" id="a06cdde62ed38e5d5527c4ad4799553ac"></a>
@@ -305,7 +271,7 @@ Funkcje</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Analizuje przychodzący pakiet danych.</p>
+<p>Obsługuje przychodzący pakiet danych.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
     <tr><td class="paramdir"></td><td class="paramname">gs</td><td>Struktura sesji </td></tr>
@@ -323,9 +289,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

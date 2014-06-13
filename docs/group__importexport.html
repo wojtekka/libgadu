@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Import i eksport listy kontaktów</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -123,6 +123,8 @@ Wyliczenia</h2></td></tr>
 <tr class="memitem:gaaf105ae5beaca1dee30ae54530691fce"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <br/>
 &#160;&#160;<a class="el" href="group__importexport.html#ggaaf105ae5beaca1dee30ae54530691fcead4b3ac1f3006e562684b4c0511ee2b7f">GG_USERLIST100_REPLY_LIST</a>, 
 <br/>
+&#160;&#160;<a class="el" href="group__importexport.html#ggaaf105ae5beaca1dee30ae54530691fcea41127f85168c0f04b302a497f40c65cf">GG_USERLIST100_REPLY_UPTODATE</a>, 
+<br/>
 &#160;&#160;<a class="el" href="group__importexport.html#ggaaf105ae5beaca1dee30ae54530691fceab3ea17038ccfef548f0f1bc27cfa7737">GG_USERLIST100_REPLY_ACK</a>, 
 <br/>
 &#160;&#160;<a class="el" href="group__importexport.html#ggaaf105ae5beaca1dee30ae54530691fcea161807ac47745eee45210140c47aaab8">GG_USERLIST100_REPLY_REJECT</a>
@@ -143,10 +145,10 @@ Funkcje</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <p>Serwer pozwala przechowywać kompletną listę kontaktów w postaci tekstowej, by móc z niej korzystać na dowolnym komputerze bez konieczności ręcznego przenoszenia. Format listy kontaktów jest narzucony przez oryginalnego klienta (obecnie istnieją dwa wspierane formaty: pola oddzielone średnikami oraz dokument XML). W celu sprawnej synchronizacji listy kontaktów między różnymi instalacjami klienta sieci, serwer wersjonuje listę kontaktów i pozwala ją nadpisać tylko w przypadku, gdy zadeklarujemy znajomość jej ostatniej wersji.</p>
 <p>Aby wysłać listę kontaktów, wywołujemy:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__importexport.html#gaac963e10f462185248412205132d73db" title="Wysyła do serwera zapytanie dotyczące listy kontaktów (10.0).">gg_userlist100_request</a>(sesja, <a class="code" href="group__importexport.html#gga16af7b253440dadd46a80a4b9fddba4dacba14e6a3f040f3745ace11218bbf927" title="Eksport listy kontaktów.">GG_USERLIST100_PUT</a>, wersja_listy_kontaktów, typ_formatu_listy_kontaktów, lista_kontatów);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__importexport.html#gaac963e10f462185248412205132d73db">gg_userlist100_request</a>(sesja, <a class="code" href="group__importexport.html#gga16af7b253440dadd46a80a4b9fddba4dacba14e6a3f040f3745ace11218bbf927">GG_USERLIST100_PUT</a>, wersja_listy_kontaktów, typ_formatu_listy_kontaktów, lista_kontatów);</div>
 </div><!-- fragment --><p>W odpowiedzi dostaniemy od serwera zdarzenie <code>GG_EVENT_USERLIST100_REPLY</code> z polem <code>type</code> równym <code>GG_USERLIST100_REPLY_ACK</code> w przypadku akceptacji wysłanej listy kontaktów lub <code>GG_USERLIST100_REPLY_REJECT</code> w przypadku jej odrzucenia. Pole <code>version</code> zawiera numer aktualnie przechowywanej przez serwer listy kontaktów (w przypadku przyjęcia nowej, jest to numer tej nowej wersji).</p>
 <p>Jeśli chcemy pobrać listę kontaktów z serwera, wywołujemy:</p>
-<div class="fragment"><div class="line"><a class="code" href="group__importexport.html#gaac963e10f462185248412205132d73db" title="Wysyła do serwera zapytanie dotyczące listy kontaktów (10.0).">gg_userlist100_request</a>(sesja, <a class="code" href="group__importexport.html#gga16af7b253440dadd46a80a4b9fddba4da84b8ce8516629eba5d97052049e60a77" title="Import listy kontaktów.">GG_USERLIST100_GET</a>, 0, typ_formatu_listy_kontaktów, NULL);</div>
+<div class="fragment"><div class="line"><a class="code" href="group__importexport.html#gaac963e10f462185248412205132d73db">gg_userlist100_request</a>(sesja, <a class="code" href="group__importexport.html#gga16af7b253440dadd46a80a4b9fddba4da84b8ce8516629eba5d97052049e60a77">GG_USERLIST100_GET</a>, 0, typ_formatu_listy_kontaktów, NULL);</div>
 </div><!-- fragment --><p>Oczekujemy zdarzenia <code>GG_EVENT_USERLIST100_REPLY</code> z <code>type</code> równym <code>GG_USERLIST100_REPLY_LIST</code>. Zawartość listy kontaktów znajdziemy w polu <code>reply</code>, a jej wersję w polu <code>version</code>.</p>
 <p>Ponadto możemy dostać od serwera informację o nowej wersji listy kontaktów. Wówczas dostaniemy zdarzenie <code>GG_EVENT_USERLIST100_VERSION</code> z polem <code>version</code> równym numerowi nowej wersji listy konktaktów. </p>
 <h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
@@ -162,10 +164,10 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj zapytania. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggac36f475ca5b446f4fde4c9b90bec77c8a18e8282b9f26d2466bcb4dbd29731e53"></a>GG_USERLIST_PUT</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggac36f475ca5b446f4fde4c9b90bec77c8a18e8282b9f26d2466bcb4dbd29731e53"></a>GG_USERLIST_PUT</em>&#160;</td><td class="fielddoc">
 <p>Eksport listy kontaktów. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggac36f475ca5b446f4fde4c9b90bec77c8aeffb0fcdedca34636f44677000914614"></a>GG_USERLIST_GET</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggac36f475ca5b446f4fde4c9b90bec77c8aeffb0fcdedca34636f44677000914614"></a>GG_USERLIST_GET</em>&#160;</td><td class="fielddoc">
 <p>Import listy kontaktów. </p>
 </td></tr>
 </table>
@@ -184,10 +186,10 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj odpowiedzi. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga05589fbab0657f08285ebdfe93f5ec9eac1e6217ccbc7458c3827d7ded966c358"></a>GG_USERLIST_PUT_REPLY</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga05589fbab0657f08285ebdfe93f5ec9eac1e6217ccbc7458c3827d7ded966c358"></a>GG_USERLIST_PUT_REPLY</em>&#160;</td><td class="fielddoc">
 <p>Wyeksportowano listy kontaktów. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga05589fbab0657f08285ebdfe93f5ec9ea661341192ed4bbb1599dc98a3ad2570a"></a>GG_USERLIST_GET_REPLY</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga05589fbab0657f08285ebdfe93f5ec9ea661341192ed4bbb1599dc98a3ad2570a"></a>GG_USERLIST_GET_REPLY</em>&#160;</td><td class="fielddoc">
 <p>Zaimportowano listę kontaktów. </p>
 </td></tr>
 </table>
@@ -206,10 +208,10 @@ Funkcje</h2></td></tr>
 
 <p>Rodzaj zapytania (10.0). </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga16af7b253440dadd46a80a4b9fddba4dacba14e6a3f040f3745ace11218bbf927"></a>GG_USERLIST100_PUT</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga16af7b253440dadd46a80a4b9fddba4dacba14e6a3f040f3745ace11218bbf927"></a>GG_USERLIST100_PUT</em>&#160;</td><td class="fielddoc">
 <p>Eksport listy kontaktów. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="gga16af7b253440dadd46a80a4b9fddba4da84b8ce8516629eba5d97052049e60a77"></a>GG_USERLIST100_GET</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="gga16af7b253440dadd46a80a4b9fddba4da84b8ce8516629eba5d97052049e60a77"></a>GG_USERLIST100_GET</em>&#160;</td><td class="fielddoc">
 <p>Import listy kontaktów. </p>
 </td></tr>
 </table>
@@ -228,13 +230,13 @@ Funkcje</h2></td></tr>
 
 <p>Typ formatu listy kontaktów (10.0). </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25aaf2d031e31445ffe20c647902675dc2d"></a>GG_USERLIST100_FORMAT_TYPE_NONE</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25aaf2d031e31445ffe20c647902675dc2d"></a>GG_USERLIST100_FORMAT_TYPE_NONE</em>&#160;</td><td class="fielddoc">
 <p>Brak treści listy kontaktów. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25a1f3ce9db9bf2f12e9dd4f0c6ced5b019"></a>GG_USERLIST100_FORMAT_TYPE_GG70</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25a1f3ce9db9bf2f12e9dd4f0c6ced5b019"></a>GG_USERLIST100_FORMAT_TYPE_GG70</em>&#160;</td><td class="fielddoc">
 <p>Format listy kontaktów zgodny z Gadu-Gadu 7.0. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25a8c848c6b2b842e86001f2e0bbaa04a6e"></a>GG_USERLIST100_FORMAT_TYPE_GG100</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggaba01db17f4a2bfbc3db60dc172972a25a8c848c6b2b842e86001f2e0bbaa04a6e"></a>GG_USERLIST100_FORMAT_TYPE_GG100</em>&#160;</td><td class="fielddoc">
 <p>Format listy kontaktów zgodny z Gadu-Gadu 10.0. </p>
 </td></tr>
 </table>
@@ -253,14 +255,17 @@ Funkcje</h2></td></tr>
 
 <p>Typ odpowiedzi listy kontaktów (10.0). </p>
 <table class="fieldtable">
-<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fcead4b3ac1f3006e562684b4c0511ee2b7f"></a>GG_USERLIST100_REPLY_LIST</em>&nbsp;</td><td class="fielddoc">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fcead4b3ac1f3006e562684b4c0511ee2b7f"></a>GG_USERLIST100_REPLY_LIST</em>&#160;</td><td class="fielddoc">
 <p>W odpowiedzi znajduje się aktualna lista kontaktów na serwerze. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fceab3ea17038ccfef548f0f1bc27cfa7737"></a>GG_USERLIST100_REPLY_ACK</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fcea41127f85168c0f04b302a497f40c65cf"></a>GG_USERLIST100_REPLY_UPTODATE</em>&#160;</td><td class="fielddoc">
+<p>Komunikat o tym, że lista kontaktów jest już zsynchronizowana. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fceab3ea17038ccfef548f0f1bc27cfa7737"></a>GG_USERLIST100_REPLY_ACK</em>&#160;</td><td class="fielddoc">
 <p>Potwierdzenie odebrania nowej wersji listy kontaktów. </p>
 <p>W polu <code><a class="el" href="structgg__userlist100__reply.html#acd99bb05ca015e7d74448acb1deba7ca">gg_userlist100_reply.version</a></code> znajduje się numer nowej wersji listy kontaktów. </p>
 </td></tr>
-<tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fcea161807ac47745eee45210140c47aaab8"></a>GG_USERLIST100_REPLY_REJECT</em>&nbsp;</td><td class="fielddoc">
+<tr><td class="fieldname"><em><a class="anchor" id="ggaaf105ae5beaca1dee30ae54530691fcea161807ac47745eee45210140c47aaab8"></a>GG_USERLIST100_REPLY_REJECT</em>&#160;</td><td class="fielddoc">
 <p>Odmowa przyjęcia nowej wersji listy kontaktów. </p>
 <p>W polu <code><a class="el" href="structgg__userlist100__reply.html#acd99bb05ca015e7d74448acb1deba7ca">gg_userlist100_reply.version</a></code> znajduje się numer wersji listy kontaktów aktualnie przechowywanej przez serwer. </p>
 </td></tr>
@@ -300,7 +305,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Wysyła do serwera zapytanie dotyczące listy kontaktów. </p>
-<p>Funkcja służy do importu lub eksportu listy kontaktów do serwera. W odróżnieniu od funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów.">gg_notify()</a></code>, ta lista kontaktów jest przez serwer jedynie przechowywana i nie ma wpływu na połączenie. Format listy kontaktów jest ignorowany przez serwer, ale ze względu na kompatybilność z innymi klientami, należy przechowywać dane w tym samym formacie co oryginalny klient Gadu-Gadu.</p>
+<p>Funkcja służy do importu lub eksportu listy kontaktów do serwera. W odróżnieniu od funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów. ">gg_notify()</a></code>, ta lista kontaktów jest przez serwer jedynie przechowywana i nie ma wpływu na połączenie. Format listy kontaktów jest ignorowany przez serwer, ale ze względu na kompatybilność z innymi klientami, należy przechowywać dane w tym samym formacie co oryginalny klient Gadu-Gadu.</p>
 <p>Program nie musi się przejmować fragmentacją listy kontaktów wynikającą z protokołu &ndash; wysyła i odbiera kompletną listę.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
@@ -357,7 +362,7 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Wysyła do serwera zapytanie dotyczące listy kontaktów (10.0). </p>
-<p>Funkcja służy do importu lub eksportu listy kontaktów do serwera. W odróżnieniu od funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów.">gg_notify()</a></code>, ta lista kontaktów jest przez serwer jedynie przechowywana i nie ma wpływu na połączenie. Format listy kontaktów jest jednak weryfikowany przez serwer, który stara się synchronizować listę kontaktów zapisaną w formatach GG 7.0 oraz GG 10.0. Serwer przyjmuje listy kontaktów przysłane w formacie niezgodnym z podanym jako <code>format_type</code>, ale nie zachowuje ich, a przesłanie takiej listy jest równoznaczne z usunięciem listy kontaktów.</p>
+<p>Funkcja służy do importu lub eksportu listy kontaktów do serwera. W odróżnieniu od funkcji <code><a class="el" href="group__contacts.html#gac1b2b6ea2f7e69afaf3ebb7e8e1c96ac" title="Wysyła do serwera listę kontaktów. ">gg_notify()</a></code>, ta lista kontaktów jest przez serwer jedynie przechowywana i nie ma wpływu na połączenie. Format listy kontaktów jest jednak weryfikowany przez serwer, który stara się synchronizować listę kontaktów zapisaną w formatach GG 7.0 oraz GG 10.0. Serwer przyjmuje listy kontaktów przysłane w formacie niezgodnym z podanym jako <code>format_type</code>, ale nie zachowuje ich, a przesłanie takiej listy jest równoznaczne z usunięciem listy kontaktów.</p>
 <p>Program nie musi się przejmować kompresją listy kontaktów zgodną z protokołem &ndash; wysyła i odbiera kompletną listę zapisaną czystym tekstem.</p>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
@@ -376,9 +381,9 @@ Funkcje</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:07 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

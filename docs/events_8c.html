@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja pliku events.c</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -87,7 +87,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Funkcje</a>  </div>
+<a href="#nested-classes">Struktury danych</a> &#124;
+<a href="#typedef-members">Definicje typów</a> &#124;
+<a href="#enum-members">Wyliczenia</a> &#124;
+<a href="#func-members">Funkcje</a> &#124;
+<a href="#var-members">Zmienne</a>  </div>
   <div class="headertitle">
 <div class="title">Dokumentacja pliku events.c</div>  </div>
 </div><!--header-->
@@ -96,23 +100,1076 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <p>Obsługa zdarzeń  
 <a href="#details">Więcej...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Struktury danych</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__state__transition__t.html">gg_state_transition_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Definicje typów</h2></td></tr>
+<tr class="memitem:abb8caae9899aa63f1a70d24ad5f812fd"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#abb8caae9899aa63f1a70d24ad5f812fd">gg_state_handler_t</a> )(struct <a class="el" href="structgg__session.html">gg_session</a> *gs, struct <a class="el" href="structgg__event.html">gg_event</a> *ge, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:abb8caae9899aa63f1a70d24ad5f812fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Wyliczenia</h2></td></tr>
+<tr class="memitem:a5529aac97a3faafedfb21c46b5282374"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> { <br/>
+&#160;&#160;<a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374a08b77f0392a3cdb496313c9043ffee89">GG_ACTION_WAIT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374a8a7c5ac96d30b628754266f94a73140e">GG_ACTION_NEXT</a>, 
+<br/>
+&#160;&#160;<a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374ad3a2567afa9a1084530c20bed4f9b306">GG_ACTION_FAIL</a>
+<br/>
+ }</td></tr>
+<tr class="separator:a5529aac97a3faafedfb21c46b5282374"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Funkcje</h2></td></tr>
 <tr class="memitem:ga1845d4710eede4aaef1c52c4111fbda1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1">gg_event_free</a> (struct <a class="el" href="structgg__event.html">gg_event</a> *e)</td></tr>
 <tr class="memdesc:ga1845d4710eede4aaef1c52c4111fbda1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zwalnia pamięć zajmowaną przez informację o zdarzeniu.  <a href="group__events.html#ga1845d4710eede4aaef1c52c4111fbda1">Więcej...</a><br/></td></tr>
 <tr class="separator:ga1845d4710eede4aaef1c52c4111fbda1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad820e51beb39de7eb7c7584788fb044d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#ad820e51beb39de7eb7c7584788fb044d">gg_session_init_ssl</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *gs)</td></tr>
+<tr class="separator:ad820e51beb39de7eb7c7584788fb044d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fc7b6d908d9abcbe990e24a08ccc960"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a5fc7b6d908d9abcbe990e24a08ccc960">gg_send_queued_data</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess)</td></tr>
+<tr class="separator:a5fc7b6d908d9abcbe990e24a08ccc960"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accb26c1a63155874b774f34740473513"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#accb26c1a63155874b774f34740473513">gg_async_connect_failed</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *gs, int *res_ptr)</td></tr>
+<tr class="separator:accb26c1a63155874b774f34740473513"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace5cccece416a7601e1db9fd6e0d9bd2"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#ace5cccece416a7601e1db9fd6e0d9bd2">gg_handle_resolve_custom</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state)</td></tr>
+<tr class="separator:ace5cccece416a7601e1db9fd6e0d9bd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaba99e2ef407e81d1d8d28e8a373d3c8"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#aaba99e2ef407e81d1d8d28e8a373d3c8">gg_handle_resolve_sync</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:aaba99e2ef407e81d1d8d28e8a373d3c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b05aa4f270c77f64a149ee3a3b40817"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a4b05aa4f270c77f64a149ee3a3b40817">gg_handle_resolve_async</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a4b05aa4f270c77f64a149ee3a3b40817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6530125d24164c4cd8e49483228e1604"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a6530125d24164c4cd8e49483228e1604">gg_handle_resolving</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a6530125d24164c4cd8e49483228e1604"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afed4d47092cdbe407adc46bd9c9cd9a2"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#afed4d47092cdbe407adc46bd9c9cd9a2">gg_handle_connect</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:afed4d47092cdbe407adc46bd9c9cd9a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb12a7d1100cab404b24a534cea9b74c"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#acb12a7d1100cab404b24a534cea9b74c">gg_handle_connecting</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:acb12a7d1100cab404b24a534cea9b74c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a852599231adf67ec1400643da8d70385"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a852599231adf67ec1400643da8d70385">gg_handle_connect_gg</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a852599231adf67ec1400643da8d70385"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9da7d47d18361f17ead748339f93ba4d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a9da7d47d18361f17ead748339f93ba4d">gg_handle_connecting_gg</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a9da7d47d18361f17ead748339f93ba4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9958a5f0235f9dc6d751a1a156cd8a23"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a9958a5f0235f9dc6d751a1a156cd8a23">gg_handle_send_hub</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a9958a5f0235f9dc6d751a1a156cd8a23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29dd53795ba7aad289a4751aa5086af2"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a29dd53795ba7aad289a4751aa5086af2">gg_handle_sending_hub_proxy</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a29dd53795ba7aad289a4751aa5086af2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fbee308cf8a5f23843edea4c5103331"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a9fbee308cf8a5f23843edea4c5103331">gg_handle_reading_hub_proxy</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a9fbee308cf8a5f23843edea4c5103331"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a559be7a40a4e256e7e384f07ef75ac97"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a559be7a40a4e256e7e384f07ef75ac97">gg_handle_send_proxy_gg</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a559be7a40a4e256e7e384f07ef75ac97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b5820e59958796af6f0d5eef83c8c4a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a3b5820e59958796af6f0d5eef83c8c4a">gg_handle_tls_negotiation</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:a3b5820e59958796af6f0d5eef83c8c4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada573e1551240b4478720a5e151b5c12"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#ada573e1551240b4478720a5e151b5c12">gg_handle_reading_proxy_gg</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:ada573e1551240b4478720a5e151b5c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0e61ae5c3d312f549827bdca2bc795c"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#ae0e61ae5c3d312f549827bdca2bc795c">gg_handle_connected</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:ae0e61ae5c3d312f549827bdca2bc795c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed77481958a25e1781fe1659492afce8"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#aed77481958a25e1781fe1659492afce8">gg_handle_error</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess, struct <a class="el" href="structgg__event.html">gg_event</a> *e, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td></tr>
+<tr class="separator:aed77481958a25e1781fe1659492afce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a672df6fb10caa349ed83b4f95d957c16"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a672df6fb10caa349ed83b4f95d957c16">gg_eventqueue_add</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess)</td></tr>
+<tr class="separator:a672df6fb10caa349ed83b4f95d957c16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae28360891a3b393d606fb455564e3b3a"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__events.html#gae28360891a3b393d606fb455564e3b3a">gg_watch_fd</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *sess)</td></tr>
 <tr class="memdesc:gae28360891a3b393d606fb455564e3b3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Funkcja wywoływana po zaobserwowaniu zmian na deskryptorze sesji.  <a href="group__events.html#gae28360891a3b393d606fb455564e3b3a">Więcej...</a><br/></td></tr>
 <tr class="separator:gae28360891a3b393d606fb455564e3b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Zmienne</h2></td></tr>
+<tr class="memitem:a94c6587976f5dc88afd997d14cfc31d2"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="structgg__state__transition__t.html">gg_state_transition_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="events_8c.html#a94c6587976f5dc88afd997d14cfc31d2">handlers</a> []</td></tr>
+<tr class="separator:a94c6587976f5dc88afd997d14cfc31d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <div class="textblock"><p>Obsługa zdarzeń </p>
-</div></div><!-- contents -->
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Do zrobienia:</a></b></dt><dd>Poprawna obsługa gg_proxy_http_only </dd></dl>
+</div><h2 class="groupheader">Dokumentacja definicji typów</h2>
+<a class="anchor" id="abb8caae9899aa63f1a70d24ad5f812fd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a>(* gg_state_handler_t)(struct <a class="el" href="structgg__session.html">gg_session</a> *gs, struct <a class="el" href="structgg__event.html">gg_event</a> *ge, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> next_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt_state, enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a> alt2_state)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
+<a class="anchor" id="a5529aac97a3faafedfb21c46b5282374"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="a5529aac97a3faafedfb21c46b5282374a08b77f0392a3cdb496313c9043ffee89"></a>GG_ACTION_WAIT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a5529aac97a3faafedfb21c46b5282374a8a7c5ac96d30b628754266f94a73140e"></a>GG_ACTION_NEXT</em>&#160;</td><td class="fielddoc">
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="a5529aac97a3faafedfb21c46b5282374ad3a2567afa9a1084530c20bed4f9b306"></a>GG_ACTION_FAIL</em>&#160;</td><td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja funkcji</h2>
+<a class="anchor" id="ad820e51beb39de7eb7c7584788fb044d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_session_init_ssl </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Inicjalizuje struktury SSL.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gs</td><td>Struktura sesji</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 jeśli wystąpił błąd </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a5fc7b6d908d9abcbe990e24a08ccc960"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_send_queued_data </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Funkcja próbuje wysłać dane zakolejkowane do wysyłki.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sess</td><td>Struktura sesji</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 jeśli wystąpił błąd </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="accb26c1a63155874b774f34740473513"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_async_connect_failed </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>gs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sprawdza wynik połączenia asynchronicznego. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">gs</td><td>Struktura sesji </td></tr>
+    <tr><td class="paramname">res_ptr</td><td>Wskaźnik na kod błędu </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 jeśli wystąpił błąd </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ace5cccece416a7601e1db9fd6e0d9bd2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int gg_handle_resolve_custom </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aaba99e2ef407e81d1d8d28e8a373d3c8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_resolve_sync </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a4b05aa4f270c77f64a149ee3a3b40817"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_resolve_async </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a6530125d24164c4cd8e49483228e1604"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_resolving </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="afed4d47092cdbe407adc46bd9c9cd9a2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_connect </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="acb12a7d1100cab404b24a534cea9b74c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_connecting </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a852599231adf67ec1400643da8d70385"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_connect_gg </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9da7d47d18361f17ead748339f93ba4d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_connecting_gg </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9958a5f0235f9dc6d751a1a156cd8a23"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_send_hub </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a29dd53795ba7aad289a4751aa5086af2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_sending_hub_proxy </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a9fbee308cf8a5f23843edea4c5103331"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_reading_hub_proxy </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a559be7a40a4e256e7e384f07ef75ac97"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_send_proxy_gg </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a3b5820e59958796af6f0d5eef83c8c4a"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_tls_negotiation </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ada573e1551240b4478720a5e151b5c12"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_reading_proxy_gg </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="ae0e61ae5c3d312f549827bdca2bc795c"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_connected </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="aed77481958a25e1781fe1659492afce8"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="events_8c.html#a5529aac97a3faafedfb21c46b5282374">gg_action_t</a> gg_handle_error </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct <a class="el" href="structgg__event.html">gg_event</a> *&#160;</td>
+          <td class="paramname"><em>e</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>next_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt_state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">enum <a class="el" href="libgadu_8h.html#afbb1b72a09ced0851effa5e75b31a6a7">gg_state_t</a>&#160;</td>
+          <td class="paramname"><em>alt2_state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a class="anchor" id="a672df6fb10caa349ed83b4f95d957c16"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structgg__event.html">gg_event</a>* gg_eventqueue_add </td>
+          <td>(</td>
+          <td class="paramtype">struct <a class="el" href="structgg__session.html">gg_session</a> *&#160;</td>
+          <td class="paramname"><em>sess</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja zmiennych</h2>
+<a class="anchor" id="a94c6587976f5dc88afd997d14cfc31d2"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structgg__state__transition__t.html">gg_state_transition_t</a> handlers[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

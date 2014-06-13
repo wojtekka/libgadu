@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<meta name="generator" content="Doxygen 1.8.3.1"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
 <title>libgadu: Dokumentacja pliku resolver.c</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.11.3</span>
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
    </div>
   </td>
  </tr>
@@ -31,7 +31,7 @@
 </table>
 </div>
 <!-- end header part -->
-<!-- Wygenerowano przez Doxygen 1.8.3.1 -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
 <script type="text/javascript">
 var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </script>
@@ -87,7 +87,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Struktury danych</a> &#124;
 <a href="#func-members">Funkcje</a> &#124;
 <a href="#var-members">Zmienne</a>  </div>
   <div class="headertitle">
@@ -98,23 +97,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 <p>Funkcje rozwiązywania nazw.  
 <a href="#details">Więcej...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Struktury danych</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__resolver__fork__data.html">gg_resolver_fork_data</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Funkcje</h2></td></tr>
-<tr class="memitem:a2cf32a6da46b0f24563cb8cc4e5a5134"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a2cf32a6da46b0f24563cb8cc4e5a5134">gg_gethostbyname_real</a> (const char *hostname, struct in_addr **result, int *count, int pthread)</td></tr>
-<tr class="separator:a2cf32a6da46b0f24563cb8cc4e5a5134"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fa917bb08470d67b3ae41760e29d1d6"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a9fa917bb08470d67b3ae41760e29d1d6">gg_resolver_run</a> (int fd, const char *hostname)</td></tr>
-<tr class="separator:a9fa917bb08470d67b3ae41760e29d1d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a508cf63e70e3c1405ec9c07b3f299ee3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a508cf63e70e3c1405ec9c07b3f299ee3">gg_gethostbyname_real</a> (const char *hostname, struct in_addr **result, unsigned int *count, int pthread)</td></tr>
+<tr class="separator:a508cf63e70e3c1405ec9c07b3f299ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a761a4d27d434a716fcc7ee832396d611"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a761a4d27d434a716fcc7ee832396d611">gg_resolver_run</a> (int fd, const char *hostname, int pthread)</td></tr>
+<tr class="separator:a761a4d27d434a716fcc7ee832396d611"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab07e80a4c1a9634d9446112ccd79eeba"><td class="memItemLeft" align="right" valign="top">struct in_addr *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#ab07e80a4c1a9634d9446112ccd79eeba">gg_gethostbyname</a> (const char *hostname)</td></tr>
 <tr class="separator:ab07e80a4c1a9634d9446112ccd79eeba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5450590bea02fbd4c3dfb3e2d3f3d87"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#ab5450590bea02fbd4c3dfb3e2d3f3d87">gg_resolver_fork_start</a> (int *fd, void **priv_data, const char *hostname)</td></tr>
-<tr class="separator:ab5450590bea02fbd4c3dfb3e2d3f3d87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84c98cb841b37fdaf527445ea747bb18"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a84c98cb841b37fdaf527445ea747bb18">gg_resolver_fork_cleanup</a> (void **priv_data, int force)</td></tr>
-<tr class="separator:a84c98cb841b37fdaf527445ea747bb18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aace0683350d5568a28fa42d5e52d86eb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#aace0683350d5568a28fa42d5e52d86eb">gg_session_set_resolver</a> (struct <a class="el" href="structgg__session.html">gg_session</a> *gs, <a class="el" href="libgadu_8h.html#a7bb365d8dbaef300a442a8a29adca931">gg_resolver_t</a> type)</td></tr>
 <tr class="memdesc:aace0683350d5568a28fa42d5e52d86eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ustawia sposób rozwiązywania nazw w sesji.  <a href="#aace0683350d5568a28fa42d5e52d86eb">Więcej...</a><br/></td></tr>
 <tr class="separator:aace0683350d5568a28fa42d5e52d86eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -142,6 +132,9 @@ Funkcje</h2></td></tr>
 <tr class="memitem:a38af79bcadc046a261666464fe7c3413"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a38af79bcadc046a261666464fe7c3413">gg_global_set_custom_resolver</a> (int(*resolver_start)(int *, void **, const char *), void(*resolver_cleanup)(void **, int))</td></tr>
 <tr class="memdesc:a38af79bcadc046a261666464fe7c3413"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ustawia własny sposób rozwiązywania nazw globalnie dla biblioteki.  <a href="#a38af79bcadc046a261666464fe7c3413">Więcej...</a><br/></td></tr>
 <tr class="separator:a38af79bcadc046a261666464fe7c3413"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8563d87dff2099a7fb68cc30ad051447"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="resolver_8c.html#a8563d87dff2099a7fb68cc30ad051447">gg_resolver_recv</a> (int fd, void *buf, size_t len)</td></tr>
+<tr class="memdesc:a8563d87dff2099a7fb68cc30ad051447"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odczytuje dane z procesu/wątku rozwiązywania nazw.  <a href="#a8563d87dff2099a7fb68cc30ad051447">Więcej...</a><br/></td></tr>
+<tr class="separator:a8563d87dff2099a7fb68cc30ad051447"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Zmienne</h2></td></tr>
@@ -158,7 +151,7 @@ Zmienne</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
 <div class="textblock"><p>Funkcje rozwiązywania nazw. </p>
 </div><h2 class="groupheader">Dokumentacja funkcji</h2>
-<a class="anchor" id="a2cf32a6da46b0f24563cb8cc4e5a5134"></a>
+<a class="anchor" id="a508cf63e70e3c1405ec9c07b3f299ee3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -177,7 +170,7 @@ Zmienne</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int *&#160;</td>
+          <td class="paramtype">unsigned int *&#160;</td>
           <td class="paramname"><em>count</em>, </td>
         </tr>
         <tr>
@@ -208,7 +201,7 @@ Zmienne</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a9fa917bb08470d67b3ae41760e29d1d6"></a>
+<a class="anchor" id="a761a4d27d434a716fcc7ee832396d611"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -225,7 +218,13 @@ Zmienne</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>hostname</em>&#160;</td>
+          <td class="paramname"><em>hostname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pthread</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -239,12 +238,13 @@ Zmienne</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Rozwiązuje nazwę i zapisuje wynik do podanego desktyptora.</p>
+<p>Rozwiązuje nazwę i zapisuje wynik do podanego gniazda.</p>
 <dl class="section note"><dt>Nota</dt><dd>Użycie logowania w tej funkcji może mieć negatywny wpływ na aplikacje jednowątkowe korzystające.</dd></dl>
 <dl class="params"><dt>Parametry</dt><dd>
   <table class="params">
-    <tr><td class="paramname">fd</td><td>Deskryptor </td></tr>
-    <tr><td class="paramname">hostname</td><td>Nazwa serwera</td></tr>
+    <tr><td class="paramname">fd</td><td>Deskryptor gniazda </td></tr>
+    <tr><td class="paramname">hostname</td><td>Nazwa serwera </td></tr>
+    <tr><td class="paramname">pthread</td><td>Flaga blokowania unicestwiania wątku podczas alokacji pamięci</td></tr>
   </table>
   </dd>
 </dl>
@@ -255,9 +255,6 @@ Zmienne</h2></td></tr>
 <a class="anchor" id="ab07e80a4c1a9634d9446112ccd79eeba"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">struct in_addr* gg_gethostbyname </td>
@@ -267,11 +264,6 @@ Zmienne</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">read</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 <p>Odpowiednik <code>gethostbyname</code> zapewniający współbieżność.</p>
 <p>Jeśli dany system dostarcza <code>gethostbyname_r</code>, używa się tej wersji, jeśli nie, to zwykłej <code>gethostbyname</code>. Funkcja służy do zachowania zgodności ABI i służy do pobierania tylko pierwszego adresu &ndash; pozostałe mogą zostać zignorowane przez aplikację.</p>
@@ -282,100 +274,6 @@ Zmienne</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Zwraca</dt><dd>Zaalokowana struktura <code>in_addr</code> lub NULL w przypadku błędu. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ab5450590bea02fbd4c3dfb3e2d3f3d87"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static int gg_resolver_fork_start </td>
-          <td>(</td>
-          <td class="paramtype">int *&#160;</td>
-          <td class="paramname"><em>fd</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void **&#160;</td>
-          <td class="paramname"><em>priv_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>hostname</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Rozwiązuje nazwę serwera w osobnym procesie.</p>
-<p>Połączenia asynchroniczne nie mogą blokować procesu w trakcie rozwiązywania nazwy serwera. W tym celu tworzony jest potok, nowy proces i dopiero w nim przeprowadzane jest rozwiązywanie nazwy. Deskryptor strony do odczytu zapisuje się w strukturze sieci i czeka na dane w postaci struktury <code>in_addr</code>. Jeśli nie znaleziono nazwy, zwracana jest <code>INADDR_NONE</code>.</p>
-<dl class="params"><dt>Parametry</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">fd</td><td>Wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor potoku </td></tr>
-    <tr><td class="paramname">priv_data</td><td>Wskaźnik na zmienną, gdzie zostanie umieszczony wskaźnik do numeru procesu potomnego rozwiązującego nazwę </td></tr>
-    <tr><td class="paramname">hostname</td><td>Nazwa serwera do rozwiązania</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="a84c98cb841b37fdaf527445ea747bb18"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void gg_resolver_fork_cleanup </td>
-          <td>(</td>
-          <td class="paramtype">void **&#160;</td>
-          <td class="paramname"><em>priv_data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>force</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Usuwanie zasobów po procesie rozwiązywaniu nazwy.</p>
-<p>Funkcja wywoływana po zakończeniu rozwiązanywania nazwy lub przy zwalnianiu zasobów sesji podczas rozwiązywania nazwy.</p>
-<dl class="params"><dt>Parametry</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">priv_data</td><td>Wskaźnik na zmienną przechowującą wskaźnik do prywatnych danych </td></tr>
-    <tr><td class="paramname">force</td><td>Flaga usuwania zasobów przed zakończeniem działania </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -481,7 +379,7 @@ Zmienne</h2></td></tr>
 </dl>
 <p>Parametry funkcji rozpoczynającej rozwiązywanie nazwy wyglądają następująco:</p>
 <ul>
-<li><code>"int *fd"</code> &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor potoku</li>
+<li><code>"int *fd"</code> &mdash; wskaźnik na zmienną, gdzie zostanie umieszczony deskryptor gniazda</li>
 <li><code>"void **priv_data"</code> &mdash; wskaźnik na zmienną, gdzie można umieścić wskaźnik do prywatnych danych na potrzeby rozwiązywania nazwy</li>
 <li><code>"const char *name"</code> &mdash; nazwa serwera do rozwiązania</li>
 </ul>
@@ -490,7 +388,7 @@ Zmienne</h2></td></tr>
 <li><code>"void **priv_data"</code> &mdash; wskaźnik na zmienną przechowującą wskaźnik do prywatnych danych, należy go ustawić na <code>NULL</code> po zakończeniu</li>
 <li><code>"int force"</code> &mdash; flaga mówiąca o tym, że zasoby są zwalniane przed zakończeniem rozwiązywania nazwy, np. z powodu zamknięcia sesji.</li>
 </ul>
-<p>Własny kod rozwiązywania nazwy powinien stworzyć potok, parę gniazd lub inny deskryptor pozwalający na co najmniej jednostronną komunikację i przekazać go w parametrze <code>fd</code>. Po zakończeniu rozwiązywania nazwy, powinien wysłać otrzymany adres IP w postaci sieciowej (big-endian) do deskryptora. Jeśli rozwiązywanie nazwy się nie powiedzie, należy wysłać <code>INADDR_NONE</code>. Następnie zostanie wywołana funkcja zwalniająca zasoby z parametrem <code>force</code> równym <code>0</code>. Gdyby sesja została zakończona przed rozwiązaniem nazwy, np. za pomocą funkcji <code><a class="el" href="group__login.html#ga415c0e5527711d9ddb2be6c7f5eff9fc" title="Kończy połączenie z serwerem.">gg_logoff()</a></code>, funkcja zwalniająca zasoby zostanie wywołana z parametrem <code>force</code> równym <code>1</code>.</p>
+<p>Własny kod rozwiązywania nazwy powinien stworzyć potok, parę gniazd lub inny deskryptor pozwalający na co najmniej odbiór danych i przekazać go w parametrze <code>fd</code>. Na platformie Windows możliwe jest przekazanie jedynie deskryptora gniazda. Po zakończeniu rozwiązywania nazwy powinien wysłać otrzymany adres IP w postaci sieciowej (big-endian) do deskryptora. Jeśli rozwiązywanie nazwy się nie powiedzie, należy wysłać <code>INADDR_NONE</code>. Następnie zostanie wywołana funkcja zwalniająca zasoby z parametrem <code>force</code> równym <code>0</code>. Gdyby sesja została zakończona przed rozwiązaniem nazwy, np. za pomocą funkcji <code><a class="el" href="group__login.html#ga415c0e5527711d9ddb2be6c7f5eff9fc" title="Kończy połączenie z serwerem. ">gg_logoff()</a></code>, funkcja zwalniająca zasoby zostanie wywołana z parametrem <code>force</code> równym <code>1</code>.</p>
 <dl class="section return"><dt>Zwraca</dt><dd>0 jeśli się powiodło, -1 w przypadku błędu </dd></dl>
 
 </div>
@@ -680,6 +578,49 @@ Zmienne</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a8563d87dff2099a7fb68cc30ad051447"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_resolver_recv </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Odczytuje dane z procesu/wątku rozwiązywania nazw. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fd</td><td>Deskryptor </td></tr>
+    <tr><td class="paramname">buf</td><td>Wskaźnik na bufor </td></tr>
+    <tr><td class="paramname">len</td><td>Długość bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Patrz recv() i read(). </dd></dl>
+
+</div>
+</div>
 <h2 class="groupheader">Dokumentacja zmiennych</h2>
 <a class="anchor" id="a47bfdb3465a551a091c89b42293b32a5"></a>
 <div class="memitem">
@@ -750,9 +691,9 @@ Zmienne</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano Śr, 29 sty 2014 23:34:58 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
-</a> 1.8.3.1
+</a> 1.8.6
 </small></address>
 </body>
 </html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.6"/>
+<title>libgadu: Własne funkcje do nawiązywania połączeń TCP/TLS</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">libgadu
+   &#160;<span id="projectnumber">1.12.0-rc3</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Wygenerowano przez Doxygen 1.8.6 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li><a href="index.html"><span>Strona&#160;główna</span></a></li>
+      <li><a href="pages.html"><span>Dodatkowe&#160;strony</span></a></li>
+      <li><a href="modules.html"><span>Moduły</span></a></li>
+      <li><a href="annotated.html"><span>Struktury&#160;Danych</span></a></li>
+      <li><a href="files.html"><span>Pliki</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Szukaj" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Struktury Danych</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Pliki</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Funkcje</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Zmienne</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Definicje typów</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Wyliczenia</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Wartości wyliczeń</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Definicje</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Grupay</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(10)"><span class="SelectionMark">&#160;</span>Strony</a></div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Struktury danych</a> &#124;
+<a href="#typedef-members">Definicje typów</a> &#124;
+<a href="#enum-members">Wyliczenia</a> &#124;
+<a href="#func-members">Funkcje</a>  </div>
+  <div class="headertitle">
+<div class="title">Własne funkcje do nawiązywania połączeń TCP/TLS<div class="ingroups"><a class="el" href="group__misc.html">Pozostałe funkcje</a></div></div>  </div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Struktury danych</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgg__socket__manager__t.html">gg_socket_manager_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Struktura opisująca funkcje zarządzające gniazdami, jeżeli aplikacja sama je obsługuje.  <a href="structgg__socket__manager__t.html#details">Więcej...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Definicje typów</h2></td></tr>
+<tr class="memitem:ga80f79b86e367af1dd3fc422cdf4e6b6c"><td class="memItemLeft" align="right" valign="top">typedef void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga80f79b86e367af1dd3fc422cdf4e6b6c">gg_socket_manager_connect_cb_t</a> )(void *cb_data, const char *host, int port, int is_tls, int is_async, void *priv)</td></tr>
+<tr class="memdesc:ga80f79b86e367af1dd3fc422cdf4e6b6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Funkcja dostarczona przez aplikację, tworząca nowe gniazdo TCP/TLS.  <a href="#ga80f79b86e367af1dd3fc422cdf4e6b6c">Więcej...</a><br/></td></tr>
+<tr class="separator:ga80f79b86e367af1dd3fc422cdf4e6b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0f832b5e52f3312a71a308ce70085470"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga0f832b5e52f3312a71a308ce70085470">gg_socket_manager_close_cb_t</a> )(void *cb_data, void *handle)</td></tr>
+<tr class="memdesc:ga0f832b5e52f3312a71a308ce70085470"><td class="mdescLeft">&#160;</td><td class="mdescRight">Niszczy gniazdo i zwalnia wszystkie powiązane z nim zasoby.  <a href="#ga0f832b5e52f3312a71a308ce70085470">Więcej...</a><br/></td></tr>
+<tr class="separator:ga0f832b5e52f3312a71a308ce70085470"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5d03e1fb85607ec94535f2e2ab754434"><td class="memItemLeft" align="right" valign="top">typedef ssize_t(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga5d03e1fb85607ec94535f2e2ab754434">gg_socket_manager_read_cb_t</a> )(void *cb_data, void *handle, unsigned char *buffer, size_t bufsize)</td></tr>
+<tr class="memdesc:ga5d03e1fb85607ec94535f2e2ab754434"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odbiera z gniazda dane binarne.  <a href="#ga5d03e1fb85607ec94535f2e2ab754434">Więcej...</a><br/></td></tr>
+<tr class="separator:ga5d03e1fb85607ec94535f2e2ab754434"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga883f43f505b26fb97b3123211cba956c"><td class="memItemLeft" align="right" valign="top">typedef ssize_t(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga883f43f505b26fb97b3123211cba956c">gg_socket_manager_write_cb_t</a> )(void *cb_data, void *handle, const unsigned char *data, size_t length)</td></tr>
+<tr class="memdesc:ga883f43f505b26fb97b3123211cba956c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wysyła przez gniazdo dane binarne.  <a href="#ga883f43f505b26fb97b3123211cba956c">Więcej...</a><br/></td></tr>
+<tr class="separator:ga883f43f505b26fb97b3123211cba956c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Wyliczenia</h2></td></tr>
+<tr class="memitem:ga7e531710a578f880b8c354ff4e622491"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga7e531710a578f880b8c354ff4e622491">gg_socket_manager_type_t</a> { <br/>
+&#160;&#160;<a class="el" href="group__socketmanager.html#gga7e531710a578f880b8c354ff4e622491a1af114a4998298ff5cfda5140a42c2cc">GG_SOCKET_MANAGER_TYPE_INTERNAL</a> = 0, 
+<br/>
+&#160;&#160;<a class="el" href="group__socketmanager.html#gga7e531710a578f880b8c354ff4e622491aa1a1a414b1d0248e93ad8dddca212dd5">GG_SOCKET_MANAGER_TYPE_TCP</a>, 
+<br/>
+&#160;&#160;<a class="el" href="group__socketmanager.html#gga7e531710a578f880b8c354ff4e622491a210a2dbabbace2c3ce1d71d470040d5c">GG_SOCKET_MANAGER_TYPE_TLS</a>
+<br/>
+ }</td></tr>
+<tr class="memdesc:ga7e531710a578f880b8c354ff4e622491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Metody nawiązywania połączeń TCP/TLS.  <a href="group__socketmanager.html#ga7e531710a578f880b8c354ff4e622491">Więcej...</a><br/></td></tr>
+<tr class="separator:ga7e531710a578f880b8c354ff4e622491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Funkcje</h2></td></tr>
+<tr class="memitem:ga3b5399d049b9417072a17d5ecd60524a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__socketmanager.html#ga3b5399d049b9417072a17d5ecd60524a">gg_socket_manager_connected</a> (void *handle, void *priv, int fd)</td></tr>
+<tr class="memdesc:ga3b5399d049b9417072a17d5ecd60524a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odbiera nowo utworzone gniazdo TCP/TLS.  <a href="#ga3b5399d049b9417072a17d5ecd60524a">Więcej...</a><br/></td></tr>
+<tr class="separator:ga3b5399d049b9417072a17d5ecd60524a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Opis szczegółowy</h2>
+<h2 class="groupheader">Dokumentacja definicji typów</h2>
+<a class="anchor" id="ga80f79b86e367af1dd3fc422cdf4e6b6c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void*(* gg_socket_manager_connect_cb_t)(void *cb_data, const char *host, int port, int is_tls, int is_async, void *priv)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Funkcja dostarczona przez aplikację, tworząca nowe gniazdo TCP/TLS. </p>
+<p>Po nawiązaniu połączenia aplikacja musi wywołać gg_socket_manager_connected. Jeżeli połączenie jest asynchroniczne, wywołanie musi nastąpić po wyjściu z kontekstu tej funkcji. Dla połączeń synchronicznych z kolei, musi nastąpić jeszcze przed wyjściem z kontekstu.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cb_data</td><td>Dane prywatne aplikacji </td></tr>
+    <tr><td class="paramname">host</td><td>Nazwa hosta </td></tr>
+    <tr><td class="paramname">port</td><td>Numer portu </td></tr>
+    <tr><td class="paramname">is_tls</td><td>Flaga określająca, czy ma zostać nawiązane połączenie TLS </td></tr>
+    <tr><td class="paramname">is_async</td><td>Flaga określająca połączenie asynchroniczne (patrz szczegóły powyżej) </td></tr>
+    <tr><td class="paramname">priv</td><td>Dane prywatne biblioteki libgadu (do przekazania do gg_socket_manager_connected)</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Uchwyt gniazda </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga0f832b5e52f3312a71a308ce70085470"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* gg_socket_manager_close_cb_t)(void *cb_data, void *handle)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Niszczy gniazdo i zwalnia wszystkie powiązane z nim zasoby. </p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cb_data</td><td>Dane prywatne aplikacji </td></tr>
+    <tr><td class="paramname">handle</td><td>Uchwyt gniazda </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga5d03e1fb85607ec94535f2e2ab754434"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef ssize_t(* gg_socket_manager_read_cb_t)(void *cb_data, void *handle, unsigned char *buffer, size_t bufsize)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Odbiera z gniazda dane binarne. </p>
+<p>Funkcja powinna zajmować się obsługą TLS, jeżeli gniazdo jest w takim trybie.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cb_data</td><td>Dane prywatne aplikacji </td></tr>
+    <tr><td class="paramname">handle</td><td>Uchwyt gniazda </td></tr>
+    <tr><td class="paramname">buffer</td><td>Bufor do zapisu danych </td></tr>
+    <tr><td class="paramname">bufsize</td><td>Rozmiar bufora</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Ilość zapisanych danych, lub -1 (oraz ustawiony errno) w przypadku niepowodzenia </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga883f43f505b26fb97b3123211cba956c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef ssize_t(* gg_socket_manager_write_cb_t)(void *cb_data, void *handle, const unsigned char *data, size_t length)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wysyła przez gniazdo dane binarne. </p>
+<p>Funkcja powinna zajmować się obsługą TLS, jeżeli gniazdo jest w takim trybie.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cb_data</td><td>Dane prywatne aplikacji </td></tr>
+    <tr><td class="paramname">handle</td><td>Uchwyt gniazda </td></tr>
+    <tr><td class="paramname">data</td><td>Dane do wysłania </td></tr>
+    <tr><td class="paramname">length</td><td>Rozmiar danych</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Ilość wysłanych danych, lub -1 (oraz ustawiony errno) w przypadku niepowodzenia </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja typów wyliczanych</h2>
+<a class="anchor" id="ga7e531710a578f880b8c354ff4e622491"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group__socketmanager.html#ga7e531710a578f880b8c354ff4e622491">gg_socket_manager_type_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Metody nawiązywania połączeń TCP/TLS. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Wartości wyliczeń</th></tr><tr><td class="fieldname"><em><a class="anchor" id="gga7e531710a578f880b8c354ff4e622491a1af114a4998298ff5cfda5140a42c2cc"></a>GG_SOCKET_MANAGER_TYPE_INTERNAL</em>&#160;</td><td class="fielddoc">
+<p>Wewnętrzna obsługa gniazd (domyślne). </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga7e531710a578f880b8c354ff4e622491aa1a1a414b1d0248e93ad8dddca212dd5"></a>GG_SOCKET_MANAGER_TYPE_TCP</em>&#160;</td><td class="fielddoc">
+<p>Dostarczona przez aplikację - tylko obsługa TCP. </p>
+</td></tr>
+<tr><td class="fieldname"><em><a class="anchor" id="gga7e531710a578f880b8c354ff4e622491a210a2dbabbace2c3ce1d71d470040d5c"></a>GG_SOCKET_MANAGER_TYPE_TLS</em>&#160;</td><td class="fielddoc">
+<p>Dostarczona przez aplikację - obsługa zarówno TCP, jak i TLS. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Dokumentacja funkcji</h2>
+<a class="anchor" id="ga3b5399d049b9417072a17d5ecd60524a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_socket_manager_connected </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>handle</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>priv</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>fd</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Odbiera nowo utworzone gniazdo TCP/TLS. </p>
+<p>Po wywołaniu tej funkcji należy zacząć obserwować deskryptor sesji (nawet w przypadku niepowodzenia).</p>
+<p>Jeżeli gniazdo nie zostanie obsłużone, należy je zniszczyć.</p>
+<dl class="params"><dt>Parametry</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">handle</td><td>Uchwyt gniazda </td></tr>
+    <tr><td class="paramname">priv</td><td>Dane prywatne biblioteki libgadu </td></tr>
+    <tr><td class="paramname">fd</td><td>Deskryptor nowo utworzonego gniazda, lub -1 w przypadku błędu</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Zwraca</dt><dd>Wartość różna od zera, jeżeli gniazdo zostało obsłużone, 0 w przeciwnym przypadku </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Wygenerowano N, 1 cze 2014 11:53:06 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.6
+</small></address>
+</body>
+</html>
