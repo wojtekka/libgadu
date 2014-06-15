@@ -273,6 +273,7 @@ var searchData=
   ['gg_5fresolve',['gg_resolve',['../internal_8h.html#ab405142a670b71c63139c38eaa27e162',1,'internal.h']]],
   ['gg_5fresolve_5fpthread',['gg_resolve_pthread',['../internal_8h.html#a26d377093d3f32ff3843def6881d4d12',1,'internal.h']]],
   ['gg_5fresolve_5fpthread_5fcleanup',['gg_resolve_pthread_cleanup',['../internal_8h.html#a153af0cc4be753517cc2605e85cc7f18',1,'internal.h']]],
+  ['gg_5fresolver_5fcleaner',['gg_resolver_cleaner',['../resolver_8h.html#a6792fe91083496ead8a84774d0af0e91',1,'resolver.h']]],
   ['gg_5fresolver_5frecv',['gg_resolver_recv',['../resolver_8c.html#a8563d87dff2099a7fb68cc30ad051447',1,'gg_resolver_recv(int fd, void *buf, size_t len):&#160;resolver.c'],['../resolver_8h.html#a8563d87dff2099a7fb68cc30ad051447',1,'gg_resolver_recv(int fd, void *buf, size_t len):&#160;resolver.c']]],
   ['gg_5fresolver_5frun',['gg_resolver_run',['../resolver_8c.html#a761a4d27d434a716fcc7ee832396d611',1,'resolver.c']]],
   ['gg_5fsaprintf',['gg_saprintf',['../group__helper.html#ga0c71b0bef21698f9e23a1251bf996ec8',1,'gg_saprintf(const char *format,...):&#160;common.c'],['../libgadu_8h.html#ad3abb86b7ae1c0e8faaf56d6449fda58',1,'gg_saprintf(const char *format,...) GG_GNUC_PRINTF(1:&#160;libgadu.h']]],
