@@ -217,6 +217,7 @@ protobuf_c_buffer_simple_append (ProtobufCBuffer *buffer,
       uint8_t *new_data;
       while (new_alloced < new_len)
         new_alloced += new_alloced;
+      assert(new_alloced > 0);
       DO_ALLOC (new_data, &protobuf_c_default_allocator, new_alloced, return);
       memcpy (new_data, simp->data, simp->len);
       if (simp->must_free_data)
@@ -1801,7 +1802,9 @@ parse_required_member (ScannedMember *scanned_member,
             if (*pstr != NULL && *pstr != def)
               FREE (allocator, *pstr);
           }
+        assert(len >= pref_len);
         DO_ALLOC (*pstr, allocator, len - pref_len + 1, return 0);
+        assert(*pstr != NULL);
         memcpy (*pstr, data + pref_len, len - pref_len);
         (*pstr)[len-pref_len] = 0;
         return 1;
@@ -1818,8 +1821,12 @@ parse_required_member (ScannedMember *scanned_member,
          && bd->data != NULL
          && (def_bd == NULL || bd->data != def_bd->data))
           FREE (allocator, bd->data);
+        assert(len >= pref_len);
         DO_ALLOC (bd->data, allocator, len - pref_len, return 0);
-        memcpy (bd->data, data + pref_len, len - pref_len);
+        if (len - pref_len > 0) {
+            assert(bd->data != NULL);
+            memcpy (bd->data, data + pref_len, len - pref_len);
+        }
         bd->len = len - pref_len;
         return 1;
       }
@@ -2059,7 +2066,8 @@ parse_member (ScannedMember *scanned_member,
       ufield->wire_type = scanned_member->wire_type;
       ufield->len = scanned_member->len;
       DO_UNALIGNED_ALLOC (ufield->data, allocator, scanned_member->len, return 0);
-      memcpy (ufield->data, scanned_member->data, ufield->len);
+      if (scanned_member->len > 0)
+          memcpy (ufield->data, scanned_member->data, ufield->len);
       return 1;
     }
   member = (char*)message + field->offset;

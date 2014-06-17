@@ -129,7 +129,11 @@ typedef union {
     state[3] += d;
     state[4] += e;
     /* Wipe variables */
-    a = b = c = d = e = 0;
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
+    memset(&c, 0, sizeof(c));
+    memset(&d, 0, sizeof(d));
+    memset(&e, 0, sizeof(e));
 }
 
 
@@ -173,7 +177,7 @@ unsigned int i, j;
 
 void SHA1_Final(unsigned char digest[20], SHA_CTX* context)
 {
-uint32_t i, j;
+uint32_t i;
 unsigned char finalcount[8];
 
     for (i = 0; i < 8; i++) {
@@ -190,7 +194,6 @@ unsigned char finalcount[8];
          ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
     }
     /* Wipe variables */
-    i = j = 0;
     memset(context->buffer, 0, 64);
     memset(context->state, 0, 20);
     memset(context->count, 0, 8);

@@ -114,6 +114,8 @@ char *gg_urlencode_printf(char *format, ...)
 			size++;
 	}
 
+	if (argc <= 0)
+		return NULL;
 	args = calloc(argc, sizeof(char *));
 	if (!args)
 		return NULL;
