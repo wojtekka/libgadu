@@ -1737,7 +1737,7 @@ static int gg_session_handle_notify_reply_80(struct gg_session *gs,
 	while (length >= sizeof(struct gg_notify_reply80)) {
 		uin_t uin = gg_fix32(n->uin);
 		int descr_len;
-		char *tmp;
+		void *tmp;
 
 		ge->event.notify60[i].uin = uin;
 		ge->event.notify60[i].status = gg_fix32(n->status);
@@ -1782,7 +1782,7 @@ static int gg_session_handle_notify_reply_80(struct gg_session *gs,
 			return -1;
 		}
 
-		ge->event.notify60 = (void*) tmp;
+		ge->event.notify60 = tmp;
 		ge->event.notify60[++i].uin = 0;
 	}
 
@@ -1814,7 +1814,7 @@ static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs,
 
 	while (length >= sizeof(struct gg_notify_reply77)) {
 		uin_t uin = gg_fix32(n->uin);
-		char *tmp;
+		void *tmp;
 
 		ge->event.notify60[i].uin = uin & 0x00ffffff;
 		ge->event.notify60[i].status = n->status;
@@ -1867,7 +1867,7 @@ static int gg_session_handle_notify_reply_77_80beta(struct gg_session *gs,
 			return -1;
 		}
 
-		ge->event.notify60 = (void*) tmp;
+		ge->event.notify60 = tmp;
 		ge->event.notify60[++i].uin = 0;
 	}
 
@@ -1899,7 +1899,7 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs,
 
 	while (length >= sizeof(struct gg_notify_reply60)) {
 		uin_t uin = gg_fix32(n->uin);
-		char *tmp;
+		void *tmp;
 
 		ge->event.notify60[i].uin = uin & 0x00ffffff;
 		ge->event.notify60[i].status = n->status;
@@ -1954,7 +1954,7 @@ static int gg_session_handle_notify_reply_60(struct gg_session *gs,
 			return -1;
 		}
 
-		ge->event.notify60 = (void*) tmp;
+		ge->event.notify60 = tmp;
 		ge->event.notify60[++i].uin = 0;
 	}
 
