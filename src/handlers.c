@@ -48,6 +48,10 @@
 #include <string.h>
 #include <time.h>
 
+/* Ograniczenie długości listy kontaktów
+ * z pakietów GG_USERLIST_REPLY do 10MB. */
+#define GG_USERLIST_REPLY_MAX_LENGTH 10485760
+
 /**
  * \internal Struktura opisująca funkcję obsługi pakietu.
  */
@@ -630,6 +634,13 @@ static int gg_session_handle_userlist_reply(struct gg_session *gs,
 
 		gg_debug_session(gs, GG_DEBUG_MISC, "userlist_reply=%p, len=%"
 			GG_SIZE_FMT "\n", gs->userlist_reply, len);
+
+		if (reply_len + len > GG_USERLIST_REPLY_MAX_LENGTH) {
+			gg_debug_session(gs, GG_DEBUG_MISC,
+				"// gg_session_handle_userlist_reply() "
+				"too many userlist replies\n");
+			return -1;
+		}
 
 		tmp = realloc(gs->userlist_reply, reply_len + len);
 
