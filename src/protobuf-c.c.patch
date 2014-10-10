@@ -1,187 +1,95 @@
 --- protobuf-c.c
 +++ protobuf-c.c
-@@ -58,6 +58,14 @@
-      * use size_t consistently
-  */
+@@ -1660,9 +1660,11 @@
+ 	}
+ 	return rv;
  
-+#include "config.h"
-+#define HAVE_PROTOBUF_C_CONFIG_H 0
-+#ifdef GG_CONFIG_BIGENDIAN
-+#  define IS_LITTLE_ENDIAN 0
-+#else
-+#  define IS_LITTLE_ENDIAN 1
-+#endif
-+
- #if HAVE_PROTOBUF_C_CONFIG_H
- #include "protobuf-c-config.h"
- #endif
-@@ -78,6 +86,7 @@
- #endif
- 
- #include "protobuf-c.h"
-+#include "internal.h"
- 
- unsigned protobuf_c_major = PROTOBUF_C_MAJOR;
- unsigned protobuf_c_minor = PROTOBUF_C_MINOR;
-@@ -141,6 +150,7 @@
- 
- /* --- allocator --- */
- 
-+static void protobuf_c_out_of_memory_default (void) GG_NORETURN;
- static void protobuf_c_out_of_memory_default (void)
- {
-   fprintf (stderr, "Out Of Memory!!!\n");
-@@ -207,6 +217,7 @@
-       uint8_t *new_data;
-       while (new_alloced < new_len)
-         new_alloced += new_alloced;
-+      assert(new_alloced > 0);
-       DO_ALLOC (new_data, &protobuf_c_default_allocator, new_alloced, return);
-       memcpy (new_data, simp->data, simp->len);
-       if (simp->must_free_data)
-@@ -371,7 +382,7 @@
-     case PROTOBUF_C_TYPE_DOUBLE:
-       return rv + 8;
-     case PROTOBUF_C_TYPE_ENUM:
--      // TODO: is this correct for negative-valued enums?
-+      /* TODO: is this correct for negative-valued enums? */
-       return rv + uint32_size (*(const uint32_t *) member);
-     case PROTOBUF_C_TYPE_STRING:
-       {
-@@ -384,7 +395,7 @@
-         size_t len = ((const ProtobufCBinaryData*) member)->len;
-         return rv + uint32_size (len) + len;
-       }
--    //case PROTOBUF_C_TYPE_GROUP:
-+    /* case PROTOBUF_C_TYPE_GROUP: */
-     case PROTOBUF_C_TYPE_MESSAGE:
-       {
-         const ProtobufCMessage *msg = * (ProtobufCMessage * const *) member;
-@@ -496,7 +507,7 @@
-           rv += uint32_size (len) + len;
-         }
-       break;
--    //case PROTOBUF_C_TYPE_GROUP:          // NOT SUPPORTED
-+    /* case PROTOBUF_C_TYPE_GROUP:          // NOT SUPPORTED */
-     }
-   if (field->packed)
-     header_size += uint32_size (rv);
-@@ -798,7 +809,7 @@
-         out[0] |= PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED;
-         return rv + binary_data_pack (bd, out + rv);
-       }
--    //case PROTOBUF_C_TYPE_GROUP:          // NOT SUPPORTED
-+    /* case PROTOBUF_C_TYPE_GROUP:          // NOT SUPPORTED */
-     case PROTOBUF_C_TYPE_MESSAGE:
-       {
-         out[0] |= PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED;
-@@ -909,7 +920,7 @@
-                      const void *member,
-                      uint8_t *out)
- {
--  char *array = * (char * const *) member;
-+  void *array = * (char * const *) member;
-   unsigned i;
-   if (field->packed)
-     {
-@@ -1014,7 +1025,7 @@
-       for (i = 0; i < count; i++)
-         {
-           rv += required_field_pack (field, array, out + rv);
--          array += siz;
-+          array = ((char*)array) + siz;
-         }
-       return rv;
-     }
-@@ -1143,7 +1154,7 @@
-         rv += sublen;
-         break;
-       }
--    //PROTOBUF_C_TYPE_GROUP,          // NOT SUPPORTED
-+    /* PROTOBUF_C_TYPE_GROUP,          // NOT SUPPORTED */
-     case PROTOBUF_C_TYPE_MESSAGE:
-       {
-         uint8_t simple_buffer_scratch[256];
-@@ -1353,10 +1364,11 @@
-     }
-   return rv;
- 
--goto no_packing_needed;
-+#if IS_LITTLE_ENDIAN
++#if !defined(WORDS_BIGENDIAN)
  no_packing_needed:
-   buffer->append (buffer, rv, array);
-   return rv;
+ 	buffer->append(buffer, rv, array);
+ 	return rv;
 +#endif
  }
  
  static size_t
-@@ -1790,7 +1802,9 @@
-             if (*pstr != NULL && *pstr != def)
-               FREE (allocator, *pstr);
-           }
-+        assert(len >= pref_len);
-         DO_ALLOC (*pstr, allocator, len - pref_len + 1, return 0);
-+        assert(*pstr != NULL);
-         memcpy (*pstr, data + pref_len, len - pref_len);
-         (*pstr)[len-pref_len] = 0;
-         return 1;
-@@ -1807,12 +1821,16 @@
-          && bd->data != NULL
-          && (def_bd == NULL || bd->data != def_bd->data))
-           FREE (allocator, bd->data);
-+        assert(len >= pref_len);
-         DO_ALLOC (bd->data, allocator, len - pref_len, return 0);
--        memcpy (bd->data, data + pref_len, len - pref_len);
-+        if (len - pref_len > 0) {
-+            assert(bd->data != NULL);
-+            memcpy (bd->data, data + pref_len, len - pref_len);
-+        }
-         bd->len = len - pref_len;
-         return 1;
-       }
--    //case PROTOBUF_C_TYPE_GROUP,          // NOT SUPPORTED
-+    /* case PROTOBUF_C_TYPE_GROUP,          // NOT SUPPORTED */
-     case PROTOBUF_C_TYPE_MESSAGE:
-       if (wire_type != PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
-         return 0;
-@@ -1891,7 +1909,7 @@
-   const ProtobufCFieldDescriptor *field = scanned_member->field;
-   size_t *p_n = STRUCT_MEMBER_PTR(size_t, message, field->quantifier_offset);
-   size_t siz = sizeof_elt_in_repeated_array (field->type);
--  char *array = *(char**)member + siz * (*p_n);
-+  void *array = *(char**)member + siz * (*p_n);
-   const uint8_t *at = scanned_member->data + scanned_member->length_prefix_len;
-   size_t rem = scanned_member->len - scanned_member->length_prefix_len;
-   size_t count = 0;
-@@ -2018,11 +2036,12 @@
-   *p_n += count;
-   return TRUE;
+@@ -1695,7 +1697,7 @@
+ 		siz = sizeof_elt_in_repeated_array(field->type);
+ 		for (i = 0; i < count; i++) {
+ 			rv += required_field_pack_to_buffer(field, array, buffer);
+-			array += siz;
++			array = ((char*)array) + siz;
+ 		}
+ 		return rv;
+ 	}
+@@ -1991,7 +1993,6 @@
  
--goto no_unpacking_needed;
-+#if IS_LITTLE_ENDIAN
- no_unpacking_needed:
-   memcpy (array, at, count * siz);
-   *p_n += count;
-   return TRUE;
-+#endif
- }
+ 			switch (fields[i].type) {
+ 			case PROTOBUF_C_TYPE_BYTES: {
+-				el_size = sizeof(ProtobufCBinaryData);
+ 				uint8_t *e_data =
+ 					((ProtobufCBinaryData *) earlier_elem)->data;
+ 				uint8_t *l_data =
+@@ -1999,6 +2000,7 @@
+ 				const ProtobufCBinaryData *d_bd =
+ 					(ProtobufCBinaryData *) def_val;
  
- static protobuf_c_boolean
-@@ -2047,7 +2066,8 @@
-       ufield->wire_type = scanned_member->wire_type;
-       ufield->len = scanned_member->len;
-       DO_UNALIGNED_ALLOC (ufield->data, allocator, scanned_member->len, return 0);
--      memcpy (ufield->data, scanned_member->data, ufield->len);
-+      if (scanned_member->len > 0)
-+          memcpy (ufield->data, scanned_member->data, ufield->len);
-       return 1;
-     }
-   member = (char*)message + field->offset;
-@@ -2205,6 +2225,7 @@
-       size_t used = parse_tag_and_wiretype (rem, at, &tag, &wire_type);
-       const ProtobufCFieldDescriptor *field;
-       ScannedMember tmp;
-+      memset(&tmp, 0, sizeof(ScannedMember));
-       if (used == 0)
-         {
-           UNPACK_ERROR (("error parsing tag/wiretype at offset %u",
++				el_size = sizeof(ProtobufCBinaryData);
+ 				need_to_merge =
+ 					(e_data != NULL &&
+ 					 (d_bd != NULL &&
+@@ -2009,11 +2011,11 @@
+ 				break;
+ 			}
+ 			case PROTOBUF_C_TYPE_STRING: {
+-				el_size = sizeof(char *);
+ 				char *e_str = *(char **) earlier_elem;
+ 				char *l_str = *(char **) latter_elem;
+ 				const char *d_str = def_val;
+ 
++				el_size = sizeof(char *);
+ 				need_to_merge = e_str != d_str && l_str == d_str;
+ 				break;
+ 			}
+@@ -2742,6 +2744,8 @@
+ 		const ProtobufCFieldDescriptor *field;
+ 		ScannedMember tmp;
+ 
++		memset(&tmp, 0, sizeof(ScannedMember));
++
+ 		if (used == 0) {
+ 			PROTOBUF_C_UNPACK_ERROR("error parsing tag/wiretype at offset %u",
+ 						(unsigned) (at - data));
+@@ -2887,6 +2891,7 @@
+ 					      field->quantifier_offset);
+ 			if (*n_ptr != 0) {
+ 				unsigned n = *n_ptr;
++				void *a;
+ 				*n_ptr = 0;
+ 				assert(rv->descriptor != NULL);
+ #define CLEAR_REMAINING_N_PTRS()                                              \
+@@ -2896,7 +2901,7 @@
+                   if (field->label == PROTOBUF_C_LABEL_REPEATED)              \
+                     STRUCT_MEMBER (size_t, rv, field->quantifier_offset) = 0; \
+                 }
+-				void *a = do_alloc(allocator, siz * n);
++				a = do_alloc(allocator, siz * n);
+ 				if (!a) {
+ 					CLEAR_REMAINING_N_PTRS();
+ 					goto error_cleanup;
+@@ -3049,6 +3054,8 @@
+ protobuf_c_boolean
+ protobuf_c_message_check(const ProtobufCMessage *message)
+ {
++	unsigned i;
++
+ 	if (!message ||
+ 	    !message->descriptor ||
+ 	    message->descriptor->magic != PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC)
+@@ -3056,7 +3063,6 @@
+ 		return FALSE;
+ 	}
+ 
+-	unsigned i;
+ 	for (i = 0; i < message->descriptor->n_fields; i++) {
+ 		const ProtobufCFieldDescriptor *f = message->descriptor->fields + i;
+ 		ProtobufCType type = f->type;
