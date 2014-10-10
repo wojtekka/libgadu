@@ -436,8 +436,10 @@ if test "x$DOXYGEN" = "xdoxygen"; then
 	SUBDIRS_DOXYGEN="docs"
 	AC_SUBST([DOXYFILE_HTML_DIR])
 	DOXYFILE_HTML_DIR="html"
+	have_doxygen="yes"
 else
 	SUBDIRS_DOXYGEN=""
+	have_doxygen="no"
 fi
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile])
@@ -463,6 +465,7 @@ echo Build with openssl... : $have_openssl
 echo Build with protobuf-c : $have_protobuf_c
 echo Build with pthread... : $have_pthread
 echo Build with zlib...... : $have_zlib
+echo Build with docs...... : $have_doxygen
 echo
 
 echo Enable tests......... : $enable_tests
