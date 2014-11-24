@@ -2664,7 +2664,12 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
 	if (!GG_PROTOBUF_VALID(gs, "GG112TransferInfo", msg))
 		return -1;
 
-	gg_protobuf_expected(gs, "GG112TransferInfo.dummy1", msg->dummy1, 6);
+	/* see packets.proto */
+	if (msg->dummy1 != 5 && msg->dummy1 != 6) {
+		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
+			"// gg_session_handle_transfer_info: "
+			"unknown dummy1 value: %d\n", msg->dummy1);
+	}
 
 	if (GG_PROTOBUF_VALID(gs, "GG112TransferInfoUin", msg->peer)) {
 		gg_protobuf_expected(gs, "GG112TransferInfoUin.dummy1",
@@ -2693,7 +2698,7 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
 			kvp->key, kvp->value);
 	}
 
-	if (GG_PROTOBUF_VALID(gs, "GG112TransferInfoFile", msg->file)) {
+	if (msg->file && GG_PROTOBUF_VALID(gs, "GG112TransferInfoFile", msg->file)) {
 		GG112TransferInfoFile *file = msg->file;
 		gg_debug_session(gs, GG_DEBUG_MISC,
 			"// gg_session_handle_transfer_info file: "
