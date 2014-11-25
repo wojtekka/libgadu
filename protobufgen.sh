@@ -31,7 +31,7 @@ if [ "x$PROTOC_LEGACY" = "xyes" ]; then
 
 	# fix protoc-c < 0.14 output
 	if ! cat packets.pb-c.c | grep "PROTOBUF_C_NO_DEPRECATED" > /dev/null; then
-		sed -i 's| NULL,NULL /\* reserved1, reserved2 \*/| 0, 0, NULL, NULL|g' packets.pb-c.c
+		sed -i 's| NULL,NULL \+/\* reserved1, reserved2 \*/| 0, 0, NULL, NULL|g' packets.pb-c.c
 	fi
 
 	# translate 0.15 output to 1.0.2
