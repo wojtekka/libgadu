@@ -1,6 +1,16 @@
 --- protobuf-c.c
 +++ protobuf-c.c
-@@ -1660,9 +1660,11 @@
+@@ -48,6 +48,9 @@
+ #include <stdlib.h>	/* for malloc, free */
+ #include <string.h>	/* for strcmp, strlen, memcpy, memmove, memset */
+ 
++/* Pull WORDS_BIGENDIAN etc */
++#include "config.h"
++
+ #include "protobuf-c.h"
+ 
+ #define TRUE				1
+@@ -1660,9 +1663,11 @@
  	}
  	return rv;
  
@@ -12,7 +22,7 @@
  }
  
  static size_t
-@@ -1695,7 +1697,7 @@
+@@ -1695,7 +1700,7 @@
  		siz = sizeof_elt_in_repeated_array(field->type);
  		for (i = 0; i < count; i++) {
  			rv += required_field_pack_to_buffer(field, array, buffer);
@@ -21,7 +31,7 @@
  		}
  		return rv;
  	}
-@@ -1991,7 +1993,6 @@
+@@ -1991,7 +1996,6 @@
  
  			switch (fields[i].type) {
  			case PROTOBUF_C_TYPE_BYTES: {
@@ -29,7 +39,7 @@
  				uint8_t *e_data =
  					((ProtobufCBinaryData *) earlier_elem)->data;
  				uint8_t *l_data =
-@@ -1999,6 +2000,7 @@
+@@ -1999,6 +2003,7 @@
  				const ProtobufCBinaryData *d_bd =
  					(ProtobufCBinaryData *) def_val;
  
@@ -37,7 +47,7 @@
  				need_to_merge =
  					(e_data != NULL &&
  					 (d_bd != NULL &&
-@@ -2009,11 +2011,11 @@
+@@ -2009,11 +2014,11 @@
  				break;
  			}
  			case PROTOBUF_C_TYPE_STRING: {
@@ -50,7 +60,7 @@
  				need_to_merge = e_str != d_str && l_str == d_str;
  				break;
  			}
-@@ -2742,6 +2744,8 @@
+@@ -2742,6 +2747,8 @@
  		const ProtobufCFieldDescriptor *field;
  		ScannedMember tmp;
  
@@ -59,7 +69,7 @@
  		if (used == 0) {
  			PROTOBUF_C_UNPACK_ERROR("error parsing tag/wiretype at offset %u",
  						(unsigned) (at - data));
-@@ -2887,6 +2891,7 @@
+@@ -2887,6 +2894,7 @@
  					      field->quantifier_offset);
  			if (*n_ptr != 0) {
  				unsigned n = *n_ptr;
@@ -67,7 +77,7 @@
  				*n_ptr = 0;
  				assert(rv->descriptor != NULL);
  #define CLEAR_REMAINING_N_PTRS()                                              \
-@@ -2896,7 +2901,7 @@
+@@ -2896,7 +2904,7 @@
                    if (field->label == PROTOBUF_C_LABEL_REPEATED)              \
                      STRUCT_MEMBER (size_t, rv, field->quantifier_offset) = 0; \
                  }
@@ -76,7 +86,7 @@
  				if (!a) {
  					CLEAR_REMAINING_N_PTRS();
  					goto error_cleanup;
-@@ -3049,6 +3054,8 @@
+@@ -3049,6 +3057,8 @@
  protobuf_c_boolean
  protobuf_c_message_check(const ProtobufCMessage *message)
  {
@@ -85,7 +95,7 @@
  	if (!message ||
  	    !message->descriptor ||
  	    message->descriptor->magic != PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC)
-@@ -3056,7 +3063,6 @@
+@@ -3056,7 +3066,6 @@
  		return FALSE;
  	}
  

@@ -48,6 +48,9 @@
 #include <stdlib.h>	/* for malloc, free */
 #include <string.h>	/* for strcmp, strlen, memcpy, memmove, memset */
 
+/* Pull WORDS_BIGENDIAN etc */
+#include "config.h"
+
 #include "protobuf-c.h"
 
 #define TRUE				1
