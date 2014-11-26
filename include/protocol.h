@@ -407,6 +407,7 @@ struct gg_chat_left {
 
 #define GG_UIN_INFO 0x007a
 #define GG_TRANSFER_INFO 0x00a0
+#define GG_MAGIC_NOTIFICATION 0x009f
 
 #ifdef _WIN32
 #pragma pack(pop)

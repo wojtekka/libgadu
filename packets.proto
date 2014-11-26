@@ -15,6 +15,7 @@ message GG110Ack
 		MSG = 1;
 		CHAT = 2;
 		CHAT_INFO = 3;
+		MAGIC_NOTIFICATION = 5;
 		MPA = 6;
 		TRANSFER_INFO = 7;
 	}
@@ -223,4 +224,15 @@ message GG112TransferInfo
 	required uint32 seq = 7;
 	required fixed64 msg_id = 1001;
 	required fixed64 conv_id = 1002;
+}
+
+// server -> client
+message GG110MagicNotification
+{
+	required int32 dummy1 = 1 [default = 2];
+	required int32 seq = 2;
+	required int32 dummy2 = 3 [default = 1];
+	required int32 dummy3 = 4 [default = 1];
+	required bytes uin = 5;
+	required string dummy4 = 6 [default = ""];
 }

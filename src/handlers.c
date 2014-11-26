@@ -2716,6 +2716,29 @@ static int gg_session_handle_transfer_info(struct gg_session *gs, uint32_t type,
 	return succ ? 0 : -1;
 }
 
+static int gg_session_handle_magic_notification(struct gg_session *gs, uint32_t type,
+	const char *ptr, size_t len, struct gg_event *ge)
+{
+	GG110MagicNotification *msg = gg110_magic_notification__unpack(NULL, len, (uint8_t*)ptr);
+	int succ = 1;
+
+	if (!GG_PROTOBUF_VALID(gs, "GG110MagicNotification", msg))
+		return -1;
+
+	gg_debug_session(gs, GG_DEBUG_MISC,
+		"// gg_session_handle_magic_notification \n");
+
+	gg_protobuf_expected(gs, "GG110MagicNotification.dummy1", msg->dummy1, 2);
+	gg_protobuf_expected(gs, "GG110MagicNotification.dummy2", msg->dummy2, 1);
+	gg_protobuf_expected(gs, "GG110MagicNotification.dummy3", msg->dummy3, 1);
+
+	succ = (gg_ack_110(gs, GG110_ACK__TYPE__MAGIC_NOTIFICATION, msg->seq, ge) == 0);
+
+	gg110_magic_notification__free_unpacked(msg, NULL);
+
+	return succ ? 0 : -1;
+}
+
 /**
  * \internal Tablica obsługiwanych pakietów
  */
@@ -2776,7 +2799,8 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_OPTIONS, GG_STATE_CONNECTED, 0, gg_session_handle_options },
 	{ GG_ACCESS_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_access_info },
 	{ GG_UIN_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_uin_info },
-	{ GG_TRANSFER_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_transfer_info }
+	{ GG_TRANSFER_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_transfer_info },
+	{ GG_MAGIC_NOTIFICATION, GG_STATE_CONNECTED, 0, gg_session_handle_magic_notification }
 	/* style:maxlinelength:end-ignore */
 };
 
