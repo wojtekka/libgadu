@@ -334,11 +334,6 @@ struct gg_userlist100_reply {
 	/* char reply[]; */
 } GG_PACKED;
 
-struct gg_pong110 {
-	uint8_t dummy;
-	uint32_t time;
-} GG_PACKED;
-
 struct gg_chat_create {
 	uint32_t seq;
 	uint32_t dummy;

@@ -2371,18 +2371,20 @@ static int gg_session_handle_imtoken(struct gg_session *gs, uint32_t type,
 static int gg_session_handle_pong_110(struct gg_session *gs, uint32_t type,
 	const char *ptr, size_t len, struct gg_event *ge)
 {
-	const struct gg_pong110 *pong = (const struct gg_pong110*)ptr;
-	uint32_t server_time;
+	GG110Pong *msg = gg110_pong__unpack(NULL, len, (uint8_t*)ptr);
+
+	if (!GG_PROTOBUF_VALID(gs, "GG110Pong", msg))
+		return -1;
 
 	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd_connected() "
 		"received pong110\n");
 
-	server_time = gg_fix32(pong->time);
-
 	ge->type = GG_EVENT_PONG110;
-	ge->event.pong110.time = server_time;
+	ge->event.pong110.time = msg->server_time;
 
-	gg_sync_time(gs, server_time);
+	gg_sync_time(gs, msg->server_time);
+
+	gg110_pong__free_unpacked(msg, NULL);
 
 	return 0;
 }
@@ -2788,7 +2790,7 @@ static const gg_packet_handler_t handlers[] =
 	{ GG_USERLIST100_VERSION, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_version), gg_session_handle_userlist_100_version },
 	{ GG_USERLIST100_REPLY, GG_STATE_CONNECTED, sizeof(struct gg_userlist100_reply), gg_session_handle_userlist_100_reply },
 	{ GG_IMTOKEN, GG_STATE_CONNECTED, 0, gg_session_handle_imtoken },
-	{ GG_PONG110, GG_STATE_CONNECTED, sizeof(struct gg_pong110), gg_session_handle_pong_110 },
+	{ GG_PONG110, GG_STATE_CONNECTED, 0, gg_session_handle_pong_110 },
 	{ GG_CHAT_INFO, GG_STATE_CONNECTED, 0, gg_session_handle_chat_info },
 	{ GG_CHAT_INFO_UPDATE, GG_STATE_CONNECTED, 0, gg_session_handle_chat_info_update },
 	{ GG_CHAT_CREATED, GG_STATE_CONNECTED, sizeof(struct gg_chat_created), gg_session_handle_chat_created },

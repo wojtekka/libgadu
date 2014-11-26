@@ -7,6 +7,12 @@ message GG110LoginOK
 	required fixed32 server_time = 4;
 }
 
+// server -> client
+message GG110Pong
+{
+	required fixed32 server_time = 1;
+}
+
 // client -> server
 message GG110Ack
 {
