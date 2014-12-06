@@ -251,6 +251,7 @@ static void debug_handler(int level, const char *format, va_list ap)
 	}
 }
 
+#if 0
 static inline void set32(char *ptr, unsigned int value)
 {
 	unsigned char *tmp = (unsigned char*) ptr;
@@ -260,6 +261,7 @@ static inline void set32(char *ptr, unsigned int value)
 	tmp[2] = (value >> 16) & 255;
 	tmp[3] = (value >> 24) & 255;
 }
+#endif
 
 static inline unsigned int get32(char *ptr)
 {
