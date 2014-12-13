@@ -38,9 +38,9 @@ char *gg_oauth_static_nonce;		/* dla unit testów */
 char *gg_oauth_static_timestamp;	/* dla unit testów */
 
 /* copy-paste from common.c */
+#define gg_debug(...)
 int gg_rand(void *buff, size_t len)
 {
-#define gg_debug(...)
 #ifdef _WIN32
 	HCRYPTPROV hProvider = 0;
 	int res = 0;
@@ -91,8 +91,8 @@ int gg_rand(void *buff, size_t len)
 
 	return 0;
 #endif
-#undef gg_debug
 }
+#undef gg_debug
 
 static int uniform_rand_10(void)
 {

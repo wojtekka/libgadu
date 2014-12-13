@@ -873,7 +873,6 @@ char ** gg_strarr_dup(char **strarr)
 
 int gg_rand(void *buff, size_t len)
 {
-#define gg_debug(...)
 #ifdef _WIN32
 	HCRYPTPROV hProvider = 0;
 	int res = 0;
@@ -924,7 +923,6 @@ int gg_rand(void *buff, size_t len)
 
 	return 0;
 #endif
-#undef gg_debug
 }
 
 /*
