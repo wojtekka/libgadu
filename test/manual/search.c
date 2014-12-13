@@ -213,7 +213,6 @@ int main(int argc, char **argv)
 	gg_win32_init_network();
 #endif
 
-	srand(time(NULL));
 	http_init();
 
 	if (argc < 2) {

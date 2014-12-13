@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "libgadu.h"
+#include "internal.h"
 
 /**
  * Rejestruje nowego użytkownika.
@@ -187,6 +188,7 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 {
 	struct gg_http *h;
 	char *__fmpwd, *__pwd, *__tokenid, *__tokenval, *form, *query;
+	uint32_t randval;
 
 	if (!password || !tokenid || !tokenval) {
 		gg_debug(GG_DEBUG_MISC, "=> unregister, NULL parameter\n");
@@ -194,7 +196,10 @@ struct gg_http *gg_unregister3(uin_t uin, const char *password, const char *toke
 		return NULL;
 	}
 
-	__pwd = gg_saprintf("%d", rand());
+	if (!gg_rand(&randval, sizeof(randval)))
+		return NULL;
+
+	__pwd = gg_saprintf("%d", randval);
 	__fmpwd = gg_urlencode(password);
 	__tokenid = gg_urlencode(tokenid);
 	__tokenval = gg_urlencode(tokenval);

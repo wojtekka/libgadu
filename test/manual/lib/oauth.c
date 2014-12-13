@@ -27,9 +27,84 @@
 #include "urlencode.h"
 #include "base64.h"
 #include "oauth_parameter.h"
+#include "fileio.h"
+#include "internal.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 char *gg_oauth_static_nonce;		/* dla unit testów */
 char *gg_oauth_static_timestamp;	/* dla unit testów */
+
+/* copy-paste from common.c */
+int gg_rand(void *buff, size_t len)
+{
+#define gg_debug(...)
+#ifdef _WIN32
+	HCRYPTPROV hProvider = 0;
+	int res = 0;
+
+	if (!CryptAcquireContextW(&hProvider, 0, 0, PROV_RSA_FULL,
+		CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
+	{
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"couldn't acquire crypto context\n");
+		return -1;
+	}
+
+	if (!CryptGenRandom(hProvider, len, buff)) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"couldn't fill random buffer\n");
+		res = -1;
+	}
+
+	CryptReleaseContext(hProvider, 0);
+
+	return res;
+#else
+	uint8_t *buff_b = buff;
+
+	int fd = open("/dev/random", O_RDONLY);
+	if (fd < 0)
+		fd = open("/dev/urandom", O_RDONLY);
+	if (fd < 0) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"couldn't open random device\n");
+		return -1;
+	}
+
+	while (len > 0) {
+		ssize_t got_data = read(fd, buff_b, len);
+		if (got_data < 0) {
+			gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+				"couldn't read from random device\n");
+			close(fd);
+			return -1;
+		}
+
+		buff_b += got_data;
+		len -= got_data;
+	}
+
+	close(fd);
+
+	return 0;
+#endif
+#undef gg_debug
+}
+
+static int uniform_rand_10(void)
+{
+	uint8_t rval;
+
+	do {
+		if (gg_rand(&rval, sizeof(rval)) != 0)
+			exit(-1);
+	} while (rval >= 250);
+
+	return (rval % 10);
+}
 
 static void gg_oauth_generate_nonce(char *buf, int len)
 {
@@ -39,7 +114,9 @@ static void gg_oauth_generate_nonce(char *buf, int len)
 		return;
 
 	while (len > 1) {
-		*buf++ = charset[(unsigned) (((float) sizeof(charset) - 1.0) * rand() / (RAND_MAX + 1.0))];
+		GG_STATIC_ASSERT(sizeof(charset) - 1 == 10,
+			uniform_rand_10_can_only_randomize_10_element_array);
+		*buf++ = charset[uniform_rand_10()];
 		len--;
 	}
 
