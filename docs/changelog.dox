@@ -9,6 +9,10 @@ lub ABI biblioteki. Poprawki dostarczające nową funkcjonalność w większośc
 przypadków nie mają wpływ na interfejs binarny biblioteki. Nowe funkcje,
 stałe i pola struktur nie zmieniają dotychczasowego zachowania.
 
+\section changelog-1_12_1 libgadu 1.12.1
+
+- Brak zmian API/ABI.
+
 \section changelog-1_12_0 libgadu 1.12.0
 
 - Obsługa protokołu Gadu-Gadu 11.
