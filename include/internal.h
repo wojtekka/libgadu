@@ -190,7 +190,6 @@ void gg_image_sendout(struct gg_session *sess);
 
 void gg_strarr_free(char **strarr);
 char ** gg_strarr_dup(char **strarr);
-int gg_rand(void *buff, size_t len);
 
 #ifdef _WIN32
 

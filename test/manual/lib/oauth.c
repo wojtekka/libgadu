@@ -39,7 +39,7 @@ char *gg_oauth_static_timestamp;	/* dla unit testów */
 
 /* copy-paste from common.c */
 #define gg_debug(...)
-int gg_rand(void *buff, size_t len)
+static int gg_rand(void *buff, size_t len)
 {
 #ifdef _WIN32
 	HCRYPTPROV hProvider = 0;
@@ -75,6 +75,7 @@ int gg_rand(void *buff, size_t len)
 	}
 
 	while (len > 0) {
+		/* TODO: handle EINTR */
 		ssize_t got_data = read(fd, buff_b, len);
 		if (got_data < 0) {
 			gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
