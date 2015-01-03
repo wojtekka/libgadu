@@ -267,9 +267,15 @@ AC_ARG_WITH(protobuf,
 
 if test "x$with_protobuf" != "xno"; then
 	PKG_CHECK_MODULES([PROTOBUF_C], [libprotobuf-c >= 1.0.0], [
-		LIBS_PRIVATE="$LIBS_PRIVATE $PROTOBUF_C_LIBS"
-		AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
-		have_protobuf_c=yes
+		protobufc_ver=`$PKG_CONFIG --modversion libprotobuf-c`
+		if test "x$protobufc_ver" = "x1.0.0-rc1"; then
+			echo "WARNING: libprotobuf-c $protobufc_ver found. It's not compatible with 1.0.0 API"
+			have_protobuf_c=no
+		else
+			LIBS_PRIVATE="$LIBS_PRIVATE $PROTOBUF_C_LIBS"
+			AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
+			have_protobuf_c=yes
+		fi
 	], [have_protobuf_c=no])
 else
 	have_protobuf_c=no
