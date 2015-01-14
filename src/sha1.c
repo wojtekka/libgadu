@@ -305,6 +305,9 @@ static int gg_file_hash_sha1_part(int fd, SHA_CTX *ctx, off_t pos, size_t len)
 		if (res == -1 && errno != EINTR)
 			break;
 
+		if (res == 0)
+			break;
+
 		if (res != -1) {
 			if (!SHA1_Update(ctx, buf, res)) {
 				res = -1;
