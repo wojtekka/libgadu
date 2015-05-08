@@ -131,7 +131,7 @@ static void test_file_hash(unsigned int megs, const char *expect)
 	char name[32];
 	uint8_t result[20];
 
-	strcpy(name, "hash.XXXXXX");
+	strcpy(name, "hashdata.XXXXXX");
 
 	fd = gg_mkstemp(name);
 

@@ -10,3 +10,7 @@ for param in "$@" ; do
 	fi
 done
 $newcmd
+
+# bug: _mktemp_s run on wine creates 0444 chmoded file,
+#      so it can't remove temp files by itself
+rm -rf hashdata.*
