@@ -2397,7 +2397,7 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type,
 
 	uint64_t id;
 	uint32_t version;
-	uint32_t dummy1;
+	uint32_t map_size;
 	uint32_t participants_count;
 	uin_t *participants = NULL;
 
@@ -2406,16 +2406,25 @@ static int gg_session_handle_chat_info(struct gg_session *gs, uint32_t type,
 	id = gg_tvbuff_read_uint64(tvb);
 	gg_tvbuff_expected_uint32(tvb, 0); /* unknown */
 	version = gg_tvbuff_read_uint32(tvb);
-	dummy1 = gg_tvbuff_read_uint32(tvb);
-	if (gg_tvbuff_is_valid(tvb) && dummy1 == 1) {
-		uint32_t name_length;
 
-		name_length = gg_tvbuff_read_uint32(tvb);
-		gg_tvbuff_skip(tvb, name_length);
+	map_size = gg_tvbuff_read_uint32(tvb);
+	for (i = 0; i < map_size && gg_tvbuff_is_valid(tvb); i++) {
+		uint32_t key_length;
+		uint32_t value_length;
 
-		gg_tvbuff_expected_uint32(tvb, 0); /* unknown */
+		/* \todo Obsługa opisu (tytułu, tematu) pokoju.
+		 * Jeżeli klucz to "title", to w wartości mamy opis pokoju.
+		 * Dodatkowo, w momencie zmiany opisu pokoju dostajemy pakiet 0x54.
+		 */
+		key_length = gg_tvbuff_read_uint32(tvb);
+		gg_tvbuff_skip(tvb, key_length);
+
+		value_length = gg_tvbuff_read_uint32(tvb);
+		gg_tvbuff_skip(tvb, value_length);
+
 		gg_tvbuff_expected_uint32(tvb, 2); /* unknown */
 	}
+
 	participants_count = gg_tvbuff_read_uint32(tvb);
 	if (id == 0 && participants_count > 0) {
 		gg_debug_session(gs, GG_DEBUG_MISC | GG_DEBUG_WARNING,
