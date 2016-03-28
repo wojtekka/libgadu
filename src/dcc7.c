@@ -29,6 +29,8 @@
  * \brief Obsługa połączeń bezpośrednich od wersji Gadu-Gadu 7.x
  */
 
+#include "internal.h"
+
 #include "fileio.h"
 #include "network.h"
 #include "strman.h"
@@ -39,10 +41,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "libgadu.h"
 #include "protocol.h"
 #include "resolver.h"
-#include "internal.h"
 #include "debug.h"
 
 #ifdef _MSC_VER

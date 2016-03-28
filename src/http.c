@@ -24,11 +24,11 @@
  * \brief Obsługa połączeń HTTP
  */
 
+#include "internal.h"
+
 #include "strman.h"
 #include "network.h"
-#include "libgadu.h"
 #include "resolver.h"
-#include "internal.h"
 
 #include <ctype.h>
 #include <errno.h>

@@ -16,15 +16,15 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <errno.h>
-#include "libgadu.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "network.h"
-#include "internal.h"
 
 /* must be different from INADDR_LOOPBACK=127.0.0.1 */
 #define LOCALHOST "127.0.0.2"

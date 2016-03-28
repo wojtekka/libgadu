@@ -26,18 +26,18 @@
  * \brief Funkcje obsługi przychodzących pakietów
  */
 
+#include "internal.h"
+
 #include <ctype.h>
 
 #include "fileio.h"
 #include "network.h"
 #include "strman.h"
-#include "libgadu.h"
 #include "resolver.h"
 #include "session.h"
 #include "protocol.h"
 #include "encoding.h"
 #include "message.h"
-#include "internal.h"
 #include "deflate.h"
 #include "tvbuff.h"
 #include "protobuf.h"

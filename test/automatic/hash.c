@@ -16,13 +16,13 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 
-#include "libgadu.h"
-#include "internal.h"
 #include "fileio.h"
 
 static inline int

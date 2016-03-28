@@ -24,12 +24,13 @@
  * \brief Bufor wspierający budowanie pakietów typu Type-Value(s)
  */
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "tvbuilder.h"
 
-#include "internal.h"
 #include "fileio.h"
 
 #include <errno.h>

@@ -24,11 +24,11 @@
  * \brief Funkcje kompresji Deflate
  */
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "libgadu.h"
-#include "internal.h"
 #include "deflate.h"
 
 #ifdef GG_CONFIG_HAVE_ZLIB

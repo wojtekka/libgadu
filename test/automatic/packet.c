@@ -16,13 +16,13 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include "libgadu.h"
 #include "network.h"
-#include "internal.h"
 
 enum {
 	EXPECT_NOTHING = 0,

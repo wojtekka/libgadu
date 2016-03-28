@@ -16,13 +16,13 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
-#include "libgadu.h"
-#include "internal.h"
 
 static void test_gg_fix64(void)
 {

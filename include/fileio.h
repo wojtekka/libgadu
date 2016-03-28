@@ -27,6 +27,10 @@
 #ifndef LIBGADU_FILEIO_H
 #define LIBGADU_FILEIO_H
 
+#ifdef LIBGADU_NETWORK_H
+#  error "Always include fileio.h before network.h"
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -26,6 +26,8 @@
  * konwersji między tekstem z atrybutami i HTML.
  */
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>

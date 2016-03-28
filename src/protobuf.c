@@ -24,6 +24,8 @@
  * \brief Funkcje pomocnicze do obsługi formatu protocol buffers
  */
 
+#include "internal.h"
+
 #include "protobuf.h"
 
 #define GG_PROTOBUFF_UIN_MAXLEN 15

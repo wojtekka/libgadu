@@ -26,11 +26,11 @@
  * \brief Funkcje wyznaczania skrótu SHA1
  */
 
+#include "internal.h"
+
 #include <errno.h>
 #include <string.h>
 
-#include "libgadu.h"
-#include "internal.h"
 #include "fileio.h"
 #include "config.h"
 

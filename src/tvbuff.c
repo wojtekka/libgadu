@@ -24,12 +24,12 @@
  * \brief Bufor wspierający obsługę pakietów typu Type-Value(s)
  */
 
+#include "internal.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "tvbuff.h"
-
-#include "internal.h"
 
 struct gg_tvbuff
 {

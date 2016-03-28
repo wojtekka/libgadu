@@ -25,13 +25,15 @@
  *
  * \brief Funkcje odpluskwiania
  */
+
+#include "internal.h"
+
 #include <sys/types.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "libgadu.h"
 #include "debug.h"
 
 /**

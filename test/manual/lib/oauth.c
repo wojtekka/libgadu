@@ -16,6 +16,8 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +30,6 @@
 #include "base64.h"
 #include "oauth_parameter.h"
 #include "fileio.h"
-#include "internal.h"
 
 #ifdef _WIN32
 #include <windows.h>

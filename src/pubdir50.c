@@ -25,6 +25,8 @@
  * testowa konwersja, żeby poznać długość tekstu wynikowego.
  */
 
+#include "internal.h"
+
 #include "network.h"
 #include "strman.h"
 #include <errno.h>
@@ -32,8 +34,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "libgadu.h"
-#include "internal.h"
 #include "encoding.h"
 
 /**

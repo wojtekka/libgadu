@@ -28,14 +28,14 @@
  * \brief Główny moduł biblioteki
  */
 
-#include "strman.h"
-#include "network.h"
-#include "fileio.h"
+#include "internal.h"
 
-#include "libgadu.h"
+#include "strman.h"
+#include "fileio.h"
+#include "network.h"
+
 #include "protocol.h"
 #include "resolver.h"
-#include "internal.h"
 #include "encoding.h"
 #include "debug.h"
 #include "session.h"

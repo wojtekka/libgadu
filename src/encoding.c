@@ -17,11 +17,12 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include "strman.h"
 #include <stdlib.h>
 #include <errno.h>
 
-#include "libgadu.h"
 #include "encoding.h"
 
 /**

@@ -16,6 +16,8 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -34,9 +36,7 @@
 #  define GG_SIMULATE_WIN32_PTHREAD
 #endif
 
-#include "libgadu.h"
 #include "network.h"
-#include "internal.h"
 
 #ifdef GG_CONFIG_HAVE_GNUTLS
 #include <gnutls/gnutls.h>

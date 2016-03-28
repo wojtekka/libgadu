@@ -26,13 +26,13 @@
  * \brief Obsługa katalogu publicznego
  */
 
+#include "internal.h"
+
 #include "network.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "libgadu.h"
 
 /**
  * Rejestruje nowego użytkownika.

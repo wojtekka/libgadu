@@ -26,6 +26,8 @@
  * \brief Funkcje rozwiązywania nazw
  */
 
+#include "internal.h"
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +35,6 @@
 #include "strman.h"
 #include "network.h"
 #include "config.h"
-#include "libgadu.h"
 #include "resolver.h"
 #include "session.h"
 

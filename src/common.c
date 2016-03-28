@@ -25,9 +25,11 @@
  * \brief Funkcje wykorzystywane przez różne moduły biblioteki
  */
 
+#include "internal.h"
+
+#include "fileio.h"
 #include "network.h"
 #include "strman.h"
-#include "fileio.h"
 
 #include <errno.h>
 #include <stdarg.h>
@@ -37,8 +39,6 @@
 #include <time.h>
 
 #include "config.h"
-#include "libgadu.h"
-#include "internal.h"
 
 #ifndef GG_CONFIG_HAVE_VA_COPY
 #  ifdef GG_CONFIG_HAVE___VA_COPY

@@ -16,6 +16,8 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -26,9 +28,7 @@
 #include <signal.h>
 #include <ctype.h>
 
-#include "libgadu.h"
 #include "network.h"
-#include "internal.h"
 #include "userconfig.h"
 
 int test_mode;

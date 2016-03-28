@@ -18,6 +18,8 @@
  *  USA.
  */
 
+#include "internal.h"
+
 #ifndef LIBGADU_PROTOBUF_H
 #define LIBGADU_PROTOBUF_H
 
@@ -32,7 +34,6 @@
 #include "protobuf-c.h"
 #endif
 
-#include "internal.h"
 #include "fileio.h"
 
 typedef size_t (*gg_protobuf_size_cb_t)(const void *message);

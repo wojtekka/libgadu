@@ -26,6 +26,8 @@
  * \brief Obsługa połączeń bezpośrednich do wersji Gadu-Gadu 6.x
  */
 
+#include "internal.h"
+
 #include "fileio.h"
 #include "network.h"
 
@@ -34,9 +36,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "libgadu.h"
 #include "debug.h"
-#include "internal.h"
 
 /**
  * \internal Przekazuje zawartość pakietu do odpluskwiania.

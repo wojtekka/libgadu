@@ -28,7 +28,6 @@
  * \brief Konwersja między różnymi kolejnościami bajtów
  */
 
-#include "libgadu.h"
 #include "internal.h"
 
 /**
