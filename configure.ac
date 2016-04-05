@@ -448,6 +448,18 @@ else
 	have_doxygen="no"
 fi
 
+dnl
+dnl  Ostrzeżenia kompilatora
+dnl
+
+AC_ARG_ENABLE(werror,
+        [  --enable-werror         halt on warnings])
+
+if test "x$enable_werror" == "xyes"; then
+	CFLAGS="$CFLAGS -Werror"
+fi
+
+
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile pkgconfig/Makefile pkgconfig/libgadu.pc docs/Makefile docs/Doxyfile examples/Makefile])
 
 AM_COND_IF([ENABLE_TESTS],
