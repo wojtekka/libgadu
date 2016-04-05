@@ -1,0 +1,8 @@
+syntax: glob
+.*.stamp
+.*.swp
+
+syntax: regexp
+\/artifacts\/
+debian\/aptly\.conf$
+\/_repo\/
