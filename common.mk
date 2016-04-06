@@ -20,9 +20,13 @@ ROOT_DIR := $(WORK_DIR)/../..
 
 REPO_VOLUME := $(shell test -z ${LOCAL_REPO} || printf -- "-v %s:/repo" ${LOCAL_REPO})
 ifeq "$(REPO_VOLUME)" ""
-  REAL_REPO = "$(REPO)"
+	REAL_REPO = "$(REPO)"
 else
-  REAL_REPO = "file:///repo"
+	REAL_REPO = "file:///repo"
+endif
+
+ifneq "${SET_CC}" ""
+	CC_OVERRIDE := -e CC=${SET_CC}
 endif
 
 builder: $(BUILDER_ARTIFACT_STAMP)
@@ -43,6 +47,7 @@ $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT)
 		-e REPO=$(REAL_REPO) \
 		-e UID=$(UID) \
 		-e GID=$(GID) \
+		$(CC_OVERRIDE) \
 		$(EXTRA_ENVIRONMENT) \
 		$(DOCKER_IMAGE) \
 		/build-common.sh
