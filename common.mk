@@ -29,6 +29,10 @@ ifneq "${SET_CC}" ""
 	CC_OVERRIDE := -e CC=${SET_CC}
 endif
 
+ifneq "${CONFIGURE_FLAGS}" ""
+	CONFIGURE_FLAGS := -e CONFIGURE_FLAGS="${CONFIGURE_FLAGS}"
+endif
+
 builder: $(BUILDER_ARTIFACT_STAMP)
 
 builder-clean:
@@ -48,6 +52,7 @@ $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT)
 		-e UID=$(UID) \
 		-e GID=$(GID) \
 		$(CC_OVERRIDE) \
+		$(CONFIGURE_FLAGS) \
 		$(EXTRA_ENVIRONMENT) \
 		$(DOCKER_IMAGE) \
 		/build-common.sh
