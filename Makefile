@@ -3,9 +3,11 @@
 .PHONY: all clean
 
 all:
-	$(MAKE) -C opensuse
 	$(MAKE) -C fedora
+	$(MAKE) -C opensuse
+	$(MAKE) -C ubuntu
 
 clean:
-	$(MAKE) -C opensuse clean
 	$(MAKE) -C fedora clean
+	$(MAKE) -C opensuse clean
+	$(MAKE) -C ubuntu clean
