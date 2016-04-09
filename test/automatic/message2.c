@@ -430,6 +430,13 @@ int main(int argc, char **argv)
 {
 	size_t i;
 
+#ifdef HAVE_LIBXML2
+	if (xmlFindCharEncodingHandler("windows-1250") == NULL) {
+		printf("WARNING: CP1250 support is missing, forcing ISO-8859-1\n");
+		xmlAddEncodingAlias("iso-8859-1", "windows-1250");
+	}
+#endif
+
 	for (i = 0; i < sizeof(text_to_html) / sizeof(text_to_html[0]); i++) {
 		test_text_to_html(text_to_html[i].src,
 			(const unsigned char*) text_to_html[i].attr,

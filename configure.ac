@@ -418,7 +418,7 @@ if test "x$enable_tests" != "xno"; then
 	dnl  Sprawdź, czy mamy libxml2 do testów automatycznych
 	dnl
 
-	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0], [
+	PKG_CHECK_MODULES([LIBXML2], [libxml-2.0 >= 2.2.3], [
 		have_libxml2="yes"
 		AC_DEFINE([HAVE_LIBXML2], [], [Defined if libxml2 is available.])
 	], [
