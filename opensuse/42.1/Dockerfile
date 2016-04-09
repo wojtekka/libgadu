@@ -1,5 +1,4 @@
 FROM opensuse:42.1
-MAINTAINER Tomasz Wasilczyk
 
 RUN zypper -n install \
 		git \

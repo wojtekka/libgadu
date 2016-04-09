@@ -1,5 +1,4 @@
 FROM ubuntu:trusty
-MAINTAINER Tomasz Wasilczyk
 
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \

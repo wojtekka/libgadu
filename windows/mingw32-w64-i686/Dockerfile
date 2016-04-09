@@ -1,5 +1,4 @@
 FROM opensuse:tumbleweed
-MAINTAINER Tomasz Wasilczyk
 
 COPY install-winbind.sh /
 

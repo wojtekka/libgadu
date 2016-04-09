@@ -1,5 +1,4 @@
 FROM fedora:23
-MAINTAINER Tomasz Wasilczyk
 
 RUN dnf install -y \
 		git \
