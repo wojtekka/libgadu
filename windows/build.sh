@@ -5,7 +5,7 @@ export PKG_CONFIG=/usr/bin/i686-w64-mingw32-pkg-config
 export WINEPREFIX="/.wine32"
 
 # TODO: --enable-werror
-export LIBGADU_FLAGS="--host=i686-w64-mingw32 --target=i686-w64-mingw32 CC=i686-w64-mingw32-gcc \
+export LIBGADU_FLAGS="--host=${TARGET} --target=${TARGET} CC=${TARGET}-gcc \
 	--enable-shared --disable-static --with-c99-vsnprintf --with-pthread \
 	${CONFIGURE_FLAGS}"
 ./autogen.sh $LIBGADU_FLAGS

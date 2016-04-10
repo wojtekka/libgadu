@@ -1,6 +1,6 @@
 FROM opensuse:tumbleweed
 
-COPY install-winbind.sh /
+COPY .deps/install-winbind.sh /
 
 RUN /install-winbind.sh && \
 	zypper addrepo -f -G \

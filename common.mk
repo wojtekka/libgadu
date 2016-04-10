@@ -35,7 +35,7 @@ builder: $(BUILDER_ARTIFACT_STAMP)
 builder-clean:
 	rm -f $(BUILDER_ARTIFACT_STAMP)
 
-$(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT)
+$(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT) $(ROOT_DIR)/build-common.sh
 	rm -rf $(BUILDER_ARTIFACT_DIR)
 	mkdir -p $(BUILDER_ARTIFACT_DIR)
 	docker pull $(DOCKER_IMAGE) || true

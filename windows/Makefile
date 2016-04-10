@@ -4,6 +4,8 @@
 
 all:
 	$(MAKE) -C mingw32-w64-i686
+	$(MAKE) -C mingw32-w64-x86_64
 
 clean:
 	$(MAKE) -C mingw32-w64-i686 clean
+	$(MAKE) -C mingw32-w64-x86_64 clean

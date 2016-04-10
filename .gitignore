@@ -1,3 +1,4 @@
 *.stamp
 *.swp
 **/artifacts/
+.deps
