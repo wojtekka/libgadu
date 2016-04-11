@@ -4,6 +4,7 @@
 
 all:
 	$(MAKE) -C check-style
+	$(MAKE) -C debian
 	$(MAKE) -C fedora
 	$(MAKE) -C opensuse
 	$(MAKE) -C scan-build
@@ -12,6 +13,7 @@ all:
 
 clean:
 	$(MAKE) -C check-style clean
+	$(MAKE) -C debian clean
 	$(MAKE) -C fedora clean
 	$(MAKE) -C opensuse clean
 	$(MAKE) -C scan-build clean
