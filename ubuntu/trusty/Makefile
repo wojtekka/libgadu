@@ -9,6 +9,5 @@ DOCKER_IMAGE := libgadu/builder-ubuntu:trusty
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
 
 include $(ROOT_DIR)/common.mk

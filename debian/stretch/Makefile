@@ -9,6 +9,5 @@ DOCKER_IMAGE := libgadu/builder-debian:stretch
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
 
 include $(ROOT_DIR)/common.mk

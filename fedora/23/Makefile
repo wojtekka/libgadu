@@ -9,6 +9,5 @@ DOCKER_IMAGE := libgadu/builder-fedora:23
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
 
 include $(ROOT_DIR)/common.mk

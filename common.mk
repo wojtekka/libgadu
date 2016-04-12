@@ -34,6 +34,8 @@ builder: $(BUILDER_ARTIFACT_STAMP)
 
 builder-clean:
 	rm -f $(BUILDER_ARTIFACT_STAMP)
+	rm -rf artifacts
+	rm -rf .deps
 
 $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT) $(ROOT_DIR)/build-common.sh
 	rm -rf $(BUILDER_ARTIFACT_DIR)

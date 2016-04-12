@@ -2,6 +2,7 @@
 
 .PHONY: all clean
 
+# Deliberately not adding coverity here.
 all:
 	$(MAKE) -C check-style
 	$(MAKE) -C debian
@@ -13,6 +14,7 @@ all:
 
 clean:
 	$(MAKE) -C check-style clean
+	$(MAKE) -C coverity clean
 	$(MAKE) -C debian clean
 	$(MAKE) -C fedora clean
 	$(MAKE) -C opensuse clean

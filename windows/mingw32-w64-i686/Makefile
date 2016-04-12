@@ -11,8 +11,6 @@ EXTRA_ENVIRONMENT := -e TARGET=i686-w64-mingw32
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
-	rm -rf .deps
 
 .deps/install-winbind.sh: $(shell pwd)/../install-winbind.sh
 	mkdir .deps

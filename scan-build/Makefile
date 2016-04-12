@@ -9,6 +9,5 @@ DOCKER_IMAGE := libgadu/builder-scan-build:latest
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
 
 include $(ROOT_DIR)/common.mk

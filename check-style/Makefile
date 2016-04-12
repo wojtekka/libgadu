@@ -11,6 +11,5 @@ EXTRA_ENVIRONMENT := -v $(shell pwd)/vera-config:/vera-config
 all: builder-artifacts
 
 clean: builder-clean
-	rm -rf artifacts
 
 include $(ROOT_DIR)/common.mk
