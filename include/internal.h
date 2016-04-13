@@ -214,6 +214,7 @@ char ** gg_strarr_dup(char **strarr);
 
 #ifdef _WIN32
 
+#include <winsock2.h>
 #include <windows.h>
 
 typedef struct {

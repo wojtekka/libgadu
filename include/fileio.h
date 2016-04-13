@@ -50,8 +50,12 @@
 #  define fstat _fstat
 #  undef write
 #  define write _write
-#  define S_IRWXO 0
-#  define S_IRWXG 0
+#  ifndef S_IRWXO
+#    define S_IRWXO 0
+#  endif
+#  ifndef S_IRWXG
+#    define S_IRWXG 0
+#  endif
 #else
 #  ifdef sun
 #    include <sys/filio.h>
