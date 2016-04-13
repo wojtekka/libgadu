@@ -4,9 +4,8 @@ export PKG_CONFIG_PATH=/usr/i686-w64-mingw32/sys-root/mingw/lib/pkgconfig:/usr/i
 export PKG_CONFIG=/usr/bin/i686-w64-mingw32-pkg-config
 export WINEPREFIX="/.wine32"
 
-# TODO: --enable-werror
 export LIBGADU_FLAGS="--host=${TARGET} --target=${TARGET} CC=${TARGET}-gcc \
 	--enable-shared --disable-static --with-c99-vsnprintf --with-pthread \
-	${CONFIGURE_FLAGS}"
+	--enable-werror ${CONFIGURE_FLAGS}"
 ./autogen.sh $LIBGADU_FLAGS
 DISTCHECK_CONFIGURE_FLAGS="$LIBGADU_FLAGS" make distcheck
