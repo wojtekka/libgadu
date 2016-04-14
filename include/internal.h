@@ -38,6 +38,7 @@
 #  error "internal.h must be included first"
 #endif
 
+#include "config.h"
 #include "libgadu.h"
 
 #define GG_DEFAULT_CLIENT_VERSION_100 "10.1.0.11070"

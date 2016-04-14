@@ -64,6 +64,8 @@ AC_SUBST([MINGW_LIBGEN])
 AC_SUBST([MINGW_LIBDATA])
 AC_SUBST([LDFLAGS_NO_INSTALL])
 
+AC_CHECK_FUNCS([mkstemp])
+
 AC_C_BIGENDIAN
 
 if test "x$ac_cv_c_bigendian" = "xyes"; then

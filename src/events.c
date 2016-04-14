@@ -39,7 +39,6 @@
 #include "debug.h"
 #include "session.h"
 #include "resolver.h"
-#include "config.h"
 
 #include <errno.h>
 #include <string.h>

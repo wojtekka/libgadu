@@ -19,8 +19,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "base64.h"
 #include "config.h"
+
+#include "base64.h"
 
 #ifdef HAVE_OPENSSL
 

@@ -21,7 +21,6 @@
 #include <string.h>
 #include "libgadu.h"
 #include "message.h"
-#include "config.h"
 #ifdef HAVE_LIBXML2
 #include <libxml/parser.h>
 #include <libxml/tree.h>

@@ -799,8 +799,8 @@ int gg_dcc7_handle_info(struct gg_session *sess, struct gg_event *e, const void 
 
 			gg_debug_session(sess, GG_DEBUG_MISC,
 				"// gg_dcc7_handle_info() info.str=%s, "
-				"info.id=%llu, sess.id=%llu\n", tmp + 2, cid,
-				*((unsigned long long*) &dcc->cid));
+				"info.id=%" PRIu64 ", sess.id=%" PRIu64 "\n", tmp + 2, cid,
+				*((uint64_t*) &dcc->cid));
 
 			cid = gg_fix64(cid);
 

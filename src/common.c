@@ -38,8 +38,6 @@
 #include <ctype.h>
 #include <time.h>
 
-#include "config.h"
-
 #ifndef GG_CONFIG_HAVE_VA_COPY
 #  ifdef GG_CONFIG_HAVE___VA_COPY
 #    define va_copy(dest, src) __va_copy((dest), (src))

@@ -32,7 +32,6 @@
 #include <string.h>
 
 #include "fileio.h"
-#include "config.h"
 
 /** \cond ignore */
 

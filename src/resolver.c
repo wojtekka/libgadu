@@ -34,7 +34,6 @@
 
 #include "strman.h"
 #include "network.h"
-#include "config.h"
 #include "resolver.h"
 #include "session.h"
 
@@ -99,8 +98,8 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 	char *new_buf = NULL;
 	struct hostent he;
 	struct hostent *he_ptr = NULL;
-	size_t buf_len = 1024;
-	int res = -1;
+	size_t buf_len;
+	int res;
 	int h_errnop;
 	int ret = 0;
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -119,6 +118,8 @@ int gg_gethostbyname_real(const char *hostname, struct in_addr **result, unsigne
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old_state);
 #endif
 
+	buf_len = 1024;
+	res = -1;
 	buf = malloc(buf_len);
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
@@ -283,7 +284,7 @@ static int gg_resolver_run(int fd, const char *hostname, int pthread)
 {
 	struct in_addr addr_ip[2], *addr_list = NULL;
 	unsigned int addr_count;
-	int res = 0;
+	int res;
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	int old_state;
 #endif
@@ -291,6 +292,8 @@ static int gg_resolver_run(int fd, const char *hostname, int pthread)
 #ifdef GG_CONFIG_HAVE_PTHREAD
 	pthread_cleanup_push(gg_resolver_cleaner, &addr_list);
 #endif
+
+	res = 0;
 
 	if ((addr_ip[0].s_addr = inet_addr(hostname)) == INADDR_NONE) {
 		if (gg_gethostbyname_real(hostname, &addr_list, &addr_count, pthread) == -1) {

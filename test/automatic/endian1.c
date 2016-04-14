@@ -22,8 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
-
 static void test_gg_fix64(void)
 {
 	const char *source = "\xff\xee\xdd\xcc\xbb\xaa\x99\x88";

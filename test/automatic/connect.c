@@ -28,7 +28,6 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include "config.h"
 
 #if defined(GG_CONFIG_HAVE_PTHREAD)
 #  include <pthread.h>

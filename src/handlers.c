@@ -1431,7 +1431,7 @@ static int gg_session_handle_recv_msg_110(struct gg_session *gs, uint32_t type,
 	ev->seq = seq;
 	ev->time = msg->time;
 
-	if (abs(msg->time - gg_server_time(gs)) > 2)
+	if (labs(msg->time - gg_server_time(gs)) > 2)
 		ev->msgclass |= GG_CLASS_QUEUED;
 
 	ev->message = NULL;
