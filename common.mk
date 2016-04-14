@@ -2,6 +2,7 @@
 
 BRANCH ?= master
 REPO ?= https://github.com/wojtekka/libgadu.git
+STAY_INTERACTIVE ?= no
 
 .PHONY: all clean builder-artifacts docker-image docker-push
 
@@ -30,6 +31,12 @@ ifneq "${CONFIGURE_FLAGS}" ""
 	CONFIGURE_FLAGS := -e CONFIGURE_FLAGS="${CONFIGURE_FLAGS}"
 endif
 
+ifeq "$(STAY_INTERACTIVE)" "no"
+	DOCKER_RUN_FLAGS := --rm
+else
+	DOCKER_RUN_FLAGS := -t -i -e STAY_INTERACTIVE=yes
+endif
+
 builder: $(BUILDER_ARTIFACT_STAMP)
 
 builder-clean:
@@ -41,7 +48,7 @@ $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT) $(ROOT_DIR)/build-common.sh
 	rm -rf $(BUILDER_ARTIFACT_DIR)
 	mkdir -p $(BUILDER_ARTIFACT_DIR)
 	docker pull $(DOCKER_IMAGE) || true
-	docker run --rm \
+	docker run $(DOCKER_RUN_FLAGS) \
 		-v $(WORK_DIR)/$(BUILDER_ARTIFACT_DIR):/artifacts/ \
 		-v $(BUILD_SCRIPT):/build.sh \
 		-v $(ROOT_DIR)/build-common.sh:/build-common.sh \
