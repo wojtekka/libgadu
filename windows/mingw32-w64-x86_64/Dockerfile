@@ -16,3 +16,6 @@ RUN /install-winbind.sh && \
 		mingw64-gnutls mingw64-libxml2-2 \
 	&& \
 	zypper -n clean --all
+
+# I'm not sure, why it's necessary for x64, while it doesn work out-of-the-box for x32
+ENV WINE_SET_PATH='Z:\\usr\\x86_64-w64-mingw32\\sys-root\\mingw\\bin'
