@@ -363,7 +363,7 @@ static int gg_session_handle_welcome(struct gg_session *gs, uint32_t type,
 static int gg_session_handle_login_ok(struct gg_session *gs, uint32_t type,
 	const char *ptr, size_t len, struct gg_event *ge)
 {
-	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() login succeded\n");
+	gg_debug_session(gs, GG_DEBUG_MISC, "// gg_watch_fd() login succeeded\n");
 	ge->type = GG_EVENT_CONN_SUCCESS;
 	gs->state = GG_STATE_CONNECTED;
 	gs->check = GG_CHECK_READ;
