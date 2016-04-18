@@ -1281,7 +1281,7 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess,
 		break;
 	}
 
-	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeded:\n");
+	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation succeeded:\n");
 	gg_debug_session(sess, GG_DEBUG_MISC, "//   cipher: VERS-%s:%s:%s:%s:COMP-%s\n",
 		gnutls_protocol_get_name(gnutls_protocol_get_version(GG_SESSION_GNUTLS(sess))),
 		gnutls_cipher_get_name(gnutls_cipher_get(GG_SESSION_GNUTLS(sess))),
@@ -1379,7 +1379,7 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess,
 	}
 
 	gg_debug_session(sess, GG_DEBUG_MISC, "// gg_watch_fd() TLS negotiation"
-		" succeded:\n//   cipher: %s\n",
+		" succeeded:\n//   cipher: %s\n",
 		SSL_get_cipher_name(GG_SESSION_OPENSSL(sess)));
 
 	peer = SSL_get_peer_certificate(GG_SESSION_OPENSSL(sess));
