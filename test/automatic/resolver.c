@@ -34,7 +34,7 @@ int connect_flag;
 
 #undef gethostbyname
 #ifdef _WIN32
-static inline struct hostent *my_gethostbyname(const char *name)
+static struct hostent * WSAAPI my_gethostbyname(const char *name)
 #else
 struct hostent *gethostbyname(const char *name)
 #endif
@@ -98,7 +98,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 #ifdef _WIN32
 static gg_win32_hook_data_t connect_hook;
 
-static inline int my_connect(int fd, const struct sockaddr *sa, socklen_t sa_len)
+static int WSAAPI my_connect(SOCKET s, const struct sockaddr *sa, int sa_len)
 {
 	int ret;
 	struct sockaddr_in *sin = (struct sockaddr_in *)sa;
@@ -111,7 +111,7 @@ static inline int my_connect(int fd, const struct sockaddr *sa, socklen_t sa_len
 	}
 
 	gg_win32_hook_set_enabled(&connect_hook, 0);
-	ret = connect(fd, sa, sa_len);
+	ret = connect(s, sa, sa_len);
 	gg_win32_hook_set_enabled(&connect_hook, 1);
 
 	return ret;

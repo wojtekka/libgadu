@@ -297,7 +297,7 @@ static int h_errno;
 
 #undef gethostbyname
 #ifdef _WIN32
-static struct hostent *my_gethostbyname(const char *name)
+static struct hostent * WSAAPI my_gethostbyname(const char *name)
 #else
 struct hostent *gethostbyname(const char *name)
 #endif
@@ -374,7 +374,7 @@ int gethostbyname_r(const char *name, struct hostent *ret, char *buf,
 #ifdef _WIN32
 static gg_win32_hook_data_t connect_hook;
 
-static int my_connect(SOCKET socket, const struct sockaddr *address, int address_len)
+static int WSAAPI my_connect(SOCKET socket, const struct sockaddr *address, int address_len)
 #else
 int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 #endif
@@ -535,7 +535,7 @@ int connect(int socket, const struct sockaddr *address, socklen_t address_len)
 #ifdef _WIN32
 static gg_win32_hook_data_t get_last_error_hook;
 
-static int my_get_last_error(void)
+static int WSAAPI my_get_last_error(void)
 {
 	int result;
 

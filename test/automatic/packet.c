@@ -104,7 +104,7 @@ struct {
 
 #undef recv
 #ifdef _WIN32
-static int my_recv(SOCKET fd, char *buf, int len, int flags)
+static int WSAAPI my_recv(SOCKET fd, char *buf, int len, int flags)
 #else
 ssize_t recv(int fd, void *buf, size_t len, int flags)
 #endif
@@ -255,7 +255,7 @@ struct {
 
 #undef send
 #ifdef _WIN32
-static int my_send(SOCKET fd, const char *buf, int len, int flags)
+static int WSAAPI my_send(SOCKET fd, const char *buf, int len, int flags)
 #else
 ssize_t send(int fd, const void *buf, size_t len, int flags)
 #endif
@@ -381,7 +381,7 @@ static void test_send_packet(void)
 
 #ifdef _WIN32
 
-static int my_get_last_error(void)
+static int WSAAPI my_get_last_error(void)
 {
 	return errno;
 }
