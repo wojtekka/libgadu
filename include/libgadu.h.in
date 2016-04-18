@@ -33,10 +33,6 @@
 #ifndef LIBGADU_LIBGADU_H
 #define LIBGADU_LIBGADU_H
 
-#ifdef _WIN32
-#pragma pack(push, 1)
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -151,6 +147,10 @@ typedef SSIZE_T ssize_t;
      __attribute__((format (printf, (format_idx), (arg_idx))))
 #else
 #  define GG_GNUC_PRINTF(format_idx, arg_idx)
+#endif
+
+#ifdef _WIN32
+#pragma pack(push, 1)
 #endif
 
 /** \endcond */
@@ -2616,12 +2616,12 @@ struct gg_dcc7_id_reply {
 #define GG_CHAT_INFO_UPDATE_ENTERED 0x01
 #define GG_CHAT_INFO_UPDATE_EXITED 0x03
 
-#ifdef __cplusplus
-}
-#endif
-
 #ifdef _WIN32
 #pragma pack(pop)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* LIBGADU_LIBGADU_H */
