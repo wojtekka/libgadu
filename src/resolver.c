@@ -528,12 +528,10 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 	data = (struct gg_resolver_pthread_data *) *priv_data;
 	*priv_data = NULL;
 
-	if (force) {
-		pthread_detach(data->thread);
+	if (force)
 		pthread_cancel(data->thread);
-	} else {
-		pthread_join(data->thread, NULL);
-	}
+
+	pthread_join(data->thread, NULL);
 
 	free(data);
 }
