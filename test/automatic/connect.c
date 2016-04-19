@@ -33,6 +33,9 @@
 #  include <pthread.h>
 #elif defined(_WIN32)
 #  define GG_SIMULATE_WIN32_PTHREAD
+#else
+/* pthreads are required to run server thread */
+#  error "pthreads missing"
 #endif
 
 #include "network.h"

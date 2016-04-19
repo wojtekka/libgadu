@@ -429,9 +429,12 @@ if test "x$enable_tests" != "xno"; then
 fi
 
 AM_CONDITIONAL([HAVE_GLIBC], [test "x$have_glibc" = "xyes"])
-AM_CONDITIONAL([HAVE_GNUTLS_TESTS], [test "x$have_gnutls" = "xyes"])
 AM_CONDITIONAL([HAVE_CURL_AND_EXPAT], [test "x$have_curl" = "xyes" -a "x$have_expat" = "xyes"])
 AM_CONDITIONAL([HAVE_PERL], [test "x$have_perl" = "xyes"])
+
+AM_CONDITIONAL([BUILD_CONNECT_TEST], [test \( "x$have_glibc" = "xyes" -a \
+	"x$have_gnutls" = "xyes" -a "x$have_pthread" = "xyes" \) -o \
+	"x$is_mingw" = "xyes"])
 
 dnl
 dnl  Sprawdź, czy mamy czym generować dokumentację

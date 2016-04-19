@@ -410,6 +410,7 @@ static int test_set_get(void)
 
 	gg_free_session(gs);
 
+#ifdef GG_CONFIG_HAVE_PTHREAD
 	/* Test globalnych ustawień + lokalne */
 
 	printf("Testing local pthread resolver\n");
@@ -427,6 +428,7 @@ static int test_set_get(void)
 	}
 
 	gg_free_session(gs);
+#endif /* GG_CONFIG_HAVE_PTHREAD */
 #endif /* GG_CONFIG_HAVE_FORK */
 
 #ifdef GG_CONFIG_HAVE_PTHREAD
