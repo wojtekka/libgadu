@@ -874,10 +874,10 @@ int gg_session_set_resolver(struct gg_session *gs, gg_resolver_t type)
 			return 0;
 		}
 
-#ifdef GG_CONFIG_HAVE_PTHREAD
-		type = GG_RESOLVER_PTHREAD;
-#elif defined(_WIN32)
+#ifdef _WIN32
 		type = GG_RESOLVER_WIN32;
+#elif defined(GG_CONFIG_HAVE_PTHREAD)
+		type = GG_RESOLVER_PTHREAD;
 #elif defined(GG_CONFIG_HAVE_FORK)
 		type = GG_RESOLVER_FORK;
 #endif
@@ -1001,10 +1001,10 @@ int gg_http_set_resolver(struct gg_http *gh, gg_resolver_t type)
 			return 0;
 		}
 
-#ifdef GG_CONFIG_HAVE_PTHREAD
-		type = GG_RESOLVER_PTHREAD;
-#elif defined(_WIN32)
+#ifdef _WIN32
 		type = GG_RESOLVER_WIN32;
+#elif defined(GG_CONFIG_HAVE_PTHREAD)
+		type = GG_RESOLVER_PTHREAD;
 #elif defined(GG_CONFIG_HAVE_FORK)
 		type = GG_RESOLVER_FORK;
 #endif
