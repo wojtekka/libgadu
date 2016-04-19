@@ -528,10 +528,20 @@ static void gg_resolver_pthread_cleanup(void **priv_data, int force)
 	data = (struct gg_resolver_pthread_data *) *priv_data;
 	*priv_data = NULL;
 
+#ifdef _WIN32
+	/* Mingw's implementation of pthreads seems to not like pthread_cancel.
+	 * Let's detach the thread and let it complete in background.
+	 */
+	if (force)
+		pthread_detach(data->thread);
+	else
+		pthread_join(data->thread, NULL);
+#else
 	if (force)
 		pthread_cancel(data->thread);
 
 	pthread_join(data->thread, NULL);
+#endif
 
 	free(data);
 }
