@@ -6,5 +6,6 @@ RUN zypper -n install \
 		libgnutls-devel doxygen \
 		libcurl-devel libexpat-devel libxml2-devel glibc-locale \
 		clang \
+		valgrind gdb \
 	&& \
 	zypper -n clean --all
