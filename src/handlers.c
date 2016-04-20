@@ -2512,6 +2512,7 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs,
 				"// gg_session_handle_chat_info_update() "
 				"out of memory (count=%u)\n",
 				chat->participants_count);
+			gg110_chat_info_update__free_unpacked(msg, NULL);
 			return -1;
 		}
 		chat->participants_count++;
