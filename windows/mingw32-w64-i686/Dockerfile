@@ -14,5 +14,6 @@ RUN /install-winbind.sh && \
 		mingw32-libcurl-devel mingw32-libexpat-devel mingw32-libxml2-devel \
 		wine \
 		mingw32-gnutls mingw32-libxml2-2 \
+		zip \
 	&& \
 	zypper -n clean --all

@@ -12,8 +12,6 @@ cd libgadu
 
 . /build.sh
 
-find -name "*.log" -exec cp {} /artifacts/ \;
-
 export EXIT_CODE=0
 
 if [ -n "${STAY_INTERACTIVE}" ]; then

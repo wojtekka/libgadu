@@ -4,7 +4,9 @@ ROOT_DIR := $(shell pwd)/../..
 BUILD_SCRIPT := $(shell pwd)/../build.sh
 DOCKER_IMAGE := libgadu/builder-windows:mingw32-w64-x86_64
 
-EXTRA_ENVIRONMENT := -e TARGET=x86_64-w64-mingw32
+EXTRA_ENVIRONMENT := \
+	-e TARGET=x86_64-w64-mingw32 \
+	-e SIMPLE_TARGET=win64
 
 .PHONY: all clean
 
