@@ -9,6 +9,7 @@ trap "chown -R ${UID}:${GID} /artifacts; exit \${EXIT_CODE}" INT QUIT TERM EXIT
 
 git clone -b ${BRANCH} ${REPO} libgadu
 cd libgadu
+git reset --hard ${REVISION}
 
 . /build.sh
 

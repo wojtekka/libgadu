@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 BRANCH ?= master
+REVISION ?= HEAD
 REPO ?= https://github.com/wojtekka/libgadu.git
 STAY_INTERACTIVE ?= no
 
@@ -54,6 +55,7 @@ $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT) $(ROOT_DIR)/build-common.sh
 		-v $(ROOT_DIR)/build-common.sh:/build-common.sh \
 		$(REPO_VOLUME) \
 		-e BRANCH=$(BRANCH) \
+		-e REVISION=$(REVISION) \
 		-e REPO=$(REAL_REPO) \
 		-e UID=$(UID) \
 		-e GID=$(GID) \
