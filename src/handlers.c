@@ -2521,15 +2521,14 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs,
 		for (idx = 0; idx < chat->participants_count; idx++)
 			if (chat->participants[idx] == participant)
 				break;
-		if (chat->participants_count > 1 &&
-			idx < chat->participants_count)
-			chat->participants[idx] = chat->participants[chat->participants_count - 1];
 		if (idx < chat->participants_count) {
 			chat->participants_count--;
 			if (chat->participants_count == 0) {
 				free(chat->participants);
 				chat->participants = NULL;
 			} else {
+				chat->participants[idx] =
+					chat->participants[chat->participants_count];
 				chat->participants = realloc(chat->participants,
 					sizeof(uin_t)*chat->participants_count);
 			}
