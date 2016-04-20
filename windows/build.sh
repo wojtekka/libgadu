@@ -33,6 +33,7 @@ cp /libgadu/test/automatic/.libs/*.exe ${PKG_DIR}tests/
 cp /libgadu/COPYING ${PKG_DIR}tests/
 
 cd /pkg-build/
+mv ${PKG_NAME}/deps/libxml2-*.dll ${PKG_NAME}tests/
 zip -r9X /artifacts/${PKG_NAME}.zip ${PKG_NAME}/
 zip -r9X /artifacts/${PKG_NAME}tests.zip ${PKG_NAME}tests/
 cd -
