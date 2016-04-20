@@ -2505,7 +2505,7 @@ static int gg_session_handle_chat_info_update(struct gg_session *gs,
 	if (msg->update_type == GG_CHAT_INFO_UPDATE_ENTERED) {
 		uin_t *old_part = chat->participants;
 		chat->participants = realloc(chat->participants,
-			sizeof(uin_t) * chat->participants_count);
+			sizeof(uin_t) * (chat->participants_count + 1));
 		if (chat->participants == NULL) {
 			chat->participants = old_part;
 			gg_debug_session(gs, GG_DEBUG_ERROR,
