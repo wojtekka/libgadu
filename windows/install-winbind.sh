@@ -8,7 +8,13 @@ set -e
 
 export REPO="http://download.opensuse.org/tumbleweed/repo/oss/suse"
 
-zypper in -y wget
+zypper in -y wget | tee /wget-deps
+WGET_DEPS=`cat /wget-deps | grep -A 1 -e 'The following [0-9]\+ NEW packages' | tail -n 1`
+rm /wget-deps
+if [[ "$WGET_DEPS" != *"wget"* ]]; then
+	echo "Can't retrieve wget deps"
+	exit -1
+fi
 
 # fetch samba-winbind package name
 wget "${REPO}/setup/descr/packages.gz"
@@ -20,7 +26,7 @@ wget "${REPO}/x86_64/${SMB_PKG}" -O "${SMB_PKG}"
 rpm -i --nodeps "${SMB_PKG}"
 
 # cleanup
-zypper rm -y libicu56_1 libicu56_1-ledata libmetalink3 libpsl5 timezone wget
+zypper rm -y ${WGET_DEPS}
 rm "${SMB_PKG}"
 rm packages
 rm $0
