@@ -607,10 +607,23 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 	}
 
 	data = malloc(sizeof(struct gg_resolver_pthread_data));
-	params = malloc(sizeof(struct gg_resolver_pthread_params));
+	if (data == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() "
+			"out of memory for resolver data\n");
+		goto cleanup;
+	}
 
-	if (data == NULL || params == NULL) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() out of memory for resolver data\n");
+	params = malloc(sizeof(struct gg_resolver_pthread_params));
+	if (params == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() "
+			"out of memory for resolver parameters\n");
+		goto cleanup;
+	}
+
+	params->hostname = strdup(hostname);
+	if (params->hostname == NULL) {
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() "
+			"out of memory for hostname\n");
 		goto cleanup;
 	}
 
@@ -620,15 +633,8 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 			errno, strerror(errno));
 		goto cleanup;
 	}
-	pipe_ready = 1;
-
 	params->wfd = pipes[1];
-	params->hostname = strdup(hostname);
-
-	if (params->hostname == NULL) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() out of memory\n");
-		goto cleanup;
-	}
+	pipe_ready = 1;
 
 	if (pthread_barrier_init(&init_barrier, NULL, 2) != 0) {
 		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() "
@@ -638,7 +644,8 @@ static int gg_resolver_pthread_start(int *fd, void **priv_data, const char *host
 	params->init_barrier = &init_barrier;
 
 	if (pthread_create(&data->thread, NULL, gg_resolver_pthread_thread, params)) {
-		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() unable to create thread\n");
+		gg_debug(GG_DEBUG_MISC, "// gg_resolver_pthread_start() "
+			"unable to create thread\n");
 		pthread_barrier_destroy(&init_barrier);
 		goto cleanup;
 	}
