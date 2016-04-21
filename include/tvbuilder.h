@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  *  (C) Copyright 2012 Tomek Wasilczyk <www.wasilczyk.pl>
  *

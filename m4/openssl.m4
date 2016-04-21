@@ -1,5 +1,4 @@
-dnl based on curses.m4 
-dnl $Id$
+dnl based on curses.m4
 
 AC_DEFUN([AC_CHECK_OPENSSL],[
   AC_SUBST(OPENSSL_LIBS)

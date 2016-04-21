@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id$
 
 echo protobuf && ./protobufgen.sh || exit 1
 echo aclocal && aclocal -I m4 || exit 1

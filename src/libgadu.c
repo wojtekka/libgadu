@@ -1,5 +1,3 @@
-/* $Id$ */
-
 /*
  *  (C) Copyright 2001-2010 Wojtek Kaniewski <wojtekka@irc.pl>
  *                          Robert J. Woźny <speedy@ziew.org>
@@ -120,14 +118,6 @@ char *gg_proxy_username = NULL;
  * \ingroup proxy
  */
 char *gg_proxy_password = NULL;
-
-#ifndef DOXYGEN
-
-#ifndef lint
-static char rcsid[] GG_UNUSED = "$Id$";
-#endif
-
-#endif /* DOXYGEN */
 
 static void gg_compat_message_sent(struct gg_session *sess, int seq, size_t recipients_count, uin_t *recipients);
 static void gg_compat_message_cleanup(struct gg_session *sess);

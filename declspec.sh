@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id$
 
 # this script if for converting libgadu.h file to be used with MSVC
 
