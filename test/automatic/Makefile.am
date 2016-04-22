@@ -14,7 +14,7 @@ protocol_CFLAGS = -I$(top_srcdir)/test/automatic/script
 protocol_LDADD = $(top_builddir)/src/libgadu.la
 else
 EXTRA_DIST += protocol.c
-protocol_SOURCES = skipped.c
+nodist_protocol_SOURCES = skipped.c
 endif
 
 convert_SOURCES = convert.c
@@ -40,7 +40,7 @@ connect_LDADD = $(top_builddir)/src/libgadu.la @GNUTLS_LIBS@
 connect_CFLAGS = @GNUTLS_CFLAGS@
 else
 EXTRA_DIST += connect.c
-connect_SOURCES = skipped.c
+nodist_connect_SOURCES = skipped.c
 endif
 
 packet_LDADD = $(top_builddir)/src/libgadu.la
@@ -60,3 +60,6 @@ check-local: $(check_PROGRAMS)
 
 libgadu-%.c: ../../src/%.c
 	$(AM_V_GEN)cat "$<" > "$@"
+
+skipped.c:
+	echo 'int main() { return 77; }' > $@
