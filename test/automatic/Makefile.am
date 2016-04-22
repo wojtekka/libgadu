@@ -53,7 +53,7 @@ script.c: $(wildcard script/*.scr) script/compile
 	$(AM_V_GEN)$(PERL) $(top_srcdir)/test/automatic/script/compile $(top_srcdir)/test/automatic/script/*.scr > script.c
 
 clean-local:
-	rm -f *-valgrind.log *-valgrind script.c libgadu-*.c
+	rm -f *-valgrind.log *-valgrind script.c skipped.c libgadu-*.c
 
 check-local: $(check_PROGRAMS)
 	for i in $(check_PROGRAMS); do ln -sf ../valgrind $${i}-valgrind; done

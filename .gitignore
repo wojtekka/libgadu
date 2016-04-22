@@ -55,6 +55,7 @@ test/automatic/packet
 test/automatic/protocol
 test/automatic/resolver
 test/automatic/script.c
+test/automatic/skipped.c
 test/automatic/libgadu-*.c
 test/automatic/*-valgrind
 test/manual/client
