@@ -2,11 +2,13 @@
 
 export PKG_CONFIG_PATH=/usr/${TARGET}/sys-root/mingw/lib/pkgconfig:/usr/${TARGET}/sys-root/mingw/share/pkgconfig
 export PKG_CONFIG=/usr/bin/${TARGET}-pkg-config
+export LDFLAGS="-L/usr/${TARGET}/sys-root/mingw/lib"
+export MINGW_FLAGS="--host=${TARGET} --target=${TARGET} --enable-shared --disable-static"
+export CC=${TARGET}-gcc
 export WINEPREFIX="/.wine"
 
-export LIBGADU_FLAGS="--host=${TARGET} --target=${TARGET} CC=${TARGET}-gcc \
-	--enable-shared --disable-static --with-c99-vsnprintf --with-pthread \
-	--enable-werror ${CONFIGURE_FLAGS}"
+export LIBGADU_FLAGS="${MINGW_FLAGS} ${CONFIGURE_FLAGS} \
+	--with-c99-vsnprintf --enable-werror"
 ./autogen.sh --prefix=/pkg-build/install $LIBGADU_FLAGS
 DISTCHECK_CONFIGURE_FLAGS="$LIBGADU_FLAGS" make distcheck
 
