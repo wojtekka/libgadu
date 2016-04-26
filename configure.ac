@@ -302,6 +302,9 @@ if test "x$with_gnutls" != "xno"; then
 		LIBS="$LIBS $GNUTLS_LIBS"
 		have_gnutls="yes"
 	], [:])
+	PKG_CHECK_MODULES([GNUTLS_2_12], [gnutls >= 2.12.0], [
+		AC_DEFINE([HAVE_GNUTLS_2_12], [], [Defined if GnuTLS >= 2.12.0 is available.])
+	], [:])
 fi
 
 dnl

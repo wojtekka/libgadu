@@ -36,6 +36,13 @@
 #include <ctype.h>
 #include <time.h>
 
+#ifdef HAVE_GNUTLS_2_12
+#  include <gnutls/gnutls.h>
+#  include <gnutls/crypto.h>
+#elif defined(GG_CONFIG_HAVE_OPENSSL)
+#  include <openssl/rand.h>
+#endif
+
 #ifndef GG_CONFIG_HAVE_VA_COPY
 #  ifdef GG_CONFIG_HAVE___VA_COPY
 #    define va_copy(dest, src) __va_copy((dest), (src))
@@ -865,6 +872,50 @@ char ** gg_strarr_dup(char **strarr)
 	}
 
 	return out;
+}
+
+int gg_rand(void *buff, size_t len)
+{
+#ifdef HAVE_GNUTLS_2_12
+	int res;
+
+	if (gnutls_global_init() != GNUTLS_E_SUCCESS) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"gnutls init failed\n");
+		return 0;
+	}
+
+	res = gnutls_rnd(GNUTLS_RND_NONCE, buff, len);
+	gnutls_global_deinit();
+
+	if (res != GNUTLS_E_SUCCESS) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"gnutls rand failed\n");
+		return 0;
+	}
+
+	return 1;
+#elif defined(GG_CONFIG_HAVE_OPENSSL)
+	if (RAND_bytes(buff, len) != 1) {
+		gg_debug(GG_DEBUG_MISC | GG_DEBUG_ERROR, "// gg_rand() "
+			"openssl rand failed\n");
+		return 0;
+	}
+
+	return 1;
+#else
+	size_t i;
+	uint8_t *bytebuff = buff;
+
+	for (i = 0; i < len; i++) {
+		/* This is not the most efficient way,
+		 * but rand is not a preferred way too.
+		 */
+		bytebuff[i] = rand() & 0xFF;
+	}
+
+	return 1;
+#endif
 }
 
 /*

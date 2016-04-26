@@ -288,8 +288,12 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 	uint16_t external_port;
 	uint32_t external_addr;
 	struct in_addr addr;
+	uint32_t randval;
 
 	gg_debug_dcc(dcc, GG_DEBUG_FUNCTION, "** gg_dcc7_listen_and_send_info(%p)\n", dcc);
+
+	if (!gg_rand(&randval, sizeof(randval)))
+		return -1;
 
 	if (gg_dcc7_listen(dcc, dcc->sess->client_addr, dcc->sess->client_port) == -1)
 		return -1;
@@ -315,7 +319,7 @@ static int gg_dcc7_listen_and_send_info(struct gg_dcc7 *dcc)
 	pkt.type = GG_DCC7_TYPE_P2P;
 	pkt.id = dcc->cid;
 	snprintf((char*) pkt.info, sizeof(pkt.info), "%s %d", inet_ntoa(addr), external_port);
-	snprintf((char*) pkt.hash, sizeof(pkt.hash), "%u", external_addr + external_port * rand());
+	snprintf((char*) pkt.hash, sizeof(pkt.hash), "%u", external_addr + external_port * randval);
 
 	return gg_send_packet(dcc->sess, GG_DCC7_INFO, &pkt, sizeof(pkt), NULL);
 }
