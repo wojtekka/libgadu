@@ -9,8 +9,11 @@ export WINEPREFIX="/.wine"
 
 export LIBGADU_FLAGS="${MINGW_FLAGS} ${CONFIGURE_FLAGS} \
 	--with-c99-vsnprintf --enable-werror"
-./autogen.sh --prefix=/pkg-build/install $LIBGADU_FLAGS
-DISTCHECK_CONFIGURE_FLAGS="$LIBGADU_FLAGS" make distcheck
+export LIBGADU_FLAGS_RELEASE=""
+export LIBGADU_FLAGS_CHECK="--without-protobuf"
+
+./autogen.sh --prefix=/pkg-build/install $LIBGADU_FLAGS $LIBGADU_FLAGS_RELEASE
+DISTCHECK_CONFIGURE_FLAGS="$LIBGADU_FLAGS $LIBGADU_FLAGS_CHECK" make distcheck
 
 # prepare release package
 

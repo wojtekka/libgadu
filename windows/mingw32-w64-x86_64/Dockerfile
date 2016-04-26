@@ -10,10 +10,10 @@ RUN /install-winbind.sh && \
 		git \
 		mingw64-cross-gcc mingw64-cross-pkg-config \
 		protobuf-c autoconf automake libtool make \
-		mingw64-libgnutls-devel \
+		mingw64-libgnutls-devel mingw64-protobuf-c-devel \
 		mingw64-libcurl-devel mingw64-libexpat-devel mingw64-libxml2-devel \
 		wine \
-		mingw64-gnutls mingw64-libxml2-2 \
+		mingw64-gnutls mingw64-libxml2-2 mingw64-libprotobuf-c-1 \
 		zip \
 	&& \
 	zypper -n clean --all
