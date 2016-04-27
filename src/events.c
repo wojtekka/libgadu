@@ -273,8 +273,9 @@ int gg_session_init_ssl(struct gg_session *gs)
 		}
 #else
 		if (gnutls_certificate_set_x509_trust_file(tmp->xcred,
-				GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE,
-				GNUTLS_X509_FMT_PEM) < 0) {
+			GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE,
+			GNUTLS_X509_FMT_PEM) < 0)
+		{
 			gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
 				"gnutls_certificate_set_x509_trust_file failed\n");
 			return -1;
@@ -298,7 +299,8 @@ int gg_session_init_ssl(struct gg_session *gs)
 		return -1;
 	}
 	if (gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE,
-			tmp->xcred) != GNUTLS_E_SUCCESS) {
+		tmp->xcred) != GNUTLS_E_SUCCESS)
+	{
 		gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
 			"gnutls_credentials_set failed\n");
 		return -1;
