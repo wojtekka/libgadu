@@ -94,7 +94,7 @@ int gg_rand(void *buff, size_t len)
 
 static int uniform_rand_10(void)
 {
-	uint8_t rval;
+	uint8_t rval = 255;
 
 	do {
 		if (gg_rand(&rval, sizeof(rval)) != 0)
