@@ -11,7 +11,13 @@ git clone -b ${BRANCH} ${REPO} libgadu
 cd libgadu
 git reset --hard ${REVISION}
 
+export PKG_VERSION=`cat /libgadu/configure.ac | grep 'AC_INIT' | sed -e 's/.*\[.*\[\(.*\)\].*/\1/'`
+
 . /build.sh
+
+if [ -n "${SHIP_TARBALL}" ]; then
+	cp /libgadu/libgadu-${PKG_VERSION}.tar.gz /artifacts/
+fi
 
 export EXIT_CODE=0
 

@@ -17,11 +17,8 @@ DISTCHECK_CONFIGURE_FLAGS="$LIBGADU_FLAGS $LIBGADU_FLAGS_CHECK" make distcheck
 
 # prepare release package
 
-export PKG_VERSION=`cat /libgadu/configure.ac | grep 'AC_INIT' | sed -e 's/.*\[.*\[\(.*\)\].*/\1/'`
 export PKG_NAME=libgadu-${PKG_VERSION}-${SIMPLE_TARGET}
 export PKG_DIR=/pkg-build/${PKG_NAME}
-
-cp /libgadu/libgadu-${PKG_VERSION}.tar.gz /artifacts/
 
 mkdir -p ${PKG_DIR}/dev ${PKG_DIR}/deps
 make install

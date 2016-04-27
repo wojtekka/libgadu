@@ -3,6 +3,7 @@
 BRANCH ?= master
 REVISION ?= HEAD
 REPO ?= https://github.com/wojtekka/libgadu.git
+SHIP_TARBALL ?= no
 STAY_INTERACTIVE ?= no
 
 .PHONY: all clean builder-artifacts docker-image docker-push
@@ -30,6 +31,10 @@ endif
 
 ifneq "${CONFIGURE_FLAGS}" ""
 	CONFIGURE_FLAGS := -e CONFIGURE_FLAGS="${CONFIGURE_FLAGS}"
+endif
+
+ifneq "$(SHIP_TARBALL)" "no"
+	SHIP_TARBALL_SWITCH := -e SHIP_TARBALL=yes
 endif
 
 ifeq "$(STAY_INTERACTIVE)" "no"
@@ -61,6 +66,7 @@ $(BUILDER_ARTIFACT_STAMP): $(BUILD_SCRIPT) $(ROOT_DIR)/build-common.sh
 		-e GID=$(GID) \
 		$(CC_OVERRIDE) \
 		$(CONFIGURE_FLAGS) \
+		$(SHIP_TARBALL_SWITCH) \
 		$(EXTRA_ENVIRONMENT) \
 		$(DOCKER_IMAGE) \
 		/build-common.sh
