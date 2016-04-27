@@ -250,24 +250,59 @@ int gg_session_init_ssl(struct gg_session *gs)
 
 		gs->ssl = tmp;
 
-		gnutls_global_init();
-		gnutls_certificate_allocate_credentials(&tmp->xcred);
+		if (gnutls_global_init() != GNUTLS_E_SUCCESS) {
+			gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+				"gnutls_global_init failed\n");
+			return -1;
+		}
+		tmp->global_init_called = 1;
+
+		if (gnutls_certificate_allocate_credentials(&tmp->xcred) != GNUTLS_E_SUCCESS) {
+			gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+				"gnutls_certificate_allocate_credentials failed\n");
+			return -1;
+		}
+		tmp->xcred_ready = 1;
+
 #ifdef GG_CONFIG_SSL_SYSTEM_TRUST
 #ifdef HAVE_GNUTLS_CERTIFICATE_SET_X509_SYSTEM_TRUST
-		gnutls_certificate_set_x509_system_trust(tmp->xcred);
+		if (gnutls_certificate_set_x509_system_trust(tmp->xcred) < 0) {
+			gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+				"gnutls_certificate_set_x509_system_trust failed\n");
+			return -1;
+		}
 #else
-		gnutls_certificate_set_x509_trust_file(tmp->xcred,
-			GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE,
-			GNUTLS_X509_FMT_PEM);
+		if (gnutls_certificate_set_x509_trust_file(tmp->xcred,
+				GG_CONFIG_GNUTLS_SYSTEM_TRUST_STORE,
+				GNUTLS_X509_FMT_PEM) < 0) {
+			gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+				"gnutls_certificate_set_x509_trust_file failed\n");
+			return -1;
+		}
 #endif
 #endif
 	} else {
 		gnutls_deinit(tmp->session);
+		tmp->session_ready = 0;
 	}
 
-	gnutls_init(&tmp->session, GNUTLS_CLIENT);
-	gnutls_set_default_priority(tmp->session);
-	gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE, tmp->xcred);
+	if (gnutls_init(&tmp->session, GNUTLS_CLIENT) != GNUTLS_E_SUCCESS) {
+		gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() gnutls_init failed\n");
+		return -1;
+	}
+	tmp->session_ready = 1;
+
+	if (gnutls_set_default_priority(tmp->session) != GNUTLS_E_SUCCESS) {
+		gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+			"gnutls_set_default_priority failed\n");
+		return -1;
+	}
+	if (gnutls_credentials_set(tmp->session, GNUTLS_CRD_CERTIFICATE,
+			tmp->xcred) != GNUTLS_E_SUCCESS) {
+		gg_debug(GG_DEBUG_MISC, " // gg_session_init_ssl() "
+			"gnutls_credentials_set failed\n");
+		return -1;
+	}
 	gnutls_transport_set_ptr(tmp->session, (gnutls_transport_ptr_t) (intptr_t) gs->fd);
 #endif
 
@@ -1301,11 +1336,15 @@ static gg_action_t gg_handle_tls_negotiation(struct gg_session *sess,
 
 				if (gnutls_x509_crt_import(cert, &peers[0], GNUTLS_X509_FMT_DER) == 0) {
 					size = sizeof(buf);
-					gnutls_x509_crt_get_dn(cert, buf, &size);
-					gg_debug_session(sess, GG_DEBUG_MISC, "//   cert subject: %s\n", buf);
+					if (gnutls_x509_crt_get_dn(cert, buf, &size) == 0) {
+						gg_debug_session(sess, GG_DEBUG_MISC,
+							"//   cert subject: %s\n", buf);
+					}
 					size = sizeof(buf);
-					gnutls_x509_crt_get_issuer_dn(cert, buf, &size);
-					gg_debug_session(sess, GG_DEBUG_MISC, "//   cert issuer: %s\n", buf);
+					if (gnutls_x509_crt_get_issuer_dn(cert, buf, &size) == 0) {
+						gg_debug_session(sess, GG_DEBUG_MISC,
+							"//   cert issuer: %s\n", buf);
+					}
 
 					if (gnutls_x509_crt_check_hostname(cert, sess->connect_host) != 0)
 						valid_hostname = 1;

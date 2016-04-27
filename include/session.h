@@ -48,8 +48,11 @@
 #ifdef GG_CONFIG_HAVE_GNUTLS
 
 typedef struct {
+	int global_init_called;
 	gnutls_session_t session;
+	int session_ready;
 	gnutls_certificate_credentials_t xcred;
+	int xcred_ready;
 } gg_session_gnutls_t;
 
 #define GG_SESSION_GNUTLS(gs) ((gg_session_gnutls_t*) (gs)->ssl)->session

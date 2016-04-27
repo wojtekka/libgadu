@@ -1232,9 +1232,12 @@ void gg_free_session(struct gg_session *sess)
 		gg_session_gnutls_t *tmp;
 
 		tmp = (gg_session_gnutls_t*) sess->ssl;
-		gnutls_deinit(tmp->session);
-		gnutls_certificate_free_credentials(tmp->xcred);
-		gnutls_global_deinit();
+		if (tmp->session_ready)
+			gnutls_deinit(tmp->session);
+		if (tmp->xcred_ready)
+			gnutls_certificate_free_credentials(tmp->xcred);
+		if (tmp->global_init_called)
+			gnutls_global_deinit();
 		free(sess->ssl);
 	}
 #endif
