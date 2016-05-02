@@ -1801,7 +1801,7 @@ repeated_field_pack_to_buffer(const ProtobufCFieldDescriptor *field,
 		siz = sizeof_elt_in_repeated_array(field->type);
 		for (i = 0; i < count; i++) {
 			rv += required_field_pack_to_buffer(field, array, buffer);
-			array = ((char*)array) + siz;
+			array += siz;
 		}
 		return rv;
 	}
@@ -2932,8 +2932,6 @@ protobuf_c_message_unpack(const ProtobufCMessageDescriptor *desc,
 		size_t used = parse_tag_and_wiretype(rem, at, &tag, &wire_type);
 		const ProtobufCFieldDescriptor *field;
 		ScannedMember tmp;
-
-		memset(&tmp, 0, sizeof(ScannedMember));
 
 		if (used == 0) {
 			PROTOBUF_C_UNPACK_ERROR("error parsing tag/wiretype at offset %u",

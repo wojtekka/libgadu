@@ -1,5 +1,5 @@
---- protobuf-c.c.upstream	2016-02-02 20:09:01.000000000 +0000
-+++ protobuf-c.c	2016-04-27 20:42:46.571173195 +0100
+--- protobuf-c.c.ori	2016-01-30 00:54:28.000000000 +0000
++++ protobuf-c.c	2016-05-02 13:48:47.033083213 +0100
 @@ -48,6 +48,9 @@
  #include <stdlib.h>	/* for malloc, free */
  #include <string.h>	/* for strcmp, strlen, memcpy, memmove, memset */
@@ -40,15 +40,6 @@
  }
  
  static size_t
-@@ -1796,7 +1801,7 @@
- 		siz = sizeof_elt_in_repeated_array(field->type);
- 		for (i = 0; i < count; i++) {
- 			rv += required_field_pack_to_buffer(field, array, buffer);
--			array += siz;
-+			array = ((char*)array) + siz;
- 		}
- 		return rv;
- 	}
 @@ -2078,6 +2083,10 @@
  								    latter_msg,
  								    fields[i].
@@ -92,16 +83,7 @@
  		memset (member, 0, el_size);
  	}
  	if (!parse_required_member (scanned_member, member, allocator, TRUE))
-@@ -2925,6 +2933,8 @@
- 		const ProtobufCFieldDescriptor *field;
- 		ScannedMember tmp;
- 
-+		memset(&tmp, 0, sizeof(ScannedMember));
-+
- 		if (used == 0) {
- 			PROTOBUF_C_UNPACK_ERROR("error parsing tag/wiretype at offset %u",
- 						(unsigned) (at - data));
-@@ -3070,6 +3080,7 @@
+@@ -3070,6 +3078,7 @@
  					      field->quantifier_offset);
  			if (*n_ptr != 0) {
  				unsigned n = *n_ptr;
@@ -109,7 +91,7 @@
  				*n_ptr = 0;
  				assert(rv->descriptor != NULL);
  #define CLEAR_REMAINING_N_PTRS()                                              \
-@@ -3079,7 +3090,7 @@
+@@ -3079,7 +3088,7 @@
                    if (field->label == PROTOBUF_C_LABEL_REPEATED)              \
                      STRUCT_MEMBER (size_t, rv, field->quantifier_offset) = 0; \
                  }
@@ -118,7 +100,7 @@
  				if (!a) {
  					CLEAR_REMAINING_N_PTRS();
  					goto error_cleanup;
-@@ -3152,11 +3163,13 @@
+@@ -3152,11 +3161,13 @@
  protobuf_c_message_free_unpacked(ProtobufCMessage *message,
  				 ProtobufCAllocator *allocator)
  {
@@ -134,7 +116,7 @@
  
  	ASSERT_IS_MESSAGE(message);
  
-@@ -3245,6 +3258,8 @@
+@@ -3245,6 +3256,8 @@
  protobuf_c_boolean
  protobuf_c_message_check(const ProtobufCMessage *message)
  {
@@ -143,7 +125,7 @@
  	if (!message ||
  	    !message->descriptor ||
  	    message->descriptor->magic != PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC)
-@@ -3252,7 +3267,6 @@
+@@ -3252,7 +3265,6 @@
  		return FALSE;
  	}
  
@@ -151,7 +133,7 @@
  	for (i = 0; i < message->descriptor->n_fields; i++) {
  		const ProtobufCFieldDescriptor *f = message->descriptor->fields + i;
  		ProtobufCType type = f->type;
-@@ -3375,11 +3389,13 @@
+@@ -3375,11 +3387,13 @@
  protobuf_c_enum_descriptor_get_value_by_name(const ProtobufCEnumDescriptor *desc,
  					     const char *name)
  {
@@ -167,7 +149,7 @@
  
  	while (count > 1) {
  		unsigned mid = start + count / 2;
-@@ -3413,12 +3429,14 @@
+@@ -3413,12 +3427,14 @@
  protobuf_c_message_descriptor_get_field_by_name(const ProtobufCMessageDescriptor *desc,
  						const char *name)
  {
@@ -185,7 +167,7 @@
  
  	while (count > 1) {
  		unsigned mid = start + count / 2;
-@@ -3455,11 +3473,13 @@
+@@ -3455,11 +3471,13 @@
  protobuf_c_service_descriptor_get_method_by_name(const ProtobufCServiceDescriptor *desc,
  						 const char *name)
  {
