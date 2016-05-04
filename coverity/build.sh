@@ -11,5 +11,5 @@ curl --fail \
 	--form email=${COVERITY_EMAIL} \
 	--form file=@/artifacts/libgadu-cov.tar.bz2 \
 	--form version="${PKG_VERSION}" \
-	--form description="Git rev ${GIT_REVISION}" \
+	--form description="Git%20rev%20${GIT_REVISION}" \
 	https://scan.coverity.com/builds?project=wojtekka%2Flibgadu
