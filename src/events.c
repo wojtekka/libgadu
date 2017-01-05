@@ -932,7 +932,7 @@ static gg_action_t gg_handle_send_hub(struct gg_session *sess,
 
 	if (sess->ssl_flag != GG_SSL_DISABLED) {
 		req = gg_saprintf
-			("GET %s/appsvc/appmsg_ver10.asp?fmnumber=%u&fmt=2&"
+			("GET %s/appsvc/appmsg_ver11.asp?tls=1&fmnumber=%u&fmt=2&"
 			"lastmsg=%d&version=%s&age=2&gender=1 HTTP/1.0\r\n"
 			"Connection: close\r\n"
 			"Host: " GG_APPMSG_HOST "\r\n"
