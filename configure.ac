@@ -1,4 +1,4 @@
-AC_INIT([libgadu], [1.12.2-pre])
+AC_INIT([libgadu], [1.12.2])
 AC_CONFIG_SRCDIR([src/libgadu.c])
 AM_INIT_AUTOMAKE()
 
