@@ -10,12 +10,12 @@ var indexSectionsWithContent =
   0: "_abcdefghijklmnopqrstuvwxz",
   1: "_g",
   2: "bcdefghilmnoprst",
-  3: "abcfgimoprstuz",
+  3: "g",
   4: "abcdefghijklmnopqrstuvwx",
-  5: "gpsu",
-  6: "_gp",
-  7: "gp",
-  8: "_abcdfghimprstuv",
+  5: "gu",
+  6: "g",
+  7: "g",
+  8: "_afgilpsv",
   9: "bfikloprstuwz",
   10: "l"
 };

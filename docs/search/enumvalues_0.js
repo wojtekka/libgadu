@@ -1,12 +1,5 @@
 var searchData=
 [
-  ['gg110_5fack_5f_5ftype_5f_5fchat',['GG110_ACK__TYPE__CHAT',['../packets_8pb-c_8h.html#a070260d18230fddc20a044c0f6d4fbe1ae3eba31843e20858f58f46a0a2e3184e',1,'packets.pb-c.h']]],
-  ['gg110_5fack_5f_5ftype_5f_5fchat_5finfo',['GG110_ACK__TYPE__CHAT_INFO',['../packets_8pb-c_8h.html#a070260d18230fddc20a044c0f6d4fbe1a89f268aca3ccb5c7fbfc74c1d60bd1ed',1,'packets.pb-c.h']]],
-  ['gg110_5fack_5f_5ftype_5f_5fmpa',['GG110_ACK__TYPE__MPA',['../packets_8pb-c_8h.html#a070260d18230fddc20a044c0f6d4fbe1a4a4221dacd4d279fb4473c6fc4c9d305',1,'packets.pb-c.h']]],
-  ['gg110_5fack_5f_5ftype_5f_5fmsg',['GG110_ACK__TYPE__MSG',['../packets_8pb-c_8h.html#a070260d18230fddc20a044c0f6d4fbe1a43b714500e0135a8b5bbdf9c8c878ca5',1,'packets.pb-c.h']]],
-  ['gg110_5fack_5f_5ftype_5f_5ftransfer_5finfo',['GG110_ACK__TYPE__TRANSFER_INFO',['../packets_8pb-c_8h.html#a070260d18230fddc20a044c0f6d4fbe1afe9dda79c6ab33f5f764041d9089c5b4',1,'packets.pb-c.h']]],
-  ['gg110_5fevent_5f_5ftype_5f_5fjson',['GG110_EVENT__TYPE__JSON',['../packets_8pb-c_8h.html#afbda7128a43968b65510076fd68e874da72f8398361febdd5fe59ac5a8b047c0f',1,'packets.pb-c.h']]],
-  ['gg110_5fevent_5f_5ftype_5f_5fxml',['GG110_EVENT__TYPE__XML',['../packets_8pb-c_8h.html#afbda7128a43968b65510076fd68e874da060614d106effe5010ca809907aba2e1',1,'packets.pb-c.h']]],
   ['gg_5fack_5fblocked',['GG_ACK_BLOCKED',['../group__messages.html#ggabc5c98fcc1211af2b80116dd6e0a035da22cd918071954d3b6d39333ee85ddac7',1,'libgadu.h']]],
   ['gg_5fack_5fdelivered',['GG_ACK_DELIVERED',['../group__messages.html#ggabc5c98fcc1211af2b80116dd6e0a035dae3901917057a6657a756e5668d20a5ce',1,'libgadu.h']]],
   ['gg_5fack_5fmboxfull',['GG_ACK_MBOXFULL',['../group__messages.html#ggabc5c98fcc1211af2b80116dd6e0a035da8cf3fd01604ed358e04bcfc4c7ffc732',1,'libgadu.h']]],

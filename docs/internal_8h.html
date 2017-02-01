@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">libgadu
-   &#160;<span id="projectnumber">1.12.0</span>
+   &#160;<span id="projectnumber">1.12.2</span>
    </div>
   </td>
  </tr>
@@ -82,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Szukaj');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_43e0a1f539e00dcfa1a6bc4d4fee4fc2.html">home</a></li><li class="navelem"><a class="el" href="dir_2f1d81e90a030591e75f7b21ecd501d4.html">wojtekka</a></li><li class="navelem"><a class="el" href="dir_15ece959c815e25dbd7c7c578ed1ff94.html">src</a></li><li class="navelem"><a class="el" href="dir_f81b4fb471623863d39ba398fb1031f1.html">libgadu</a></li><li class="navelem"><a class="el" href="dir_c3ea72b62a227d6f2a302515b375f46d.html">include</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -130,8 +130,6 @@ Definicje</h2></td></tr>
 <tr class="separator:ae372e90b62c1e8b51dc5d95bf7f5ba48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a099006e795de37f3c1a8ab811a5a8bb1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#a099006e795de37f3c1a8ab811a5a8bb1">GG_LOGIN_PARAMS_HAS_FIELD</a>(glp, member)</td></tr>
 <tr class="separator:a099006e795de37f3c1a8ab811a5a8bb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71cf8cfb2e45122f785bdaaea93d9324"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#a71cf8cfb2e45122f785bdaaea93d9324">GG_UNUSED</a></td></tr>
-<tr class="separator:a71cf8cfb2e45122f785bdaaea93d9324"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a442eccaff34ad51906fca152f0b1e353"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#a442eccaff34ad51906fca152f0b1e353">GG_NORETURN</a></td></tr>
 <tr class="separator:a442eccaff34ad51906fca152f0b1e353"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b5f181261c8ea277fbb5479b3d1c1c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#a6b5f181261c8ea277fbb5479b3d1c1c1">GG_CDECL</a></td></tr>
@@ -211,6 +209,8 @@ Funkcje</h2></td></tr>
 <tr class="separator:aebf27f9d0ad74fc80c8cfdc0b5e83355"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf0904f465b94f35f43395145b3c3d42"><td class="memItemLeft" align="right" valign="top">char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#abf0904f465b94f35f43395145b3c3d42">gg_strarr_dup</a> (char **strarr)</td></tr>
 <tr class="separator:abf0904f465b94f35f43395145b3c3d42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b48c7b578a6f7c8030f49f32b91c794"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="internal_8h.html#a0b48c7b578a6f7c8030f49f32b91c794">gg_rand</a> (void *buff, size_t len)</td></tr>
+<tr class="separator:a0b48c7b578a6f7c8030f49f32b91c794"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Dokumentacja definicji</h2>
 <a class="anchor" id="a93e4dde620ce0bfa32d6732301c2e189"></a>
@@ -322,20 +322,8 @@ Funkcje</h2></td></tr>
 </div><div class="memdoc">
 <b>Wartość:</b><div class="fragment"><div class="line">(offsetof(<span class="keyword">struct</span> <a class="code" href="structgg__login__params.html">gg_login_params</a>, member) &lt; (glp)-&gt;struct_size || \</div>
 <div class="line">        offsetof(<span class="keyword">struct</span> <a class="code" href="structgg__login__params.html">gg_login_params</a>, member) &lt;= offsetof(<span class="keyword">struct</span> <a class="code" href="structgg__login__params.html">gg_login_params</a>, struct_size))</div>
-<div class="ttc" id="structgg__login__params_html"><div class="ttname"><a href="structgg__login__params.html">gg_login_params</a></div><div class="ttdoc">Parametry połączenia z serwerem Gadu-Gadu. </div><div class="ttdef"><b>Definition:</b> libgadu.h:765</div></div>
+<div class="ttc" id="structgg__login__params_html"><div class="ttname"><a href="structgg__login__params.html">gg_login_params</a></div><div class="ttdoc">Parametry połączenia z serwerem Gadu-Gadu. </div><div class="ttdef"><b>Definition:</b> libgadu.h:763</div></div>
 </div><!-- fragment -->
-</div>
-</div>
-<a class="anchor" id="a71cf8cfb2e45122f785bdaaea93d9324"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define GG_UNUSED</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
 </div>
 </div>
 <a class="anchor" id="a442eccaff34ad51906fca152f0b1e353"></a>
@@ -1033,10 +1021,36 @@ Funkcje</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a0b48c7b578a6f7c8030f49f32b91c794"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int gg_rand </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Wygenerowano N, 15 cze 2014 21:44:09 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
+Wygenerowano Śr, 1 lut 2017 09:11:02 dla libgadu programem &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

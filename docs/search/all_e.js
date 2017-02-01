@@ -1,16 +1,6 @@
 var searchData=
 [
-  ['n_5fdata',['n_data',['../struct__GG112TransferInfo.html#a572116969aeaf4361524b5544fffdaf3',1,'_GG112TransferInfo']]],
-  ['n_5ffield_5franges',['n_field_ranges',['../struct__ProtobufCMessageDescriptor.html#a55eb4ad650aab9fca1befde3dd49cf3c',1,'_ProtobufCMessageDescriptor']]],
-  ['n_5ffields',['n_fields',['../struct__ProtobufCMessageDescriptor.html#a1f5b954bc5f3a1952e33076e03cabf90',1,'_ProtobufCMessageDescriptor']]],
-  ['n_5flinks',['n_links',['../struct__GG110MessageAck.html#aceef68ad60c4f5f52d3013e9026f71dc',1,'_GG110MessageAck']]],
-  ['n_5fmethods',['n_methods',['../struct__ProtobufCServiceDescriptor.html#a87e824f9acaf64d4575f64dcb8da8470',1,'_ProtobufCServiceDescriptor']]],
-  ['n_5foptions',['n_options',['../struct__GG110Options.html#ad988338dd25031f9fa16cca79aed0d2f',1,'_GG110Options']]],
-  ['n_5funknown_5ffields',['n_unknown_fields',['../struct__ProtobufCMessage.html#acd1d8e588531ab28fa980a0f774a6f0c',1,'_ProtobufCMessage']]],
-  ['n_5fvalue_5fnames',['n_value_names',['../struct__ProtobufCEnumDescriptor.html#aa4b52e8bee72f8beb823fb26d3c48b8f',1,'_ProtobufCEnumDescriptor']]],
-  ['n_5fvalue_5franges',['n_value_ranges',['../struct__ProtobufCEnumDescriptor.html#a387abd98defa169e084e656b6d0899e7',1,'_ProtobufCEnumDescriptor']]],
-  ['n_5fvalues',['n_values',['../struct__ProtobufCEnumDescriptor.html#ad3e2bc69dcc99f36429202886e325b22',1,'_ProtobufCEnumDescriptor']]],
-  ['name',['name',['../structgg__multilogon__session.html#a5ac083a645d964373f022d03df4849c8',1,'gg_multilogon_session::name()'],['../struct__ProtobufCEnumValue.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCEnumValue::name()'],['../struct__ProtobufCEnumDescriptor.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCEnumDescriptor::name()'],['../struct__ProtobufCFieldDescriptor.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCFieldDescriptor::name()'],['../struct__ProtobufCMessageDescriptor.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCMessageDescriptor::name()'],['../struct__ProtobufCMethodDescriptor.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCMethodDescriptor::name()'],['../struct__ProtobufCServiceDescriptor.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCServiceDescriptor::name()'],['../struct__ProtobufCEnumValueIndex.html#a8f8f80d37794cde9472343e4487ba3eb',1,'_ProtobufCEnumValueIndex::name()']]],
+  ['name',['name',['../structgg__multilogon__session.html#a5ac083a645d964373f022d03df4849c8',1,'gg_multilogon_session']]],
   ['name_5fsize',['name_size',['../structgg__multilogon__info__item.html#a61d946be12b0272d3f3da5653a5e6a9e',1,'gg_multilogon_info_item']]],
   ['network_2ec',['network.c',['../network_8c.html',1,'']]],
   ['network_2eh',['network.h',['../network_8h.html',1,'']]],

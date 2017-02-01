@@ -98,7 +98,6 @@ var searchData=
   ['gg_5fnotify_5freply77',['gg_notify_reply77',['../structgg__notify__reply77.html',1,'']]],
   ['gg_5fnotify_5freply80',['gg_notify_reply80',['../structgg__notify__reply80.html',1,'']]],
   ['gg_5fpacket_5fhandler_5ft',['gg_packet_handler_t',['../structgg__packet__handler__t.html',1,'']]],
-  ['gg_5fpong110',['gg_pong110',['../structgg__pong110.html',1,'']]],
   ['gg_5fpubdir',['gg_pubdir',['../structgg__pubdir.html',1,'']]],
   ['gg_5fpubdir50_5fentry',['gg_pubdir50_entry',['../structgg__pubdir50__entry.html',1,'']]],
   ['gg_5fpubdir50_5freply',['gg_pubdir50_reply',['../structgg__pubdir50__reply.html',1,'']]],
