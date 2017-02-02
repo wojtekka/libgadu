@@ -27,6 +27,7 @@
 #define LIBGADU_NETWORK_H
 
 #ifdef _WIN32
+#  include <io.h>
 #  include <ws2tcpip.h>
 #  include <stdlib.h>
 #  include <stdio.h>
