@@ -1,5 +1,6 @@
 Makefile
 Makefile.in
+INSTALL
 *.m4
 *.o
 *.la
