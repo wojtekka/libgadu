@@ -3,12 +3,11 @@ dist: trusty
 sudo: false
 
 env:
-  - COMPILER=clang-3.5
-  - COMPILER=clang-4.0
   - COMPILER=gcc-6
-  - COMPILER=gcc-5
+  - COMPILER=gcc-6 FLAGS=--without-protobuf
   - COMPILER=gcc-4.9
-
+  - COMPILER=clang-4.0
+  
 addons:
   apt:
     sources:
@@ -16,14 +15,23 @@ addons:
     - llvm-toolchain-trusty-4.0
     packages:
     - gcc-6
-    - gcc-5
-    - clang-3.5
+    - gcc-4.9
     - clang-4.0
-    - protobuf-c-compiler
-
+    - doxygen
+    
 script:
+  - export PATH="$HOME/lib/protobuf-c/bin:$PATH"
+  - export PKG_CONFIG_PATH=$HOME/lib/protobuf-c/lib/pkgconfig:$HOME/lib/protobuf/lib/pkgconfig
+  - wget https://github.com/google/protobuf/releases/download/v3.2.0/protobuf-cpp-3.2.0.tar.gz
+  - tar -xzvf protobuf-cpp-3.2.0.tar.gz
+  - cd protobuf-3.2.0 && ./configure --prefix=$HOME/lib/protobuf && make -j4 && make install
+  - cd -
+  - wget https://github.com/protobuf-c/protobuf-c/releases/download/v1.2.1/protobuf-c-1.2.1.tar.gz
+  - tar -xzvf protobuf-c-1.2.1.tar.gz
+  - cd protobuf-c-1.2.1 &&  ./configure --prefix=$HOME/lib/protobuf-c && make -j4 && make install
+  - cd -
   - export CC=$COMPILER
-  - ./autogen.sh && make -j 4
+  - ./autogen.sh $FLAGS && make -j4
 
 notifications:
   email: false

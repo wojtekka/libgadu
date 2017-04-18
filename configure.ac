@@ -273,6 +273,7 @@ if test "x$with_protobuf" != "xno"; then
 			have_protobuf_c=no
 		else
 			LIBS_PRIVATE="$LIBS_PRIVATE $PROTOBUF_C_LIBS"
+			CFLAGS="$CFLAGS $PROTOBUF_C_CFLAGS"
 			AC_DEFINE([GG_CONFIG_HAVE_PROTOBUF_C], [], [Defined if libgadu was compiled and linked with system provided libprotobuf-c.])
 			have_protobuf_c=yes
 		fi
