@@ -363,6 +363,11 @@ if test "x$have_openssl" = "xyes"; then
 	CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 	REQUIRES_PRIVATE="$REQUIRES_PRIVATE openssl"
 	AC_DEFINE([GG_CONFIG_HAVE_OPENSSL], [], [Defined if libgadu was compiled and linked with OpenSSL support.])
+
+	AC_CHECK_LIB(ssl, TLS_client_method, [have_tls_client_method="yes"], [have_tls_client_method="no"])
+	if test "x$have_tls_client_method" = "xyes"; then
+		AC_DEFINE([GG_CONFIG_HAVE_TLS_CLIENT_METHOD], [], [Defined if OpenSSL features TLS_method_client() function.])
+	fi
 else
 	have_openssl="no"
 	AC_DEFINE([GG_CONFIG_IS_GPL_COMPLIANT], [], [Defined if libgadu is GPL compliant (was not linked with OpenSSL or any other non-GPL compliant library support).])
