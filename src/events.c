@@ -330,6 +330,8 @@ int gg_session_init_ssl(struct gg_session *gs)
 	if (gs->ssl_ctx == NULL) {
 #ifdef GG_CONFIG_HAVE_TLS_CLIENT_METHOD
 		gs->ssl_ctx = SSL_CTX_new(TLS_client_method());
+#elif defined(GG_CONFIG_HAVE_TLSV1_2_CLIENT_METHOD)
+		gs->ssl_ctx = SSL_CTX_new(TLSv1_2_client_method());
 #else
 		gs->ssl_ctx = SSL_CTX_new(TLSv1_client_method());
 #endif
