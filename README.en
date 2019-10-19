@@ -1,0 +1,63 @@
+libgadu 1.12.3-pre
+(C) Copyright 2001-2019 Authors (full list in AUTHORS file)
+
+libgadu is a library for handling Gadu-Gadu instant messenger protocol.
+For a long time it was an intergral part of ekg application but due to
+packaging issues and use in other appliactions it became a project on its
+own. Proprietary protocol was reverse engineered which may make libgadu less
+than 100% compatible with the original. It's important to note that the use
+of unofficial clients may be forbidden by terms and conditions of Gadu-Gadu.
+
+It's important to note that the use of unofficial clients may be forbidden
+by the terms and conditions of Gadu-Gadu.
+
+The library is written in C and aims to be operating system and environment
+independent. It works in POSIX-compliant operating systems, also BeOS and
+Win32 although the latter is not supported because of an official Gadu-Gadu
+client for that platform. It's used in terminal applications as well as GTK+
+and Qt ones.
+
+The library is released on the terms of LGPL 2.1 license which can be found
+in COPYING file. 
+
+Project website is available at https://libgadu.net/. 
+
+Problems with the library can be reported at project's GitHub page at
+https://github.com/wojtekka/libgadu/issues. Previously used mailing list
+libgadu-devel@lists.ziew.org is no longer available.
+
+Requirements
+------------
+
+Encrypted connections require either GnuTLS or OpenSSL. The latter is not
+used by default even if it's available - software linked with this library
+is incompatible with GPL which causes issues with use of libgadu in 
+GPL-licensed software. To use it anyway one needs to use --with-openssl
+parameter. The library built in such way will be only partially
+binary-compatible with a default version and gg_is_gpl_compliant symbol
+will be missing. Software wanting to make sure that libgadu is GPL-compliant
+may reference this symbol. Mininum version of OpenSSL is 0.9.7 and GnuTLS is
+2.10.0. When using OpenSSL or GnuTLS below 3.0 the certificate revocation
+is not supported.
+
+To store contact list on the server zlib library is required.
+
+Documentation is generated using Doxygen. It's optional.
+
+Some unit tests require glibc, GnuTLS, libxml2 and Perl. If these are not
+available some tests will not be run. Furthermore some manual test programs
+use CURL, Expat and OpenSSL.
+
+The compiler must support 64-bit long long type.
+
+During compilation a version of standard library is detected because the
+behavior of printf() family of function changed in ISO C99. This is
+impossible during crosscompilation so the use of --with- or
+--without-c99-vsnprintf parameter is necessary. Most of modern operating
+systems provide C99-compliant standard library so in case of doubt one
+can use --with-c99-vsnprintf.
+
+An asynchronous domain name resolver uses processes or pthreads. If the
+system library provides gethostbyname_r() function for use in multithreaded 
+applications (Linux with glibc, SunOS) it will be used.
+

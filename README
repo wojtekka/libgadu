@@ -9,25 +9,22 @@ protokół został rozszyfrowany metodą inżynierii wstecznej (ang. "reverse
 engineering"), przez co libgadu może nie być w 100% zgodna
 z pierwowzorem.
 
+Należy pamiętać, że używanie alternatywnych klientów może być niezgodne
+z regulaminem korzystania z serwisu Gadu-Gadu.
+
+Biblioteka została napisana w języku C i jest niezależna od systemu
+operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi
+z POSIX, również BeOS i Win32. Używana jest w aplikacjach konsolowych,
+jak i graficznych GTK+ i Qt.
+
 Biblioteka jest udostępniana na zasadach licencji LGPL w wersji 2.1,
-której treść znajduje się w pliku COPYING. Biblioteka została napisana
-w języku C i jest niezależna od systemu operacyjnego czy środowiska.
-Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS
-i Win32. Używana jest w aplikacjach konsolowych, jak i graficznych GTK+ i Qt.
+której treść znajduje się w pliku COPYING.
 
 Strona projektu znajduje się pod adresem http://libgadu.net/.
-Osoby zainteresowane biblioteką mogą zapisać się na listę dyskusyjną
-libgadu-devel poświęconą rozwojowi biblioteki, programowaniu przy jej
-użyciu oraz protokołowi Gadu-Gadu. Istnieje również lista
-libgadu-commit, na którą są wysyłane informacje o zmianach w kodzie
-źródłowym. Informacje o listach dyskusyjnych można uzyskać na stronach:
 
- - http://lists.ziew.org/mailman/listinfo/libgadu-devel
-
- - http://lists.ziew.org/mailman/listinfo/libgadu-commit
-
-Ostrzeżenie: Należy pamiętać, że używanie alternatywnych klientów jest
-niezgodne z regulaminem korzystania z serwisu Gadu-Gadu.
+Problemy z biblioteką można zgłaszać na stronie projektu w GitHubie pod
+adresem https://github.com/wojtekka/libgadu/issues. Używana wcześniej
+lista dyskusyjna libgadu-devel@lists.ziew.org nie jest już dostępna.
 
 Wymagania
 ---------
