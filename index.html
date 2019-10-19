@@ -7,21 +7,33 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta name="Keywords" content="libgadu, libgg, gg, gadu-gadu, gadugadu, linux, unix, ekg, gpl, lgpl" />
 		<meta rel="canonical" href="http://libgadu.net/" />
+		<script><!--
+		document.addEventListener("keypress", function(e) {
+			console.log(e);
+			if (e.charCode == 49)
+				document.location = "index.en.html";
+		});
+		document.addEventListener("DOMContentLoaded", function(event) {
+			console.log("loaded");
+		});
+		//--></script>
 	</head>
 	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
 		<h1>libgadu</h1>
 
 		<p>Biblioteka do obsługi protokołu komunikatora <a href="http://www.gadu-gadu.pl/">Gadu-Gadu</a>.</p>
 
+		<p><a href="index.en.html">(For English press 1)</a></p>
+
 		<hr />
 
 		<h3 id="news">Nowości</h3>
 
 		<ul>
-			<li>2017-02-01: Wydano <i>libgadu</i> w wersji 1.12.2 (<a href="releases/1.12.2.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.12.2/libgadu-1.12.2.tar.gz">pobierz</a>).</li>
-			<li>2014-12-30: Wydano <i>libgadu</i> w wersji 1.12.1 (<a href="releases/1.12.1.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.12.1/libgadu-1.12.1.tar.gz">pobierz</a>).</li>
+			<li>2017-02-01: Wydano <i>libgadu</i> w wersji 1.12.2 zawierającą <strong>poprawkę bezpieczeństwa</strong>(<a href="releases/1.12.2.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.12.2/libgadu-1.12.2.tar.gz">pobierz</a>).</li>
+			<li>2014-12-30: Wydano <i>libgadu</i> w wersji 1.12.1 zawierającą <strong>poprawkę bezpieczeństwa</strong>(<a href="releases/1.12.1.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.12.1/libgadu-1.12.1.tar.gz">pobierz</a>).</li>
 			<li>2014-06-13: Wydano <i>libgadu</i> w wersji 1.12.0 (<a href="releases/1.12.0.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.12.0/libgadu-1.12.0.tar.gz">pobierz</a>).</li>
-			<li>2014-05-08: Wydano <i>libgadu</i> w wersji 1.11.4 zawierającą <b>poprawkę bezpieczeństwa</b> (<a href="releases/1.11.4.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.11.4/libgadu-1.11.4.tar.gz">pobierz</a>).</li>
+			<li>2014-05-08: Wydano <i>libgadu</i> w wersji 1.11.4 zawierającą <strong>poprawkę bezpieczeństwa</strong> (<a href="releases/1.11.4.html">informacje o wydaniu</a>, <a href="http://github.com/wojtekka/libgadu/releases/download/1.11.4/libgadu-1.11.4.tar.gz">pobierz</a>).</li>
 			<li><a href="archive.html">Starsze wiadomości</a></li>
 
 		</ul>
@@ -30,7 +42,7 @@
 
 		<h3 id="about">Informacje</h3>
 
-		<p><i>libgadu</i> jest biblioteką przeznaczoną do obsługi protokołu komunikatora Gadu-Gadu. Przez dłuższy czas była integralną częścią <a href="http://ekg.chmurka.net/">Eksperymentalnego Klienta Gadu-Gadu</a>, lecz ze względu na problemy z dystrybucją pakietów i wykorzystaniem w innych aplikacjach, została wydzielona do osobnego projektu. Własnościowy protokół został rozszyfrowany metodą inżynierii wstecznej (ang. <i>reverse engineering</i>), przez co <i>libgadu</i> może nie być w 100% zgodna z pierwowzorem. Należy również pamiętać, że używanie alternatywnych klientów jest niezgodne z <a href="http://www.gadu-gadu.pl/program-regulamin.html">regulaminem korzystania z serwisu Gadu-Gadu</a>.</p>
+		<p><i>libgadu</i> jest biblioteką przeznaczoną do obsługi protokołu komunikatora Gadu-Gadu. Przez dłuższy czas była integralną częścią <a href="http://ekg.chmurka.net/">Eksperymentalnego Klienta Gadu-Gadu</a>, lecz ze względu na problemy z dystrybucją pakietów i wykorzystaniem w innych aplikacjach, została wydzielona do osobnego projektu. Własnościowy protokół został rozszyfrowany metodą inżynierii wstecznej (ang. <i>reverse engineering</i>), przez co <i>libgadu</i> może nie być w 100% zgodna z pierwowzorem. Należy również pamiętać, że używanie alternatywnych klientów jest niezgodne z <a href="https://www.gg.pl/info/regulamin/">regulaminem Gadu-Gadu</a>.</p>
 
 		<p>Biblioteka została napisana w języku C i jest niezależna od systemu operacyjnego czy środowiska. Pracuje pod systemami operacyjnymi zgodnymi z POSIX, również BeOS i Win32, choć ten ostatni nie jest wspierany ze względu na istnienie oficjalnego klienta Gadu-Gadu. Używana jest w aplikacjach konsolowych, jak i graficznych <a href="http://www.gtk.org/">GTK+</a> i <a href="https://qt-project.org/">Qt</a>.</p>
 
@@ -72,7 +84,7 @@
 			<li><a href="http://github.com/wojtekka/libgadu/releases/download/1.7.0/libgadu-1.7.0.tar.gz">libgadu-1.7.0.tar.gz</a> (<a href="releases/1.7.0.html">informacje o wydaniu</a>)</li>
 		</ul>
 
-		<p>Kod źródłowy znajduje się również w repozytorium w serwisie <a href="http://github.com/">GitHub</a> pod adresem <a href="https://github.com/wojtekka/libgadu">https://github.com/wojtekka/libgadu</a>. By pobrać repo&shy;zy&shy;torium należy wykonać polecenie:</p>
+		<p>Kod źródłowy znajduje się również w repozytorium w serwisie <a href="http://github.com/">GitHub</a> pod adresem <a href="https://github.com/wojtekka/libgadu">https://github.com/wojtekka/libgadu</a>. By pobrać repozytorium należy wykonać polecenie:</p>
 
 		<pre style="margin: 0 2em;">git clone https://github.com/wojtekka/libgadu.git</pre>
 
@@ -80,7 +92,7 @@
 
 		<h3 id="doc">Dokumentacja</h3>
 
-		<p>Dostępna jest <a href="docs/">wersja poglądowa</a> dokumentacji biblioteki wygenerowa&shy;na ze źródeł za pomocą <a href="http://www.doxygen.org/">Doxygen</a>. Uwagi i komentarze mile widziane. Po pobraniu źródeł z repozytorium Subversion dokumentację można wyge&shy;nerować wywołując polecenie <tt>make</tt> w katalogu <tt>docs</tt>.</p>
+		<p>Dostępna jest <a href="docs/">wersja poglądowa</a> dokumentacji biblioteki wygenerowana ze źródeł za pomocą <a href="http://www.doxygen.org/">Doxygen</a>. Uwagi i komentarze mile widziane. Po pobraniu źródeł z repozytorium dokumentację można wygenerować wywołując polecenie <tt>make</tt> w katalogu <tt>docs</tt>.</p>
 
 		<p><a href="protocol/">Opis protokołu</a> jest również dostępny z poziomu strony projektu.</p> 
 

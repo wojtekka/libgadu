@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>libgadu 1.11.4</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="Keywords" content="libgadu, libgg, gg, gadu-gadu, gadugadu, linux, unix, ekg, gpl, lgpl" />
+	</head>
+	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
+		<h1>libgadu 1.11.4</h1>
+
+		<p>8th May 2014</p>
+
+		<hr />
+
+		<h3>Changes</h3>
+
+		<ul>
+			<li><strong>Security fix</strong> in file transfer via proxy server. A crafted server response may cause memory corruption (<a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-3775">CVE-2014-3775</a>)</li>
+		</ul>
+
+		<hr />
+
+		<h3>Download</h3>
+
+		<ul>
+			<li><a href="http://github.com/wojtekka/libgadu/releases/download/1.11.4/libgadu-1.11.4.tar.gz">libgadu-1.11.4.tar.gz</a></li>
+		</ul>
+
+		<hr />
+
+		<h3>Known issues</h3>
+
+		<ul>
+			<li>Encrypted connection doesn't verify server certificate which may lead to man-in-the-middle attack. This is a potential <b>security issue</b> fixed in version 1.12.0.</li>
+			<li>Voice calls and transfers via proxy server are not well tested.</li>
+		</ul>
+
+		<hr />
+
+		<div style="padding: 0.5em 0em 1.5em 0em;">
+			&copy; Copyright 2014 <a href="http://github.com/wojtekka/libgadu/blob/1.11.4/AUTHORS">Authors</a>
+		</div>
+	</body>
+</html>

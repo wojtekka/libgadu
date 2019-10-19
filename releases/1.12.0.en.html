@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>libgadu 1.12.0</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="Keywords" content="libgadu, libgg, gg, gadu-gadu, gadugadu, linux, unix, ekg, gpl, lgpl" />
+	</head>
+	<body style="width: 600px; margin: 10pt auto; text-align: justify;">
+		<h1>libgadu 1.12.0</h1>
+
+		<p>13th June 2014</p>
+
+		<hr />
+
+		<h3>Changes</h3>
+
+		<ul>
+			<li>Gadu-Gadu 11 protocol support.</li>
+			<li>An option to verify server certificate.</li>
+			<li>An option to use own functions for TCP/TLS connections.</li>
+			<li>An option to pass server domain name, not just IP address.</li>
+			<li>Fixed small issues reported by Pigdin project found by their Coverity audit.</li>
+			<li>OpenSSL is not detected automatically.</li>
+			<li>Picture transfer fixes.</li>
+			<li>Fixed unit tests reliability.</li>
+			<li>Fixed Windows port reliability.</li>
+		</ul>
+
+		<p>Because lack of server certificate verification was reported as a security issue please treat this release as critical if encrypted transmission was in fact used.</p>
+
+		<p>More details description of API/ABI changes is available in <a href="../docs/group__changelog.html">documentation (Polish only)</a>.</p>
+
+		<hr />
+
+		<h3>Download</h3>
+
+		<ul>
+			<li><a href="http://github.com/wojtekka/libgadu/releases/download/1.12.0/libgadu-1.12.0.tar.gz">libgadu-1.12.0.tar.gz</a></li>
+		</ul>
+
+		<hr />
+
+		<h3>Known issues</h3>
+
+		<ul>
+			<li>Resolver unit tests may not work properly in Fedora.</li>
+			<li>Some features of previous protocol versions (file transfers, voice calls) may not be supported by the network or be unstable.</li>
+			<li>Not all protocol features are unit tested.</li>
+		</ul>
+
+		<hr />
+
+		<div style="padding: 0.5em 0em 1.5em 0em;">
+			&copy; Copyright 2014 <a href="http://github.com/wojtekka/libgadu/blob/1.12.0/AUTHORS">Authors</a>
+		</div>
+	</body>
+</html>
