@@ -19,16 +19,16 @@
 #ifndef USERCONFIG_H
 #define USERCONFIG_H
 
-unsigned int config_uin;
-char *config_password;
-unsigned int config_peer;
-char *config_file;
-char *config_dir;
-unsigned int config_size;
-unsigned long config_ip;
-unsigned int config_port;
-char *config_server;
-char *config_proxy;
+extern unsigned int config_uin;
+extern char *config_password;
+extern unsigned int config_peer;
+extern char *config_file;
+extern char *config_dir;
+extern unsigned int config_size;
+extern unsigned long config_ip;
+extern unsigned int config_port;
+extern char *config_server;
+extern char *config_proxy;
 
 int config_read(void);
 void config_free(void);
